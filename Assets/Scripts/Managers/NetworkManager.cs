@@ -1,9 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 using kcp2k;
-using Unity.VisualScripting;
 using System;
 
 public class NetworkManager : UnitySingleton<NetworkManager>
@@ -12,13 +10,16 @@ public class NetworkManager : UnitySingleton<NetworkManager>
 
     public Action OnConnected;
     public Action OnDisconnected;
-    public Action<ArraySegment<byte>, KcpChannel> OnFrameDataReceived; // ÊÕµ½Ö¡Êı¾İ»Øµ÷
+    public Action<string> OnConnectFailed;
+    public Action<ArraySegment<byte>, KcpChannel> OnDataReceived; // Changed from OnFrameDataReceived
 
     [Header("KCP Settings")]
     public string ip = "127.0.0.1";
     public ushort port = 9999;
     public bool noDelay = true;
-    public uint interval = 10; // KCP ÄÚ²¿Ë¢ĞÂÆµÂÊ (ms)
+    public uint interval = 10; // KCP å†…éƒ¨åˆ·æ–°é¢‘ç‡ (ms)
+
+    public bool Connected => _client != null && _client.connected;
 
     public override void Awake()
     {
@@ -38,12 +39,15 @@ public class NetworkManager : UnitySingleton<NetworkManager>
                     Debug.Log("[KCP] Connected");
                     OnConnected?.Invoke();
                 },
-                (data, channel) => OnFrameDataReceived?.Invoke(data, channel),
+                (data, channel) => OnDataReceived?.Invoke(data, channel),
                 () => {
                     Debug.Log("[KCP] Disconnected");
                     OnDisconnected?.Invoke();
                 },
-                (error, reason) => Debug.LogWarning($"[KCP] Error: {error}, Reason: {reason}"),
+                (error, reason) => {
+                    Debug.LogWarning($"[KCP] Error: {error}, Reason: {reason}");
+                    OnConnectFailed?.Invoke(reason);
+                },
                 config
         );
     }
@@ -60,19 +64,16 @@ public class NetworkManager : UnitySingleton<NetworkManager>
     }
 
     /*
-     * ·¢ËÍÖ¸Áî
+     * å‘é€åŸå§‹å­—èŠ‚æ•°æ®
      */
-    public void SendInput(byte[] data)
+    public void Send(byte[] data, KcpChannel channel = KcpChannel.Reliable)
     {
-        if (_client.connected)
+        if (Connected)
         {
-            _client.Send(new ArraySegment<byte>(data), KcpChannel.Unreliable);
+            _client.Send(new ArraySegment<byte>(data), channel);
         }
     }
 
-    /*
-     * kcp tickÇı¶¯
-     */
     private void Update()
     {
         _client?.Tick();
