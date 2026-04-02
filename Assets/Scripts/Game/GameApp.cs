@@ -2,17 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameApp : MonoBehaviour
+public class GameApp : UnitySingleton<GameApp>
 {
-    // Start is called before the first frame update
-    void Start()
+    // 游戏逻辑入口
+    public void GameStart()
     {
-        
+        Debug.Log("GameStart");
+        this.EnterGame();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void EnterGame()
     {
-        
+        // 加载游戏地图
+
+
+        // 加载游戏逻辑地图
+
+
+
+        // 加载游戏UI
     }
 }
