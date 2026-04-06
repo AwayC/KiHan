@@ -1,4 +1,6 @@
 using System;
+using System.Reflection.Emit;
+using System.Collections.Generic;
 
 namespace KiHan.Logic
 {
@@ -24,7 +26,7 @@ namespace KiHan.Logic
         PlayerListResp = 2, // + [1:ErrCode][userInfo]
         GameFrameUpdate = 3, // + [GameFrame]
         GameStartNtf = 4, // + [4:roomId]
-        GameOverNtf = 5, // + [1:roomId]
+        GameOverNtf = 5, // + [4:roomId]
         PlayerReadyResp = 6, // [1:ErrCode]
         PlayerJoinNtf = 7, // + [4:uid][1:gameId][1:characterId][nick]
         PlayerLeftNtf = 8, // + [4:uid]
@@ -50,7 +52,7 @@ namespace KiHan.Logic
         public const int DataLength = 6;
 
         public uint FrameId; // 4 bytes
-        public byte JoyStickAngle; // 0-255
+        public byte JoyStickAngle; // 0-180 , 255 为无移动
         public ButtonMask Buttons;
 
         public void Serialize(byte[] buffer, int offset)
@@ -81,28 +83,7 @@ namespace KiHan.Logic
     public class RoomFrame
     {
         public uint FrameId = 1; // 4 bytes
-        public byte PlayerCount; // 1 byte, 0-255
-        public Dictionary<byte, byte[]> InputFrames = []; // <gameId, InputFrame>, InputFrame 2 bytes, no frameId
-
-        public int Serialize(byte[] buffer)
-        {
-            using var ms = new MemoryStream(buffer);
-            using var writer = new BinaryWriter(ms);
-
-            writer.Write((byte)ServerOpCode.GameFrameUpdate);
-
-            writer.Write(FrameId);
-
-            writer.Write((byte)InputFrames.Count);
-
-            foreach (var kvp in InputFrames)
-            {
-                writer.Write(kvp.Key);   // GameId (1 byte)
-                writer.Write(kvp.Value); // 2 bytes
-            }
-
-            // 总包长
-            return (int)ms.Position;
-        }
+        public int PlayerCount; // 1 byte, 0-255
+        public Dictionary<byte, InputFrame> InputFrames; // <gameId, InputFrame>, InputFrame 2 bytes, no frameId
     }
 }

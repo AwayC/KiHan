@@ -5,17 +5,21 @@ namespace Managers
 {
     public class ResManager : UnitySingleton<ResManager>
     {
-        // 资源缓存 <path, obj>
-        private Dictionary<string, Object> _assetCache = new Dictionary<string, Object>();
+        private Dictionary<string, Object> _assetCache = new();
+        private Dictionary<string, Stack<GameObject>> _pool = new();
+        private Transform _poolRoot;
 
-        // 对象池
-        private Dictionary<string, Stack<GameObject>> _pool = new Dictionary<string, Stack<GameObject>>();
+        protected override void Awake()
+        {
+            base.Awake();
+            _poolRoot = new GameObject("PoolRoot").transform;
+            DontDestroyOnLoad(_poolRoot);
+        }
 
-        /*
-         * 加载资源
-         */
         public T Load<T>(string path) where T : Object
         {
+            if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
+
             if (_assetCache.TryGetValue(path, out var asset))
             {
                 return asset as T;
@@ -26,54 +30,59 @@ namespace Managers
             {
                 _assetCache[path] = newAsset;
             }
+            else
+            {
+                Debug.LogError($"[Res] 资源加载失败: {path}");
+            }
             return newAsset;
         }
 
-        /*
-         * 对象池加载
-         */
-        public GameObject Spawn(string path, Transform parent = null)
+        public GameObject Spawn(string path, Vector3 position, Quaternion rotation, Transform parent = null)
         {
+            GameObject obj = null;
             if (_pool.TryGetValue(path, out var stack) && stack.Count > 0)
             {
-                GameObject obj = stack.Pop();
+                obj = stack.Pop();
                 obj.SetActive(true);
-                return obj;
+                obj.transform.SetParent(parent);
             }
-
-            GameObject prefab = Load<GameObject>(path);
-            if (prefab != null)
+            else
             {
-                GameObject instance = Instantiate(prefab, parent);
-                instance.name = path;
-                return instance;
+                GameObject prefab = Load<GameObject>(path);
+                if (prefab != null)
+                {
+                    obj = Instantiate(prefab, parent);
+                    obj.name = path;
+                }
             }
 
-            Debug.LogError($"[Res] 资源加载失败: {path}");
-            return null;
+            if (obj != null)
+            {
+                obj.transform.position = position;
+                obj.transform.rotation = rotation;
+            }
+            return obj;
         }
 
-        /*
-         * 放入对象池
-         */
         public void Recycle(GameObject obj)
         {
+            if (obj == null) return;
+
             string path = obj.name;
             obj.SetActive(false);
+            obj.transform.SetParent(_poolRoot);
 
-            if (!_pool.ContainsKey(path))
-            {
-                _pool[path] = new Stack<GameObject>();
-            }
+            if (!_pool.ContainsKey(path)) _pool[path] = new Stack<GameObject>();
             _pool[path].Push(obj);
         }
 
-        /*
-         * 清空
-         */
         public void Clear()
         {
             _assetCache.Clear();
+            foreach (var stack in _pool.Values)
+            {
+                while (stack.Count > 0) Destroy(stack.Pop());
+            }
             _pool.Clear();
             Resources.UnloadUnusedAssets();
         }

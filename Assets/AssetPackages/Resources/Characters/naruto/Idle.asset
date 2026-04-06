@@ -1,0 +1,153 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: Idle
+  m_EditorClassIdentifier: 
+  AnimName: Idle
+  FrameRate: 15
+  IsLoop: 1
+  Frames:
+  - Sprite: {fileID: 21300000, guid: 88be031b32decc54299472ccacc772d1, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: e9e8f8d0c318c73439be31539b4d3759, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: d7a6ad0d801cc7543ab5d96e045ab62d, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: e9e8f8d0c318c73439be31539b4d3759, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: 88be031b32decc54299472ccacc772d1, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: a55249a8a89262d44b70249d47922fdf, type: 3}
+    Duration: 2
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: 85716d4bfa1f52143b964dabf567519a, type: 3}
+    Duration: 2
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: b983bac75bce04f4b92c0e7f27b87761, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}
+  - Sprite: {fileID: 21300000, guid: 85716d4bfa1f52143b964dabf567519a, type: 3}
+    Duration: 1
+    HurtBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    HitBox:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    RootMotion: {x: 0, y: 0}

@@ -99,3 +99,8 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
 GEMINI.md
+
+build/
+tmp/
+Assets/temp/
+Assets/temp.meta
