@@ -5,7 +5,7 @@ using UnityEngine;
 public class SceneManager : MonoBehaviour
 {
     /*
-     * ³¡¾°¼ÓÔØ£¬½ÇÉ«£¬npc
+     * åœºæ™¯åŠ è½½ï¼Œè§’è‰²ï¼Œnpc
      */
     public void init()
     {

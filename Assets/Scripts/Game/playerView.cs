@@ -12,11 +12,11 @@ public class PlayerView : MonoBehaviour
     {
         if (BindEntity == null) return;
 
-        // 1. ×ø±ê²åÖµ
+        // åæ ‡æ’å€¼
         Vector3 targetPos = new Vector3(BindEntity.LogicPos.x, BindEntity.LogicPos.y, 0);
         transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * SmoothSpeed);
 
-        // 2. ÌùÍ¼Í¬²½
+        // è´´å›¾
         _sr.sprite = BindEntity.GetCurrentSprite();
         _sr.flipX = BindEntity.IsFacingLeft;
     }

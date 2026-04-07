@@ -8,7 +8,7 @@ public class EventManager : UnitySingleton<EventManager>
     private Dictionary<string, Action<object>> _eventDict = new Dictionary<string, Action<object>>();
 
     /*
-     * 增加监听
+     * 澧炲姞鐩戝惉
      */
     public void AddListener(string eventName, Action<object> callback)
     {
@@ -17,7 +17,7 @@ public class EventManager : UnitySingleton<EventManager>
     }
 
     /*
-     * 触发事件
+     * 瑙﹀彂浜嬩欢
      */
     public void Emit(string eventName, object arg = null)
     {

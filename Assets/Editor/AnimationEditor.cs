@@ -22,9 +22,9 @@ public class AnimationFrameDataEditor : Editor
         if (_data.Frames == null || _data.Frames.Count == 0) return;
 
         EditorGUILayout.Space(15);
-        EditorGUILayout.LabelField("¶¯×÷Ô¤ÀÀ (Ö§³Ö Duration Í£ÁôÖ¡)", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("åŠ¨ä½œé¢„è§ˆ (æ”¯æŒ Duration åœç•™å¸§)", EditorStyles.boldLabel);
 
-        // --- Ô¤ÀÀ¼ÆÊ±Âß¼­ ---
+        // --- é¢„è§ˆè®¡æ—¶é€»è¾‘ ---
         float baseInterval = 1f / Mathf.Max(1f, _data.FrameRate);
         double currentTime = EditorApplication.timeSinceStartup;
 
@@ -39,16 +39,16 @@ public class AnimationFrameDataEditor : Editor
             }
         }
 
-        // --- »æÖÆÇøÓò ---
+        // --- ç»˜åˆ¶åŒºåŸŸ ---
         using (new EditorGUILayout.VerticalScope(GUI.skin.box))
         {
             Rect rect = GUILayoutUtility.GetRect(0, 250, GUILayout.ExpandWidth(true));
             var frame = _data.Frames[_previewIndex];
             if (frame.Sprite != null) DrawSpriteIndustrial(rect, frame.Sprite);
 
-            // ½ø¶È¿ØÖÆ
+            // è¿›åº¦æ§åˆ¶
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button(_isPaused ? "²¥·Å" : "ÔİÍ£")) _isPaused = !_isPaused;
+            if (GUILayout.Button(_isPaused ? "æ’­æ”¾" : "æš‚åœ")) _isPaused = !_isPaused;
             EditorGUI.BeginChangeCheck();
             _previewIndex = EditorGUILayout.IntSlider(_previewIndex, 0, _data.Frames.Count - 1);
             if (EditorGUI.EndChangeCheck()) { _isPaused = true; Repaint(); }

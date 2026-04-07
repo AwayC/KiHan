@@ -6,7 +6,7 @@ public class ParallaxEffect : MonoBehaviour
 
     private Transform _cameraTrans;
     private Vector3 _startCameraPos;
-    private float _startX; // 初始水平位置
+    private float _startX; // 鍒濆姘村钩浣嶇疆
 
     private void Start()
     {

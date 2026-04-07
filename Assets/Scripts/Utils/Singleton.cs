@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 普通单例 - 用于纯逻辑层（Logic）
+// 普通单例 
 public abstract class Singleton<T> where T : new()
 {
     private static T _instance;
@@ -25,7 +25,7 @@ public abstract class Singleton<T> where T : new()
     }
 }
 
-// Unity 单例 - 用于表现层（View/Manager）
+// Unity 单例
 public class UnitySingleton<T> : MonoBehaviour where T : Component
 {
     private static T _instance = null;
@@ -41,7 +41,7 @@ public class UnitySingleton<T> : MonoBehaviour where T : Component
                 {
                     GameObject obj = new GameObject();
                     _instance = obj.AddComponent<T>();
-                    // 保证在场景切换时不被销毁
+
                     DontDestroyOnLoad(obj);
                     obj.name = typeof(T).Name;
                 }
@@ -52,7 +52,6 @@ public class UnitySingleton<T> : MonoBehaviour where T : Component
 
     protected virtual void Awake()
     {
-        // 如果场景中已经手动挂载了一个单例，确保不会重复
         if (_instance == null)
         {
             _instance = this as T;
@@ -60,7 +59,7 @@ public class UnitySingleton<T> : MonoBehaviour where T : Component
         }
         else if (_instance != this)
         {
-            Debug.LogWarning($"[Singleton] 发现重复的单例 {typeof(T).Name}，已自动删除。");
+            Debug.LogWarning($"[Singleton] Instance already exists, destroying duplicate: {this.gameObject.name}");
             Destroy(this.gameObject);
         }
     }

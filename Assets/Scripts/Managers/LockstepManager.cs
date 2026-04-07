@@ -22,7 +22,7 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         switch (op)
         {
             case ServerOpCode.RoomEnterResp:
-                MyGameId = data.Array[data.Offset + 5]; // 偏移 5 字节获取分配的 ID
+                MyGameId = data.Array[data.Offset + 5];
                 Debug.Log($"[Lockstep] 入场确认，我的 ID: {MyGameId}");
                 byte[] sendData = new byte[1];
                 sendData[0] = (byte)ClientOpCode.PlayerReadyReq;
@@ -50,7 +50,6 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         _gameStarted = true;
         _currFrameId = 0;
 
-        // 关键调用：启动 GameApp 的加载流程
         GameApp.Instance.GameStart();
     }
 
@@ -75,12 +74,13 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         _currFrameId = frameId;
         OnLogicTick?.Invoke(frameId, allInputs);
 
-        // 采集并上报本地下一帧输入
         CaptureAndSendInput();
     }
 
     private void CaptureAndSendInput()
     {
+        // 当前不支持 joystick
+        // todo: 支持 joystick
         InputFrame input = new InputFrame { FrameId = _currFrameId + 1 };
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
