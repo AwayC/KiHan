@@ -23,16 +23,6 @@ public class PlayerView : MonoBehaviour
     private void LateUpdate()
     {
         if (BindEntity == null) return;
-
-<<<<<<< Updated upstream
-        // 坐标插值
-        Vector3 targetPos = new Vector3(BindEntity.LogicPos.x, BindEntity.LogicPos.y, 0);
-        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * SmoothSpeed);
-
-        // 贴图
-        _sr.sprite = BindEntity.GetCurrentSprite();
-        _sr.flipX = BindEntity.IsFacingLeft;
-=======
         // 1. 位置平滑
         Vector3 targetPos = new Vector3(BindEntity.LogicPos.x, BindEntity.LogicPos.y, 0);
         transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * SmoothSpeed);
@@ -42,7 +32,6 @@ public class PlayerView : MonoBehaviour
 
         // 3. 渲染
         RenderCurrent();
->>>>>>> Stashed changes
     }
 
     private void UpdateVisualIndex()

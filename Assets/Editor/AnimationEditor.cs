@@ -25,20 +25,7 @@ public class AnimationFrameDataEditor : Editor
     {
         serializedObject.Update();
 
-<<<<<<< Updated upstream
-        if (_data.Frames == null || _data.Frames.Count == 0) return;
-
-        EditorGUILayout.Space(15);
-        EditorGUILayout.LabelField("动作预览 (支持 Duration 停留帧)", EditorStyles.boldLabel);
-
-        // --- 预览计时逻辑 ---
-        float baseInterval = 1f / Mathf.Max(1f, _data.FrameRate);
-        double currentTime = EditorApplication.timeSinceStartup;
-
-        if (!_isPaused && Application.isPlaying == false)
-=======
         using (new EditorGUILayout.VerticalScope(GUI.skin.box))
->>>>>>> Stashed changes
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("AnimName"));
             EditorGUILayout.PropertyField(_libraryProp, new GUIContent("引用帧库 (SFF)"));
@@ -183,27 +170,10 @@ public class AnimationFrameDataEditor : Editor
             }
         }
 
-<<<<<<< Updated upstream
-        // --- 绘制区域 ---
-        using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-        {
-            Rect rect = GUILayoutUtility.GetRect(0, 250, GUILayout.ExpandWidth(true));
-            var frame = _data.Frames[_previewIndex];
-            if (frame.Sprite != null) DrawSpriteIndustrial(rect, frame.Sprite);
-
-            // 进度控制
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button(_isPaused ? "播放" : "暂停")) _isPaused = !_isPaused;
-            EditorGUI.BeginChangeCheck();
-            _previewIndex = EditorGUILayout.IntSlider(_previewIndex, 0, _data.Frames.Count - 1);
-            if (EditorGUI.EndChangeCheck()) { _isPaused = true; Repaint(); }
-            EditorGUILayout.EndHorizontal();
-=======
         EditorGUILayout.Space(5);
         if (GUILayout.Button("+ 添加新步骤 (ADD STEP)", GUILayout.Height(35))) 
         {
             _stepsProp.InsertArrayElementAtIndex(_stepsProp.arraySize);
->>>>>>> Stashed changes
         }
     }
 

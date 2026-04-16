@@ -6,30 +6,15 @@ using KiHan.Logic;
 public class AnimationFrameData : ScriptableObject
 {
     public string AnimName;
-<<<<<<< Updated upstream
-    public float FrameRate = 15f; // 逻辑帧率
-=======
     public CharacterSpriteLibrary Library; 
->>>>>>> Stashed changes
     public bool IsLoop = true;
 
     [System.Serializable]
     public class AnimStep 
     {
-<<<<<<< Updated upstream
-        public Sprite Sprite;
-
-        public int Duration = 1;
-
-        [Header("物理/战斗数据")]
-        public Rect HurtBox;
-        public Rect HitBox;
-        public Vector2 RootMotion; // 逻辑位移
-=======
         public int FrameIndex; // 帧库中的索引
         public int Duration = 1;
         public Vector2 RootMotion;
->>>>>>> Stashed changes
     }
 
     public List<AnimStep> Steps = new List<AnimStep>();
