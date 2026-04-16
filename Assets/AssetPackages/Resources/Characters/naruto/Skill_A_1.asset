@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: Skill_A_1
+  m_EditorClassIdentifier: 
+  AnimName: Skill_A_1
+  Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
+  IsLoop: 1
+  Steps:
+  - FrameIndex: 6
+    Duration: 1
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 7
+    Duration: 6
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 8
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 9
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 10
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 11
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 12
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 13
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 14
+    Duration: 2
+    RootMotion: {x: 0, y: 0}

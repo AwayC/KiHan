@@ -10,14 +10,17 @@ public class GameLanch : UnitySingleton<GameLanch>
         // end
 
         // 初始化游戏逻辑模块代码
-        this.gameObject.AddComponent<GameApp>();
+        if (gameObject.GetComponent<GameApp>() == null)
+        {
+            gameObject.AddComponent<GameApp>();
+        }
         // end
 
         // 检查更新资源
         // end
 
-        // 初始化游戏逻辑入口
-        GameApp.Instance.GameStart();
-        // end
+        // 注意：不再这里直接调用 GameStart
+        // 游戏启动将由 NetworkManager 连接成功后的协议流程触发
+        // (RoomEnterResp -> PlayerReadyReq -> GameStartNtf -> GameApp.GameStart)
     }
 }

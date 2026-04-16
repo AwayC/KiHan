@@ -13,96 +13,24 @@ MonoBehaviour:
   m_Name: Run
   m_EditorClassIdentifier: 
   AnimName: Run
-  FrameRate: 15
-  IsLoop: 1
-  Frames:
-  - Sprite: {fileID: 21300000, guid: f16a167ceec35e94e8399cbf17797454, type: 3}
-    Duration: 1
-    HurtBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    HitBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
+  Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
+  IsLoop: 0
+  Steps:
+  - FrameIndex: 59
+    Duration: 3
     RootMotion: {x: 0, y: 0}
-  - Sprite: {fileID: 21300000, guid: 374cbf78a5fe82c479e6e4c0dca867ee, type: 3}
-    Duration: 1
-    HurtBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    HitBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
+  - FrameIndex: 60
+    Duration: 4
     RootMotion: {x: 0, y: 0}
-  - Sprite: {fileID: 21300000, guid: 70002f409b08ed044a038a08ff3f3bab, type: 3}
-    Duration: 1
-    HurtBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    HitBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    RootMotion: {x: 0, y: 0}
-  - Sprite: {fileID: 21300000, guid: 4b9545187c1be2f468542390da036bf9, type: 3}
-    Duration: 1
-    HurtBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    HitBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    RootMotion: {x: 0, y: 0}
-  - Sprite: {fileID: 21300000, guid: d8098908ede15f042ae40ba447a4490f, type: 3}
-    Duration: 1
-    HurtBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    HitBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    RootMotion: {x: 0, y: 0}
-  - Sprite: {fileID: 21300000, guid: e0e545e5732423a439bb81683ecb23ba, type: 3}
+  - FrameIndex: 61
     Duration: 2
-    HurtBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    HitBox:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 62
+    Duration: 3
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 63
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 64
+    Duration: 1
     RootMotion: {x: 0, y: 0}

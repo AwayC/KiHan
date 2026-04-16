@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using KiHan.Logic;
 using System.Collections.Generic;
 using Managers;
@@ -75,7 +75,8 @@ public class GameApp : UnitySingleton<GameApp>
 
     private LogicEntity SpawnHero(byte id, Vector2 birthPos)
     {
-        LogicEntity entity = new LogicEntity();
+        CharacterEntity entity = new CharacterEntity();
+        entity.GameId = id;
         entity.LogicPos = birthPos;
         entity.IsFacingLeft = (id == 2);
 
