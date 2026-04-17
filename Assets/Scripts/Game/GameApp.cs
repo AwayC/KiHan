@@ -1,108 +1,160 @@
-﻿using UnityEngine;
+using UnityEngine;
 using KiHan.Logic;
 using System.Collections.Generic;
-using Managers;
 using System;
 
 public class GameApp : UnitySingleton<GameApp>
 {
     [Header("Network Config")]
-    public string serverIp = "127.0.0.1";
-    public ushort serverPort = 9999;
     public uint roomId = 1;
     public string MapPath = "Maps/01/scen";
 
-    private uint _myUid;
-    private bool _isGameRunning = false;
-    private Dictionary<byte, LogicEntity> _entities = new Dictionary<byte, LogicEntity>();
+    [Header("Prefabs")]
+    public GameObject playerViewPrefab; 
 
-    // 开启连接网络
+    private uint _myUid;
+    private byte _myGameId;
+    private bool _isGameRunning = false;
+
+    // 管理所有实体的容器
+    private Dictionary<byte, GameActor> _actors = new Dictionary<byte, GameActor>();
+    // 快照缓存：FrameId -> (GameId -> ActorState)
+    private Dictionary<uint, Dictionary<byte, GameActor.ActorState>> _worldSnapshots = new Dictionary<uint, Dictionary<byte, GameActor.ActorState>>();
+
     private void Start()
     {
-        // 生成随机UID
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
-        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在自动连接服务器...");
+        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在自动连接...");
 
-        NetworkManager.Instance.ip = serverIp;
-        NetworkManager.Instance.port = serverPort;
-        NetworkManager.Instance.Connect();
-
-        NetworkManager.Instance.OnConnected = () => {
-            byte[] req = new byte[10];
-            req[0] = (byte)ClientOpCode.RoomEnterReq;
-            BitConverter.GetBytes(_myUid).CopyTo(req, 1);
-            BitConverter.GetBytes(roomId).CopyTo(req, 5);
-            req[9] = 1; // 默认角色
-            NetworkManager.Instance.Send(req);
-        };
+        if (NetworkManager.Instance != null)
+        {
+            NetworkManager.Instance.OnOpCodeReceived += HandleNetworkMessage;
+            NetworkManager.Instance.Connect();
+        }
     }
 
-    // 项目入口
+    private void HandleNetworkMessage(ServerOpCode op, ArraySegment<byte> payload)
+    {
+        switch (op)
+        {
+            case ServerOpCode.RoomEnterResp:
+                if (payload.Count >= 6)
+                {
+                    _myGameId = payload.Array[payload.Offset + 5];
+                    Debug.Log($"[GameApp] 进房成功，分配 GameId: {_myGameId}");
+                }
+                break;
+            case ServerOpCode.GameStartNtf:
+                GameStart();
+                break;
+        }
+    }
+
     public void GameStart()
     {
-        Debug.Log("[GameApp] 收到 LockstepManager 通知：服务器已开赛，开始初始化世界！");
-        StartCoroutine(InitGameFlow());
-    }
-
-    private System.Collections.IEnumerator InitGameFlow()
-    {
-        InitCamera();
-        LoadMap();
-
-        _entities[1] = SpawnHero(1, new Vector2(-2, 1.4f));
-        _entities[2] = SpawnHero(2, new Vector2(2, 1.4f));
-
-        LockstepManager.Instance.OnLogicTick = OnLogicStep;
+        if (_isGameRunning) return;
+        Debug.Log("[GameApp] 战斗开始通知，初始化战场...");
+        
+        InitWorld();
+        
+        LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
+        LockstepManager.Instance.OnSaveSnapshot = OnSaveWorldSnapshot;
+        LockstepManager.Instance.OnLoadSnapshot = OnLoadWorldSnapshot;
 
         _isGameRunning = true;
-        Debug.Log("[GameApp] 游戏逻辑已激活，等待第一帧同步包...");
-        yield return null;
     }
 
-    private void OnLogicStep(uint frameId, Dictionary<byte, InputFrame> allInputs)
+    private void InitWorld()
     {
-        Debug.Log($"[Logic] OnLogicStep {_isGameRunning}, allinputs: {allInputs.Count}");
+        // 1. 地图初始化
+        MapManager.Instance.LoadMap(MapPath);
+
+        // 2. 玩家初始化
+        _actors[1] = SpawnPlayer(1, new Vector2(-2, 1.4f));
+        _actors[2] = SpawnPlayer(2, new Vector2(2, 1.4f));
+
+        // 3. 相机追踪自己
+        if (_actors.TryGetValue(_myGameId, out var myActor))
+        {
+            CameraControllor.Instance.SetTarget(myActor.transform);
+        }
+        else if (_actors.Count > 0)
+        {
+            // 兜底：如果没找到自己，追踪 ID 1
+            CameraControllor.Instance.SetTarget(_actors[1].transform);
+        }
+    }
+
+    private GameActor SpawnPlayer(byte gId, Vector2 pos)
+    {
+        GameObject actorGo = new GameObject($"Actor_{gId}");
+        GameActor actor = actorGo.AddComponent<GameActor>();
+
+        CharacterEntity logic = new CharacterEntity();
+        logic.GameId = gId;
+        logic.LogicPos = pos;
+        logic.IsFacingLeft = (gId == 2);
+        
+        var idleData = ResManager.Instance.Load<AnimationFrameData>("Characters/naruto/Idle");
+        logic.AddState(new DefaultIdleState { IdleAnim = idleData });
+        logic.ChangeState(0); 
+
+        if (playerViewPrefab != null)
+        {
+            actor.Init(logic, playerViewPrefab);
+        }
+        else
+        {
+            GameObject viewGo = new GameObject("View");
+            viewGo.transform.SetParent(actorGo.transform);
+            var view = viewGo.AddComponent<PlayerView>();
+            view.BindEntity = logic;
+        }
+
+        return actor;
+    }
+
+    #region 同步层回调
+
+    private void OnStepLogic(GameFrame frame)
+    {
         if (!_isGameRunning) return;
 
-        foreach (var kv in allInputs)
+        for (int i = 0; i < frame.AllPlayerInputs.Length; i++)
         {
-            if (_entities.TryGetValue(kv.Key, out var entity))
+            byte actorId = (byte)(i + 1); 
+            if (_actors.TryGetValue(actorId, out var actor))
             {
-                entity.Tick(kv.Value);
+                actor.LogicTick(frame.AllPlayerInputs[i]);
             }
         }
     }
 
-    private LogicEntity SpawnHero(byte id, Vector2 birthPos)
+    private void OnSaveWorldSnapshot(uint frameId)
     {
-        CharacterEntity entity = new CharacterEntity();
-        entity.GameId = id;
-        entity.LogicPos = birthPos;
-        entity.IsFacingLeft = (id == 2);
+        var snapshot = new Dictionary<byte, GameActor.ActorState>();
+        foreach (var kv in _actors)
+        {
+            snapshot[kv.Key] = kv.Value.SaveState();
+        }
+        _worldSnapshots[frameId] = snapshot;
 
-        entity.IdleAnim = ResManager.Instance.Load<AnimationFrameData>("Characters/naruto/Idle");
-        entity.RunAnim = ResManager.Instance.Load<AnimationFrameData>("Characters/naruto/Run");
-
-        GameObject go = new GameObject($"Player_View_{id}");
-
-        SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-        sr.sortingOrder = 100;
-
-        var view = go.AddComponent<PlayerView>();
-        view.BindEntity = entity;
-
-        return entity;
+        if (frameId > 100) _worldSnapshots.Remove(frameId - 100);
     }
 
-    private void InitCamera()
+    private void OnLoadWorldSnapshot(uint frameId)
     {
-        var cam = Camera.main;
-        if (cam == null) cam = new GameObject("Main Camera").AddComponent<Camera>();
-        cam.orthographic = true;
-        cam.orthographicSize = 3.0f;
-        cam.transform.position = new Vector3(0, 1.4f, -10);
-        cam.backgroundColor = Color.black;
+        if (_worldSnapshots.TryGetValue(frameId, out var snapshot))
+        {
+            foreach (var kv in snapshot)
+            {
+                if (_actors.TryGetValue(kv.Key, out var actor))
+                {
+                    actor.LoadState(kv.Value);
+                }
+            }
+        }
     }
 
-    private void LoadMap() => ResManager.Instance.Spawn(MapPath, Vector3.zero, Quaternion.identity);
+    #endregion
 }
