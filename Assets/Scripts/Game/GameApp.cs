@@ -2,6 +2,7 @@ using UnityEngine;
 using KiHan.Logic;
 using System.Collections.Generic;
 using System;
+using Managers;
 
 public class GameApp : UnitySingleton<GameApp>
 {
@@ -18,16 +19,21 @@ public class GameApp : UnitySingleton<GameApp>
 
     // 管理所有实体的容器
     private Dictionary<byte, GameActor> _actors = new Dictionary<byte, GameActor>();
-    // 快照缓存：FrameId -> (GameId -> ActorState)
-    private Dictionary<uint, Dictionary<byte, GameActor.ActorState>> _worldSnapshots = new Dictionary<uint, Dictionary<byte, GameActor.ActorState>>();
 
     private void Start()
     {
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
-        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在自动连接...");
+        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化虚拟网络...");
+
+        // 强制确保 VirtualNetworkManager 存在并作为 NetworkManager 的实现
+        // 这样后续调用 NetworkManager.Instance 就会拿到这个虚拟实现
+        var net = VirtualNetworkManager.Instance; 
 
         if (NetworkManager.Instance != null)
         {
+            // 注入网络层实现
+            LockstepManager.Instance.Init(NetworkManager.Instance);
+
             NetworkManager.Instance.OnOpCodeReceived += HandleNetworkMessage;
             NetworkManager.Instance.Connect();
         }
@@ -55,11 +61,11 @@ public class GameApp : UnitySingleton<GameApp>
         if (_isGameRunning) return;
         Debug.Log("[GameApp] 战斗开始通知，初始化战场...");
         
+        // 1. 初始化世界（地图和玩家）
         InitWorld();
         
+        // 2. 绑定严格帧同步回调
         LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
-        LockstepManager.Instance.OnSaveSnapshot = OnSaveWorldSnapshot;
-        LockstepManager.Instance.OnLoadSnapshot = OnLoadWorldSnapshot;
 
         _isGameRunning = true;
     }
@@ -69,7 +75,7 @@ public class GameApp : UnitySingleton<GameApp>
         // 1. 地图初始化
         MapManager.Instance.LoadMap(MapPath);
 
-        // 2. 玩家初始化
+        // 2. 玩家初始化 (此处为原型演示，固定生成 1 和 2 号)
         _actors[1] = SpawnPlayer(1, new Vector2(-2, 1.4f));
         _actors[2] = SpawnPlayer(2, new Vector2(2, 1.4f));
 
@@ -80,7 +86,6 @@ public class GameApp : UnitySingleton<GameApp>
         }
         else if (_actors.Count > 0)
         {
-            // 兜底：如果没找到自己，追踪 ID 1
             CameraControllor.Instance.SetTarget(_actors[1].transform);
         }
     }
@@ -90,14 +95,13 @@ public class GameApp : UnitySingleton<GameApp>
         GameObject actorGo = new GameObject($"Actor_{gId}");
         GameActor actor = actorGo.AddComponent<GameActor>();
 
-        CharacterEntity logic = new CharacterEntity();
+        NarutoEntity logic = new NarutoEntity();
         logic.GameId = gId;
         logic.LogicPos = pos;
         logic.IsFacingLeft = (gId == 2);
         
-        var idleData = ResManager.Instance.Load<AnimationFrameData>("Characters/naruto/Idle");
-        logic.AddState(new DefaultIdleState { IdleAnim = idleData });
-        logic.ChangeState(0); 
+        // 调用鸣人特有的初始化 (加载所有状态和动画)
+        logic.Init();
 
         if (playerViewPrefab != null)
         {
@@ -116,41 +120,36 @@ public class GameApp : UnitySingleton<GameApp>
 
     #region 同步层回调
 
-    private void OnStepLogic(GameFrame frame)
+    private void OnStepLogic(RoomFrame frame)
     {
         if (!_isGameRunning) return;
 
-        for (int i = 0; i < frame.AllPlayerInputs.Length; i++)
+        // 1. 驱动所有实体执行输入逻辑
+        foreach (var kv in frame.InputFrames)
         {
-            byte actorId = (byte)(i + 1); 
-            if (_actors.TryGetValue(actorId, out var actor))
+            if (_actors.TryGetValue(kv.Key, out var actor))
             {
-                actor.LogicTick(frame.AllPlayerInputs[i]);
+                actor.LogicTick(kv.Value);
             }
         }
-    }
 
-    private void OnSaveWorldSnapshot(uint frameId)
-    {
-        var snapshot = new Dictionary<byte, GameActor.ActorState>();
-        foreach (var kv in _actors)
+        // 2. 全局碰撞检测 (这就是如何通知对方受击的地方)
+        // 遍历所有可能的攻击者和受击者
+        foreach (var attackerKv in _actors)
         {
-            snapshot[kv.Key] = kv.Value.SaveState();
-        }
-        _worldSnapshots[frameId] = snapshot;
-
-        if (frameId > 100) _worldSnapshots.Remove(frameId - 100);
-    }
-
-    private void OnLoadWorldSnapshot(uint frameId)
-    {
-        if (_worldSnapshots.TryGetValue(frameId, out var snapshot))
-        {
-            foreach (var kv in snapshot)
+            foreach (var victimKv in _actors)
             {
-                if (_actors.TryGetValue(kv.Key, out var actor))
+                if (attackerKv.Key == victimKv.Key) continue; // 不能自己打自己
+
+                var attacker = attackerKv.Value.Logic;
+                var victim = victimKv.Value.Logic;
+
+                // 检查攻击判定
+                if (attacker.CheckHit(victim))
                 {
-                    actor.LoadState(kv.Value);
+                    // 如果命中了，直接修改受击者的逻辑状态
+                    victim.TakeDamage(1); 
+                    Debug.Log($"[Battle] Player {attackerKv.Key} hit Player {victimKv.Key}!");
                 }
             }
         }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Managers;
 
 /// <summary>
 /// 地图管理器，负责加载地图和提供边界信息

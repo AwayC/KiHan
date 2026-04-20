@@ -58,7 +58,7 @@ public class GameActor : MonoBehaviour
             Pos = Logic.LogicPos,
             Height = Logic.LogicHeight,
             IsFacingLeft = Logic.IsFacingLeft,
-            AnimName = Logic.CurrentAnim?.Name,
+            AnimName = Logic.CurrentAnim?.AnimName,
             FrameIndex = Logic.CurrentFrameIndex,
             TickCounter = Logic.GetTickCounter(),
             StateType = sType
