@@ -147,9 +147,16 @@ public class GameApp : UnitySingleton<GameApp>
                 // 检查攻击判定
                 if (attacker.CheckHit(victim))
                 {
-                    // 如果命中了，直接修改受击者的逻辑状态
-                    victim.TakeDamage(1); 
-                    Debug.Log($"[Battle] Player {attackerKv.Key} hit Player {victimKv.Key}!");
+                    // 获取攻击方当前帧定义的 HitData
+                    var hitData = attacker.GetCurrentHitData();
+                    if (hitData != null)
+                    {
+                        int attackerDir = attacker.IsFacingLeft ? -1 : 1;
+                        // 通知受害者执行受击包
+                        victim.ApplyHit(hitData, attackerDir);
+                        // 攻击者也要执行顿帧 (HitStop)
+                        attacker.ApplyHitStop(hitData.HitStop);
+                    }
                 }
             }
         }

@@ -1,5 +1,7 @@
 using KiHan.Logic;
+using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -7,88 +9,74 @@ using UnityEngine;
 /// </summary>
 public abstract class LogicEntity
 {
-    public byte GameId; 
-    public Vector2 LogicPos;
-    public float LogicHeight = 0; 
+    public int GameId;
+    public Vector2 Pos;
+    public float Height = 0;
+    public Vector2 Velocity; // 水平速度
+    public float HVelocity; // 垂直速度
+    public byte owner; // 所属玩家
     
     public const float LOGIC_TICK_TIME = 0.066f;
+    public const float GRAVITY = 0.5f;
 
     public AnimationFrameData CurrentAnim;
     public int CurrentFrameIndex = 0; 
     protected int _tickCounter = 0;
     public bool IsFacingLeft = false;
 
-    public virtual void Tick(InputFrame input)
+    Dictionary<string, AnimationFrameData> _anim;
+
+    public virtual void Tick()
     {
         UpdateAnimation();
     }
 
-    public virtual void SwitchAnimation(AnimationFrameData newAnim)
+    private void ProcessPhysics()
     {
-        if (newAnim == null || CurrentAnim == newAnim) return;
-        CurrentAnim = newAnim;
-        CurrentFrameIndex = 0;
-        _tickCounter = 0;
+        
     }
 
     protected virtual void UpdateAnimation()
     {
         if (CurrentAnim == null || CurrentAnim.Steps.Count == 0) return;
-
+        
         var step = CurrentAnim.Steps[CurrentFrameIndex];
+        if (step.Duration < 0) return;
         _tickCounter++;
 
         if (_tickCounter >= step.Duration)
         {
             _tickCounter = 0;
-            if (CurrentFrameIndex < CurrentAnim.Steps.Count - 1)
-            {
-                CurrentFrameIndex++;
-                ApplyRootMotion(CurrentAnim.Steps[CurrentFrameIndex].RootMotion);
-            }
-            else if (CurrentAnim.IsLoop) 
-            {
-                CurrentFrameIndex = 0;
-            }
+            if (CurrentFrameIndex < CurrentAnim.Steps.Count - 1) CurrentFrameIndex++;
+            else if (CurrentAnim.IsLoop) CurrentFrameIndex = 0;
         }
-    }
-
-    protected virtual void ApplyRootMotion(Vector2 motion)
-    {
-        if (motion == Vector2.zero) return;
-        float direction = IsFacingLeft ? -1f : 1f;
-        LogicPos.x += motion.x * direction;
-        LogicHeight += motion.y; 
-        if (LogicHeight < 0) LogicHeight = 0;
     }
 
     public List<LogicBox> GetCurrentHitBoxes() => CurrentAnim?.GetHitBoxes(CurrentFrameIndex);
     public List<LogicBox> GetCurrentHurtBoxes() => CurrentAnim?.GetHurtBoxes(CurrentFrameIndex);
-    public int GetTickCounter() => _tickCounter;
-
-    /// <summary>
-    /// 被攻击时的逻辑入口
-    /// </summary>
-    public virtual void TakeDamage(int damageType)
+    public virtual HitData GetHitData() 
     {
-        // 核心逻辑：一旦受击，强制切换到受击状态
-        // 这里的 damageType 可以用来区分 轻击、重击、击飞等
-        //ChangeState(CommonState.Hurt);
+        return new HitData();
     }
 
-    // 状态机相关方法移动到基类以方便统一调用
-    public abstract void ChangeState(sbyte type);
+    public int GetTickCounter() => _tickCounter;
 
     public bool CheckHit(LogicEntity target)
     {
         var myHits = GetCurrentHitBoxes();
         var targetHurts = target.GetCurrentHurtBoxes();
         if (myHits == null || targetHurts == null) return false;
-
         foreach (var myBox in myHits)
             foreach (var targetBox in targetHurts)
-                if (myBox.Intersects(LogicPos, 0, IsFacingLeft, targetBox, target.LogicPos, 0, target.IsFacingLeft))
+                if (myBox.Intersects(Pos, Height, IsFacingLeft, targetBox, target.Pos, Height, target.IsFacingLeft))
                     return true;
         return false;
+    }
+
+    public abstract void LoadRes(string basePath);
+
+    public void SwitchAnimation(string anim)
+    {
+        // todo
     }
 }

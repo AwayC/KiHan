@@ -1,26 +1,59 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 namespace KiHan.Logic
 {
     /// <summary>
-    /// 同步特效图层信息 (用于刀光、虚影等)
+    /// 同步特效图层信息
     /// </summary>
     [Serializable]
     public class EffectLayerInfo
     {
         public Sprite Sprite;
         public Vector2 Offset;
-        public Color TintColor = Color.white; // 默认设为纯白不透明
+        public Color TintColor = Color.white;
         public int OrderOffset = 1; 
+    }
+
+    /// <summary>
+    /// 受击动画表现类型
+    /// </summary>
+    public enum HitType
+    {
+        None, // 无效果
+        Normal,      
+        ToAir,
+        
+    }
+
+    /// <summary>
+    /// 攻击定义包
+    /// </summary>
+    [Serializable]
+    public class HitData
+    {
+        public int Damage = 10; // 伤害数值
+        public HitType HType = HitType.None;
+        //public int HitStop = 8;   //  顿帧
+        public int HitStun = 20;    // 僵直时间
+        Vector2 Pos;
+        int Height;
+        LogicEntity Owner = null;
+        CharacterEntity Player = null;
+
+        public HitData(HitType htype = HitType.None)
+        {
+            HType = htype;
+        }
     }
 
     [Serializable]
     public struct LogicBox // 通用 3D 逻辑判定盒
     {
-        public Vector2 Center; // X, Y (相对于角色原点的中心)
-        public Vector2 Size;   // Width, Height
-        public float Side;     // 厚度 (轴宽，沿 Z 轴对称分布)
+        public Vector2 Center; 
+        public Vector2 Size;   
+        public float Side;     
 
         public LogicBox(Vector2 center, Vector2 size, float side)
         {
@@ -29,12 +62,8 @@ namespace KiHan.Logic
             Side = side;
         }
 
-        /// <summary>
-        /// 碰撞检测：需要传入两个物体各自的世界坐标、Z 值以及是否朝左
-        /// </summary>
         public bool Intersects(Vector2 myPos, float myZ, bool myFacingLeft, LogicBox other, Vector2 otherPos, float otherZ, bool otherFacingLeft)
         {
-            // 如果朝左，Center.x 需要取反
             float myRealOffsetX = myFacingLeft ? -Center.x : Center.x;
             float otherRealOffsetX = otherFacingLeft ? -other.Center.x : other.Center.x;
 

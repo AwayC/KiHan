@@ -6,11 +6,11 @@ using KiHan.Logic;
 public class AnimationFrameData : ScriptableObject
 {
     public string AnimName;
-    public CharacterSpriteLibrary Library; 
+    public CharacterSpriteLibrary Library;
     public bool IsLoop = true;
 
     [System.Serializable]
-    public class AnimStep 
+    public class AnimStep
     {
         public int FrameIndex; // 帧库中的索引
         public int Duration = 1;

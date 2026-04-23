@@ -5,12 +5,12 @@ using KiHan.Logic;
 namespace KiHan.Logic
 {
     [System.Serializable]
-    public class SpriteFrameData 
+    public class SpriteFrameData
     {
-        public string Name;      
+        public string Name;
         public Sprite Sprite;
-        public Vector2 Offset;   
-        
+        public Vector2 Offset;
+
         public List<LogicBox> HurtBoxes = new List<LogicBox>();
         public List<LogicBox> HitBoxes = new List<LogicBox>();
         public List<EffectLayerInfo> ExtraLayers = new List<EffectLayerInfo>();
