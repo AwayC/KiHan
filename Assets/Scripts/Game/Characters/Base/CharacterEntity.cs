@@ -1,7 +1,6 @@
 using KiHan.Logic;
 using Managers;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
 public enum ArmorLevel : byte
 {
@@ -14,22 +13,24 @@ public enum ArmorLevel : byte
 /// <summary>
 /// 角色实体 (带状态机)
 /// </summary>
+/// 
 public abstract class CharacterEntity : LogicEntity
 {
-    public virtual string Name { get; }
-    public int Blood { get; set; }
-    public float Attack { get; set; }
-    public float Defence { get; set; }
+    // --- 属性 ---
+    public abstract string Name { get; }
+    public int Id;
+    public int Blood = 1000;
+    public float Attack = 1.0f;  // 伤害加成
+    public float Defence = 1.0f; // 防御减免
+
+    public float MoveSpeed = 10.0f;
+    
     public StateMachine RootSM;
-    public InputFrame CurrInput = null;
-    public float MoveSpeed;
-    public HitData LastHitData = null;
+    public InputFrame CurrInput;
 
-    public int StunTime = 0; // 僵直时间
-    public int StunTimer = 0; // 僵直计数器
-
-    public ArmorLevel armorLever = ArmorLevel.normal;
-
+    public HitData LastHitData;
+    public ArmorLevel armorLevel;
+    
     public virtual void UpdateInput(InputFrame input)
     {
         CurrInput = input;
@@ -37,8 +38,20 @@ public abstract class CharacterEntity : LogicEntity
 
     public override void Tick()
     {
+        RootSM?.Update();
+
         base.Tick();
     }
 
-    public abstract void ApplyHit(HitData hit);
+    public override HitData GetHitData()
+    {
+        return RootSM?.GetHitData();
+    }
+
+    public virtual void ApplyHit(HitData hit)
+    {
+        if (hit == null) return;
+
+        RootSM?.ChangeState(CommonState.Hurt);
+    }
 }

@@ -24,7 +24,6 @@ public class CharacterSpriteLibrary : ScriptableObject
     public LogicBox DefaultHurtBox = new LogicBox(Vector2.zero, new Vector2(0.5f, 1.8f), 1.0f);
     public LogicBox DefaultHitBox = new LogicBox(Vector2.zero, new Vector2(0.5f, 0.5f), 1.0f);
 
-    // --- 新增：厚度预设列表 ---
     [Header("厚度预设 (Side Presets)")]
     public List<float> SidePresets = new List<float> { 0.5f, 1.0f, 1.5f, 2.0f };
 

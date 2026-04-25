@@ -4,8 +4,16 @@ using UnityEngine;
 
 public class GameLanch : UnitySingleton<GameLanch>
 {
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void AutoInit()
+    {
+        Debug.Log("[GameLanch] 自动触发初始化流程...");
+        var instance = GameLanch.Instance;
+    }
+
     void Start()
     {
+        Debug.Log("[GameLanch] 启动并挂载逻辑模块...");
         // 初始化游戏框架代码
         // end
 

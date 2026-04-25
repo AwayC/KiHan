@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class MapLogic
 {
-    public float MinX = -15f;
-    public float MaxX = 15f;
-    public float MinY = -4f;
-    public float MaxY = 4f;
+    public float MinX = -7f;
+    public float MaxX = 7f;
+    public float MinY = -0.9f;
+    public float MaxY = 0.9f;
 
     public Vector3 ClampPosition(Vector3 pos)
     {

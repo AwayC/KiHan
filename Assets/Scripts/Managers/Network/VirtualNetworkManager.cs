@@ -9,7 +9,26 @@ using KiHan.Logic;
 /// </summary>
 public class VirtualNetworkManager : NetworkManager
 {
-    private float _tickRate = 0.066f;
+    private static VirtualNetworkManager _vInstance;
+    public new static VirtualNetworkManager Instance
+    {
+        get
+        {
+            if (_vInstance == null)
+            {
+                _vInstance = FindObjectOfType<VirtualNetworkManager>();
+                if (_vInstance == null)
+                {
+                    GameObject obj = new GameObject("VirtualNetworkManager");
+                    _vInstance = obj.AddComponent<VirtualNetworkManager>();
+                    DontDestroyOnLoad(obj);
+                }
+            }
+            return _vInstance;
+        }
+    }
+
+    private float _tickRate = 0.033f;
     private uint _frameId = 0;
     private Dictionary<byte, InputFrame> _inputQueue = new Dictionary<byte, InputFrame>();
     private bool _isRunning = false;
@@ -38,7 +57,7 @@ public class VirtualNetworkManager : NetworkManager
         {
             InputFrame input = new InputFrame();
             input.Deserialize(data, 1);
-            // 本地模拟，固定发给 ID 1
+            // 存入队列
             _inputQueue[1] = input;
         }
     }
@@ -47,8 +66,8 @@ public class VirtualNetworkManager : NetworkManager
 
     private IEnumerator ServerLoop()
     {
-        yield return new WaitForSeconds(0.2f);
-        // 模拟游戏开始
+        yield return new WaitForSeconds(0.5f);
+        // 模拟游戏开始通知
         OnOpCodeReceived?.Invoke(ServerOpCode.GameStartNtf, new ArraySegment<byte>(new byte[0]));
 
         while (_isRunning)
@@ -57,19 +76,27 @@ public class VirtualNetworkManager : NetworkManager
             _frameId++;
             
             // 构造 GameFrameUpdate
+            // 格式：[4:frameId][1:playerCount] + [1:gId][6:input] * count
             List<byte> frameData = new List<byte>();
             frameData.AddRange(BitConverter.GetBytes(_frameId));
-            frameData.Add(1); // 1 Player
+            frameData.Add(2); // 模拟 2 个玩家
 
-            InputFrame input;
-            if (!_inputQueue.TryGetValue(1, out input))
+            // --- 玩家 1 (自己) ---
+            frameData.Add(1); // gId = 1
+            if (!_inputQueue.TryGetValue(1, out var input1))
             {
-                input = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
+                input1 = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
             }
-            
-            byte[] inputBytes = new byte[6];
-            input.Serialize(inputBytes, 0);
-            frameData.AddRange(inputBytes);
+            byte[] buf1 = new byte[6];
+            input1.Serialize(buf1, 0);
+            frameData.AddRange(buf1);
+
+            // --- 玩家 2 (电脑/远程) ---
+            frameData.Add(2); // gId = 2
+            InputFrame input2 = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
+            byte[] buf2 = new byte[6];
+            input2.Serialize(buf2, 0);
+            frameData.AddRange(buf2);
 
             OnOpCodeReceived?.Invoke(ServerOpCode.GameFrameUpdate, new ArraySegment<byte>(frameData.ToArray()));
             _inputQueue.Clear();

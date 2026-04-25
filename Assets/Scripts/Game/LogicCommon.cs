@@ -4,9 +4,6 @@ using System.Collections.Generic;
 
 namespace KiHan.Logic
 {
-    /// <summary>
-    /// 同步特效图层信息
-    /// </summary>
     [Serializable]
     public class EffectLayerInfo
     {
@@ -16,31 +13,25 @@ namespace KiHan.Logic
         public int OrderOffset = 1; 
     }
 
-    /// <summary>
-    /// 受击动画表现类型
-    /// </summary>
     public enum HitType
     {
-        None, // 无效果
+        None, 
         Normal,      
         ToAir,
-        
     }
 
-    /// <summary>
-    /// 攻击定义包
-    /// </summary>
     [Serializable]
     public class HitData
     {
-        public int Damage = 10; // 伤害数值
+        public int Damage = 10;
         public HitType HType = HitType.None;
-        //public int HitStop = 8;   //  顿帧
-        public int HitStun = 20;    // 僵直时间
-        Vector2 Pos;
-        int Height;
-        LogicEntity Owner = null;
-        CharacterEntity Player = null;
+        public int HitStun = 20;    
+        
+        // 攻击者的信息，供受击方参考
+        public Vector2 Pos;
+        public int Height;
+        public LogicEntity Owner = null;
+        public CharacterEntity Player = null;
 
         public HitData(HitType htype = HitType.None)
         {
@@ -49,7 +40,7 @@ namespace KiHan.Logic
     }
 
     [Serializable]
-    public struct LogicBox // 通用 3D 逻辑判定盒
+    public struct LogicBox
     {
         public Vector2 Center; 
         public Vector2 Size;   

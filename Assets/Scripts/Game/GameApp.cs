@@ -14,29 +14,28 @@ public class GameApp : UnitySingleton<GameApp>
     public GameObject playerViewPrefab; 
 
     private uint _myUid;
-    private byte _myGameId;
+    private byte _myGameId = 1;
     private bool _isGameRunning = false;
 
-    // 管理所有实体的容器
-    private Dictionary<byte, GameActor> _actors = new Dictionary<byte, GameActor>();
+    // 严格按照架构设计的容器
+    private Dictionary<byte, CharacterEntity> _players = new Dictionary<byte, CharacterEntity>();
+    private List<LogicEntity> _allEntities = new List<LogicEntity>();
 
     private void Start()
     {
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
-        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化虚拟网络...");
+        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化网络...");
 
-        // 强制确保 VirtualNetworkManager 存在并作为 NetworkManager 的实现
-        // 这样后续调用 NetworkManager.Instance 就会拿到这个虚拟实现
+        // 1. 初始化虚拟网络实现
         var net = VirtualNetworkManager.Instance; 
+        
+        // 2. 初始化同步层并注入网络
+        LockstepManager.Instance.Init(net);
+        LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
 
-        if (NetworkManager.Instance != null)
-        {
-            // 注入网络层实现
-            LockstepManager.Instance.Init(NetworkManager.Instance);
-
-            NetworkManager.Instance.OnOpCodeReceived += HandleNetworkMessage;
-            NetworkManager.Instance.Connect();
-        }
+        // 3. 监听协议
+        net.OnOpCodeReceived += HandleNetworkMessage;
+        net.Connect();
     }
 
     private void HandleNetworkMessage(ServerOpCode op, ArraySegment<byte> payload)
@@ -44,11 +43,8 @@ public class GameApp : UnitySingleton<GameApp>
         switch (op)
         {
             case ServerOpCode.RoomEnterResp:
-                if (payload.Count >= 6)
-                {
-                    _myGameId = payload.Array[payload.Offset + 5];
-                    Debug.Log($"[GameApp] 进房成功，分配 GameId: {_myGameId}");
-                }
+                _myGameId = payload.Array[payload.Offset + 5];
+                Debug.Log($"[GameApp] 分配 GameId: {_myGameId}");
                 break;
             case ServerOpCode.GameStartNtf:
                 GameStart();
@@ -59,105 +55,103 @@ public class GameApp : UnitySingleton<GameApp>
     public void GameStart()
     {
         if (_isGameRunning) return;
-        Debug.Log("[GameApp] 战斗开始通知，初始化战场...");
         
-        // 1. 初始化世界（地图和玩家）
+        // 初始化场景
         InitWorld();
         
-        // 2. 绑定严格帧同步回调
-        LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
-
         _isGameRunning = true;
+        Debug.Log("[GameApp] 战斗开始！");
     }
 
     private void InitWorld()
     {
-        // 1. 地图初始化
+        Debug.Log($"[GameApp] 开始初始化世界，地图: {MapPath}");
         MapManager.Instance.LoadMap(MapPath);
 
-        // 2. 玩家初始化 (此处为原型演示，固定生成 1 和 2 号)
-        _actors[1] = SpawnPlayer(1, new Vector2(-2, 1.4f));
-        _actors[2] = SpawnPlayer(2, new Vector2(2, 1.4f));
+        // 生成 P1 和 P2
+        PlayerView p1View = SpawnPlayer(1, new Vector2(-2, 0));
+        PlayerView p2View = SpawnPlayer(2, new Vector2(2, 0));
 
-        // 3. 相机追踪自己
-        if (_actors.TryGetValue(_myGameId, out var myActor))
+        // 相机追踪：直接追踪本地玩家的逻辑实体
+        CharacterEntity targetPlayer;
+        if (_players.TryGetValue(_myGameId, out targetPlayer))
         {
-            CameraControllor.Instance.SetTarget(myActor.transform);
-        }
-        else if (_actors.Count > 0)
-        {
-            CameraControllor.Instance.SetTarget(_actors[1].transform);
-        }
-    }
-
-    private GameActor SpawnPlayer(byte gId, Vector2 pos)
-    {
-        GameObject actorGo = new GameObject($"Actor_{gId}");
-        GameActor actor = actorGo.AddComponent<GameActor>();
-
-        NarutoEntity logic = new NarutoEntity();
-        logic.GameId = gId;
-        logic.LogicPos = pos;
-        logic.IsFacingLeft = (gId == 2);
-        
-        // 调用鸣人特有的初始化 (加载所有状态和动画)
-        logic.Init();
-
-        if (playerViewPrefab != null)
-        {
-            actor.Init(logic, playerViewPrefab);
+            Debug.Log($"[GameApp] 相机追踪目标设为 Player_{_myGameId} (逻辑对象)");
+            CameraControllor.Instance.SetTarget(targetPlayer, true);
         }
         else
         {
-            GameObject viewGo = new GameObject("View");
-            viewGo.transform.SetParent(actorGo.transform);
-            var view = viewGo.AddComponent<PlayerView>();
-            view.BindEntity = logic;
+            Debug.LogError("[GameApp] 未能找到相机追踪的逻辑目标！");
         }
-
-        return actor;
     }
 
-    #region 同步层回调
+    private PlayerView SpawnPlayer(byte gId, Vector2 pos)
+    {
+        Debug.Log($"[GameApp] 生成玩家: {gId} 于 {pos}");
+        NarutoEntity logic = new NarutoEntity();
+        logic.owner = gId;
+        logic.pos = pos;
+        logic.IsFacingLeft = (gId == 2);
+        
+        // 初始化鸣人特有资源与状态机
+        logic.Init();
+
+        // 注册到管理列表
+        _players[gId] = logic;
+        _allEntities.Add(logic);
+
+        // 创建表现层 (View)
+        GameObject viewGo = new GameObject($"Player_View_{gId}");
+        var view = viewGo.AddComponent<PlayerView>();
+        view.BindEntity = logic;
+        
+        // 如果有 Prefab 则实例化模型层
+        if (playerViewPrefab != null)
+        {
+            Instantiate(playerViewPrefab, viewGo.transform);
+        }
+
+        return view;
+    }
+
+    #region
 
     private void OnStepLogic(RoomFrame frame)
     {
         if (!_isGameRunning) return;
 
-        // 1. 驱动所有实体执行输入逻辑
         foreach (var kv in frame.InputFrames)
         {
-            if (_actors.TryGetValue(kv.Key, out var actor))
+            if (_players.TryGetValue(kv.Key, out var player))
             {
-                actor.LogicTick(kv.Value);
+                player.UpdateInput(kv.Value);
             }
         }
 
-        // 2. 全局碰撞检测 (这就是如何通知对方受击的地方)
-        // 遍历所有可能的攻击者和受击者
-        foreach (var attackerKv in _actors)
+        for (int i = 0; i < _allEntities.Count; i++)
         {
-            foreach (var victimKv in _actors)
+            _allEntities[i].Tick();
+        }
+
+        if (_players.TryGetValue(1, out var p1))
+        {
+            DoCollisionCheck(p1);
+        }
+
+        if (_players.TryGetValue(2, out var p2))
+        {
+            DoCollisionCheck(p2);
+        }
+    }
+
+    private void DoCollisionCheck(CharacterEntity player)
+    {
+        foreach (var enity in _allEntities)
+        {
+            if (enity.owner == player.owner) continue;
+            if(enity.CheckHit(player))
             {
-                if (attackerKv.Key == victimKv.Key) continue; // 不能自己打自己
-
-                var attacker = attackerKv.Value.Logic;
-                var victim = victimKv.Value.Logic;
-
-                // 检查攻击判定
-                if (attacker.CheckHit(victim))
-                {
-                    // 获取攻击方当前帧定义的 HitData
-                    var hitData = attacker.GetCurrentHitData();
-                    if (hitData != null)
-                    {
-                        int attackerDir = attacker.IsFacingLeft ? -1 : 1;
-                        // 通知受害者执行受击包
-                        victim.ApplyHit(hitData, attackerDir);
-                        // 攻击者也要执行顿帧 (HitStop)
-                        attacker.ApplyHitStop(hitData.HitStop);
-                    }
-                }
+                player.ApplyHit(enity.GetHitData());
             }
         }
     }

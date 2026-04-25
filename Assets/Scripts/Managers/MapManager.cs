@@ -19,8 +19,10 @@ public class MapManager : UnitySingleton<MapManager>
         // 简单实例化地图
         _mapInstance = ResManager.Instance.Spawn(mapPath, Vector3.zero, Quaternion.identity);
         
+        // 移除之前的“拍扁”逻辑，保留预制体原有的层级关系
+        // 只要预制体里最高的层级小于玩家的 10 即可正常显示
+
         // 初始化地图边界逻辑
-        // 实际开发中，这些数据可以从地图预制体的脚本中获取，或者从配置表读取
         CurrentMapLogic = new MapLogic();
         
         // 更新相机边界

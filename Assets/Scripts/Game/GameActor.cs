@@ -29,7 +29,8 @@ public class GameActor : MonoBehaviour
     /// </summary>
     public void LogicTick(InputFrame input)
     {
-        Logic?.Tick(input);
+
+        Logic?.Tick();
     }
 
     #region 回滚支持 Snapshot
@@ -45,39 +46,39 @@ public class GameActor : MonoBehaviour
         public sbyte StateType;
     }
 
-    public ActorState SaveState()
-    {
-        sbyte sType = -1;
-        if (Logic is CharacterEntity character)
-        {
-            sType = character.CurrentState?.StateType ?? -1;
-        }
+    //public ActorState SaveState()
+    //{
+    //    sbyte sType = -1;
+    //    if (Logic is CharacterEntity character)
+    //    {
+    //        sType = character.CurrentState?.StateType ?? -1;
+    //    }
 
-        return new ActorState
-        {
-            Pos = Logic.LogicPos,
-            Height = Logic.LogicHeight,
-            IsFacingLeft = Logic.IsFacingLeft,
-            AnimName = Logic.CurrentAnim?.AnimName,
-            FrameIndex = Logic.CurrentFrameIndex,
-            TickCounter = Logic.GetTickCounter(),
-            StateType = sType
-        };
-    }
+    //    return new ActorState
+    //    {
+    //        Pos = Logic.pos,
+    //        Height = Logic.height,
+    //        IsFacingLeft = Logic.IsFacingLeft,
+    //        AnimName = Logic.CurrAnim?.AnimName,
+    //        FrameIndex = Logic.CurrentFrameIndex,
+    //        TickCounter = Logic.TickCounter,
+    //        StateType = sType
+    //    };
+    //}
 
-    public void LoadState(ActorState state)
-    {
-        Logic.LogicPos = state.Pos;
-        Logic.LogicHeight = state.Height;
-        Logic.IsFacingLeft = state.IsFacingLeft;
-        Logic.CurrentFrameIndex = state.FrameIndex;
-        // 注意：这里需要根据 AnimName 重新找到动画资源并恢复 _tickCounter
-        // 以及根据 StateType 恢复状态机
-        if (Logic is CharacterEntity character && state.StateType != -1)
-        {
-            character.ChangeState(state.StateType);
-        }
-    }
+    //public void LoadState(ActorState state)
+    //{
+    //    Logic.LogicPos = state.Pos;
+    //    Logic.LogicHeight = state.Height;
+    //    Logic.IsFacingLeft = state.IsFacingLeft;
+    //    Logic.CurrentFrameIndex = state.FrameIndex;
+    //    // 注意：这里需要根据 AnimName 重新找到动画资源并恢复 _tickCounter
+    //    // 以及根据 StateType 恢复状态机
+    //    if (Logic is CharacterEntity character && state.StateType != -1)
+    //    {
+    //        character.ChangeState(state.StateType);
+    //    }
+    //}
     
     #endregion
 }
