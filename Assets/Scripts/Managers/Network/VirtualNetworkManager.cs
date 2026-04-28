@@ -28,7 +28,7 @@ public class VirtualNetworkManager : NetworkManager
         }
     }
 
-    private float _tickRate = 0.033f;
+    private float _tickRate => GameConfig.LOGIC_TICK_TIME;
     private uint _frameId = 0;
     private Dictionary<byte, InputFrame> _inputQueue = new Dictionary<byte, InputFrame>();
     private bool _isRunning = false;
@@ -76,13 +76,12 @@ public class VirtualNetworkManager : NetworkManager
             _frameId++;
             
             // 构造 GameFrameUpdate
-            // 格式：[4:frameId][1:playerCount] + [1:gId][6:input] * count
             List<byte> frameData = new List<byte>();
             frameData.AddRange(BitConverter.GetBytes(_frameId));
             frameData.Add(2); // 模拟 2 个玩家
 
             // --- 玩家 1 (自己) ---
-            frameData.Add(1); // gId = 1
+            frameData.Add(1);
             if (!_inputQueue.TryGetValue(1, out var input1))
             {
                 input1 = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
@@ -92,7 +91,7 @@ public class VirtualNetworkManager : NetworkManager
             frameData.AddRange(buf1);
 
             // --- 玩家 2 (电脑/远程) ---
-            frameData.Add(2); // gId = 2
+            frameData.Add(2);
             InputFrame input2 = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
             byte[] buf2 = new byte[6];
             input2.Serialize(buf2, 0);

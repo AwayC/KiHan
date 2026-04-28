@@ -16,6 +16,16 @@ public class NarutoStateAttack : StateBase
     {
         _comboIdx = 1;
         _hasInputNext = false;
+
+        // 攻击开始时立即根据摇杆更新朝向
+        var input = owner.CurrInput;
+        if (input != null && input.JoyStickAngle != 255)
+        {
+            float radians = input.JoyStickAngle * 2.0f * Mathf.Deg2Rad;
+            float dx = Mathf.Cos(radians);
+            if (Mathf.Abs(dx) > 0.1f) owner.IsFacingLeft = dx < 0;
+        }
+
         owner.SwitchAnimation($"Attack_{_comboIdx}");
         Debug.Log($"[Battle] Naruto starts Attack {_comboIdx}");
     }

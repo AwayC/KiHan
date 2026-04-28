@@ -24,11 +24,5 @@ public class MapManager : UnitySingleton<MapManager>
 
         // 初始化地图边界逻辑
         CurrentMapLogic = new MapLogic();
-        
-        // 更新相机边界
-        if (CameraControllor.Instance != null)
-        {
-            CameraControllor.Instance.SetBoundaries(CurrentMapLogic.MinX + 5f, CurrentMapLogic.MaxX - 5f);
-        }
     }
 }

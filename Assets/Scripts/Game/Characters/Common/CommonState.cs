@@ -52,6 +52,15 @@ public class CommonRunState : StateBase
     {
         owner.ForceLoop = true; // 强制 Run 循环播放
         owner.SwitchAnimation("Run");
+
+        // 立即更新一次朝向，处理短按情况
+        var input = owner.CurrInput;
+        if (input != null && input.JoyStickAngle != 255)
+        {
+            float radians = input.JoyStickAngle * 2.0f * Mathf.Deg2Rad;
+            float dx = Mathf.Cos(radians);
+            if (Mathf.Abs(dx) > 0.1f) owner.IsFacingLeft = dx < 0;
+        }
     }
     public override void Exit(CharacterEntity owner) 
     {

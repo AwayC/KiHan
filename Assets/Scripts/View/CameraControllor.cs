@@ -11,11 +11,11 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     public LogicEntity TargetLogic; 
     public float smoothSpeed = 2f; 
     public float yOffset = 1.47f;
-    public float lookAheadDistance = 4.0f; // 领航距离，1.0 代表 100px。若需 1px 请设为 0.01
+    public float lookAheadDistance = 3.0f; // 领航距离，1.0 代表 100px。若需 1px 请设为 0.01
 
     [Header("Boundaries")]
-    public float minX = -10f;
-    public float maxX = 10f;
+    public float minX = -4.5f;
+    public float maxX = 4.5f;
 
     private Camera _cam;
 

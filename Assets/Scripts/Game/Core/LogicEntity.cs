@@ -17,8 +17,9 @@ public abstract class LogicEntity
     public bool IsFacingLeft = true;
     public int TickCounter;
     public bool ForceLoop = false; // 逻辑层控制的强制循环
+    public int AnimVersion;        // 动画版本号，用于通知表现层重置计时器
 
-    public const float LOGIC_TICK_TIME = 0.066f;
+    public static float LOGIC_TICK_TIME => GameConfig.LOGIC_TICK_TIME;
 
     protected Dictionary<string, AnimationFrameData> _animDict = new Dictionary<string, AnimationFrameData>();
 
@@ -85,7 +86,8 @@ public abstract class LogicEntity
 
         var step = CurrAnim.Steps[CurrentFrameIndex];
 
-        TickCounter++;
+        // 逻辑帧 15fps，序列帧 30fps。每个逻辑 Tick 相当于增加了 2 个动画帧时长。
+        TickCounter += GameConfig.RENDER_LOGIC_RATIO;
 
         if (TickCounter >= step.Duration)
         {
@@ -109,6 +111,7 @@ public abstract class LogicEntity
             CurrAnim = data;
             CurrentFrameIndex = 0;
             TickCounter = 0;
+            AnimVersion++;
         }
     }
 }

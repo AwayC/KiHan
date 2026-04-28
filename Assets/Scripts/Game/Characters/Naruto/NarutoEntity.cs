@@ -14,7 +14,7 @@ public class NarutoEntity : CharacterEntity
     {
         // 1. 设置属性
         Blood = 1200;
-        MoveSpeed = 2.5f;
+        MoveSpeed = 5f;
 
         // 2. 加载动画
         LoadRes("Characters/naruto/");

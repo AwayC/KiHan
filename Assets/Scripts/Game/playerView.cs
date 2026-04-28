@@ -5,13 +5,18 @@ using System.Collections.Generic;
 public class PlayerView : MonoBehaviour
 {
     public LogicEntity BindEntity;
-    public float SmoothSpeed = 30f; 
+    public float SmoothSpeed = 20f; 
     
     private SpriteRenderer _mainSr;
     private Transform _displayRoot; // 专门负责美术偏移的节点
     private List<SpriteRenderer> _extraSrs = new List<SpriteRenderer>();
 
+    private GameObject _shadowGo;
+    private SpriteRenderer[] _shadowSrs;
+    private int[] _shadowBaseOrders;
+
     private AnimationFrameData _lastAnim;
+    private int _lastAnimVersion = -1; // 记录上一次同步的动画版本
     private float _visualTimer = 0f;
     private int _visualFrameIndex = 0;
 
@@ -24,15 +29,47 @@ public class PlayerView : MonoBehaviour
         _displayRoot.localPosition = Vector3.zero;
 
         _mainSr = displayGo.AddComponent<SpriteRenderer>();
-        
-        // 设置层级，确保在背景（通常为 0 或负数）之上
-        _mainSr.sortingOrder = 10;
     }
 
     private void LateUpdate()
     {
         if (BindEntity == null) return;
         
+        // 0. 初始化脚下圆盘阴影
+        if (_shadowGo == null)
+        {
+            string shadowPath = $"UI/Shadow/shadow_{BindEntity.owner}";
+            _shadowGo = Managers.ResManager.Instance.Spawn(shadowPath, Vector3.zero, Quaternion.identity, this.transform);
+            
+            if (_shadowGo != null)
+            {
+                _shadowGo.transform.localPosition = Vector3.zero;
+                
+                // 动态挂载动画脚本 (0.4倍压缩 & 转速差一倍)
+                if (_shadowGo.GetComponent<ShadowEffect>() == null)
+                {
+                    var effect = _shadowGo.AddComponent<ShadowEffect>();
+                    if(BindEntity.owner == 1)
+                    {
+                        effect.Speed1 = -180f;
+                        effect.Speed2 = -225f; // 外圈和内圈速度相反且差一倍
+                    } else
+                    {
+                        effect.Speed1 = effect.Speed2 = 180f;
+                    }
+                    
+                }
+                
+                // 缓存渲染器和初始层级用于动态深度排序
+                _shadowSrs = _shadowGo.GetComponentsInChildren<SpriteRenderer>();
+                _shadowBaseOrders = new int[_shadowSrs.Length];
+                for (int i = 0; i < _shadowSrs.Length; i++)
+                {
+                    _shadowBaseOrders[i] = _shadowSrs[i].sortingOrder;
+                }
+            }
+        }
+
         // 1. 位置平滑 (容器追踪逻辑坐标，逻辑坐标已经是 Unity 单位了，不需要乘 p2u)
         Vector3 targetPos = new Vector3(BindEntity.pos.x, BindEntity.pos.y, 0);
         
@@ -52,34 +89,45 @@ private void UpdateVisualIndex()
     var currentAnim = BindEntity.CurrAnim;
     if (currentAnim == null || currentAnim.Steps.Count == 0) return;
 
-    // 只有当动画资源对象发生变化时，才重置计时器
-    if (currentAnim != _lastAnim)
+    // 1. 动画资源改变 或 逻辑层版本号更新（显式重置）：重置视觉计时器
+    if (currentAnim != _lastAnim || BindEntity.AnimVersion != _lastAnimVersion)
     {
         _lastAnim = currentAnim;
+        _lastAnimVersion = BindEntity.AnimVersion;
         _visualTimer = 0f;
         _visualFrameIndex = 0;
         return;
     }
 
-    // 如果逻辑层开启了强制循环且资源本身没标记循环，或者非循环动画
-    // 此时必须硬同步逻辑层的帧索引，以保证逻辑判定盒(Logic)和视觉(View)严格对齐
-    if (!currentAnim.IsLoop)
-    {
-        _visualFrameIndex = BindEntity.CurrentFrameIndex;
-        return;
-    }
-
-    // 资源本身标记了循环，则使用表现层平滑插值
+    // 2. 移除冗余的重置判定（因为有了 Version）
+    
+    // 3. 自驱动推进：无论逻辑层是否 Tick，表现层都按 30fps 推进
     _visualTimer += Time.deltaTime;
-    float tickTime = LogicEntity.LOGIC_TICK_TIME;
+    float renderTickTime = GameConfig.RENDER_TICK_TIME;
 
+    bool isLooping = currentAnim.IsLoop || BindEntity.ForceLoop;
+    
+    // 安全检查
     if (_visualFrameIndex >= currentAnim.Steps.Count) _visualFrameIndex = 0;
-
+    
     var step = currentAnim.Steps[_visualFrameIndex];
-    if (_visualTimer >= step.Duration * tickTime)
+    if (_visualTimer >= step.Duration * renderTickTime)
     {
         _visualTimer = 0;
-        _visualFrameIndex = (_visualFrameIndex + 1) % currentAnim.Steps.Count;
+        int nextIndex = _visualFrameIndex + 1;
+        if (nextIndex < currentAnim.Steps.Count)
+        {
+            _visualFrameIndex = nextIndex;
+        }
+        else if (isLooping)
+        {
+            _visualFrameIndex = 0;
+        }
+        else
+        {
+            // 非循环动画停在最后一帧
+            _visualFrameIndex = currentAnim.Steps.Count - 1;
+        }
     }
 }
 
@@ -93,6 +141,13 @@ private void UpdateVisualIndex()
 
         float p2u = 0.01f;
         float logicHeight = BindEntity.height * p2u; 
+
+        // 动态计算渲染层级：
+        // 1. (2000 - Round(y*100)) 决定大层级，基数设为 2000 防止 Int16 溢出
+        // 2. 乘以 2 为每个 Y 轴坐标点留出槽位
+        // 3. 加上 owner ID 确保层级唯一性
+        int baseOrder = (2000 - Mathf.RoundToInt(BindEntity.pos.y * 100f)) * 2 + BindEntity.owner;
+        _mainSr.sortingOrder = baseOrder;
 
         // A. 渲染本体 (只修改子节点的 localPosition)
         _mainSr.sprite = frameData.Sprite;
@@ -130,6 +185,16 @@ private void UpdateVisualIndex()
                 sr.transform.localPosition = new Vector3(lx, ly, 0);
             }
             else sr.gameObject.SetActive(false);
+        }
+
+        // C. 更新脚下阴影图层的动态层级
+        if (_shadowSrs != null)
+        {
+            for (int i = 0; i < _shadowSrs.Length; i++)
+            {
+                // 阴影整体放在人物下方(-20)，同时保留预制体原本的相对层级
+                _shadowSrs[i].sortingOrder = baseOrder - 20 + _shadowBaseOrders[i];
+            }
         }
     }
 }

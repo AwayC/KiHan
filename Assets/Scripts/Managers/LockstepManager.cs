@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using KiHan.Logic;
 using kcp2k;
+using Managers;
 
 public class LockstepManager : UnitySingleton<LockstepManager>
 {
-    [Header("Settings")]
-    public const float LOGIC_INTERVAL = 0.033f; 
+    public static float LOGIC_INTERVAL => GameConfig.LOGIC_TICK_TIME; 
 
     private NetworkManager _network; 
+
 
     public void Init(NetworkManager network)
     {
@@ -84,20 +85,11 @@ public class LockstepManager : UnitySingleton<LockstepManager>
     private InputFrame CaptureLocalInput(uint frameId)
     {
         InputFrame input = new InputFrame { FrameId = frameId };
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-        if (horizontal != 0 || vertical != 0)
-        {
-            float angle = Mathf.Atan2(vertical, horizontal) * Mathf.Rad2Deg;
-            if (angle < 0) angle += 360;
-            input.JoyStickAngle = (byte)(angle / 2); 
-        }
-        else input.JoyStickAngle = 255;
-
-        ButtonMask buttons = ButtonMask.None;
-        if (Input.GetKey(KeyCode.J)) buttons |= ButtonMask.Attack;
-        if (Input.GetKey(KeyCode.U)) buttons |= ButtonMask.Skill1;
-        input.Buttons = buttons;
+        
+        // 使用统筹后的 InputManager 获取角度和按键掩码
+        input.JoyStickAngle = InputManager.Instance.GetJoystickAngle();
+        input.Buttons = InputManager.Instance.GetCombinedButtons();
+        
         return input;
     }
 
