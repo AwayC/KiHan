@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class PlayerView : MonoBehaviour
 {
     public LogicEntity BindEntity;
-    public float SmoothSpeed = 20f; 
+    public float SmoothSpeed = 13f; 
     
     private SpriteRenderer _mainSr;
     private Transform _displayRoot; // 专门负责美术偏移的节点

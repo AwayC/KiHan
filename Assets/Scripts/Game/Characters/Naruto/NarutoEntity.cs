@@ -13,6 +13,7 @@ public class NarutoEntity : CharacterEntity
     public void Init()
     {
         // 1. 设置属性
+        CharacterId = 90001; 
         Blood = 1200;
         MoveSpeed = 5f;
 

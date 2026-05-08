@@ -19,6 +19,7 @@ public abstract class CharacterEntity : LogicEntity
     // --- 属性 ---
     public abstract string Name { get; }
     public int Id;
+    public int CharacterId; // 资源关联 ID (如 90001)
     public int Blood = 1000;
     public float Attack = 1.0f;  // 伤害加成
     public float Defence = 1.0f; // 防御减免

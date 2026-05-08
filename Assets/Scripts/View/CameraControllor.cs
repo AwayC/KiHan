@@ -31,7 +31,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         _cam.orthographicSize = 2.8f;
         _cam.backgroundColor = Color.black;
 
-        transform.position = new Vector3(0, yOffset, -10f);
+        transform.position = new Vector3(0, yOffset, -100f);
     }
 
     public void SetTarget(LogicEntity logic, bool immediate = false)

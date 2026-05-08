@@ -17,6 +17,8 @@ public class GameApp : UnitySingleton<GameApp>
     private byte _myGameId = 1;
     private bool _isGameRunning = false;
 
+    private View.UI.BattleUIPanel _combatUI;
+
     // 严格按照架构设计的容器
     private Dictionary<byte, CharacterEntity> _players = new Dictionary<byte, CharacterEntity>();
     private List<LogicEntity> _allEntities = new List<LogicEntity>();
@@ -83,6 +85,23 @@ public class GameApp : UnitySingleton<GameApp>
         {
             Debug.LogError("[GameApp] 未能找到相机追踪的逻辑目标！");
         }
+
+        // --- 新增：初始化战斗 UI ---
+        InitCombatUI();
+    }
+
+    private void InitCombatUI()
+    {
+        // 1. 加载战斗 UI 预制体
+        GameObject uiPrefab = ResManager.Instance.Load<GameObject>("UI/Button/Canvas");
+        if (uiPrefab != null)
+        {
+            GameObject uiGo = Instantiate(uiPrefab);
+            uiGo.name = "Battle_UI";
+
+            // 2. 确保 UI 管理组件存在并缓存
+            _combatUI = uiGo.GetComponent<View.UI.BattleUIPanel>() ?? uiGo.AddComponent<View.UI.BattleUIPanel>();
+        }
     }
 
     private PlayerView SpawnPlayer(byte gId, Vector2 pos)
@@ -95,6 +114,12 @@ public class GameApp : UnitySingleton<GameApp>
         
         // 初始化鸣人特有资源与状态机
         logic.Init();
+
+        // --- 核心：当本地角色“加载”时，同步 UI 按键图标 ---
+        if (gId == _myGameId && _combatUI != null)
+        {
+            _combatUI.SetupIcons(logic.CharacterId);
+        }
 
         // 注册到管理列表
         _players[gId] = logic;

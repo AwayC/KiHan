@@ -11,75 +11,108 @@ public class NarutoStateAttack : StateBase
 
     private int _comboIdx = 1;      // 当前连击段数 (1-4)
     private bool _hasInputNext = false; // 是否有预输入
+    private int _segmentTick = 0;   // 当前段落经历的逻辑帧数
 
     public override void Enter(CharacterEntity owner)
     {
         _comboIdx = 1;
-        _hasInputNext = false;
+        StartComboSegment(owner);
+    }
 
-        // 攻击开始时立即根据摇杆更新朝向
+    private void StartComboSegment(CharacterEntity owner)
+    {
+        _hasInputNext = false;
+        _segmentTick = 0;
+
+        // 1. 转向逻辑：每段攻击开始时，如果摇杆有输入则可以转向
         var input = owner.CurrInput;
         if (input != null && input.JoyStickAngle != 255)
         {
-            float radians = input.JoyStickAngle * 2.0f * Mathf.Deg2Rad;
+            float radians = input.JoyStickAngle * Mathf.Deg2Rad;
             float dx = Mathf.Cos(radians);
             if (Mathf.Abs(dx) > 0.1f) owner.IsFacingLeft = dx < 0;
         }
 
+        // 2. 切换动画
         owner.SwitchAnimation($"Attack_{_comboIdx}");
-        Debug.Log($"[Battle] Naruto starts Attack {_comboIdx}");
+
+        // 3. 初始化位移：普攻通常带有向前的位移
+        float speed = GetMoveSpeed(_comboIdx);
+        float dir = owner.IsFacingLeft ? -1f : 1f;
+        owner.velocity = new Vector2(speed * dir, 0);
+
+        Debug.Log($"[Battle] Naruto Attack_{_comboIdx} Enter, Speed: {speed}");
     }
 
     public override void Update(CharacterEntity owner)
     {
+        _segmentTick++;
         var input = owner.CurrInput;
 
-        // 1. 连招预输入检测：在当前动作播放期间按下攻击键，记录标识
+        // 1. 连招预输入检测
         if (input != null && (input.Buttons & ButtonMask.Attack) != 0)
         {
             _hasInputNext = true;
         }
 
-        // 2. 检查当前动画段落是否已经播放完毕
+        // 2. 位移衰减逻辑：攻击开始后的前几个 Tick 有位移，之后由于摩擦力或惯性停止
+        // 这里的 4 个 Tick 约等于 0.26秒 (15fps)
+        if (_segmentTick > 4)
+        {
+            owner.velocity = Vector2.zero;
+        }
+
+        // 3. 检查当前动画段落是否已经播放完毕
         if (IsAnimFinished(owner))
         {
-            // 如果有预输入且未到最后一击，进入下一段
             if (_hasInputNext && _comboIdx < 4)
             {
                 _comboIdx++;
-                _hasInputNext = false;
-                owner.SwitchAnimation($"Attack_{_comboIdx}");
-                Debug.Log($"[Battle] Naruto combo to Attack {_comboIdx}");
+                StartComboSegment(owner);
             }
             else
             {
-                // 否则连招结束，回到待机
+                // 连招结束
                 owner.RootSM.ChangeState(CommonState.Idle);
             }
         }
     }
 
+    private float GetMoveSpeed(int combo)
+    {
+        switch (combo)
+        {
+            case 1: return 4.0f;
+            case 2: return 3.0f;
+            case 3: return 5.0f;
+            case 4: return 8.0f; // 最后一击前冲最远
+            default: return 0;
+        }
+    }
+
     public override void Exit(CharacterEntity owner)
     {
-        _comboIdx = 1;
-        _hasInputNext = false;
+        owner.velocity = Vector2.zero;
     }
 
     public override HitData GetHitData(CharacterEntity owner)
     {
         // 动态根据当前的攻击段数构造 HitData
         HitData data = new HitData(HitType.Normal);
-        data.Damage = 10 * _comboIdx; // 越往后伤害越高
-        data.HitStun = 15 + _comboIdx * 2;
         data.Owner = owner;
         data.Player = owner;
         data.Pos = owner.pos;
         data.Height = owner.height;
 
-        // 第 4 段平 A 增加击飞效果
+        // 段数越高，伤害和硬直越高
+        data.Damage = 10 + _comboIdx * 5;
+        data.HitStun = 12 + _comboIdx * 2;
+
+        // 最后一击具有击飞效果
         if (_comboIdx == 4)
         {
             data.HType = HitType.ToAir;
+            data.HitStun = 40; // 击飞硬直更长
         }
 
         return data;
@@ -93,10 +126,12 @@ public class NarutoStateAttack : StateBase
         if (owner.CurrAnim == null) return true;
         
         var steps = owner.CurrAnim.Steps;
-        // 已经到最后一步，且当前步的 Tick 计数已满
+        // 逻辑层判断：当前已经是最后一帧，且 Tick 计数达到 Duration
         if (owner.CurrentFrameIndex >= steps.Count - 1)
         {
-            if (owner.TickCounter >= steps[owner.CurrentFrameIndex].Duration - 1)
+            var lastStep = steps[owner.CurrentFrameIndex];
+            // 注意：LogicEntity 中 TickCounter 每次增加 RENDER_LOGIC_RATIO (2)
+            if (owner.TickCounter >= lastStep.Duration - 2)
             {
                 return true;
             }
