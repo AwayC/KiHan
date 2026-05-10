@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Managers;
 using KiHan.Logic;
 
@@ -14,42 +15,37 @@ namespace View.UI
         public ButtonMask Action;
 
         private Vector3 _originalScale;
-        private bool _hasInitScale = false;
+        private bool _isScaleInit = false;
 
         private void Start()
         {
-            InitScale();
+            EnsureScaleInit();
         }
 
-        public void InitScale()
+        public void EnsureScaleInit()
         {
-            if (_hasInitScale) return;
+            if (_isScaleInit) return;
             _originalScale = transform.localScale;
-            _hasInitScale = true;
+            _isScaleInit = true;
         }
 
-        /// <summary>
-        /// 动态更换按钮图标
-        /// </summary>
         public void SetIcon(Sprite sp)
         {
-            var img = GetComponent<UnityEngine.UI.Image>();
+            var img = GetComponent<Image>();
             if (img != null) img.sprite = sp;
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            EnsureScaleInit();
+            //Debug.Log($"<color=yellow>[UI] 点击了按钮: {Action} ({gameObject.name})</color>");
             InputManager.Instance.SetVirtualButton(Action, true);
-            
-            // 按下缩小效果
             transform.localScale = _originalScale * 0.9f;
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             InputManager.Instance.SetVirtualButton(Action, false);
-            
-            // 恢复原始缩放
             transform.localScale = _originalScale;
         }
     }

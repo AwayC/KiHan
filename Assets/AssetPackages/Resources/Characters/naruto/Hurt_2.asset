@@ -17,5 +17,5 @@ MonoBehaviour:
   IsLoop: 1
   Steps:
   - FrameIndex: 47
-    Duration: 0
+    Duration: 999
     RootMotion: {x: 0, y: 0}

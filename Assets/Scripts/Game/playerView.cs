@@ -142,14 +142,11 @@ private void UpdateVisualIndex()
         float p2u = 0.01f;
         float logicHeight = BindEntity.height * p2u; 
 
-        // 动态计算渲染层级：
-        // 1. (2000 - Round(y*100)) 决定大层级，基数设为 2000 防止 Int16 溢出
-        // 2. 乘以 2 为每个 Y 轴坐标点留出槽位
-        // 3. 加上 owner ID 确保层级唯一性
+        // 动态计算渲染层级
         int baseOrder = (2000 - Mathf.RoundToInt(BindEntity.pos.y * 100f)) * 2 + BindEntity.owner;
         _mainSr.sortingOrder = baseOrder;
 
-        // A. 渲染本体 (只修改子节点的 localPosition)
+        // A. 渲染本体
         _mainSr.sprite = frameData.Sprite;
         _mainSr.flipX = BindEntity.IsFacingLeft;
         
@@ -159,11 +156,19 @@ private void UpdateVisualIndex()
         _displayRoot.localPosition = new Vector3(offX, offY + logicHeight, 0);
 
         // B. 渲染特效图层
+        RenderExtraLayers(frameData, p2u);
+
+        // C. 更新脚下阴影图层
+        UpdateShadows(baseOrder);
+    }
+
+    private void RenderExtraLayers(SpriteFrameData frameData, float p2u)
+    {
         int layerCount = frameData.ExtraLayers.Count;
         while (_extraSrs.Count < layerCount)
         {
             GameObject go = new GameObject($"Layer_{_extraSrs.Count}");
-            go.transform.SetParent(_displayRoot); // 挂在 Display 节点下
+            go.transform.SetParent(_displayRoot);
             _extraSrs.Add(go.AddComponent<SpriteRenderer>());
         }
 
@@ -178,23 +183,55 @@ private void UpdateVisualIndex()
                 sr.color = layer.TintColor;
                 sr.flipX = _mainSr.flipX;
                 sr.sortingOrder = _mainSr.sortingOrder + layer.OrderOffset;
-                
-                // 特效的偏移相对于 Display 节点
                 float lx = (_mainSr.flipX ? -layer.Offset.x : layer.Offset.x) * p2u;
                 float ly = layer.Offset.y * p2u;
                 sr.transform.localPosition = new Vector3(lx, ly, 0);
             }
             else sr.gameObject.SetActive(false);
         }
+    }
 
-        // C. 更新脚下阴影图层的动态层级
+    private void UpdateShadows(int baseOrder)
+    {
         if (_shadowSrs != null)
         {
             for (int i = 0; i < _shadowSrs.Length; i++)
             {
-                // 阴影整体放在人物下方(-20)，同时保留预制体原本的相对层级
                 _shadowSrs[i].sortingOrder = baseOrder - 20 + _shadowBaseOrders[i];
             }
         }
+    }
+
+    // --- 调试渲染判定盒 ---
+    private void OnDrawGizmos()
+    {
+        if (BindEntity == null || BindEntity.CurrAnim == null) return;
+
+        // 绘制受击盒 (蓝色)
+        var hurtBoxes = BindEntity.CurrAnim.GetHurtBoxes(BindEntity.CurrentFrameIndex);
+        if (hurtBoxes != null)
+        {
+            Gizmos.color = new Color(0, 0, 1, 0.4f);
+            foreach (var box in hurtBoxes) DrawLogicBox(box);
+        }
+
+        // 绘制攻击盒 (红色)
+        var hitBoxes = BindEntity.CurrAnim.GetHitBoxes(BindEntity.CurrentFrameIndex);
+        if (hitBoxes != null)
+        {
+            Gizmos.color = new Color(1, 0, 0, 0.4f);
+            foreach (var box in hitBoxes) DrawLogicBox(box);
+        }
+    }
+
+    private void DrawLogicBox(LogicBox box)
+    {
+        float p2u = 0.01f;
+        float realOffsetX = (BindEntity.IsFacingLeft ? -box.Center.x : box.Center.x) * p2u;
+        float realOffsetY = box.Center.y * p2u;
+        Vector3 worldCenter = new Vector3(BindEntity.pos.x + realOffsetX, BindEntity.pos.y + realOffsetY + BindEntity.height * p2u, 0);
+        Vector3 size = new Vector3(box.Size.x * p2u, box.Size.y * p2u, 0.1f);
+        Gizmos.DrawCube(worldCenter, size);
+        Gizmos.DrawWireCube(worldCenter, size);
     }
 }

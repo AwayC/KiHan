@@ -58,12 +58,17 @@ public class NarutoEntity : CharacterEntity
     public override void ApplyHit(HitData hit)
     {
         if (hit == null) return;
-        LastHitData = hit;
         
-        // 简单判定：如果是普通受击
+        // 简单判定：如果是普通受击（没有霸体）
         if (armorLevel == ArmorLevel.normal)
         {
-            RootSM.ChangeState(CommonState.Hurt);
+            base.ApplyHit(hit);
+        }
+        else
+        {
+            // 霸体状态：只扣血，不产生硬直和状态切换
+            this.LastHitData = hit;
+            this.Blood -= Mathf.Max(1, (int)(hit.Damage / Defence));
         }
     }
 }

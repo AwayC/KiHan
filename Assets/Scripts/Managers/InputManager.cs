@@ -50,6 +50,11 @@ namespace Managers
                 }
             }
 
+            if (result != ButtonMask.None)
+            {
+                Debug.Log($"[Input] 合成按键掩码: {result}");
+            }
+
             return result;
         }
 

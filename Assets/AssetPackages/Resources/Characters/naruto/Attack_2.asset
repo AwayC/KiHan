@@ -18,22 +18,22 @@ MonoBehaviour:
   Steps:
   - FrameIndex: 20
     Duration: 1
-    RootMotion: {x: 0, y: 0}
+    RootMotion: {x: 20, y: 0}
   - FrameIndex: 21
     Duration: 1
-    RootMotion: {x: 0, y: 0}
+    RootMotion: {x: 20, y: 0}
   - FrameIndex: 22
     Duration: 1
-    RootMotion: {x: 0, y: 0}
+    RootMotion: {x: 20, y: 0}
   - FrameIndex: 23
-    Duration: 1
-    RootMotion: {x: 0, y: 0}
-  - FrameIndex: 24
     Duration: 2
+    RootMotion: {x: 40, y: 0}
+  - FrameIndex: 24
+    Duration: 4
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 25
-    Duration: 2
+    Duration: 3
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 26
-    Duration: 4
+    Duration: 2
     RootMotion: {x: 0, y: 0}

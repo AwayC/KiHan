@@ -55,12 +55,8 @@ public class LockstepManager : UnitySingleton<LockstepManager>
 
         ExecuteServerFrames();
 
-        _timer += Time.deltaTime;
-        while (_timer >= LOGIC_INTERVAL)
-        {
-            _timer -= LOGIC_INTERVAL;
-            SendInputStep();
-        }
+        // 这里不要修改
+        SendInputStep();
     }
 
     private void SendInputStep()

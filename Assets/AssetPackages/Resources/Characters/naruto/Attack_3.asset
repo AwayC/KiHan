@@ -17,20 +17,20 @@ MonoBehaviour:
   IsLoop: 0
   Steps:
   - FrameIndex: 27
-    Duration: 0
+    Duration: 2
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 28
-    Duration: 0
+    Duration: 2
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 29
-    Duration: 0
+    Duration: 1
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 30
-    Duration: 0
+    Duration: 3
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 31
-    Duration: 0
+    Duration: 2
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 32
-    Duration: 0
+    Duration: 2
     RootMotion: {x: 0, y: 0}

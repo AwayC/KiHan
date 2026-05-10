@@ -173,14 +173,14 @@ MonoBehaviour:
     ExtraLayers: []
   - Name: attack_1_1nrtcmb00_0008
     Sprite: {fileID: 21300000, guid: 48e25188a7b2b6d4dbc229e95bde380f, type: 3}
-    Offset: {x: 24.293175, y: 85.02619}
+    Offset: {x: 26.857166, y: 83.428604}
     HurtBoxes:
     - Center: {x: 27.520018, y: 80.96007}
       Size: {x: 83.83998, y: 158.07999}
       Side: 20
     HitBoxes:
-    - Center: {x: 92.8, y: 116.160065}
-      Size: {x: 123.51999, y: 88.96003}
+    - Center: {x: 33.14288, y: 116.571365}
+      Size: {x: 194.85715, y: 31.999992}
       Side: 20
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 8e0a17364ad90f848a289514079ce7a5, type: 3}
