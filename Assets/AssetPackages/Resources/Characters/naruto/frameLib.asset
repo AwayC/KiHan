@@ -31,7 +31,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5.4545727, y: 78.18188}
       Size: {x: 110.54547, y: 162.18184}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: 0idle_1nrtnut0_0004
@@ -70,7 +70,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2.240017, y: 65.92006}
       Size: {x: 126.72001, y: 126.72}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: akill_A_2_1nrtskl1chg_l_0012
@@ -79,7 +79,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4.1600227, y: 70.08005}
       Size: {x: 138.23999, y: 138.88}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0000
@@ -88,7 +88,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 7.0400124, y: 69.760056}
       Size: {x: 129.92001, y: 143.36005}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0015
@@ -97,11 +97,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 19.840027, y: 68.160065}
       Size: {x: 151.68, y: 132.47998}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 243.1034, y: 80.34482}
       Size: {x: 272.41382, y: 166.20691}
-      Side: 20
+      Side: 40
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: af0e2733854feb442acb71212608b43e, type: 3}
       Offset: {x: 31.3, y: 35}
@@ -113,11 +113,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 26.560032, y: 64.64005}
       Size: {x: 153.59998, y: 140.80003}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 244.1379, y: 72.758606}
       Size: {x: 276.55173, y: 157.93103}
-      Side: 20
+      Side: 40
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 38dca5ccc94dae74ea027d2d08baf436, type: 3}
       Offset: {x: 78.4, y: 38.2}
@@ -129,11 +129,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 23.360031, y: 54.400055}
       Size: {x: 170.24002, y: 126.72003}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 206.89648, y: 73.10343}
       Size: {x: 279.3103, y: 176.55174}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0029
     Sprite: {fileID: 21300000, guid: 1de4b7b73270e8b4982230437e9b1d94, type: 3}
@@ -141,7 +141,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13.760014, y: 55.360054}
       Size: {x: 145.91998, y: 109.44003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0033
@@ -150,7 +150,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4.4800224, y: 55.04007}
       Size: {x: 146.56, y: 119.04001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0037
@@ -159,7 +159,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0.960022, y: 62.080048}
       Size: {x: 128.00002, y: 128.00003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_1_1nrtcmb00_0002
@@ -168,7 +168,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 3.520012, y: 66.56005}
       Size: {x: 138.23999, y: 117.76005}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_1_1nrtcmb00_0008
@@ -177,11 +177,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 27.520018, y: 80.96007}
       Size: {x: 83.83998, y: 158.07999}
-      Side: 20
+      Side: 40
     HitBoxes:
-    - Center: {x: 33.14288, y: 116.571365}
-      Size: {x: 194.85715, y: 31.999992}
-      Side: 20
+    - Center: {x: 43.272747, y: 115.272705}
+      Size: {x: 179.63635, y: 44.363678}
+      Side: 40
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 8e0a17364ad90f848a289514079ce7a5, type: 3}
       Offset: {x: 16.2, y: 30.7}
@@ -193,7 +193,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 43.520016, y: 81.28006}
       Size: {x: 108.159996, y: 175.36002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 8a50b86ec8956c242920dffea0bf354a, type: 3}
@@ -206,7 +206,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 27.520031, y: 83.20005}
       Size: {x: 87.68, y: 171.52003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_1_1nrtcmb00_0019
@@ -215,7 +215,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -1.9199829, y: 84.800064}
       Size: {x: 91.51999, y: 164.48001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0001
@@ -224,7 +224,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 3.8400269, y: 80.96006}
       Size: {x: 83.840004, y: 176.00002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0002
@@ -233,8 +233,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11.840026, y: 83.84006}
       Size: {x: 80.64001, y: 180.48001}
-      Side: 20
-    HitBoxes: []
+      Side: 40
+    HitBoxes:
+    - Center: {x: 23.636375, y: 116.72722}
+      Size: {x: 137.45454, y: 85.09087}
+      Side: 40
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0003
     Sprite: {fileID: 21300000, guid: 94c593c5833393045a6f9f5b49b95b1b, type: 3}
@@ -242,11 +245,8 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11.200024, y: 71.36005}
       Size: {x: 93.43998, y: 154.24002}
-      Side: 20
-    HitBoxes:
-    - Center: {x: 82.88003, y: 84.800064}
-      Size: {x: 134.40001, y: 100.48001}
-      Side: 20
+      Side: 40
+    HitBoxes: []
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 417afc66005a73a4c99e3d936b1d33a0, type: 3}
       Offset: {x: 62.3, y: 40.1}
@@ -258,7 +258,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9.032257, y: 66.58065}
       Size: {x: 66.58065, y: 148.64516}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: a5aca38aeb4904f438ca958bd692607e, type: 3}
@@ -271,7 +271,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0.000024795532, y: 77.120056}
       Size: {x: 90.239975, y: 163.19998}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0014
@@ -280,7 +280,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8.000025, y: 70.72006}
       Size: {x: 90.879974, y: 136.32}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0020
@@ -289,7 +289,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 7.3600206, y: 80.000046}
       Size: {x: 75.51999, y: 163.84003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_3_1nrtcmb02_0003
@@ -298,7 +298,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 7.360034, y: 73.60005}
       Size: {x: 70.399994, y: 133.12003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_3_1nrtcmb02_0005
@@ -307,11 +307,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 22.080029, y: 83.52005}
       Size: {x: 85.76, y: 159.36002}
-      Side: 20
+      Side: 40
     HitBoxes:
-    - Center: {x: 50.32263, y: 122.83875}
-      Size: {x: 174.4516, y: 72.25804}
-      Side: 20
+    - Center: {x: 18.857147, y: 107.14279}
+      Size: {x: 181.7143, y: 85.14286}
+      Side: 40
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: b75c996d796095b40a10e538b6266640, type: 3}
       Offset: {x: 39.1, y: 25.4}
@@ -323,7 +323,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5.120019, y: 73.92005}
       Size: {x: 67.2, y: 140.16002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 4f9945c163307314ca818081b7b42560, type: 3}
@@ -336,7 +336,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1.9200306, y: 72.64005}
       Size: {x: 87.67999, y: 150.40004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: d9bca6be2d22f8945ab7063ab4a4be4e, type: 3}
@@ -349,7 +349,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2.2400265, y: 74.56005}
       Size: {x: 88.31999, y: 141.44002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_3_1nrtcmb02_0020
@@ -358,7 +358,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5.760022, y: 81.280075}
       Size: {x: 65.91999, y: 158.72}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4_1nrtcmb14_0028
@@ -367,7 +367,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -1.5999813, y: 43.840046}
       Size: {x: 115.2, y: 97.92004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0009
@@ -376,11 +376,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4.160022, y: 112.00005}
       Size: {x: 65.28, y: 209.92003}
-      Side: 20
+      Side: 40
     HitBoxes:
-    - Center: {x: 18.240026, y: 137.92006}
-      Size: {x: 125.44, y: 182.39995}
-      Side: 20
+    - Center: {x: 5.42857, y: 123.14288}
+      Size: {x: 74.28572, y: 219.99994}
+      Side: 40
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0011
     Sprite: {fileID: 21300000, guid: 7615e409d16730b46bb119171070a0b3, type: 3}
@@ -388,7 +388,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -1.9199715, y: 115.20005}
       Size: {x: 60.799995, y: 211.2}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0019
@@ -397,7 +397,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -7.6799793, y: 113.280045}
       Size: {x: 77.43999, y: 212.48001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0022
@@ -406,7 +406,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -10.239977, y: 125.76004}
       Size: {x: 85.11998, y: 218.24002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0024
@@ -415,7 +415,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -7.359972, y: 119.04007}
       Size: {x: 84.479996, y: 195.84}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14B_2012_0006
@@ -424,7 +424,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 24.000025, y: 59.840046}
       Size: {x: 122.879974, y: 129.92003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14B_2012_0009
@@ -433,11 +433,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11.200023, y: 86.40006}
       Size: {x: 78.07997, y: 161.28001}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 78.08003, y: 108.48008}
       Size: {x: 103.04001, y: 72.31999}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: attack_4B_1nrtsupcmbint01_0003
     Sprite: {fileID: 21300000, guid: b0195fe37977ba148912be29fd36cdba, type: 3}
@@ -445,7 +445,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 15.360022, y: 55.040047}
       Size: {x: 109.44, y: 96.000015}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtsupcmbint01_0005
@@ -454,11 +454,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 17.280025, y: 54.40006}
       Size: {x: 128.63998, y: 98.559975}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 57.600037, y: 59.20007}
       Size: {x: 152.96002, y: 113.28002}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: attack_4B_1nrtsupcmbint01_0006
     Sprite: {fileID: 21300000, guid: b10a7ea0225285345a6a8a6413ded12a, type: 3}
@@ -466,7 +466,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 16.32003, y: 51.840046}
       Size: {x: 135.68, y: 97.27999}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1cmndmd0_0005
@@ -475,7 +475,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -6.0799675, y: 112.96006}
       Size: {x: 78.079994, y: 227.2}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0002
@@ -484,7 +484,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 15.040016, y: -2.8799562}
       Size: {x: 200.95999, y: 63.36001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0012
@@ -493,7 +493,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -17.91998, y: 73.28006}
       Size: {x: 113.27999, y: 165.76001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0014
@@ -502,7 +502,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8.960021, y: 85.76006}
       Size: {x: 74.88, y: 166.40001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0015
@@ -511,7 +511,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1.9200191, y: 89.92006}
       Size: {x: 71.03998, y: 175.99997}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0017
@@ -520,7 +520,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8.320021, y: 79.040054}
       Size: {x: 124.79999, y: 138.88}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0024
@@ -529,7 +529,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -7.3599834, y: 96.96005}
       Size: {x: 83.2, y: 172.16003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0041
@@ -538,7 +538,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -0.9599724, y: 100.48006}
       Size: {x: 75.51999, y: 188.16}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0043
@@ -547,7 +547,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 3.2000237, y: 48.000057}
       Size: {x: 113.27997, y: 83.20002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0044
@@ -556,16 +556,16 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1.9200172, y: 30.400059}
       Size: {x: 129.92001, y: 71.04006}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: hurt_1nrtrun0_0046
     Sprite: {fileID: 21300000, guid: 72ec4d72a5878f5409f7730a582508b6, type: 3}
     Offset: {x: 9.770959, y: 59.236645}
     HurtBoxes:
-    - Center: {x: 10.560017, y: 44.480038}
-      Size: {x: 167.68, y: 73.60001}
-      Side: 20
+    - Center: {x: 13.090923, y: 41.818176}
+      Size: {x: 180.36362, y: 69.0909}
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: In_Out_1nrtent0_0002
@@ -574,7 +574,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -2.2399654, y: 114.24005}
       Size: {x: 95.999985, y: 209.28}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: In_Out_1nrtent0_0008
@@ -583,7 +583,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6.080017, y: 37.44007}
       Size: {x: 128.00002, y: 83.84001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: In_Out_1nrtent0_0014
@@ -592,7 +592,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 3.8400269, y: 58.560066}
       Size: {x: 91.51999, y: 132.48}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: In_Out_1nrtout0_0005
@@ -601,7 +601,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5.12002, y: 43.84007}
       Size: {x: 120.96001, y: 95.36002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: move_1nrtrun0_0000
@@ -610,7 +610,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 22.400024, y: 77.760056}
       Size: {x: 85.12001, y: 165.76004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: move_1nrtrun0_0003
@@ -619,7 +619,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 15.040026, y: 74.24004}
       Size: {x: 98.55998, y: 158.72002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: move_1nrtrun0_0007
@@ -628,7 +628,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 10.56002, y: 70.40007}
       Size: {x: 116.479996, y: 148.48001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: move_1nrtrun0_0009
@@ -637,7 +637,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9.920017, y: 63.36006}
       Size: {x: 115.19999, y: 153.6}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: move_1nrtrun0_0012
@@ -646,7 +646,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 26.880028, y: 65.280075}
       Size: {x: 86.399994, y: 165.12}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: move_1nrtrun0_0014
@@ -655,7 +655,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 22.720028, y: 71.680046}
       Size: {x: 88.319984, y: 160.00005}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: run_1nrtrun1_0006
@@ -664,7 +664,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 17.280016, y: 61.44006}
       Size: {x: 123.51999, y: 108.80004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_A_fx_1nrtskl1chg_l_0000
@@ -673,7 +673,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6.080015, y: 71.68008}
       Size: {x: 78.08, y: 171.52}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_A_fx_1nrtskl1chg_l_0002
@@ -682,7 +682,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4.800024, y: 78.40004}
       Size: {x: 90.879974, y: 179.84003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_A_fx_1nrtskl1chg_l_0004
@@ -691,7 +691,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6.080017, y: 75.200066}
       Size: {x: 84.479996, y: 170.88002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_A_fx_1nrtskl1chg_l_0006
@@ -700,7 +700,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8.320019, y: 77.120056}
       Size: {x: 88.96, y: 168.32}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_A_fx_1nrtskl1chg_l_0008
@@ -709,7 +709,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5.440014, y: 78.08006}
       Size: {x: 95.99999, y: 168.96002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_A_fx_1nrtskl1chg_l_0010
@@ -718,7 +718,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9.600023, y: 72.64007}
       Size: {x: 78.72002, y: 167.04}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_1_1nrtcmb01_0002
@@ -727,7 +727,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9.280027, y: 73.28006}
       Size: {x: 87.03998, y: 159.36002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_1_1nrtcmb01_0004
@@ -736,7 +736,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8.32003, y: 74.56005}
       Size: {x: 81.28, y: 159.36003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_1_1nrtcmb01_0008
@@ -745,7 +745,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 10.240026, y: 75.52006}
       Size: {x: 103.04001, y: 159.99998}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0001
@@ -754,7 +754,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13.440026, y: 53.760067}
       Size: {x: 87.68, y: 121.60001}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0003
@@ -763,7 +763,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0.6400261, y: 84.80006}
       Size: {x: 71.04001, y: 176.00002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0004
@@ -772,11 +772,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5.7600346, y: 90.56005}
       Size: {x: 86.399994, y: 154.24004}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 45.76003, y: 89.92006}
       Size: {x: 94.72001, y: 104.32001}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0015
     Sprite: {fileID: 21300000, guid: b3bfdeb9d602fd04aadf58f9ba119be1, type: 3}
@@ -784,7 +784,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 12.800022, y: 98.88005}
       Size: {x: 108.159996, y: 159.36002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0018
@@ -793,7 +793,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1.2800293, y: 94.40004}
       Size: {x: 90.23998, y: 173.44003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0004
@@ -802,7 +802,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11.840027, y: 92.16005}
       Size: {x: 104.95998, y: 175.36005}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0005
@@ -811,7 +811,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13.760021, y: 115.52007}
       Size: {x: 157.44, y: 99.19997}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0008
@@ -820,7 +820,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 20.48003, y: 97.280045}
       Size: {x: 131.19998, y: 121.60004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 68afea0f4801535469e18955a22139bb, type: 3}
@@ -833,7 +833,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 12.800024, y: 94.72005}
       Size: {x: 113.27997, y: 110.08005}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0012
@@ -842,11 +842,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -13.119982, y: 82.56005}
       Size: {x: 128.00002, y: 168.96004}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 91.84002, y: 112.96006}
       Size: {x: 166.40001, y: 63.36003}
-      Side: 20
+      Side: 40
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 223186aebb79e0d4292e2d62a5907d5e, type: 3}
       Offset: {x: -5.5, y: -19.78}
@@ -858,7 +858,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4.48003, y: 88.320045}
       Size: {x: 122.23998, y: 180.48003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0019
@@ -867,10 +867,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 3.5200176, y: 101.44004}
       Size: {x: 102.399994, y: 200.32002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0000
@@ -879,10 +879,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 20.160023, y: 95.040054}
       Size: {x: 101.11999, y: 182.40002}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0002
@@ -891,10 +891,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 12.160021, y: 87.36005}
       Size: {x: 90.240005, y: 165.76004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0006
@@ -903,10 +903,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 14.080011, y: 63.68005}
       Size: {x: 142.72, y: 119.680016}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0008
@@ -915,10 +915,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 12.800018, y: 56.000057}
       Size: {x: 146.56001, y: 104.32003}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0009
@@ -927,7 +927,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4.480015, y: 53.760044}
       Size: {x: 147.84, y: 99.840004}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0001
@@ -949,7 +949,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 67.20003, y: 81.60004}
       Size: {x: 87.68, y: 90.24003}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0006
     Sprite: {fileID: 21300000, guid: 1c169ff499f9892438b4f78cd0faed0b, type: 3}
@@ -963,7 +963,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0004
@@ -972,7 +972,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0005
@@ -982,7 +982,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 45.473724, y: 117.473785}
       Size: {x: 164.2105, y: 95.157875}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0007
     Sprite: {fileID: 21300000, guid: b9aeba945b87eea48b0f33599090ba6e, type: 3}
@@ -990,7 +990,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0009
@@ -999,7 +999,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0013
@@ -1008,7 +1008,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0017
@@ -1017,7 +1017,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0001
@@ -1026,7 +1026,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0004
@@ -1035,7 +1035,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0006
@@ -1044,7 +1044,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0009
@@ -1053,11 +1053,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes:
     - Center: {x: 33.54843, y: 40.2581}
       Size: {x: 104.774185, y: 81.54836}
-      Side: 20
+      Side: 40
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0012
     Sprite: {fileID: 21300000, guid: f0efc366925199b4bbba376b5c12cb1d, type: 3}
@@ -1065,7 +1065,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_4_1nrtcmb05_0002
@@ -1074,7 +1074,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_4_1nrtcmb05_0004
@@ -1083,7 +1083,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_4_1nrtcmb05_0014
@@ -1092,7 +1092,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_1_1nrtspl1_cut_nc_0003
@@ -1101,10 +1101,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 5.93552, y: 90.064545}
       Size: {x: 86.70967, y: 183.22583}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_1_1nrtspl1_cut_nc_0005
@@ -1113,10 +1113,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 13.935527, y: 74.06455}
       Size: {x: 66.58065, y: 159.48384}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_1_1nrtspl1_cut_nc_0016
@@ -1125,10 +1125,10 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     - Center: {x: 14.451657, y: 65.032295}
       Size: {x: 70.70968, y: 156.90321}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_2_1nrtspl1_atk_1_0087
@@ -1137,7 +1137,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_1_1nrtspl1_atk_2_0037
@@ -1146,7 +1146,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_2_1nrtspl1_atk_1_0037
@@ -1155,7 +1155,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtcmb02_0005
@@ -1164,7 +1164,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtcmb02_0007
@@ -1173,7 +1173,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtcmb02_0008
@@ -1182,7 +1182,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtspl1_atk_1_0037
@@ -1191,7 +1191,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtspl1_atk_1_0147
@@ -1200,7 +1200,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtspl1_atk_1_0168
@@ -1210,7 +1210,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: -14.399872, y: 215.1999}
       Size: {x: 743.9997, y: 452.7997}
-      Side: 100
+      Side: 40
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtspl1_atk_1_0175
     Sprite: {fileID: 21300000, guid: fc8f7df64f49cbe4e8b61ea0705b7e53, type: 3}
@@ -1218,7 +1218,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtspl1_atk_1_0195
@@ -1227,6 +1227,6 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 0.5, y: 1.8}
-      Side: 20
+      Side: 40
     HitBoxes: []
     ExtraLayers: []

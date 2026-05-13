@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
   m_Name: Hurt_fall
   m_EditorClassIdentifier: 
-  AnimName: Fall
+  AnimName: Hurt_fall
   Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
-  IsLoop: 1
+  IsLoop: 0
   Steps:
   - FrameIndex: 54
     Duration: 999

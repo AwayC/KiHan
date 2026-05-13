@@ -22,8 +22,12 @@ public abstract class StateBase
 public abstract class StateMachine
 {
     protected StateBase _currState; 
+    protected StateBase _lastState; // 新增：记录上一个状态
     protected Dictionary<sbyte, StateBase> _states = new Dictionary<sbyte, StateBase>();
     protected CharacterEntity _owner;
+
+    public StateBase CurrentState => _currState;
+    public StateBase LastState => _lastState;
     
     public StateMachine(CharacterEntity owner)
     {
@@ -38,7 +42,13 @@ public abstract class StateMachine
     public void ChangeState(sbyte stateIdx)
     {
         if (!_states.ContainsKey(stateIdx)) return;
-        _currState?.Exit(_owner);
+        
+        if (_currState != null)
+        {
+            _currState.Exit(_owner);
+            _lastState = _currState;
+        }
+
         _currState = _states[stateIdx];
         _currState.Enter(_owner);
     }

@@ -1,6 +1,7 @@
 using KiHan.Logic;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Data;
 
 // 鸣人特有的状态放在这里
 #region 战斗状态 (Attack / Skill)
@@ -11,12 +12,14 @@ public class NarutoStateAttack : StateBase
 
     private int _comboIdx = 1;      // 当前连击段数 (1-4)
     private bool _hasInputNext = false; // 是否有有效的预输入
-    private int _segmentTick = 0;   // 当前段落经历的逻辑帧数
+    private int _segmentTick = 0;   // 当前段落经历 of 逻辑帧数
     private ButtonMask _lastButtons = ButtonMask.None; // 上一帧的按键状态
 
     public override void Enter(CharacterEntity owner)
     {
         _comboIdx = 1;
+        owner.velocity = Vector2.zero;
+        owner.ForceLoop = false; 
         _lastButtons = owner.CurrInput != null ? owner.CurrInput.Buttons : ButtonMask.None;
         StartComboSegment(owner);
     }
@@ -38,20 +41,21 @@ public class NarutoStateAttack : StateBase
         // 2. 切换动画
         owner.SwitchAnimation($"Attack_{_comboIdx}");
 
+        // 3. 初始速度清零，移动完全交给 FrameData 里的 RootMotion
+        owner.velocity = Vector2.zero;
+
         Debug.Log($"[Battle] Naruto Attack_{_comboIdx} Enter.");
     }
 
     public override void Update(CharacterEntity owner)
     {
         _segmentTick++;
-        var input = owner.CurrInput;
 
+        var input = owner.CurrInput;
         if (input != null)
         {
-            // 核心修改：允许长按 (isDown)
-            // 只要按键处于按下状态，且当前进度在“有效取消区间”内，就自动记录连招
+            // 允许长按连招
             bool isDown = (input.Buttons & ButtonMask.Attack) != 0;
-            
             if (isDown && CheckInputWindow(owner))
             {
                 _hasInputNext = true;
@@ -59,17 +63,40 @@ public class NarutoStateAttack : StateBase
             _lastButtons = input.Buttons;
         }
 
-        // --- Attack 4 特殊逻辑：空中等待落地 ---
+        // --- 1. Attack 4 特殊逻辑：空中等待落地 ---
+        // 纯逻辑层控制：如果在空中，强制锁定在动画的最后一帧
         if (_comboIdx == 4)
         {
-            // 在第 8 帧滞留，直到落地
-            if (owner.CurrentFrameIndex == 8 && owner.height > 0)
+            int lastFrame = (owner.CurrAnim != null) ? owner.CurrAnim.Steps.Count - 1 : 9;
+
+            if (owner.height > 0)
             {
-                owner.FreezeAnimFrame = true;
+                if (owner.CurrentFrameIndex >= lastFrame)
+                {
+                    owner.CurrentFrameIndex = lastFrame;
+                    owner.LogicalTickCounter = 0; // 冻结计时器，永远不让它在空中自然结束
+                }
             }
             else
             {
-                owner.FreezeAnimFrame = false;
+                // 落地瞬间：只要已经过了起跳帧（约第5帧），一旦触地立刻结束普攻状态
+                if (owner.CurrentFrameIndex >= 7)
+                {
+                    owner.velocity = Vector2.zero;
+
+                    if (_hasInputNext)
+                    {
+                        // 循环化连招
+                        _comboIdx = 1; 
+                        StartComboSegment(owner);
+                    }
+                    else
+                    {
+                        // 切入落地收招状态 (Land)
+                        owner.RootSM.ChangeState(CommonState.Land);
+                    }
+                    return; // 立即返回，不走底部的 IsAnimFinished
+                }
             }
         }
 
@@ -86,8 +113,16 @@ public class NarutoStateAttack : StateBase
             }
             else
             {
-                // 如果没有有效的预输入，播放完毕后停在待机
-                owner.RootSM.ChangeState(CommonState.Idle);
+                // 如果是 4a 结束且没有预输入（作为异常情况的兜底），切入落地收招状态
+                if (_comboIdx == 4)
+                {
+                    owner.RootSM.ChangeState(CommonState.Land);
+                }
+                else
+                {
+                    // 1a-3a 结束则直接回待机
+                    owner.RootSM.ChangeState(CommonState.Idle);
+                }
             }
         }
     }
@@ -109,16 +144,15 @@ public class NarutoStateAttack : StateBase
         }
         else
         {
-            // 对于漫长的 4a，必须在落地帧（第 9 帧）及其之后才允许输入
-            // 这解决了在天上乱点也能接下一套的问题
-            return currentFrame >= 9;
+            // 对于 4a，它会在空中被冻结在最后一帧。
+            // 允许在最后一帧（下落过程）及其之后进行预输入，这样一落地就能无缝连招。
+            return currentFrame >= (totalFrames - 1);
         }
     }
 
     public override void Exit(CharacterEntity owner)
     {
         owner.velocity = Vector2.zero;
-        owner.FreezeAnimFrame = false; // 退出状态时确保解冻
     }
 
     public override HitData GetHitData(CharacterEntity owner)
@@ -133,12 +167,18 @@ public class NarutoStateAttack : StateBase
         data.Damage = 10 + _comboIdx * 5;
         data.HitStun = 12 + _comboIdx * 2;
         data.PushSpeed = 10.0f + _comboIdx * 2f; 
+        data.PushSpeedAir = 2f; // 空中追击时的水平击退（稍小一点防止打飞太远接不上）
 
-        if (_comboIdx == 4)
+        // 默认垂直速度：为了支持空中追击 (Juggle)，普通攻击也带一点点向上力
+        data.PushSpeedY = 30;
+        if (_comboIdx == 4 && owner.CurrentFrameIndex >= 4)
         {
             data.HType = HitType.ToAir;
             data.HitStun = 40; 
-            data.PushSpeed = 12.0f; 
+            data.PushSpeed = 30f; 
+            data.PushSpeedAir = 3f; 
+            data.PushSpeedY = 55; // 4a 击飞更高
+            data.IsHeavyHit = true; // 触发重击连震
         }
         return data;
     }
@@ -147,10 +187,15 @@ public class NarutoStateAttack : StateBase
     {
         if (owner.CurrAnim == null) return true;
         var steps = owner.CurrAnim.Steps;
-        if (owner.CurrentFrameIndex >= steps.Count - 1)
+        
+        // 边界保护
+        int frameIdx = Mathf.Clamp(owner.CurrentFrameIndex, 0, steps.Count - 1);
+        
+        if (frameIdx >= steps.Count - 1)
         {
-            var lastStep = steps[owner.CurrentFrameIndex];
-            if (owner.TickCounter >= lastStep.Duration - GameConfig.RENDER_LOGIC_RATIO)
+            var lastStep = steps[frameIdx];
+            // 使用严格大于等于时长判定
+            if (owner.LogicalTickCounter >= lastStep.Duration)
             {
                 return true;
             }

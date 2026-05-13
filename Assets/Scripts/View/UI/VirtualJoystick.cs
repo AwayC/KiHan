@@ -73,9 +73,18 @@ namespace View.UI
 
                 Knob.anchoredPosition = localPos;
 
-                float angle = Mathf.Atan2(localPos.y, localPos.x) * Mathf.Rad2Deg;
-                if (angle < 0) angle += 360;
-                InputManager.Instance.SetVirtualJoystick((byte)(angle / 2));
+                // 核心修复：物理死区 (Dead Zone) 过滤
+                // 解决经过摇杆中心时，极小的坐标导致的 Atan2 浮点数角度剧烈抖动（引发角色疯狂左右转身）
+                if (dist > 15f) 
+                {
+                    float angle = Mathf.Atan2(localPos.y, localPos.x) * Mathf.Rad2Deg;
+                    if (angle < 0) angle += 360;
+                    InputManager.Instance.SetVirtualJoystick((byte)(angle / 2));
+                }
+                else
+                {
+                    InputManager.Instance.SetVirtualJoystick(255); // 在死区内视为无输入
+                }
             }
         }
 

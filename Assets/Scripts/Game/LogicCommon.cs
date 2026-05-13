@@ -26,8 +26,11 @@ namespace KiHan.Logic
         public int Damage = 10;
         public HitType HType = HitType.None;
         public int HitStun = 20;    
-        public float PushSpeed = 2.0f;     // 击退速度
+        public float PushSpeed = 2.0f;     // 水平击退速度
         public float PushDirX = 0;         // 击退方向 (-1 或 1)
+        public int PushSpeedY = 0;         // 垂直击飞速度 (新增)
+        public float PushSpeedAir = 0;     // 空中击飞速度（新增）
+        public bool IsHeavyHit = false;    // 是否重击（用于触发连震等表现）
         
         // 攻击者的信息，供受击方参考
         public Vector2 Pos;
@@ -59,26 +62,33 @@ namespace KiHan.Logic
         {
             float p2u = 0.01f; // 像素转逻辑单位
 
-            // 转换自身坐标和尺寸
+            // 1. 转换判定参数为 Unity 坐标系
             float myRealOffsetX = (myFacingLeft ? -Center.x : Center.x) * p2u;
             float myRealOffsetY = Center.y * p2u;
             float mySizeX = Size.x * p2u;
             float mySizeY = Size.y * p2u;
             float mySide = Side * p2u;
 
-            // 转换对方坐标和尺寸
             float otherRealOffsetX = (otherFacingLeft ? -other.Center.x : other.Center.x) * p2u;
             float otherRealOffsetY = other.Center.y * p2u;
             float otherSizeX = other.Size.x * p2u;
             float otherSizeY = other.Size.y * p2u;
             float otherSide = other.Side * p2u;
 
-            Vector2 myWorldCenter = new Vector2(myPos.x + myRealOffsetX, myPos.y + myRealOffsetY);
-            Vector2 otherWorldCenter = new Vector2(otherPos.x + otherRealOffsetX, otherPos.y + otherRealOffsetY);
+            // --- A. 水平 (X轴) 判定 ---
+            float myWorldX = myPos.x + myRealOffsetX;
+            float otherWorldX = otherPos.x + otherRealOffsetX;
+            if (Mathf.Abs(myWorldX - otherWorldX) > (mySizeX + otherSizeX) / 2) return false;
 
-            if (Mathf.Abs(myWorldCenter.x - otherWorldCenter.x) > (mySizeX + otherSizeX) / 2) return false;
-            if (Mathf.Abs(myWorldCenter.y - otherWorldCenter.y) > (mySizeY + otherSizeY) / 2) return false;
-            if (Mathf.Abs(myZ - otherZ) > (mySide + otherSide) / 2) return false;
+            // --- B. 地图深度 (Y轴) 判定 ---
+            // 注意：myPos.y 是角色在地图上的深度坐标，对应 Side 厚度
+            if (Mathf.Abs(myPos.y - otherPos.y) > (mySide + otherSide) / 2) return false;
+
+            // --- C. 垂直高度 (Z轴) 判定 ---
+            // 注意：height 是跳跃高度，Center.y 是判定盒在立绘上的高度偏移，对应 Size.y 判定盒高度
+            float myWorldZ = myZ * p2u + myRealOffsetY;
+            float otherWorldZ = otherZ * p2u + otherRealOffsetY;
+            if (Mathf.Abs(myWorldZ - otherWorldZ) > (mySizeY + otherSizeY) / 2) return false;
             
             return true;
         }

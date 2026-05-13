@@ -33,6 +33,7 @@ public abstract class CharacterEntity : LogicEntity
 
     public HitData LastHitData;
     public ArmorLevel armorLevel;
+    public bool IsAirborne = false; // 记录是否处于击飞/浮空状态
     
     public virtual void UpdateInput(InputFrame input)
     {
@@ -64,6 +65,12 @@ public abstract class CharacterEntity : LogicEntity
 
         // 记录硬直时间
         this.StunTimer = hit.HitStun;
+
+        // 保存当前状态：是否被击飞或已经在空中
+        if (hit.HType == HitType.ToAir || this.height > 0 || this.h_vel > 0)
+        {
+            this.IsAirborne = true;
+        }
 
         // 切换到受击状态
         RootSM?.ChangeState(CommonState.Hurt);

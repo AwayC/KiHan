@@ -41,7 +41,7 @@ namespace View.UI
                 Transform joyKnob = joyRoot.Find("JoyStick_Knob") ?? joyRoot.Find("knob");
                 if (joyKnob != null) joystick.Knob = joyKnob.GetComponent<RectTransform>();
 
-                joystick.MaxRadius = 100f;
+                joystick.MaxRadius = 50f;
             }
 
             // 2. 寻找按键 (Buttons)

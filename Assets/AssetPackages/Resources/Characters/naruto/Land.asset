@@ -14,8 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AnimName: Land
   Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
-  IsLoop: 1
+  IsLoop: 0
   Steps:
+  - FrameIndex: 33
+    Duration: 4
+    RootMotion: {x: 0, y: 0}
   - FrameIndex: 57
-    Duration: 0
+    Duration: 2
     RootMotion: {x: 0, y: 0}

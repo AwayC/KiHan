@@ -25,6 +25,7 @@ public class NarutoEntity : CharacterEntity
         RootSM.RegisterState(new CommonIdleState());
         RootSM.RegisterState(new CommonRunState());
         RootSM.RegisterState(new CommonHurtState());
+        RootSM.RegisterState(new CommonLandState()); // 注册落地收招状态
         RootSM.RegisterState(new NarutoStateAttack()); // 注册普攻状态
 
         // 4. 初始状态
@@ -36,7 +37,8 @@ public class NarutoEntity : CharacterEntity
         // 基础动画
         _animDict["Idle"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Idle");
         _animDict["Run"]  = ResManager.Instance.Load<AnimationFrameData>(basePath + "Run");
-        _animDict["Land"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Land");
+        _animDict["Land"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Land"); // 主动落地（如4a）
+        _animDict["Hurt_land"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Hurt_land"); // 击飞落地
 
         // 普攻 4 段
         for (int i = 1; i <= 4; i++)
@@ -46,10 +48,18 @@ public class NarutoEntity : CharacterEntity
             if (data != null) _animDict[key] = data;
         }
 
-        // 受击 4 段
+        // 受击 4 段 + 特殊受击
         for (int i = 1; i <= 4; i++)
         {
             string key = $"Hurt_{i}";
+            var data = ResManager.Instance.Load<AnimationFrameData>(basePath + key);
+            if (data != null) _animDict[key] = data;
+        }
+
+        // 加载击飞相关动画
+        string[] extraHurts = { "Hurt_toair", "Hurt_inair", "Hurt_fall" };
+        foreach (var key in extraHurts)
+        {
             var data = ResManager.Instance.Load<AnimationFrameData>(basePath + key);
             if (data != null) _animDict[key] = data;
         }

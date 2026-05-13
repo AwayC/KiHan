@@ -24,7 +24,7 @@ MonoBehaviour:
     RootMotion: {x: 40, y: 0}
   - FrameIndex: 43
     Duration: 2
-    RootMotion: {x: 40, y: 0}
+    RootMotion: {x: 60, y: 0}
   - FrameIndex: 39
     Duration: 5
     RootMotion: {x: 40, y: 0}
@@ -32,8 +32,11 @@ MonoBehaviour:
     Duration: 2
     RootMotion: {x: 40, y: 0}
   - FrameIndex: 35
-    Duration: 4
-    RootMotion: {x: 40, y: 20}
+    Duration: 2
+    RootMotion: {x: 0, y: 45}
+  - FrameIndex: 35
+    Duration: 3
+    RootMotion: {x: 40, y: 0}
   - FrameIndex: 36
     Duration: 3
     RootMotion: {x: 40, y: 0}
@@ -41,8 +44,5 @@ MonoBehaviour:
     Duration: 2
     RootMotion: {x: 40, y: 0}
   - FrameIndex: 38
-    Duration: 8
+    Duration: 5
     RootMotion: {x: 40, y: 0}
-  - FrameIndex: 33
-    Duration: 2
-    RootMotion: {x: 0, y: 0}

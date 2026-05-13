@@ -8,7 +8,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
 {
     [Header("Tracking")]
     public LogicEntity TargetLogic; 
-    public float smoothSpeed = 4f; 
+    public float smoothSpeed = 3f; 
     public float yOffset = 1.47f;
     public float lookAheadDistance = 3.0f; 
 
@@ -17,8 +17,13 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     public float maxX = 4.5f;
 
     private Camera _cam;
-    private float _impactTimer;
     private float _originalSize;
+
+    // --- 打击感控制参数 ---
+    private int _impactState = 0;       // 0: 空闲, 1: 保持放大, -1: 保持恢复
+    private int _impactHoldFrames = 0;  // 状态剩余渲染帧数
+    private int _heavyHitCounter = 0;   // 剩余重击连震次数
+    private float _currentZoom = 0f;
 
     protected override void Awake()
     {
@@ -55,17 +60,23 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     }
 
     /// <summary>
-    /// 触发打击感反馈：瞬间放大（拉近） + 平滑缩回
+    /// 触发打击感反馈：瞬间放大（一帧）然后立即恢复
     /// </summary>
-    /// <param name="zoomPercent">放大比例 (0.05 代表放大 5%)</param>
-    /// <param name="duration">回弹时间</param>
-    public void ImpactEffect(float zoomPercent = 0.03f, float duration = 0.1f)
+    public void ImpactEffect(bool isHeavyHit = false)
     {
         if (_originalSize <= 0) return;
         
-        _impactTimer = duration;
-        // 瞬间减小 orthographicSize = 画面放大
-        _cam.orthographicSize = _originalSize * (1f - zoomPercent);
+        _heavyHitCounter = isHeavyHit ? 1 : 0; // 重击会额外再震动1次
+        _currentZoom = isHeavyHit ? 0.05f : 0.03f; // 重击放大5%，普攻放大3%
+        
+        TriggerSingleImpact();
+    }
+
+    private void TriggerSingleImpact()
+    {
+        _impactState = 1;
+        _impactHoldFrames = 2; // 保持放大的渲染帧数 (2帧非常短促)
+        _cam.orthographicSize = _originalSize * (1f - _currentZoom);
     }
 
     private void LateUpdate()
@@ -81,15 +92,39 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         // 2. 缓动跟随
         transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * smoothSpeed);
 
-        // 3. 处理打击感缩放回弹
-        if (_impactTimer > 0)
+        // 3. 处理帧驱动的打击感震屏
+        if (_impactState == 1)
         {
-            _impactTimer -= Time.deltaTime;
-            // 平滑缩回到原始大小
-            _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, _originalSize, Time.deltaTime * 12f);
+            _impactHoldFrames--;
+            if (_impactHoldFrames <= 0)
+            {
+                // 瞬间恢复
+                _cam.orthographicSize = _originalSize;
+                
+                if (_heavyHitCounter > 0)
+                {
+                    _heavyHitCounter--;
+                    _impactState = -1;
+                    _impactHoldFrames = 2; // 两次震动之间的间隔帧数
+                }
+                else
+                {
+                    _impactState = 0;
+                }
+            }
+        }
+        else if (_impactState == -1)
+        {
+            _impactHoldFrames--;
+            if (_impactHoldFrames <= 0)
+            {
+                // 间隔结束，触发第二次震动
+                TriggerSingleImpact();
+            }
         }
         else if (_originalSize > 0 && _cam.orthographicSize != _originalSize)
         {
+            // 兜底恢复
             _cam.orthographicSize = _originalSize;
         }
     }

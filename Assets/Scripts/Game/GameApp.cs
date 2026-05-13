@@ -191,8 +191,7 @@ public class GameApp : UnitySingleton<GameApp>
             }
         }
 
-        // 2. 逻辑 Tick (状态机、物理位移)
-        // 注意：此时不推进动画帧索引，确保碰撞检测看到的是当前显示的帧
+        // 2. 逻辑 Tick (更新物理与逻辑帧)
         for (int i = 0; i < _allEntities.Count; i++)
         {
             _allEntities[i].Tick();
@@ -201,12 +200,6 @@ public class GameApp : UnitySingleton<GameApp>
         // 3. 碰撞检测
         if (_players.TryGetValue(1, out var p1)) DoCollisionCheck(p1);
         if (_players.TryGetValue(2, out var p2)) DoCollisionCheck(p2);
-
-        // 4. 推进动画帧 (Post Tick)
-        for (int i = 0; i < _allEntities.Count; i++)
-        {
-            _allEntities[i].AdvanceAnimation();
-        }
     }
 
     private void DoCollisionCheck(CharacterEntity target)
@@ -218,13 +211,15 @@ public class GameApp : UnitySingleton<GameApp>
             // 判定：攻击者是否有攻击盒，且目标是否有受击盒，且未被此动作命中过
             if(attacker.CheckHit(target))
             {
+                Debug.Log("check hit" + Time.fixedTime);
                 if (attacker.CanHit(target))
                 {
-                    target.ApplyHit(attacker.GetHitData());
+                    HitData hitData = attacker.GetHitData();
+                    target.ApplyHit(hitData);
                     attacker.RegisterHit(target); // 标记命中，防止同一段动作重复打击
 
                     // 触发相机打击感反馈
-                    CameraControllor.Instance.ImpactEffect();
+                    CameraControllor.Instance.ImpactEffect(hitData.IsHeavyHit);
                 }
             }
         }
