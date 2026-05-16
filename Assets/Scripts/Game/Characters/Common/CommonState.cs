@@ -236,6 +236,7 @@ public class CommonHurtState : StateBase
 public class CommonLandState : StateBase
 {
     public override sbyte StateType => CommonState.Land;
+    private bool _isHurtLand = false;
 
     public override void Enter(CharacterEntity owner)
     {
@@ -244,14 +245,35 @@ public class CommonLandState : StateBase
         // 判定：如果上一个状态是受击(Hurt)，播放 Hurt_land；否则播普通 Land
         if (owner.RootSM.LastState != null && owner.RootSM.LastState.StateType == CommonState.Hurt)
         {
+            _isHurtLand = true;
             owner.SwitchAnimation("Hurt_land");
         }
         else
         {
+            _isHurtLand = false;
             owner.SwitchAnimation("Land");
         }
 
         owner.velocity = Vector2.zero;
+    }
+
+    public override bool OnBeforeHit(CharacterEntity owner, HitData data)
+    {
+        // 拦截器：如果当前正在播放受击倒地起身 (Hurt_land)
+        if (_isHurtLand)
+        {
+            // 倒地状态下受到攻击：只应用伤害，但不中断当前的起身动作
+            owner.Blood -= Mathf.Max(1, (int)(data.Damage / owner.Defence));
+            
+            // 可以选择在这里触发一个专门的倒地受击特效或音效
+            // Debug.Log("[Hit Intercepted] Hit during Hurt_land, took damage but state preserved.");
+            
+            // 返回 true，告诉 ApplyHit 钩子：“我已经自己处理了，不要走默认的受击切状态逻辑”
+            return true; 
+        }
+
+        // 如果是普通的 Land 状态，不拦截，按正常流程挨打
+        return false;
     }
 
     public override void Exit(CharacterEntity owner) { }

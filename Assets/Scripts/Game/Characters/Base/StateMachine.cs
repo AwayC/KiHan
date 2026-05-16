@@ -17,6 +17,15 @@ public abstract class StateBase
     {
         return null; // 默认状态（如待机、跑动）没有攻击数据
     }
+
+    /// <summary>
+    /// 受击拦截器。当实体被攻击时，优先调用当前状态的此方法。
+    /// 返回 true 表示该状态拦截了此次受击判定（由状态自行处理），底层将不再执行默认的受击切状态逻辑。
+    /// </summary>
+    public virtual bool OnBeforeHit(CharacterEntity owner, HitData data)
+    {
+        return false;
+    }
 }
 
 public abstract class StateMachine
@@ -61,5 +70,17 @@ public abstract class StateMachine
     public HitData GetHitData()
     {
         return _currState?.GetHitData(_owner);
+    }
+
+    /// <summary>
+    /// 尝试让当前状态拦截受击
+    /// </summary>
+    public bool TryInterceptHit(HitData hitData)
+    {
+        if (_currState != null)
+        {
+            return _currState.OnBeforeHit(_owner, hitData);
+        }
+        return false;
     }
 }

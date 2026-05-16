@@ -32,16 +32,16 @@ public class GameApp : UnitySingleton<GameApp>
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
         Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化网络...");
 
-        // 1. 初始化虚拟网络实现
-        var net = VirtualNetworkManager.Instance; 
-        
-        // 2. 初始化同步层并注入网络
-        LockstepManager.Instance.Init(net);
-        LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
+        //// 1. 初始化虚拟网络实现
+        //var net = VirtualNetworkManager.Instance;
 
-        // 3. 监听协议
-        net.OnOpCodeReceived += HandleNetworkMessage;
-        net.Connect();
+        //// 2. 初始化同步层并注入网络
+        //LockstepManager.Instance.Init(net);
+        //LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
+
+        //// 3. 监听协议
+        //net.OnOpCodeReceived += HandleNetworkMessage;
+        //net.Connect();
     }
 
     private void HandleNetworkMessage(ServerOpCode op, ArraySegment<byte> payload)
@@ -63,7 +63,7 @@ public class GameApp : UnitySingleton<GameApp>
         if (_isGameRunning) return;
         
         // 初始化场景
-        InitWorld();
+        //InitWorld();
         
         _isGameRunning = true;
         Debug.Log("[GameApp] 战斗开始！");

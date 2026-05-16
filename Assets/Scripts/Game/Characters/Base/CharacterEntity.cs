@@ -58,6 +58,13 @@ public abstract class CharacterEntity : LogicEntity
     {
         if (hit == null) return;
 
+        // 1. 状态拦截（第一优先级）
+        if (RootSM != null && RootSM.TryInterceptHit(hit))
+        {
+            return; // 状态选择自己消化这次受击，阻断默认流程
+        }
+
+        // --- 默认受击流程 ---
         this.LastHitData = hit;
         
         // 扣血计算 (伤害 / 防御)
