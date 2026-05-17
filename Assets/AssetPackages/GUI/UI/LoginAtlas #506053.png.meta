@@ -100,10 +100,10 @@ TextureImporter:
       name: backBtn
       rect:
         serializedVersion: 2
-        x: 257
-        y: 565
-        width: 48
-        height: 62
+        x: 258
+        y: 566
+        width: 45
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -502,6 +502,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: bigPanel
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 630
+        width: 823
+        height: 394
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f1f470a629ab1984c87a1733000b6a59
+      internalID: 2032577037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -522,6 +543,7 @@ TextureImporter:
       LoginAtlas #506053_6: 1488886141
       LoginAtlas #506053_7: -2058391104
       backBtn: -1359129713
+      bigPanel: 2032577037
       bookBtn: -1756321438
       broadBtn: -211674007
       note: -76526570

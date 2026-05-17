@@ -3,6 +3,7 @@ using KiHan.Logic;
 using System.Collections.Generic;
 using System;
 using Managers;
+using KiHan.View.UI.Login;
 
 public class GameApp : UnitySingleton<GameApp>
 {
@@ -31,6 +32,9 @@ public class GameApp : UnitySingleton<GameApp>
     {
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
         Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化网络...");
+
+        // 启动 UI 框架与登录界面
+        UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
 
         //// 1. 初始化虚拟网络实现
         //var net = VirtualNetworkManager.Instance;
