@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: cde4802a2a9e9ce408f8c6b7c311cf7e
+guid: 635d219e76a02844fa4c9b6d40614cd1
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: BG
+      name: startBtn
       rect:
         serializedVersion: 2
-        x: 0
-        y: 456
-        width: 1241
-        height: 568
+        x: 413
+        y: 176
+        width: 156
+        height: 171
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -111,20 +111,41 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 872f1b7fb523f0c4280a37493435623a
-      internalID: 186224354
+      spriteID: 63445af1b0743f449afc076d83df7e3c
+      internalID: 1112861952
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: btnBG
+      name: titleBG
       rect:
         serializedVersion: 2
-        x: 0
+        x: 572
+        y: 234
+        width: 253
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ac57a88cfc5e8645b5dcc4dad6917b9
+      internalID: -806215348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: corner
+      rect:
+        serializedVersion: 2
+        x: 686
         y: 29
-        width: 97
-        height: 349
+        width: 83
+        height: 202
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -132,20 +153,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ba5c6abeb111f3e4a9b8b8fbc43ec823
-      internalID: -1356015766
+      spriteID: ae5c8c255469eb1409db60e611dd8426
+      internalID: -1696198914
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: matchBtn
+      name: title
       rect:
         serializedVersion: 2
-        x: 100
-        y: 203
-        width: 154
-        height: 172
+        x: 414
+        y: 44
+        width: 265
+        height: 129
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +174,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 897af42f8ac9970438a226f014eb108c
-      internalID: -1849762058
+      spriteID: 7f5bddd1f3c706e4a89214d36d9b780b
+      internalID: -1838960256
       vertices: []
       indices: 
       edges: []
@@ -170,9 +191,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      BG: 186224354
-      btnBG: -1356015766
-      matchBtn: -1849762058
+      corner: -1696198914
+      startBtn: 1112861952
+      title: -1838960256
+      titleBG: -806215348
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

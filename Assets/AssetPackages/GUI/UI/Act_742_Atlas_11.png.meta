@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 72929519473131f42977c00977db87a5
+guid: 0a29fe702e79ac54ba86c4e521b7df5b
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,76 +97,160 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: three
-      rect:
-        serializedVersion: 2
-        x: 5
-        y: 239
-        width: 269
-        height: 337
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c435f64165895e54ea7a716eb58f518e
-      internalID: -2122466329
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: two
-      rect:
-        serializedVersion: 2
-        x: 276
-        y: 242
-        width: 261
-        height: 336
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d57bd36c8ebf813479f5fc5b5d3b563c
-      internalID: 2053170903
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: one
-      rect:
-        serializedVersion: 2
-        x: 4
-        y: 49
-        width: 338
-        height: 185
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: bd714c89488acc04197d399538f59c7c
-      internalID: -45623435
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: shadowBG
+      name: Act_742_Atlas_11_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 584
-        width: 1024
-        height: 440
+        y: 374
+        width: 527
+        height: 138
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 662eb60c4f141cf4c9b2b9f23625aef7
+      internalID: 2146990677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_1
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 59
+        width: 151
+        height: 310
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d9571bbed75916448e0649facda9541
+      internalID: -878630488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_2
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 166
+        width: 149
+        height: 202
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5bf48fa28b91384aabaa70a6e0e2f93
+      internalID: 1736322976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_3
+      rect:
+        serializedVersion: 2
+        x: 151
+        y: 2
+        width: 270
+        height: 157
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a6ac18db8ac8454c81992ae575324e7
+      internalID: -266639300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_4
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 174
+        width: 187
+        height: 85
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d3c288fe8feba545858217c08c29eb6
+      internalID: -650840620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_5
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 20
+        width: 115
+        height: 147
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d08400d743c7ac4bb17b4171c5a98e5
+      internalID: -905250777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: winner
+      rect:
+        serializedVersion: 2
+        x: 305
+        y: 273
+        width: 210
+        height: 84
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 40ca93f1d46aae54f820cc4dd3220dee
+      internalID: 199100447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_6
+      rect:
+        serializedVersion: 2
+        x: 493
+        y: 178
+        width: 51
+        height: 65
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -174,8 +258,29 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 139d5650152115f4db94f77323bdcd87
-      internalID: -1018523201
+      spriteID: 9884ea03f7ffe8449a6012389a496800
+      internalID: 1953637894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_742_Atlas_11_7
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 5
+        width: 98
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23ee58ffde392e448b97c3d8e42a8553
+      internalID: -1725243159
       vertices: []
       indices: 
       edges: []
@@ -191,10 +296,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      one: -45623435
-      shadowBG: -1018523201
-      three: -2122466329
-      two: 2053170903
+      Act_742_Atlas_11_0: 2146990677
+      Act_742_Atlas_11_1: -878630488
+      Act_742_Atlas_11_2: 1736322976
+      Act_742_Atlas_11_3: -266639300
+      Act_742_Atlas_11_4: -650840620
+      Act_742_Atlas_11_5: -905250777
+      Act_742_Atlas_11_6: 1953637894
+      Act_742_Atlas_11_7: -1725243159
+      winner: 199100447
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

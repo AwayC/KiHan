@@ -349,7 +349,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: LoginAtlas_12
+      name: backBtn
       rect:
         serializedVersion: 2
         x: 659
@@ -444,7 +444,6 @@ TextureImporter:
     secondaryTextures: []
     nameFileIdTable:
       BDLogo: 654885236
-      LoginAtlas_12: 570941836
       LoginAtlas_13: 858882549
       LoginAtlas_14: 1909221120
       LoginAtlas_6: 447796664
@@ -452,6 +451,7 @@ TextureImporter:
       LoginAtlas_8: -1916252419
       QQLogo: -2040649882
       WXLogo: 1206611518
+      backBtn: 570941836
       bigStripe: -768058696
       bingo: -1453876311
       blueBtn: -1418297856

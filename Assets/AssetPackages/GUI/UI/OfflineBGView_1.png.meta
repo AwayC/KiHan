@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: cde4802a2a9e9ce408f8c6b7c311cf7e
+guid: 03d6f90a379ffcb4a974bdbcf0783724
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -95,70 +95,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: BG
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 456
-        width: 1241
-        height: 568
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 872f1b7fb523f0c4280a37493435623a
-      internalID: 186224354
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: btnBG
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 29
-        width: 97
-        height: 349
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ba5c6abeb111f3e4a9b8b8fbc43ec823
-      internalID: -1356015766
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: matchBtn
-      rect:
-        serializedVersion: 2
-        x: 100
-        y: 203
-        width: 154
-        height: 172
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 897af42f8ac9970438a226f014eb108c
-      internalID: -1849762058
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     physicsShape: []
     bones: []
@@ -169,10 +106,7 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable:
-      BG: 186224354
-      btnBG: -1356015766
-      matchBtn: -1849762058
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -95,7 +95,133 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: noteIcon
+      rect:
+        serializedVersion: 2
+        x: 946
+        y: 338
+        width: 53
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5aabbdd6c46f9db4c89df13f8a5958cb
+      internalID: -1366670807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: resultBG
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 317
+        width: 680
+        height: 235
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c644a2045538cd34a9dd32215a503063
+      internalID: -180732698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: effect
+      rect:
+        serializedVersion: 2
+        x: 525
+        y: 208
+        width: 347
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13e15f6f2b61cca48bdc4d013f78d7ce
+      internalID: -891628404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Act_731_Atlas_1_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 25
+        width: 336
+        height: 283
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eefc3e7fb3f1bee41ba04dfe7eec54fb
+      internalID: 1547775743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btnBG
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 331
+        width: 55
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c029fda30a1e9d41955ca6e39fb1cb8
+      internalID: 1637112838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: yellowBtn
+      rect:
+        serializedVersion: 2
+        x: 515
+        y: 4
+        width: 75
+        height: 187
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fcdc74d71d951684ba05db84c36b9f5c
+      internalID: 654764977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -106,7 +232,13 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Act_731_Atlas_1_0: 1547775743
+      btnBG: 1637112838
+      effect: -891628404
+      noteIcon: -1366670807
+      resultBG: -180732698
+      yellowBtn: 654764977
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
