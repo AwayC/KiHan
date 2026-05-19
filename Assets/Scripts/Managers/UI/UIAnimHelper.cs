@@ -98,4 +98,48 @@ namespace Managers
             cg.alpha = 1f; // 为下次重置透明度
         }
     }
+
+    public enum SlideDir { Top, Bottom, Left, Right }
+
+    public static class UISlideAnim
+    {
+        public static IEnumerator DoSlide(RectTransform target, Vector2 originalPos, SlideDir dir, bool isShow, float duration = 0.3f, float offsetDist = 1000f)
+        {
+            if (target == null) yield break;
+
+            Vector2 offset = Vector2.zero;
+            switch (dir)
+            {
+                case SlideDir.Top: offset = new Vector2(0, offsetDist); break;
+                case SlideDir.Bottom: offset = new Vector2(0, -offsetDist); break;
+                case SlideDir.Left: offset = new Vector2(-offsetDist, 0); break;
+                case SlideDir.Right: offset = new Vector2(offsetDist, 0); break;
+            }
+
+            Vector2 startPos = isShow ? (originalPos + offset) : originalPos;
+            Vector2 endPos = isShow ? originalPos : (originalPos + offset);
+
+            CanvasGroup cg = target.GetComponent<CanvasGroup>();
+            if (cg == null) cg = target.gameObject.AddComponent<CanvasGroup>();
+
+            float time = 0;
+            target.anchoredPosition = startPos;
+            
+            while (time < duration)
+            {
+                time += Time.unscaledDeltaTime;
+                float t = time / duration;
+                
+                // 打开时 easeOut (越到目标越慢), 关闭时 easeIn (越到目标越快)
+                float easeT = isShow ? (1 - Mathf.Pow(1 - t, 3)) : (t * t * t);
+                
+                target.anchoredPosition = Vector2.Lerp(startPos, endPos, easeT);
+                cg.alpha = isShow ? Mathf.Lerp(0f, 1f, easeT) : Mathf.Lerp(1f, 0f, easeT);
+                yield return null;
+            }
+            
+            target.anchoredPosition = endPos;
+            cg.alpha = isShow ? 1f : 0f;
+        }
+    }
 }

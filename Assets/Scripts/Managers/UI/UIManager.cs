@@ -7,28 +7,50 @@ namespace Managers
     {
         private Dictionary<string, BasePanel> panelCache = new Dictionary<string, BasePanel>();
         private Transform currentCanvas;
+        private int _currentSortOrder = 10; // 用于管理多 Canvas 的渲染层级
 
         protected override void Awake()
         {
             base.Awake();
         }
 
+        private void BringToFront(BasePanel panel)
+        {
+            panel.transform.SetAsLastSibling();
+            Canvas c = panel.GetComponent<Canvas>();
+            if (c != null)
+            {
+                c.overrideSorting = true;
+                _currentSortOrder++;
+                c.sortingOrder = _currentSortOrder;
+                Debug.Log($"[UIManager] BringToFront: {panel.gameObject.name}, new sortingOrder: {_currentSortOrder}");
+            }
+            else
+            {
+                Debug.Log($"[UIManager] BringToFront: {panel.gameObject.name} (No Canvas component found, relies on hierarchy order)");
+            }
+        }
+
         public T OpenPanel<T>(string panelPath, object data = null) where T : BasePanel
         {
+            Debug.Log($"[UIManager] Request to OpenPanel: {panelPath}");
             if (panelCache.TryGetValue(panelPath, out BasePanel cachedPanel))
             {
                 if (cachedPanel != null)
                 {
+                    Debug.Log($"[UIManager] Found {panelPath} in cache. Calling OnOpen.");
                     cachedPanel.OnOpen(data);
-                    cachedPanel.transform.SetAsLastSibling();
+                    BringToFront(cachedPanel);
                     return cachedPanel as T;
                 }
                 else
                 {
+                    Debug.LogWarning($"[UIManager] Cache entry for {panelPath} was null, removing.");
                     panelCache.Remove(panelPath);
                 }
             }
 
+            Debug.Log($"[UIManager] Loading prefab for {panelPath}");
             GameObject prefab = Resources.Load<GameObject>(panelPath);
             if (prefab == null)
             {
@@ -102,6 +124,7 @@ namespace Managers
             }
 
             panelCache.Add(panelPath, panel);
+            BringToFront(panel);
             panel.OnOpen(data);
             return panel;
         }
