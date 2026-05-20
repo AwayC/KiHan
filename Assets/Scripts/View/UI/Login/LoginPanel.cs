@@ -150,7 +150,7 @@ namespace KiHan.View.UI.Login
                 _videoPlayer.targetCamera = cam;
             }
 
-            string videoPath = System.IO.Path.Combine(Application.dataPath, "AssetPackages/Movies/LoginTen.mp4");
+            string videoPath = global::System.IO.Path.Combine(Application.dataPath, "AssetPackages/Movies/LoginTen.mp4");
             _videoPlayer.url = videoPath;
             _videoPlayer.Play();
         }
@@ -267,9 +267,14 @@ namespace KiHan.View.UI.Login
             string username = _loginUsernameInput != null ? _loginUsernameInput.text : "";
             string password = _loginPasswordInput != null ? _loginPasswordInput.text : "";
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(username))
             {
-                Debug.LogWarning("[LoginPanel] 用户名或密码不能为空！");
+                UIManager.Instance.ShowTip("用户名不能为空！");
+                return;
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                UIManager.Instance.ShowTip("密码不能为空！");
                 return;
             }
 
@@ -280,19 +285,19 @@ namespace KiHan.View.UI.Login
                 {
                     if (res.code == (int)KiHan.Config.HttpErrCode.Ok)
                     {
-                        Debug.Log("[LoginPanel] 登录成功！");
+                        UIManager.Instance.ShowTip("登录成功！");
                         _isLoggedIn = true;
                         HidePopup(_loginPopup);
                         RefreshState();
                     }
                     else
                     {
-                        Debug.LogError($"[LoginPanel] 登录失败: {res.msg}");
+                        UIManager.Instance.ShowTip($"登录失败: {res.msg}");
                     }
                 },
                 onError: err => 
                 {
-                    Debug.LogError($"[LoginPanel] 网络错误: {err}");
+                    UIManager.Instance.ShowTip($"网络错误: {err}");
                 }
             );
         }
@@ -302,10 +307,21 @@ namespace KiHan.View.UI.Login
             string username = _regUsernameInput != null ? _regUsernameInput.text : "";
             string email = _regEmailInput != null ? _regEmailInput.text : "";
             string password = _regPasswordInput != null ? _regPasswordInput.text : "";
+            string confirmPwd = _regConfirmPasswordInput != null ? _regConfirmPasswordInput.text : "";
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(username))
             {
-                Debug.LogWarning("[LoginPanel] 用户名或密码不能为空！");
+                UIManager.Instance.ShowTip("用户名不能为空！");
+                return;
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                UIManager.Instance.ShowTip("密码不能为空！");
+                return;
+            }
+            if (password != confirmPwd)
+            {
+                UIManager.Instance.ShowTip("两次输入的密码不一致！");
                 return;
             }
 
@@ -316,19 +332,19 @@ namespace KiHan.View.UI.Login
                 {
                     if (res.code == (int)KiHan.Config.HttpErrCode.Ok)
                     {
-                        Debug.Log("[LoginPanel] 注册成功，并自动登录！");
+                        UIManager.Instance.ShowTip("注册成功！");
                         _isLoggedIn = true;
                         HidePopup(_registerPopup);
                         RefreshState();
                     }
                     else
                     {
-                        Debug.LogError($"[LoginPanel] 注册失败: {res.msg}");
+                        UIManager.Instance.ShowTip($"注册失败: {res.msg}");
                     }
                 },
                 onError: err => 
                 {
-                    Debug.LogError($"[LoginPanel] 网络错误: {err}");
+                    UIManager.Instance.ShowTip($"网络错误: {err}");
                 }
             );
         }

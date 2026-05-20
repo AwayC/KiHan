@@ -17,17 +17,42 @@ namespace Managers
         private void BringToFront(BasePanel panel)
         {
             panel.transform.SetAsLastSibling();
-            Canvas c = panel.GetComponent<Canvas>();
-            if (c != null)
+            
+            // 递归修正所有缩放为 0 的节点（处理预制体保存时的 Bug）
+            FixZeroScales(panel.transform);
+
+            // 获取所有 Canvas (包括子节点的嵌套 Canvas)
+            Canvas[] canvases = panel.GetComponentsInChildren<Canvas>(true);
+            
+            int targetOrder;
+            if (panel.SortingPriority > 0)
             {
-                c.overrideSorting = true;
-                _currentSortOrder++;
-                c.sortingOrder = _currentSortOrder;
-                Debug.Log($"[UIManager] BringToFront: {panel.gameObject.name}, new sortingOrder: {_currentSortOrder}");
+                targetOrder = panel.SortingPriority;
             }
             else
             {
-                Debug.Log($"[UIManager] BringToFront: {panel.gameObject.name} (No Canvas component found, relies on hierarchy order)");
+                _currentSortOrder++;
+                targetOrder = _currentSortOrder;
+            }
+
+            foreach (var c in canvases)
+            {
+                c.overrideSorting = true;
+                c.sortingOrder = targetOrder;
+            }
+
+            Debug.Log($"[UIManager] BringToFront: {panel.gameObject.name}, Type: {panel.GetType().Name}, SortingOrder: {targetOrder}, CanvasCount: {canvases.Length}");
+        }
+
+        private void FixZeroScales(Transform t)
+        {
+            if (t.localScale.x == 0 || t.localScale.y == 0 || t.localScale.z == 0)
+            {
+                t.localScale = Vector3.one;
+            }
+            foreach (Transform child in t)
+            {
+                FixZeroScales(child);
             }
         }
 
@@ -59,11 +84,13 @@ namespace Managers
             }
 
             GameObject go;
-            // 核心修复：如果预制体本身自带 Canvas（例如你直接把 Canvas 做成了 Prefab）
-            // 就不能再把它放到 currentCanvas 下面，否则会变成 Canvas 嵌套导致不可见
-            if (prefab.GetComponent<Canvas>() != null)
+            // 核心修复：如果预制体本身或其子节点包含 Canvas（例如你直接把 Canvas 做成了子节点或 Prefab）
+            // 这种通常是独立的 UI 系统，直接生成在根目录，避免嵌套导致的问题
+            if (prefab.GetComponentInChildren<Canvas>() != null)
             {
                 go = Instantiate(prefab); // 直接生成在根目录
+                go.transform.localScale = Vector3.one; // 强制缩放为 1，防止预制体默认 0 导致看不见
+                go.transform.localPosition = Vector3.zero;
                 
                 // 如果场景原本没有 Canvas，就把这个当做主 Canvas
                 if (currentCanvas == null || currentCanvas.name == "UICanvas") 
@@ -104,13 +131,13 @@ namespace Managers
                 }
 
                 go = Instantiate(prefab, currentCanvas);
+                go.transform.localScale = Vector3.one; // 强制缩放为 1
+                go.transform.localPosition = Vector3.zero;
                 
                 // 重置 RectTransform 保证大小正常
                 RectTransform rect = go.GetComponent<RectTransform>();
                 if (rect != null)
                 {
-                    rect.localScale = Vector3.one;
-                    rect.localPosition = Vector3.zero;
                     // 如果需要全屏拉伸
                     rect.offsetMin = Vector2.zero;
                     rect.offsetMax = Vector2.zero;
@@ -141,6 +168,11 @@ namespace Managers
         {
             panelCache.Clear();
             currentCanvas = null;
+        }
+
+        public void ShowTip(string message)
+        {
+            OpenPanel<KiHan.View.UI.System.SystemTipPanel>(UIConst.SystemTipPanel, message);
         }
     }
 }
