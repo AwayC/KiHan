@@ -34,18 +34,18 @@ public class GameApp : UnitySingleton<GameApp>
         Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化网络...");
 
         // 启动 UI 框架与登录界面
-        UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
+        //UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
 
-        //// 1. 初始化虚拟网络实现
-        //var net = VirtualNetworkManager.Instance;
+        // 1. 初始化虚拟网络实现
+        var net = VirtualNetworkManager.Instance;
 
-        //// 2. 初始化同步层并注入网络
-        //LockstepManager.Instance.Init(net);
-        //LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
+        // 2. 初始化同步层并注入网络
+        LockstepManager.Instance.Init(net);
+        LockstepManager.Instance.OnExecuteFrame = OnStepLogic;
 
-        //// 3. 监听协议
-        //net.OnOpCodeReceived += HandleNetworkMessage;
-        //net.Connect();
+        // 3. 监听协议
+        net.OnOpCodeReceived += HandleNetworkMessage;
+        net.Connect();
     }
 
     private void HandleNetworkMessage(ServerOpCode op, ArraySegment<byte> payload)
@@ -67,8 +67,8 @@ public class GameApp : UnitySingleton<GameApp>
         if (_isGameRunning) return;
         
         // 初始化场景
-        //InitWorld();
-        
+        InitWorld();
+
         _isGameRunning = true;
         Debug.Log("[GameApp] 战斗开始！");
     }
@@ -215,7 +215,7 @@ public class GameApp : UnitySingleton<GameApp>
             // 判定：攻击者是否有攻击盒，且目标是否有受击盒，且未被此动作命中过
             if(attacker.CheckHit(target))
             {
-                Debug.Log("check hit" + Time.fixedTime);
+                Debug.Log("check hit " + Time.fixedTime + " " + attacker.CurrentFrameIndex + " " + attacker.LogicalTickCounter);
                 if (attacker.CanHit(target))
                 {
                     HitData hitData = attacker.GetHitData();

@@ -8,7 +8,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
 {
     [Header("Tracking")]
     public LogicEntity TargetLogic; 
-    public float smoothSpeed = 3f; 
+    public float smoothSpeed = 2.5f; 
     public float yOffset = 1.47f;
     public float lookAheadDistance = 3.0f; 
 

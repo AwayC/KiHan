@@ -99,9 +99,9 @@ MonoBehaviour:
       Size: {x: 151.68, y: 132.47998}
       Side: 40
     HitBoxes:
-    - Center: {x: 243.1034, y: 80.34482}
-      Size: {x: 272.41382, y: 166.20691}
-      Side: 40
+    - Center: {x: 157.43999, y: 78.39999}
+      Size: {x: 204.15996, y: 155.52}
+      Side: 20
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: af0e2733854feb442acb71212608b43e, type: 3}
       Offset: {x: 31.3, y: 35}
@@ -115,9 +115,9 @@ MonoBehaviour:
       Size: {x: 153.59998, y: 140.80003}
       Side: 40
     HitBoxes:
-    - Center: {x: 244.1379, y: 72.758606}
-      Size: {x: 276.55173, y: 157.93103}
-      Side: 40
+    - Center: {x: 192.31999, y: 75.83997}
+      Size: {x: 277.75998, y: 154.24}
+      Side: 20
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 38dca5ccc94dae74ea027d2d08baf436, type: 3}
       Offset: {x: 78.4, y: 38.2}
@@ -131,9 +131,9 @@ MonoBehaviour:
       Size: {x: 170.24002, y: 126.72003}
       Side: 40
     HitBoxes:
-    - Center: {x: 206.89648, y: 73.10343}
-      Size: {x: 279.3103, y: 176.55174}
-      Side: 40
+    - Center: {x: 212.79999, y: 84.47997}
+      Size: {x: 367.36, y: 225.27995}
+      Side: 20
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0029
     Sprite: {fileID: 21300000, guid: 1de4b7b73270e8b4982230437e9b1d94, type: 3}
@@ -169,7 +169,10 @@ MonoBehaviour:
     - Center: {x: 3.520012, y: 66.56005}
       Size: {x: 138.23999, y: 117.76005}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 34.999977, y: 96.25001}
+      Size: {x: 180.50002, y: 48.499985}
+      Side: 20
     ExtraLayers: []
   - Name: attack_1_1nrtcmb00_0008
     Sprite: {fileID: 21300000, guid: 48e25188a7b2b6d4dbc229e95bde380f, type: 3}
@@ -377,10 +380,7 @@ MonoBehaviour:
     - Center: {x: 4.160022, y: 112.00005}
       Size: {x: 65.28, y: 209.92003}
       Side: 40
-    HitBoxes:
-    - Center: {x: 5.42857, y: 123.14288}
-      Size: {x: 74.28572, y: 219.99994}
-      Side: 40
+    HitBoxes: []
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0011
     Sprite: {fileID: 21300000, guid: 7615e409d16730b46bb119171070a0b3, type: 3}
@@ -389,7 +389,10 @@ MonoBehaviour:
     - Center: {x: -1.9199715, y: 115.20005}
       Size: {x: 60.799995, y: 211.2}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: -4.0000324, y: 125.999954}
+      Size: {x: 111, y: 229.99994}
+      Side: 20
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0019
     Sprite: {fileID: 21300000, guid: 7043cecbfe78eff428182c30af2d1678, type: 3}

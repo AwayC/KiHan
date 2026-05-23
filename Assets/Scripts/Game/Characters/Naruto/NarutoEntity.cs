@@ -3,9 +3,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using Managers;
 
+
 /// <summary>
 /// 鸣人逻辑实体
 /// </summary>
+/// 
 public class NarutoEntity : CharacterEntity
 {
     public override string Name => "Naruto";
@@ -22,23 +24,31 @@ public class NarutoEntity : CharacterEntity
 
         // 3. 组装状态机
         RootSM = new NarutoStateMachine(this);
-        RootSM.RegisterState(new CommonIdleState());
-        RootSM.RegisterState(new CommonRunState());
-        RootSM.RegisterState(new CommonHurtState());
-        RootSM.RegisterState(new CommonLandState()); // 注册落地收招状态
+        RootSM.RegisterState(new NarutoStateIdle());
+        RootSM.RegisterState(new CommonStateRun());
+        RootSM.RegisterState(new CommonStateHurt());
+        RootSM.RegisterState(new CommonStateLand()); // 注册落地收招状态
         RootSM.RegisterState(new NarutoStateAttack()); // 注册普攻状态
+        RootSM.RegisterState(new NarutoStateSkillA()); // 注册1技能
 
         // 4. 初始状态
         RootSM.ChangeState(CommonState.Idle);
+    }
+
+    private void RegisterAnim(string name, string path)
+    {
+        _animDict[name] = ResManager.Instance.Load<AnimationFrameData>(path + name);
     }
 
     public override void LoadRes(string basePath)
     {
         // 基础动画
         _animDict["Idle"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Idle");
-        _animDict["Run"]  = ResManager.Instance.Load<AnimationFrameData>(basePath + "Run");
+        _animDict["Run"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Run");
         _animDict["Land"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Land"); // 主动落地（如4a）
         _animDict["Hurt_land"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Hurt_land"); // 击飞落地
+        _animDict["Skill_A_1"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Skill_A_1");
+        RegisterAnim("Skill_A_2", basePath);
 
         // 普攻 4 段
         for (int i = 1; i <= 4; i++)

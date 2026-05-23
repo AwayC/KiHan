@@ -230,6 +230,23 @@ namespace KiHan.View.UI.Login
             RefreshState();
 
             if (_videoPlayer != null) _videoPlayer.Play();
+
+            // 启动时检查版本
+            CheckAppVersion();
+        }
+
+        private void CheckAppVersion()
+        {
+            HttpClient.Instance.CheckVersion(KiHan.Config.HttpConfig.AppVersion, res =>
+            {
+                if (res.code == (int)KiHan.Config.HttpErrCode.InvalidVersion)
+                {
+                    UIManager.Instance.ShowTip("版本不对，请更新游戏");
+                }
+            }, err =>
+            {
+                Debug.LogWarning("[LoginPanel] 版本校验请求失败(网络问题)");
+            });
         }
 
         public override void OnClose()
@@ -264,6 +281,12 @@ namespace KiHan.View.UI.Login
 
         private void OnRealLoginSubmit()
         {
+            if (!HttpClient.Instance.IsVersionValid)
+            {
+                UIManager.Instance.ShowTip("版本不对，请更新游戏");
+                return;
+            }
+
             string username = _loginUsernameInput != null ? _loginUsernameInput.text : "";
             string password = _loginPasswordInput != null ? _loginPasswordInput.text : "";
 
@@ -304,6 +327,12 @@ namespace KiHan.View.UI.Login
 
         private void OnRealRegisterSubmit()
         {
+            if (!HttpClient.Instance.IsVersionValid)
+            {
+                UIManager.Instance.ShowTip("版本不对，请更新游戏");
+                return;
+            }
+
             string username = _regUsernameInput != null ? _regUsernameInput.text : "";
             string email = _regEmailInput != null ? _regEmailInput.text : "";
             string password = _regPasswordInput != null ? _regPasswordInput.text : "";

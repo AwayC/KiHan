@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AnimName: Skill_A_1
   Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
-  IsLoop: 1
+  IsLoop: 0
   Steps:
   - FrameIndex: 6
-    Duration: 1
+    Duration: 2
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 7
-    Duration: 6
+    Duration: 10
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 8
     Duration: 2
@@ -29,7 +29,7 @@ MonoBehaviour:
     Duration: 2
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 10
-    Duration: 2
+    Duration: 10
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 11
     Duration: 2

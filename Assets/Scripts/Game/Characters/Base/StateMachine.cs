@@ -11,14 +11,6 @@ public abstract class StateBase
     public abstract void Exit(CharacterEntity owner);
 
     /// <summary>
-    /// 状态内动态生成攻击数据
-    /// </summary>
-    public virtual HitData GetHitData(CharacterEntity owner)
-    {
-        return null; // 默认状态（如待机、跑动）没有攻击数据
-    }
-
-    /// <summary>
     /// 受击拦截器。当实体被攻击时，优先调用当前状态的此方法。
     /// 返回 true 表示该状态拦截了此次受击判定（由状态自行处理），底层将不再执行默认的受击切状态逻辑。
     /// </summary>
@@ -65,11 +57,6 @@ public abstract class StateMachine
     public virtual void Update()
     {
         _currState?.Update(_owner);
-    }
-
-    public HitData GetHitData()
-    {
-        return _currState?.GetHitData(_owner);
     }
 
     /// <summary>

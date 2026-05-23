@@ -25,33 +25,32 @@ public abstract class LogicEntity
     public static float LOGIC_TICK_TIME => GameConfig.LOGIC_TICK_TIME;
 
     protected Dictionary<string, AnimationFrameData> _animDict = new Dictionary<string, AnimationFrameData>();
-    protected HashSet<int> _hitRegistry = new HashSet<int>(); 
-    protected bool _hadHitboxLastTick = false;
+    protected HashSet<int> _hitRegistry = new HashSet<int>();
+    protected HitData _currHitData = null;
 
     public virtual void Tick()
     {
+        // 优先更新 tick counter
+        UpdateTickCounter();
         ProcessPhysics();
-        UpdateAnim();
     }
 
-    public abstract HitData GetHitData();
+    public HitData GetHitData()
+    {
+        return _currHitData;
+    }
     public abstract void LoadRes(string basePath);
 
-    public virtual void HitExit() { }
+    public virtual void HitCallback() { }
 
     public bool CanHit(LogicEntity target)
     {
-        return !_hitRegistry.Contains(target.EntityId);
+        return _currHitData != null && !_hitRegistry.Contains(target.EntityId);
     }
 
     public void RegisterHit(LogicEntity target)
     {
         _hitRegistry.Add(target.EntityId);
-    }
-
-    public void ClearHitRegistry()
-    {
-        _hitRegistry.Clear();
     }
 
     public bool CheckHit(LogicEntity target)
@@ -71,6 +70,33 @@ public abstract class LogicEntity
             }
         }
         return false;
+    }
+
+    public bool IsAnimEnd()
+    {
+        if (CurrAnim == null) return true;
+        var steps = CurrAnim.Steps;
+        int frameIdx = Mathf.Clamp(CurrentFrameIndex, 0, steps.Count - 1);
+
+        if (frameIdx >= steps.Count - 1)
+        {
+            var lastStep = steps[frameIdx];
+            if (LogicalTickCounter >= lastStep.Duration)
+                return true;
+        }
+        return false;
+    }
+
+    public void SetHitData(HitData hitData)
+    {
+        _hitRegistry.Clear();
+        _currHitData = hitData;
+    }
+
+    protected void ClearHitData()
+    {
+        _hitRegistry.Clear();
+        _currHitData = null;
     }
 
     protected virtual void ProcessPhysics()
@@ -121,18 +147,9 @@ public abstract class LogicEntity
         }
     }
 
-    protected virtual void UpdateAnim()
+    protected virtual void UpdateTickCounter()
     {
         if (CurrAnim == null || CurrAnim.Steps.Count == 0) return;
-
-        // --- 多段打击支持核心逻辑 ---
-        var hits = CurrAnim.GetHitBoxes(CurrentFrameIndex);
-        bool hasHits = hits != null && hits.Count > 0;
-        if (hasHits && !_hadHitboxLastTick)
-        {
-            ClearHitRegistry();
-        }
-        _hadHitboxLastTick = hasHits;
 
         var step = CurrAnim.Steps[CurrentFrameIndex];
         
@@ -150,8 +167,6 @@ public abstract class LogicEntity
             {
                 LogicalTickCounter = 0;
                 CurrentFrameIndex = 0;
-                ClearHitRegistry(); 
-                _hadHitboxLastTick = false;
             }
             // 如果是最后一帧且不循环，LogicalTickCounter 会继续增加
         }
@@ -166,8 +181,7 @@ public abstract class LogicEntity
             CurrentFrameIndex = 0;
             LogicalTickCounter = 0;
             AnimVersion++;
-            ClearHitRegistry(); 
-            _hadHitboxLastTick = false;
+            ClearHitData(); 
         }
     }
 }

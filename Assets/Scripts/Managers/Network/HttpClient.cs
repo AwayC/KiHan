@@ -56,9 +56,22 @@ namespace Managers
         public string token;
     }
 
+    [Serializable]
+    public class VersionRequest
+    {
+        public string version;
+    }
+
+    [Serializable]
+    public class VersionResponse : HttpResponse
+    {
+        public string version;
+    }
+
     public class HttpClient : UnitySingleton<HttpClient>
     {
         public string Token { get; private set; }
+        public bool IsVersionValid { get; private set; } = true;
 
         public static string MD5Hash(string input)
         {
@@ -148,6 +161,26 @@ namespace Managers
             UpdatePasswordRequest req = new UpdatePasswordRequest { password = hashPwd, token = Token };
             string json = JsonUtility.ToJson(req);
             StartCoroutine(PostRequest<HttpResponse>(url, json, onSuccess, onError));
+        }
+
+        public void CheckVersion(string version, Action<VersionResponse> onSuccess, Action<string> onError)
+        {
+            string url = HttpConfig.LoginServerUrl + "/api/check_version";
+            VersionRequest req = new VersionRequest { version = version };
+            string json = JsonUtility.ToJson(req);
+
+            StartCoroutine(PostRequest<VersionResponse>(url, json, res =>
+            {
+                if (res.code == (int)HttpErrCode.InvalidVersion)
+                {
+                    IsVersionValid = false;
+                }
+                else if (res.code == (int)HttpErrCode.Ok)
+                {
+                    IsVersionValid = true;
+                }
+                onSuccess?.Invoke(res);
+            }, onError));
         }
     }
 }

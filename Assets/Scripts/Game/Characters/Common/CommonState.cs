@@ -15,7 +15,7 @@ public static class CommonState
 }
 
 #region 通用基础状态类
-public class CommonIdleState : StateBase
+public class CommonStateIdle : StateBase
 {
     public override sbyte StateType => CommonState.Idle;
     private ButtonMask _lastButtons = ButtonMask.None;
@@ -28,7 +28,9 @@ public class CommonIdleState : StateBase
         owner.velocity = Vector2.zero;
         _lastButtons = owner.CurrInput?.Buttons ?? ButtonMask.None;
     }
-    public override void Exit(CharacterEntity owner) { }
+    public override void Exit(CharacterEntity owner) { 
+        owner.ForceLoop = false;
+    }
     public override void Update(CharacterEntity owner)
     {
         owner.velocity = Vector2.zero; // 确保静止
@@ -48,7 +50,7 @@ public class CommonIdleState : StateBase
     }
 }
 
-public class CommonRunState : StateBase
+public class CommonStateRun : StateBase
 {
     public override sbyte StateType => CommonState.Run;
 
@@ -97,7 +99,7 @@ public class CommonRunState : StateBase
     }
 }
 
-public class CommonHurtState : StateBase
+public class CommonStateHurt : StateBase
 {
     public override sbyte StateType => CommonState.Hurt;
 
@@ -123,7 +125,7 @@ public class CommonHurtState : StateBase
 
             // --- 核心：浮空与连段追击 (Juggle) 判定 ---
             // 依赖 CharacterEntity 中保存的状态，解决边界高度判定失效的问题
-            
+            //Debug.Log(""owner.LastHitData.HType);
 
             if (owner.LastHitData.HType == HitType.ToAir)
             {
@@ -133,6 +135,7 @@ public class CommonHurtState : StateBase
                 _currentHurtAnim = "Hurt_toair";
                 owner.SwitchAnimation(_currentHurtAnim, true);
                 owner.ForceNotLoop = true;
+                owner.IsAirborne = true;
             }
             else if (alreadyInAir)
             {
@@ -187,6 +190,7 @@ public class CommonHurtState : StateBase
 
         if (isAerialHurt)
         {
+            Debug.Log("hurt state in air");
             // 落地判定：必须高度归零且速度向下或为零
             if (owner.height <= 0 && owner.h_vel <= 0)
             {
@@ -196,12 +200,12 @@ public class CommonHurtState : StateBase
             }
 
             // 动画阶段迁移：当 Hurt_toair 或 Hurt_inair 播完，自动切到下落 Hurt_fall
-            if (_currentHurtAnim != "Hurt_fall" && IsAnimFinished(owner))
+            Debug.Log("hurt state " + owner.IsAnimEnd());
+            if (_currentHurtAnim != "Hurt_fall" && owner.IsAnimEnd())
             {
                 _currentHurtAnim = "Hurt_fall";
                 owner.SwitchAnimation(_currentHurtAnim, true);
                 owner.ForceNotLoop = false; // 下落动作允许循环
-                owner.ForceLoop = true;
             }
 
             return; // 只要在天上，就无视地面硬直时间
@@ -233,7 +237,7 @@ public class CommonHurtState : StateBase
     }
 }
 
-public class CommonLandState : StateBase
+public class CommonStateLand : StateBase
 {
     public override sbyte StateType => CommonState.Land;
     private bool _isHurtLand = false;
@@ -289,26 +293,12 @@ public class CommonLandState : StateBase
         }
 
         // 动画播放完毕后进入 Idle
-        if (IsAnimFinished(owner))
+        if (owner.IsAnimEnd())
         {
             owner.RootSM.ChangeState(CommonState.Idle);
         }
     }
 
-    private bool IsAnimFinished(CharacterEntity owner)
-    {
-        if (owner.CurrAnim == null) return true;
-        var steps = owner.CurrAnim.Steps;
-        int frameIdx = Mathf.Clamp(owner.CurrentFrameIndex, 0, steps.Count - 1);
-
-        if (frameIdx >= steps.Count - 1)
-        {
-            var lastStep = steps[frameIdx];
-            if (owner.LogicalTickCounter >= lastStep.Duration)
-                return true;
-        }
-        return false;
-    }
 }
 
 #endregion

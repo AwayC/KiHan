@@ -31,6 +31,7 @@ namespace KiHan.Logic
         public int PushSpeedY = 0;         // 垂直击飞速度 (新增)
         public float PushSpeedAir = 0;     // 空中击飞速度（新增）
         public bool IsHeavyHit = false;    // 是否重击（用于触发连震等表现）
+        public bool IsSkill = false;       // 是否是技能
         
         // 攻击者的信息，供受击方参考
         public Vector2 Pos;
@@ -41,6 +42,11 @@ namespace KiHan.Logic
         public HitData(HitType htype = HitType.None)
         {
             HType = htype;
+        }
+
+        public void CallHitOwner()
+        {
+            Owner.HitCallback();
         }
     }
 

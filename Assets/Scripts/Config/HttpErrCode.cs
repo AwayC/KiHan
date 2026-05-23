@@ -9,6 +9,7 @@ namespace KiHan.Config
         ApiBadToken = -1101,
         ApiDbError = -1200,
         DbExists = -1201,
-        DbNotExists = -1202
+        DbNotExists = -1202,
+        InvalidVersion = -1300
     }
 }

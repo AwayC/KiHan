@@ -1,8 +1,8 @@
 using KiHan.Logic;
 using Managers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
+using System;
 
 public enum ArmorLevel : byte
 {
@@ -10,6 +10,7 @@ public enum ArmorLevel : byte
     skill = 1, 
     super = 2,
     kingkong = 3,
+    notHitby = 4 // 虚化无敌
 }
 
 /// <summary>
@@ -42,27 +43,29 @@ public abstract class CharacterEntity : LogicEntity
 
     public override void Tick()
     {
+        // 优先更新时钟
+        UpdateTickCounter();
         // 先更新状态机
         RootSM?.Update();
 
-        // 再更新逻辑（位移、动画等）
-        base.Tick();
-    }
-
-    public override HitData GetHitData()
-    {
-        return RootSM?.GetHitData();
+        // 更新物理
+        ProcessPhysics();
     }
 
     public virtual void ApplyHit(HitData hit)
     {
         if (hit == null) return;
 
+        Debug.Log("hit " + hit);
+
         // 1. 状态拦截（第一优先级）
         if (RootSM != null && RootSM.TryInterceptHit(hit))
         {
             return; // 状态选择自己消化这次受击，阻断默认流程
         }
+
+        // 虚化无敌
+        if (this.armorLevel == ArmorLevel.notHitby) return;
 
         // --- 默认受击流程 ---
         this.LastHitData = hit;
@@ -81,5 +84,9 @@ public abstract class CharacterEntity : LogicEntity
 
         // 切换到受击状态
         RootSM?.ChangeState(CommonState.Hurt);
+
+        // 通知攻击者
+        hit.CallHitOwner();
+
     }
 }
