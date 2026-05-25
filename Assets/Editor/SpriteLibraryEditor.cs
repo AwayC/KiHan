@@ -26,6 +26,7 @@ public class SpriteLibraryEditor : Editor
     private Vector2 _dragStartPos;
     private int _activeBoxIndex = -1;
     private int _activePresetIndex = 0; 
+    private int _activeAnchorIndex = -1;
 
     private void OnEnable()
     {
@@ -149,6 +150,35 @@ public class SpriteLibraryEditor : Editor
                 
                 foreach (var b in frame.HurtBoxes) DrawLogicBox(localCenter, b, Color.blue, _viewZoom);
                 foreach (var b in frame.HitBoxes) DrawLogicBox(localCenter, b, Color.red, _viewZoom);
+
+                // 绘制特效锚点
+                Handles.color = Color.yellow;
+                if (frame.EffectAnchors != null)
+                {
+                    for (int i = 0; i < frame.EffectAnchors.Count; i++)
+                    {
+                        var anchor = frame.EffectAnchors[i];
+                        Vector3 anchorScreenPos = new Vector3(localCenter.x + anchor.Position.x * _viewZoom, localCenter.y - anchor.Position.y * _viewZoom, 0);
+                        
+                        if (i == _activeAnchorIndex)
+                        {
+                            Handles.color = Color.green;
+                            Handles.DrawSolidDisc(anchorScreenPos, Vector3.forward, 5f);
+                            Handles.DrawWireDisc(anchorScreenPos, Vector3.forward, 7f);
+                            GUI.color = Color.green;
+                        }
+                        else
+                        {
+                            Handles.color = Color.yellow;
+                            Handles.DrawSolidDisc(anchorScreenPos, Vector3.forward, 4f);
+                            Handles.DrawWireDisc(anchorScreenPos, Vector3.forward, 6f);
+                            GUI.color = Color.yellow;
+                        }
+
+                        GUI.Label(new Rect(anchorScreenPos.x + 8, anchorScreenPos.y - 10, 100, 20), anchor.Name, EditorStyles.miniLabel);
+                        GUI.color = Color.white;
+                    }
+                }
             }
             GUI.EndGroup();
             HandleInput(rect, localCenter, _viewZoom);
@@ -201,6 +231,28 @@ public class SpriteLibraryEditor : Editor
                 else { frame.HitBoxes.Add(nb); _activeBoxIndex = frame.HitBoxes.Count-1; }
             }
             else if (e.control && e.button == 0) { _editMode = 3; Undo.RecordObject(_lib, "Move Sprite"); }
+            else if (e.alt && e.button == 0) 
+            { 
+                float minDist = float.MaxValue;
+                _activeAnchorIndex = -1;
+                if (frame.EffectAnchors != null)
+                {
+                    for (int i = 0; i < frame.EffectAnchors.Count; i++)
+                    {
+                        float dist = Vector2.Distance(frame.EffectAnchors[i].Position, mouseLogicPos);
+                        if (dist < minDist && dist < (20f / zoom)) // snap distance
+                        {
+                            minDist = dist;
+                            _activeAnchorIndex = i;
+                        }
+                    }
+                }
+                if (_activeAnchorIndex != -1)
+                {
+                    _editMode = 5; 
+                    Undo.RecordObject(_lib, "Move Effect Anchor"); 
+                }
+            }
             else if (e.button == 1 || e.button == 2) _editMode = 4;
             else _editMode = 0;
 
@@ -210,7 +262,11 @@ public class SpriteLibraryEditor : Editor
         {
             if (_editMode == 4) { _viewOffset += (e.mousePosition - _dragStartPos); _dragStartPos = e.mousePosition; }
             else if (_editMode == 3) frame.Offset = mouseLogicPos; 
-            else 
+            else if (_editMode == 5 && _activeAnchorIndex >= 0 && _activeAnchorIndex < frame.EffectAnchors.Count) 
+            {
+                frame.EffectAnchors[_activeAnchorIndex].Position = mouseLogicPos;
+            }
+            else if (_editMode == 1 || _editMode == 2)
             {
                 Vector2 center = (_dragStartPos + mouseLogicPos) / 2f;
                 Vector2 size = new Vector2(Mathf.Abs(_dragStartPos.x - mouseLogicPos.x), Mathf.Abs(_dragStartPos.y - mouseLogicPos.y));
@@ -232,11 +288,45 @@ public class SpriteLibraryEditor : Editor
             EditorGUILayout.PropertyField(p.FindPropertyRelative("Sprite"), new GUIContent("人物图片"));
             EditorGUILayout.PropertyField(p.FindPropertyRelative("Offset"), new GUIContent("对齐偏移"));
             
+            DrawAnchorList(p.FindPropertyRelative("EffectAnchors"), "特效锚点 (Alt+左键拖拽吸附)");
+            
             DrawCustomBoxList(p.FindPropertyRelative("HurtBoxes"), "受击盒 (蓝)");
             DrawCustomBoxList(p.FindPropertyRelative("HitBoxes"), "攻击盒 (红)");
             
             // --- 升级后的特效图层列表 ---
             DrawEffectLayerList(p.FindPropertyRelative("ExtraLayers"));
+        }
+    }
+
+    private void DrawAnchorList(SerializedProperty listProp, string label)
+    {
+        using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(label, EditorStyles.miniBoldLabel);
+            if (GUILayout.Button("+", GUILayout.Width(30)))
+            {
+                listProp.InsertArrayElementAtIndex(listProp.arraySize);
+                var newAnchor = listProp.GetArrayElementAtIndex(listProp.arraySize - 1);
+                newAnchor.FindPropertyRelative("Name").stringValue = "Anchor" + listProp.arraySize;
+                newAnchor.FindPropertyRelative("Position").vector2Value = Vector2.zero;
+            }
+            EditorGUILayout.EndHorizontal();
+
+            for (int i = 0; i < listProp.arraySize; i++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    SerializedProperty anchorProp = listProp.GetArrayElementAtIndex(i);
+                    GUI.color = (_activeAnchorIndex == i) ? Color.green : Color.white;
+                    if (GUILayout.Button("o", EditorStyles.miniButton, GUILayout.Width(20))) _activeAnchorIndex = i;
+                    GUI.color = Color.white;
+
+                    EditorGUILayout.PropertyField(anchorProp.FindPropertyRelative("Name"), GUIContent.none, GUILayout.Width(100));
+                    EditorGUILayout.PropertyField(anchorProp.FindPropertyRelative("Position"), GUIContent.none);
+                    if (GUILayout.Button("×", GUILayout.Width(20))) { listProp.DeleteArrayElementAtIndex(i); break; }
+                }
+            }
         }
     }
 

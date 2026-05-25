@@ -78,6 +78,10 @@ public class GameApp : UnitySingleton<GameApp>
         Debug.Log($"[GameApp] 开始初始化世界，地图: {MapPath}");
         MapManager.Instance.LoadMap(MapPath);
 
+        // --- 新增：预加载特效 ---
+        //EffectManager.Instance.Preload("HitSpark_Normal", 5);
+        //EffectManager.Instance.Preload("HitSpark_Heavy", 2);
+
         // --- 1. 优先初始化战斗 UI ---
         InitCombatUI();
 

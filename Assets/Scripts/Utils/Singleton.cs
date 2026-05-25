@@ -29,11 +29,17 @@ public abstract class Singleton<T> where T : new()
 public class UnitySingleton<T> : MonoBehaviour where T : Component
 {
     private static T _instance = null;
+    private static bool _applicationIsQuitting = false;
 
     public static T Instance
     {
         get
         {
+            if (_applicationIsQuitting)
+            {
+                return null;
+            }
+
             if (_instance == null)
             {
                 _instance = FindObjectOfType<T>();
@@ -61,6 +67,19 @@ public class UnitySingleton<T> : MonoBehaviour where T : Component
         {
             Debug.LogWarning($"[Singleton] Instance already exists, destroying duplicate: {this.gameObject.name}");
             Destroy(this.gameObject);
+        }
+    }
+
+    protected virtual void OnApplicationQuit()
+    {
+        _applicationIsQuitting = true;
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            _applicationIsQuitting = true;
         }
     }
 }

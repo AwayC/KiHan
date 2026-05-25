@@ -15,6 +15,25 @@ public class NarutoStateSkillA : StateBase
         
         owner.ForceLoop = false;
         owner.SwitchAnimation("Skill_A_1");
+
+        EffectData effect = new EffectData
+        {
+            EffectName = "lxw",
+            AnchorName = "lxw",
+            BindEntity = owner,
+            IsFacingLeft = owner.IsFacingLeft
+        };
+
+        EffectData effectFeng = new EffectData
+        {
+            EffectName = "fengshen",
+            BindEntity = owner,
+            IsFacingLeft = owner.IsFacingLeft,
+            Offset = new Vector2(-110, 80)
+        };
+
+        EventManager.Instance.Emit("PlayEffect", effect);
+        EventManager.Instance.Emit("PlayEffect", effectFeng);
     }
 
     public override void Update(CharacterEntity owner)
@@ -47,9 +66,9 @@ public class NarutoStateSkillA : StateBase
         data.Damage = 100;
         data.HitStun = 12;
         data.PushSpeed = 0;
-        data.PushSpeedAir = 0f; // ¿ÕÖÐ×·»÷Ê±µÄË®Æ½»÷ÍË£¨ÉÔÐ¡Ò»µã·ÀÖ¹´ò·ÉÌ«Ô¶½Ó²»ÉÏ£©
+        data.PushSpeedAir = 0f; // ï¿½ï¿½ï¿½ï¿½×·ï¿½ï¿½Ê±ï¿½ï¿½Ë®Æ½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½Ð¡Ò»ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½Ì«Ô¶ï¿½Ó²ï¿½ï¿½Ï£ï¿½
 
-        // Ä¬ÈÏ´¹Ö±ËÙ¶È£ºÎªÁËÖ§³Ö¿ÕÖÐ×·»÷ (Juggle)£¬ÆÕÍ¨¹¥»÷Ò²´øÒ»µãµãÏòÉÏÁ¦
+        // Ä¬ï¿½Ï´ï¿½Ö±ï¿½Ù¶È£ï¿½Îªï¿½ï¿½Ö§ï¿½Ö¿ï¿½ï¿½ï¿½×·ï¿½ï¿½ (Juggle)ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         data.PushSpeedY = 10;
         if (owner.CurrentFrameIndex == 5)
         {
@@ -57,8 +76,8 @@ public class NarutoStateSkillA : StateBase
             data.HitStun = 40;
             data.PushSpeed = 0f;
             data.PushSpeedAir = 0f;
-            data.PushSpeedY = 55; // 4a »÷·É¸ü¸ß
-            data.IsHeavyHit = true; // ´¥·¢ÖØ»÷Á¬Õð
+            data.PushSpeedY = 55; // 4a ï¿½ï¿½ï¿½É¸ï¿½ï¿½ï¿½
+            data.IsHeavyHit = true; // ï¿½ï¿½ï¿½ï¿½ï¿½Ø»ï¿½ï¿½ï¿½ï¿½ï¿½
         }
         return data;
     }

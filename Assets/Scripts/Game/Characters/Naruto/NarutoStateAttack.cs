@@ -13,7 +13,6 @@ public class NarutoStateAttack : StateBase
 
     private int _comboIdx = 1;      // 当前连击段数 (1-4)
     private bool _hasInputNext = false; // 是否有有效的预输入
-    private int _segmentTick = 0;   // 当前段落经历 of 逻辑帧数
     private ButtonMask _lastButtons = ButtonMask.None; // 上一帧的按键状态
 
     public override void Enter(CharacterEntity owner)
@@ -28,7 +27,6 @@ public class NarutoStateAttack : StateBase
     private void StartComboSegment(CharacterEntity owner)
     {
         _hasInputNext = false;
-        _segmentTick = 0;
 
         // 1. 转向逻辑
         var input = owner.CurrInput;
@@ -213,6 +211,11 @@ public class NarutoStateAttack : StateBase
 
         // 默认垂直速度：为了支持空中追击 (Juggle)，普通攻击也带一点点向上力
         data.PushSpeedY = 30;
+
+        // 配置打击特效
+        data.HitEffectName = "HitSpark_Normal";
+        data.HitEffectOffset = new Vector2(50f, 60f); // 相对受击者的偏移 (向着受击者前方)
+
         if (_comboIdx == 4 && owner.CurrentFrameIndex >= 4)
         {
             data.HType = HitType.ToAir;
@@ -221,6 +224,10 @@ public class NarutoStateAttack : StateBase
             data.PushSpeedAir = 3f; 
             data.PushSpeedY = 55; // 4a 击飞更高
             data.IsHeavyHit = true; // 触发重击连震
+            
+            // 最后一击替换为重击特效
+            data.HitEffectName = "HitSpark_Heavy";
+            data.HitEffectOffset = new Vector2(60f, 80f);
         }
         return data;
     }

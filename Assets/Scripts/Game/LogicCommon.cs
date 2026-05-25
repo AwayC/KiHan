@@ -32,6 +32,10 @@ namespace KiHan.Logic
         public float PushSpeedAir = 0;     // 空中击飞速度（新增）
         public bool IsHeavyHit = false;    // 是否重击（用于触发连震等表现）
         public bool IsSkill = false;       // 是否是技能
+
+        // --- 特效配置 ---
+        public string HitEffectName = "";  // 打击特效名 (Resources/Effects 下的预制体)
+        public Vector2 HitEffectOffset;    // 特效生成的相对偏移位置
         
         // 攻击者的信息，供受击方参考
         public Vector2 Pos;

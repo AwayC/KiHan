@@ -70,6 +70,20 @@ public abstract class CharacterEntity : LogicEntity
         // --- 默认受击流程 ---
         this.LastHitData = hit;
         
+        // 触发受击特效 (如果攻击方配置了的话)
+        //if (!string.IsNullOrEmpty(hit.HitEffectName))
+        //{
+        //    EffectData effect = new EffectData
+        //    {
+        //        EffectName = hit.HitEffectName,
+        //        WorldPos = this.pos,
+        //        Offset = hit.HitEffectOffset,
+        //        IsFacingLeft = this.IsFacingLeft,
+        //        BindEntity = null // 打击火花通常不随人动，而是留在受击那一刻的位置
+        //    };
+        //    EventManager.Instance.Emit("PlayEffect", effect);
+        //}
+
         // 扣血计算 (伤害 / 防御)
         this.Blood -= Mathf.Max(1, (int)(hit.Damage / Defence));
 

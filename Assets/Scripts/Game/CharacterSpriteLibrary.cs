@@ -5,11 +5,20 @@ using KiHan.Logic;
 namespace KiHan.Logic
 {
     [System.Serializable]
+    public class EffectAnchorInfo
+    {
+        public string Name = "Default";
+        public Vector2 Position;
+    }
+
+    [System.Serializable]
     public class SpriteFrameData
     {
         public string Name;
         public Sprite Sprite;
         public Vector2 Offset;
+        
+        public List<EffectAnchorInfo> EffectAnchors = new List<EffectAnchorInfo>();
 
         public List<LogicBox> HurtBoxes = new List<LogicBox>();
         public List<LogicBox> HitBoxes = new List<LogicBox>();

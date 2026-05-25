@@ -17,6 +17,17 @@ public class EventManager : UnitySingleton<EventManager>
     }
 
     /*
+     * 移除监听
+     */
+    public void RemoveListener(string eventName, Action<object> callback)
+    {
+        if (_eventDict.ContainsKey(eventName))
+        {
+            _eventDict[eventName] -= callback;
+        }
+    }
+
+    /*
      * 触发事件
      */
     public void Emit(string eventName, object arg = null)

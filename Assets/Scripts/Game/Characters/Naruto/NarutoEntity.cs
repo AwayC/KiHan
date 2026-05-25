@@ -73,6 +73,9 @@ public class NarutoEntity : CharacterEntity
             var data = ResManager.Instance.Load<AnimationFrameData>(basePath + key);
             if (data != null) _animDict[key] = data;
         }
+
+        EffectManager.Instance.Preload("Characters/naruto/effect/lxw/ball", 1, "lxw");
+        EffectManager.Instance.Preload("Characters/naruto/effect/fengshen/fengshen", 1, "fengshen");
     }
 
     public override void ApplyHit(HitData hit)

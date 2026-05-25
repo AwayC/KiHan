@@ -41,8 +41,9 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         _serverFrames.Clear();
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         if (_network != null)
         {
             _network.OnOpCodeReceived -= HandleNetworkOpCode;
