@@ -290,7 +290,10 @@ MonoBehaviour:
     - Center: {x: 11.200024, y: 71.36005}
       Size: {x: 93.43998, y: 154.24002}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 45.17647, y: 97.64701}
+      Size: {x: 150.58826, y: 94.58824}
+      Side: 20
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 417afc66005a73a4c99e3d936b1d33a0, type: 3}
       Offset: {x: 62.3, y: 40.1}
@@ -304,7 +307,10 @@ MonoBehaviour:
     - Center: {x: 9.032257, y: 66.58065}
       Size: {x: 66.58065, y: 148.64516}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 30.588234, y: 85.64702}
+      Size: {x: 132.7059, y: 104.470604}
+      Side: 20
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: a5aca38aeb4904f438ca958bd692607e, type: 3}
       Offset: {x: 31.17, y: 7.3}
@@ -318,7 +324,10 @@ MonoBehaviour:
     - Center: {x: 0.000024795532, y: 77.120056}
       Size: {x: 90.239975, y: 163.19998}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 27.529411, y: 82.35288}
+      Size: {x: 113.41177, y: 71.529434}
+      Side: 20
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0014
     Sprite: {fileID: 21300000, guid: e8c0999063113bf40a03283c5c70b120, type: 3}
@@ -862,7 +871,10 @@ MonoBehaviour:
     - Center: {x: 0.6400261, y: 84.80006}
       Size: {x: 71.04001, y: 176.00002}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 13.411766, y: 52.47054}
+      Size: {x: 101.17648, y: 87.058784}
+      Side: 20
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0004
     Sprite: {fileID: 21300000, guid: 52072b234297e634698ba669431d6cbc, type: 3}
@@ -873,10 +885,14 @@ MonoBehaviour:
       Size: {x: 86.399994, y: 154.24004}
       Side: 40
     HitBoxes:
-    - Center: {x: 45.76003, y: 89.92006}
-      Size: {x: 94.72001, y: 104.32001}
-      Side: 40
-    ExtraLayers: []
+    - Center: {x: 15.48387, y: 72.25806}
+      Size: {x: 116.774185, y: 143.2258}
+      Side: 20
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: a6a6996844a91ae43809aca904bc8b0e, type: 3}
+      Offset: {x: 5.5, y: -43}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
   - Name: Skill_B_2_1nrtcmb03_0015
     Sprite: {fileID: 21300000, guid: b3bfdeb9d602fd04aadf58f9ba119be1, type: 3}
     Offset: {x: -9.771029, y: 111.75574}
@@ -885,8 +901,15 @@ MonoBehaviour:
     - Center: {x: 12.800022, y: 98.88005}
       Size: {x: 108.159996, y: 159.36002}
       Side: 40
-    HitBoxes: []
-    ExtraLayers: []
+    HitBoxes:
+    - Center: {x: 36.774193, y: 74.51612}
+      Size: {x: 100, y: 133.54839}
+      Side: 20
+    ExtraLayers:
+    - Sprite: {fileID: 0}
+      Offset: {x: 0, y: 0}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
   - Name: Skill_B_2_1nrtcmb03_0018
     Sprite: {fileID: 21300000, guid: f39bf088cb191dc4989e8ef073a1237d, type: 3}
     Offset: {x: -22.595448, y: 98.32062}
@@ -950,9 +973,9 @@ MonoBehaviour:
       Size: {x: 128.00002, y: 168.96004}
       Side: 40
     HitBoxes:
-    - Center: {x: 91.84002, y: 112.96006}
-      Size: {x: 166.40001, y: 63.36003}
-      Side: 40
+    - Center: {x: 59.272743, y: 109.0909}
+      Size: {x: 186.18181, y: 75.6363}
+      Side: 20
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 223186aebb79e0d4292e2d62a5907d5e, type: 3}
       Offset: {x: -5.5, y: -19.78}
@@ -966,7 +989,10 @@ MonoBehaviour:
     - Center: {x: 4.48003, y: 88.320045}
       Size: {x: 122.23998, y: 180.48003}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 76.363655, y: 110.54544}
+      Size: {x: 130.18181, y: 84.36361}
+      Side: 20
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0019
     Sprite: {fileID: 21300000, guid: 6ac7f85cb967023458b80711e0243e18, type: 3}
@@ -979,7 +1005,10 @@ MonoBehaviour:
     - Center: {x: 3.5200176, y: 101.44004}
       Size: {x: 102.399994, y: 200.32002}
       Side: 40
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 56.000027, y: 107.27271}
+      Size: {x: 87.99998, y: 92.3636}
+      Side: 20
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0000
     Sprite: {fileID: 21300000, guid: 9fb9599b92f5f034f826d4f3eeb439ae, type: 3}
@@ -1055,7 +1084,10 @@ MonoBehaviour:
     Offset: {x: -4.885538, y: 86.10688}
     EffectAnchors: []
     HurtBoxes: []
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 43.71427, y: 103.14278}
+      Size: {x: 129.7143, y: 104.57144}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0004
     Sprite: {fileID: 21300000, guid: 82e55a8fc4782b54b8e640af254497b7, type: 3}
@@ -1063,36 +1095,39 @@ MonoBehaviour:
     EffectAnchors: []
     HurtBoxes: []
     HitBoxes:
-    - Center: {x: 67.20003, y: 81.60004}
-      Size: {x: 87.68, y: 90.24003}
-      Side: 40
+    - Center: {x: 31.272745, y: 92.3636}
+      Size: {x: 151.27274, y: 87.272705}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0006
     Sprite: {fileID: 21300000, guid: 1c169ff499f9892438b4f78cd0faed0b, type: 3}
     Offset: {x: -0.6107243, y: 72.06108}
     EffectAnchors: []
     HurtBoxes: []
-    HitBoxes: []
+    HitBoxes:
+    - Center: {x: 26.545471, y: 85.45453}
+      Size: {x: 150.54546, y: 89.45455}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0009
     Sprite: {fileID: 21300000, guid: 278ffec4bdbafb449b694ac1599c01d6, type: 3}
     Offset: {x: 9.160258, y: 67.78627}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
-    HitBoxes: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 29.411753, y: 77.41169}
+      Size: {x: 116.23529, y: 84.23529}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0004
     Sprite: {fileID: 21300000, guid: f62cbd3aa56649246b3712cefd3b5112, type: 3}
     Offset: {x: 5.0261493, y: 69.10995}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
-    HitBoxes: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 26.545456, y: 94.18181}
+      Size: {x: 178.90907, y: 58.909073}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0005
     Sprite: {fileID: 21300000, guid: f1142a8b2c058b14b80a0c7a27aae5c4, type: 3}
@@ -1100,131 +1135,119 @@ MonoBehaviour:
     EffectAnchors: []
     HurtBoxes: []
     HitBoxes:
-    - Center: {x: 45.473724, y: 117.473785}
-      Size: {x: 164.2105, y: 95.157875}
-      Side: 40
+    - Center: {x: 32.516125, y: 108.12897}
+      Size: {x: 177.03226, y: 54.193542}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0007
     Sprite: {fileID: 21300000, guid: b9aeba945b87eea48b0f33599090ba6e, type: 3}
     Offset: {x: 9.633489, y: 65.75916}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
-    HitBoxes: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 30.709671, y: 94.709625}
+      Size: {x: 152.7742, y: 39.741913}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0009
     Sprite: {fileID: 21300000, guid: bfb6d80b3b0b2fb4e93df5544356d202, type: 3}
     Offset: {x: -0.8377155, y: 64.083786}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
-    HitBoxes: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 21.677418, y: 81.54832}
+      Size: {x: 169.80646, y: 47.483852}
+      Side: 20
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0013
     Sprite: {fileID: 21300000, guid: 1d07686852948ef4ca144b93ec812caa, type: 3}
     Offset: {x: 14.659655, y: 64.92147}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0017
     Sprite: {fileID: 21300000, guid: 3597705502aad12498374adf6af45a85, type: 3}
     Offset: {x: 14.240812, y: 70.78535}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0001
     Sprite: {fileID: 21300000, guid: cac7634a4a52be645a07e020ca983b06, type: 3}
     Offset: {x: -0.00003195558, y: 103.03666}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0004
     Sprite: {fileID: 21300000, guid: a5ab3943bab2e804b8e3ca56f8c1bd7f, type: 3}
     Offset: {x: -15.172444, y: 97.24139}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_3_1nrtcmb04_0006
     Sprite: {fileID: 21300000, guid: d659d6eda555fe54b9f557fbd65375df, type: 3}
     Offset: {x: 13.79305, y: 75.86206}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
-    HitBoxes: []
-    ExtraLayers: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 48.72728, y: 64.72727}
+      Size: {x: 109.81819, y: 100.36364}
+      Side: 20
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 7378f3de731286f49b0371039b237d64, type: 3}
+      Offset: {x: 30, y: 78.9}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
   - Name: skill_B_fx_3_1nrtcmb04_0009
     Sprite: {fileID: 21300000, guid: 6d575595882e18749b54aea988fc1afa, type: 3}
-    Offset: {x: 24.827547, y: 69.65518}
+    Offset: {x: 24.816319, y: 31.020405}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes:
-    - Center: {x: 33.54843, y: 40.2581}
-      Size: {x: 104.774185, y: 81.54836}
-      Side: 40
-    ExtraLayers: []
+    - Center: {x: 23.578949, y: 23.99995}
+      Size: {x: 128.84209, y: 108.63157}
+      Side: 20
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 256ffdb3521a8224884b80da76c010e2, type: 3}
+      Offset: {x: 18.4, y: 38.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
   - Name: skill_B_fx_3_1nrtcmb04_0012
     Sprite: {fileID: 21300000, guid: f0efc366925199b4bbba376b5c12cb1d, type: 3}
-    Offset: {x: 27.586153, y: 70.344826}
+    Offset: {x: 20.32431, y: 42.810818}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
-    HitBoxes: []
-    ExtraLayers: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 34.32259, y: 12.387046}
+      Size: {x: 107.35485, y: 83.61292}
+      Side: 20
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 89df0717d49c83a449d07422c45b8832, type: 3}
+      Offset: {x: 29.7, y: 12.7}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
   - Name: skill_B_fx_4_1nrtcmb05_0002
     Sprite: {fileID: 21300000, guid: 7a6fc34892ff1c241abe978157f4c605, type: 3}
-    Offset: {x: 18.620642, y: 50.34482}
+    Offset: {x: 24.799988, y: 27.600006}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_4_1nrtcmb05_0004
     Sprite: {fileID: 21300000, guid: ae6fae32e50d7b14b969974f0c18c45a, type: 3}
-    Offset: {x: 13.79305, y: 54.48274}
+    Offset: {x: 25.999992, y: 28.00003}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: skill_B_fx_4_1nrtcmb05_0014
     Sprite: {fileID: 21300000, guid: ae34880b2bd9e2447936a70f1cefd4b3, type: 3}
-    Offset: {x: 14.48272, y: 42.068977}
+    Offset: {x: 25.59999, y: 21.600006}
     EffectAnchors: []
-    HurtBoxes:
-    - Center: {x: 0, y: 0}
-      Size: {x: 0.5, y: 1.8}
-      Side: 40
+    HurtBoxes: []
     HitBoxes: []
     ExtraLayers: []
   - Name: Ultra_kill_1_1nrtspl1_cut_nc_0003

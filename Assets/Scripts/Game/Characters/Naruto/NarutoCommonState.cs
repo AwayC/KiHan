@@ -21,6 +21,13 @@ public class NarutoStateIdle : CommonStateIdle
             return;
         }
 
+        if ((input.Buttons & ButtonMask.Skill2) != 0)
+        {
+            Debug.Log("skill2 btn");
+            owner.RootSM.ChangeState(NarutoState.SkillB);
+            return;
+        }
+
         if ((input.Buttons & ButtonMask.Attack) != 0)
         {
             Debug.Log("attack btn");

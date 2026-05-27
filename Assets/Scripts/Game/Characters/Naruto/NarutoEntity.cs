@@ -30,6 +30,7 @@ public class NarutoEntity : CharacterEntity
         RootSM.RegisterState(new CommonStateLand()); // 注册落地收招状态
         RootSM.RegisterState(new NarutoStateAttack()); // 注册普攻状态
         RootSM.RegisterState(new NarutoStateSkillA()); // 注册1技能
+        RootSM.RegisterState(new NarutoStateSkillB()); // 注册2技能
 
         // 4. 初始状态
         RootSM.ChangeState(CommonState.Idle);
@@ -49,6 +50,10 @@ public class NarutoEntity : CharacterEntity
         _animDict["Hurt_land"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Hurt_land"); // 击飞落地
         _animDict["Skill_A_1"] = ResManager.Instance.Load<AnimationFrameData>(basePath + "Skill_A_1");
         RegisterAnim("Skill_A_2", basePath);
+        RegisterAnim("Skill_B_1", basePath);
+        RegisterAnim("Skill_B_land", basePath);
+        RegisterAnim("Skill_B_fx", basePath);
+        RegisterAnim("Skill_B_2", basePath);
 
         // 普攻 4 段
         for (int i = 1; i <= 4; i++)
@@ -76,24 +81,25 @@ public class NarutoEntity : CharacterEntity
 
         EffectManager.Instance.Preload("Characters/naruto/effect/lxw/ball", 1, "lxw");
         EffectManager.Instance.Preload("Characters/naruto/effect/fengshen/fengshen", 1, "fengshen");
+        EffectManager.Instance.Preload("Characters/naruto/effect/skill2_smk/skill2_smk", 1, "skill2_smk");
     }
 
-    public override void ApplyHit(HitData hit)
-    {
-        if (hit == null) return;
+    //public override void ApplyHit(HitData hit)
+    //{
+    //    if (hit == null) return;
         
-        // 简单判定：如果是普通受击（没有霸体）
-        if (armorLevel == ArmorLevel.normal)
-        {
-            base.ApplyHit(hit);
-        }
-        else
-        {
-            // 霸体状态：只扣血，不产生硬直和状态切换
-            this.LastHitData = hit;
-            this.Blood -= Mathf.Max(1, (int)(hit.Damage / Defence));
-        }
-    }
+    //    // 简单判定：如果是普通受击（没有霸体）
+    //    if (armorLevel == ArmorLevel.normal)
+    //    {
+    //        base.ApplyHit(hit);
+    //    }
+    //    else
+    //    {
+    //        // 霸体状态：只扣血，不产生硬直和状态切换
+    //        this.LastHitData = hit;
+    //        this.Blood -= Mathf.Max(1, (int)(hit.Damage / Defence));
+    //    }
+    //}
 }
 
 public class NarutoStateMachine : StateMachine

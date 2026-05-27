@@ -28,6 +28,26 @@ namespace View
         protected Vector3 _posVelocity = Vector3.zero;
         protected float _heightVelocity = 0f;
 
+        /// <summary>
+        /// 瞬间同步位置并重置表现层动画状态，通常在对象池复用时调用
+        /// </summary>
+        public void SnapToEntityAndReset()
+        {
+            if (BindEntity != null)
+            {
+                transform.position = new Vector3(BindEntity.pos.x, BindEntity.pos.y, 0);
+                _visualHeight = BindEntity.height * 0.01f;
+                _posVelocity = Vector3.zero;
+                _heightVelocity = 0f;
+
+                // 强制重置动画相关参数
+                _lastAnim = null;
+                _lastAnimVersion = -1;
+                _visualTimer = 0f;
+                _visualFrameIndex = 0;
+            }
+        }
+
         protected virtual void Awake()
         {
             GameObject displayGo = new GameObject("Display");

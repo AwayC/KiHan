@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: Skill_B_fx
+  m_EditorClassIdentifier: 
+  AnimName: Skill_B_fx
+  Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
+  IsLoop: 0
+  Steps:
+  - FrameIndex: 92
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 93
+    Duration: 2
+    RootMotion: {x: 10, y: 0}
+  - FrameIndex: 94
+    Duration: 2
+    RootMotion: {x: 10, y: 0}
+  - FrameIndex: 95
+    Duration: 1
+    RootMotion: {x: 10, y: 0}
+  - FrameIndex: 96
+    Duration: 4
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 97
+    Duration: 2
+    RootMotion: {x: 20, y: 0}
+  - FrameIndex: 98
+    Duration: 3
+    RootMotion: {x: 20, y: 0}
+  - FrameIndex: 99
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 100
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 101
+    Duration: 7
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 102
+    Duration: 1
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 103
+    Duration: 2
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 104
+    Duration: 1
+    RootMotion: {x: 0, y: 0}
+  - FrameIndex: 104
+    Duration: 2
+    RootMotion: {x: 20, y: 60}
+  - FrameIndex: 105
+    Duration: 1
+    RootMotion: {x: 20, y: 60}
+  - FrameIndex: 106
+    Duration: 4
+    RootMotion: {x: 15, y: 0}
+  - FrameIndex: 107
+    Duration: 4
+    RootMotion: {x: 15, y: 0}
+  - FrameIndex: 108
+    Duration: 2
+    RootMotion: {x: 15, y: 0}
+  - FrameIndex: 109
+    Duration: 3
+    RootMotion: {x: 15, y: 0}
+  - FrameIndex: 110
+    Duration: 8
+    RootMotion: {x: 0, y: 0}

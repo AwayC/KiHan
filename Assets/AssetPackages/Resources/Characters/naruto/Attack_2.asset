@@ -24,7 +24,7 @@ MonoBehaviour:
     RootMotion: {x: 30, y: 0}
   - FrameIndex: 22
     Duration: 1
-    RootMotion: {x: 20, y: 0}
+    RootMotion: {x: 30, y: 0}
   - FrameIndex: 23
     Duration: 2
     RootMotion: {x: 20, y: 0}

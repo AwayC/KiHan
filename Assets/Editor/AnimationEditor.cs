@@ -14,6 +14,9 @@ public class AnimationFrameDataEditor : Editor
     private SerializedProperty _stepsProp;
     private SerializedProperty _libraryProp;
 
+    private int _batchStartIndex = 0;
+    private int _batchEndIndex = 0;
+
     private void OnEnable()
     {
         _data = (AnimationFrameData)target;
@@ -56,11 +59,11 @@ public class AnimationFrameDataEditor : Editor
             if (_data.Steps != null && _data.Steps.Count > 0)
             {
                 _previewIndex = Mathf.Clamp(_previewIndex, 0, _data.Steps.Count - 1);
-                
+
                 // 显示当前帧信息
                 var currentStep = _data.Steps[_previewIndex];
                 string info = $"Step: {_previewIndex + 1} / {_data.Steps.Count} (SFF: {currentStep.FrameIndex})";
-                
+
                 var frameData = _data.GetCurrentFrameData(_previewIndex);
                 if (frameData != null && frameData.Sprite != null)
                 {
@@ -100,13 +103,13 @@ public class AnimationFrameDataEditor : Editor
         if (sprite == null || sprite.texture == null) return;
         Rect sRect = sprite.textureRect;
         if (sRect.height <= 0) return;
-        
+
         float ratio = sRect.width / sRect.height;
         float h = rect.height * 0.8f;
         float w = h * ratio;
         if (w > rect.width * 0.8f) { w = rect.width * 0.8f; h = w / ratio; }
 
-        Rect drawRect = new Rect(rect.center.x - w/2, rect.center.y - h/2, w, h);
+        Rect drawRect = new Rect(rect.center.x - w / 2, rect.center.y - h / 2, w, h);
         Rect uv = new Rect(sRect.x / sprite.texture.width, sRect.y / sprite.texture.height, sRect.width / sprite.texture.width, sRect.height / sprite.texture.height);
         GUI.DrawTextureWithTexCoords(drawRect, sprite.texture, uv, true);
     }
@@ -119,7 +122,7 @@ public class AnimationFrameDataEditor : Editor
         {
             EditorGUILayout.HelpBox("当前列表为空，点击下方按钮添加步骤。", MessageType.Info);
         }
-        
+
         for (int i = 0; i < _stepsProp.arraySize; i++)
         {
             using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
@@ -146,56 +149,129 @@ public class AnimationFrameDataEditor : Editor
 
                 SerializedProperty p = _stepsProp.GetArrayElementAtIndex(i);
                 EditorGUILayout.LabelField($"{i}", GUILayout.Width(15));
-                
+
                 int fIdx = p.FindPropertyRelative("FrameIndex").intValue;
                 string frameName = "NONE";
                 if (_data.Library != null && fIdx >= 0 && fIdx < _data.Library.AllFrames.Count)
                     frameName = _data.Library.AllFrames[fIdx].Name;
-                
+
                 if (GUILayout.Button($"{fIdx}: {frameName}", EditorStyles.layerMaskField, GUILayout.ExpandWidth(true)))
                 {
-                    ShowFrameSelectionMenu(i);
+                    Rect btnRect = GUILayoutUtility.GetLastRect();
+                    SerializedProperty frameIndexProp = p.FindPropertyRelative("FrameIndex");
+                    ShowFrameSelectionMenu(frameIndexProp, btnRect);
                 }
 
                 EditorGUILayout.PropertyField(p.FindPropertyRelative("Duration"), GUIContent.none, GUILayout.Width(35));
                 EditorGUILayout.PropertyField(p.FindPropertyRelative("RootMotion"), GUIContent.none, GUILayout.Width(80));
 
                 GUI.color = new Color(1, 0.5f, 0.5f);
-                if (GUILayout.Button("DEL", GUILayout.Width(40), GUILayout.Height(42))) 
-                { 
-                    _stepsProp.DeleteArrayElementAtIndex(i); 
-                    break; 
+                if (GUILayout.Button("DEL", GUILayout.Width(40), GUILayout.Height(42)))
+                {
+                    _stepsProp.DeleteArrayElementAtIndex(i);
+                    break;
                 }
                 GUI.color = Color.white;
             }
         }
 
         EditorGUILayout.Space(5);
-        if (GUILayout.Button("+ 添加新步骤 (ADD STEP)", GUILayout.Height(35))) 
+        if (GUILayout.Button("+ 添加新步骤 (ADD STEP)", GUILayout.Height(35)))
         {
             _stepsProp.InsertArrayElementAtIndex(_stepsProp.arraySize);
         }
+
+        EditorGUILayout.Space(10);
+        using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+        {
+            EditorGUILayout.LabelField("批量添加帧区间", EditorStyles.miniBoldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("Start:", GUILayout.Width(40));
+                _batchStartIndex = EditorGUILayout.IntField(_batchStartIndex, GUILayout.Width(50));
+                EditorGUILayout.LabelField("End:", GUILayout.Width(30));
+                _batchEndIndex = EditorGUILayout.IntField(_batchEndIndex, GUILayout.Width(50));
+                if (GUILayout.Button("批量导入区间", GUILayout.Height(20)))
+                {
+                    int maxIdx = (_data.Library != null) ? _data.Library.AllFrames.Count - 1 : 9999;
+                    int start = Mathf.Clamp(_batchStartIndex, 0, maxIdx);
+                    int end = Mathf.Clamp(_batchEndIndex, 0, maxIdx);
+                    
+                    int step = start <= end ? 1 : -1;
+                    for (int i = start; step > 0 ? i <= end : i >= end; i += step)
+                    {
+                        _stepsProp.arraySize++;
+                        var newElement = _stepsProp.GetArrayElementAtIndex(_stepsProp.arraySize - 1);
+                        newElement.FindPropertyRelative("FrameIndex").intValue = i;
+                        newElement.FindPropertyRelative("Duration").intValue = 1;
+                        newElement.FindPropertyRelative("RootMotion").vector2Value = Vector2.zero;
+                    }
+                }
+            }
+        }
     }
 
-    private void ShowFrameSelectionMenu(int stepIndex)
+    private void ShowFrameSelectionMenu(SerializedProperty frameIndexProp, Rect buttonRect)
     {
-        GenericMenu menu = new GenericMenu();
         if (_data.Library == null) return;
+        PopupWindow.Show(buttonRect, new FrameSelectionPopup(_data.Library, frameIndexProp, serializedObject));
+    }
+}
 
-        for (int j = 0; j < _data.Library.AllFrames.Count; j++)
+public class FrameSelectionPopup : PopupWindowContent
+{
+    private CharacterSpriteLibrary _library;
+    private SerializedProperty _frameIndexProp;
+    private SerializedObject _serializedObject;
+    private string _searchString = "";
+    private Vector2 _scrollPos;
+
+    public FrameSelectionPopup(CharacterSpriteLibrary library, SerializedProperty frameIndexProp, SerializedObject serializedObject)
+    {
+        _library = library;
+        _frameIndexProp = frameIndexProp;
+        _serializedObject = serializedObject;
+    }
+
+    public override Vector2 GetWindowSize()
+    {
+        return new Vector2(300, 400);
+    }
+
+    public override void OnGUI(Rect rect)
+    {
+        GUILayout.Space(5);
+        GUILayout.Label("选择帧", EditorStyles.boldLabel);
+        
+        // Search bar
+        EditorGUILayout.BeginHorizontal(GUI.skin.FindStyle("Toolbar"));
+        _searchString = GUILayout.TextField(_searchString, GUI.skin.FindStyle("ToolbarSearchTextField") ?? EditorStyles.toolbarSearchField);
+        if (GUILayout.Button("", GUI.skin.FindStyle("ToolbarSearchCancelButton") ?? EditorStyles.toolbarButton))
         {
-            int frameIndex = j;
-            string name = _data.Library.AllFrames[j].Name;
-            
-            menu.AddItem(new GUIContent($"{j}: {name}"), false, () => {
-                Undo.RecordObject(_data, "Change Anim Step Sprite");
-                if (stepIndex < _data.Steps.Count)
-                {
-                    _data.Steps[stepIndex].FrameIndex = frameIndex;
-                    EditorUtility.SetDirty(_data);
-                }
-            });
+            _searchString = "";
+            GUI.FocusControl(null);
         }
-        menu.ShowAsContext();
+        EditorGUILayout.EndHorizontal();
+
+        // List
+        _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
+        for (int i = 0; i < _library.AllFrames.Count; i++)
+        {
+            string frameName = _library.AllFrames[i].Name;
+            
+            if (!string.IsNullOrEmpty(_searchString) && !frameName.ToLower().Contains(_searchString.ToLower()))
+            {
+                continue;
+            }
+
+            if (GUILayout.Button($"{i}: {frameName}", EditorStyles.miniButtonLeft))
+            {
+                _serializedObject.Update();
+                _frameIndexProp.intValue = i;
+                _serializedObject.ApplyModifiedProperties();
+                editorWindow.Close();
+            }
+        }
+        EditorGUILayout.EndScrollView();
     }
 }

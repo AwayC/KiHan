@@ -24,10 +24,6 @@ public class GameApp : UnitySingleton<GameApp>
     private float _logicFpsTimer;
     private int _logicFrameCount;
 
-    // 严格按照架构设计的容器
-    private Dictionary<byte, CharacterEntity> _players = new Dictionary<byte, CharacterEntity>();
-    private List<LogicEntity> _allEntities = new List<LogicEntity>();
-
     private void Start()
     {
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
@@ -78,20 +74,18 @@ public class GameApp : UnitySingleton<GameApp>
         Debug.Log($"[GameApp] 开始初始化世界，地图: {MapPath}");
         MapManager.Instance.LoadMap(MapPath);
 
-        // --- 新增：预加载特效 ---
-        //EffectManager.Instance.Preload("HitSpark_Normal", 5);
-        //EffectManager.Instance.Preload("HitSpark_Heavy", 2);
+        SceneManager.Instance.InitWorld();
 
         // --- 1. 优先初始化战斗 UI ---
         InitCombatUI();
 
-        // --- 2. 然后生成玩家 (这样 SpawnPlayer 里的 SetupIcons 才能找到 _combatUI) ---
-        PlayerView p1View = SpawnPlayer(1, new Vector2(-2, 0));
-        PlayerView p2View = SpawnPlayer(2, new Vector2(2, 0));
+        // --- 2. 然后生成玩家 ---
+        PlayerView p1View = SceneManager.Instance.SpawnPlayer(1, new Vector2(-2, 0), playerViewPrefab, _combatUI, _myGameId);
+        PlayerView p2View = SceneManager.Instance.SpawnPlayer(2, new Vector2(2, 0), playerViewPrefab, _combatUI, _myGameId);
 
         // 相机追踪：直接追踪本地玩家的逻辑实体
-        CharacterEntity targetPlayer;
-        if (_players.TryGetValue(_myGameId, out targetPlayer))
+        CharacterEntity targetPlayer = SceneManager.Instance.GetPlayer(_myGameId);
+        if (targetPlayer != null)
         {
             Debug.Log($"[GameApp] 相机追踪目标设为 Player_{_myGameId} (逻辑对象)");
             CameraControllor.Instance.SetTarget(targetPlayer, true);
@@ -128,46 +122,6 @@ public class GameApp : UnitySingleton<GameApp>
         }
     }
 
-    private int _nextEntityId = 1;
-
-    private PlayerView SpawnPlayer(byte gId, Vector2 pos)
-    {
-        Debug.Log($"[GameApp] 生成玩家: {gId} 于 {pos}");
-        NarutoEntity logic = new NarutoEntity();
-        logic.EntityId = _nextEntityId++;
-        logic.owner = gId;
-        logic.pos = pos;
-        logic.IsFacingLeft = (gId == 2);
-        
-        // 初始化鸣人特有资源与状态机
-        logic.Init();
-
-        // --- 核心：当本地角色“加载”时，同步 UI 按键图标 ---
-        if (gId == _myGameId && _combatUI != null)
-        {
-            _combatUI.SetupIcons(logic.CharacterId);
-        }
-
-        // 注册到管理列表
-        _players[gId] = logic;
-        _allEntities.Add(logic);
-
-        // 创建表现层 (View)
-        GameObject viewGo = new GameObject($"Player_View_{gId}");
-        viewGo.transform.position = new Vector3(logic.pos.x, logic.pos.y, 0); // 瞬间同步初始位置
-        
-        var view = viewGo.AddComponent<PlayerView>();
-        view.BindEntity = logic;
-        
-        // 如果有 Prefab 则实例化模型层
-        if (playerViewPrefab != null)
-        {
-            Instantiate(playerViewPrefab, viewGo.transform);
-        }
-
-        return view;
-    }
-
     #region
 
     private void FPSCounter()
@@ -191,46 +145,10 @@ public class GameApp : UnitySingleton<GameApp>
         if (!_isGameRunning) return;
 
         // 1. 同步输入
-        foreach (var kv in frame.InputFrames)
-        {
-            if (_players.TryGetValue(kv.Key, out var player))
-            {
-                player.UpdateInput(kv.Value);
-            }
-        }
+        SceneManager.Instance.ApplyInputs(frame.InputFrames);
 
-        // 2. 逻辑 Tick (更新物理与逻辑帧)
-        for (int i = 0; i < _allEntities.Count; i++)
-        {
-            _allEntities[i].Tick();
-        }
-
-        // 3. 碰撞检测
-        if (_players.TryGetValue(1, out var p1)) DoCollisionCheck(p1);
-        if (_players.TryGetValue(2, out var p2)) DoCollisionCheck(p2);
-    }
-
-    private void DoCollisionCheck(CharacterEntity target)
-    {
-        foreach (var attacker in _allEntities)
-        {
-            if (attacker.owner == target.owner) continue;
-            
-            // 判定：攻击者是否有攻击盒，且目标是否有受击盒，且未被此动作命中过
-            if(attacker.CheckHit(target))
-            {
-                Debug.Log("check hit " + Time.fixedTime + " " + attacker.CurrentFrameIndex + " " + attacker.LogicalTickCounter);
-                if (attacker.CanHit(target))
-                {
-                    HitData hitData = attacker.GetHitData();
-                    target.ApplyHit(hitData);
-                    attacker.RegisterHit(target); // 标记命中，防止同一段动作重复打击
-
-                    // 触发相机打击感反馈
-                    CameraControllor.Instance.ImpactEffect(hitData.IsHeavyHit);
-                }
-            }
-        }
+        // 2. 逻辑和碰撞交给统一的管理器
+        SceneManager.Instance.TickAll();
     }
 
     #endregion

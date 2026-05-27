@@ -32,5 +32,5 @@ MonoBehaviour:
     Duration: 1
     RootMotion: {x: 0, y: 0}
   - FrameIndex: 32
-    Duration: 1
+    Duration: 2
     RootMotion: {x: 0, y: 0}

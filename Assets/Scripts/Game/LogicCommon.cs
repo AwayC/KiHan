@@ -43,6 +43,8 @@ namespace KiHan.Logic
         public LogicEntity Owner = null;
         public CharacterEntity Player = null;
 
+        public Action<LogicEntity> HitCallBack = null;  // 击中回调
+
         public HitData(HitType htype = HitType.None)
         {
             HType = htype;
@@ -50,7 +52,10 @@ namespace KiHan.Logic
 
         public void CallHitOwner()
         {
-            Owner.HitCallback();
+            if (Owner != null)
+            {
+                HitCallBack?.Invoke(Owner);
+            }
         }
     }
 

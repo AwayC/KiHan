@@ -111,7 +111,7 @@ public abstract class LogicEntity
             {
                 float p2u = 0.01f;
                 // 将位移平摊到逻辑帧中
-                float stepMoveX = (step.RootMotion.x * p2u / step.Duration) * GameConfig.RENDER_LOGIC_RATIO;
+                float stepMoveX = (step.RootMotion.x * p2u) * GameConfig.RENDER_LOGIC_RATIO;
                 if (IsFacingLeft) stepMoveX = -stepMoveX;
                 finalVel.x += stepMoveX / LOGIC_TICK_TIME;
             }
@@ -151,24 +151,40 @@ public abstract class LogicEntity
     {
         if (CurrAnim == null || CurrAnim.Steps.Count == 0) return;
 
-        var step = CurrAnim.Steps[CurrentFrameIndex];
-        
         // 逻辑层依然使用 RENDER_LOGIC_RATIO 来计算经过的“表现层帧数时间”
         LogicalTickCounter += GameConfig.RENDER_LOGIC_RATIO;
 
-        if (LogicalTickCounter >= step.Duration)
+        // 使用 while 循环来增加鲁棒性：如果经过的时间足以跨越多个关键帧，则连续推进
+        while (true)
         {
-            if (CurrentFrameIndex < CurrAnim.Steps.Count - 1)
+            var step = CurrAnim.Steps[CurrentFrameIndex];
+            
+            // 防止美术配置失误导致 Duration = 0 引发死循环，保底给 1
+            int duration = step.Duration > 0 ? step.Duration : 1;
+
+            if (LogicalTickCounter >= duration)
             {
-                LogicalTickCounter = 0;
-                CurrentFrameIndex++;
+                if (CurrentFrameIndex < CurrAnim.Steps.Count - 1)
+                {
+                    LogicalTickCounter -= duration;
+                    CurrentFrameIndex++;
+                }
+                else if ((CurrAnim.IsLoop && !ForceNotLoop) || ForceLoop)
+                {
+                    LogicalTickCounter -= duration;
+                    CurrentFrameIndex = 0;
+                }
+                else
+                {
+                    // 如果是最后一帧且不循环，跳出循环允许 LogicalTickCounter 继续增加
+                    break;
+                }
             }
-            else if ((CurrAnim.IsLoop && !ForceNotLoop) || ForceLoop)
+            else
             {
-                LogicalTickCounter = 0;
-                CurrentFrameIndex = 0;
+                // 当前积累的时间不足以跨越当前帧，结束更新
+                break;
             }
-            // 如果是最后一帧且不循环，LogicalTickCounter 会继续增加
         }
     }
 
@@ -183,5 +199,11 @@ public abstract class LogicEntity
             AnimVersion++;
             ClearHitData(); 
         }
+    }
+
+    public AnimationFrameData GetAnim(string animName)
+    {
+        _animDict.TryGetValue(animName, out var data);
+        return data;
     }
 }
