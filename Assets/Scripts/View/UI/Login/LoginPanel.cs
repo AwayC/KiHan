@@ -233,6 +233,12 @@ namespace KiHan.View.UI.Login
 
             // 启动时检查版本
             CheckAppVersion();
+
+            if (KiHan.Network.GatewayManager.Instance != null)
+            {
+                KiHan.Network.GatewayManager.Instance.OnAuthSuccess += OnGatewayAuthSuccess;
+                KiHan.Network.GatewayManager.Instance.OnAuthFailed += OnGatewayAuthFailed;
+            }
         }
 
         private void CheckAppVersion()
@@ -245,7 +251,8 @@ namespace KiHan.View.UI.Login
                 }
             }, err =>
             {
-                Debug.LogWarning("[LoginPanel] 版本校验请求失败(网络问题)");
+                Debug.LogWarning($"[LoginPanel] 版本校验请求失败(网络问题): {err}");
+                UIManager.Instance.ShowTip("网络问题");
             });
         }
 
@@ -254,6 +261,24 @@ namespace KiHan.View.UI.Login
             Debug.Log("[LoginPanel] OnClose called");
             base.OnClose();
             if (_videoPlayer != null) _videoPlayer.Stop();
+
+            if (KiHan.Network.GatewayManager.Instance != null)
+            {
+                KiHan.Network.GatewayManager.Instance.OnAuthSuccess -= OnGatewayAuthSuccess;
+                KiHan.Network.GatewayManager.Instance.OnAuthFailed -= OnGatewayAuthFailed;
+            }
+        }
+
+        private void OnGatewayAuthSuccess()
+        {
+            UIManager.Instance.ShowTip("连接网关成功！");
+            UIManager.Instance.ClosePanel(UIConst.LoginPanel);
+            UIManager.Instance.OpenPanel<KiHan.View.UI.Lobby.LobbyPanel>(UIConst.LobbyPanel);
+        }
+
+        private void OnGatewayAuthFailed(string msg)
+        {
+            UIManager.Instance.ShowTip($"连接网关失败: {msg}");
         }
 
         private void ShowPopup(GameObject popup)
@@ -320,7 +345,8 @@ namespace KiHan.View.UI.Login
                 },
                 onError: err => 
                 {
-                    UIManager.Instance.ShowTip($"网络错误: {err}");
+                    Debug.LogWarning($"[LoginPanel] 请求失败: {err}");
+                    UIManager.Instance.ShowTip("网络问题");
                 }
             );
         }
@@ -373,29 +399,49 @@ namespace KiHan.View.UI.Login
                 },
                 onError: err => 
                 {
-                    UIManager.Instance.ShowTip($"网络错误: {err}");
+                    Debug.LogWarning($"[LoginPanel] 请求失败: {err}");
+                    UIManager.Instance.ShowTip("网络问题");
                 }
             );
         }
 
         private void OnStartGameSubmit()
         {
-            Debug.Log("[LoginPanel] 切换到 Lobby 页面");
-            UIManager.Instance.ClosePanel(UIConst.LoginPanel);
+            Debug.Log("[LoginPanel] 正在连接网关...");
             
-            // 可以在这里获取缓存的账号数据传过去，目前测试传个默认名字
-            var lobby = UIManager.Instance.OpenPanel<KiHan.View.UI.Lobby.LobbyPanel>(UIConst.LobbyPanel);
-            if (lobby != null)
+            // 获取之前 Http 登录缓存下来的 Token
+            string token = HttpClient.Instance.Token;
+            if (string.IsNullOrEmpty(token))
             {
-                lobby.UpdateUserProfile("Away", "88888888");
+                UIManager.Instance.ShowTip("没有找到 Token，请重新登录！");
+                return;
             }
+
+            // 发起 WebSocket 连接，本地测试先写死 127.0.0.1:9000
+            KiHan.Network.GatewayManager.Instance.Connect("127.0.0.1", 9000, token);
+            
+            // 连接成功后的页面跳转由 OnGatewayAuthSuccess 处理
         }
 
         private void OnLogoutSubmit()
         {
-            Debug.Log("[LoginPanel] 退出登录接口预留...");
+            Debug.Log("[LoginPanel] 退出登录");
             _isLoggedIn = false;
             RefreshState();
+            
+            // 彻底清理所有战斗/场景残留
+            if (GameApp.Instance != null)
+            {
+                // 如果在战斗中，可以复用部分 ExitGame 的逻辑，或者确保管理器都清空
+                SceneManager.Instance.InitWorld();
+                MapManager.Instance.ClearMap();
+                VirtualNetworkManager.Instance.Stop();
+            }
+            Managers.ViewManager.Instance.ClearAll();
+            Managers.ResManager.Instance.Clear();
+
+            KiHan.Network.GatewayManager.Instance?.Disconnect();
+            HttpClient.Instance.ClearToken(); 
         }
     }
 }

@@ -2,6 +2,8 @@ using KiHan.Logic;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using UnityEditor.XR;
+using System.Buffers;
 
 // 定义通用状态索引
 public static class CommonState
@@ -19,6 +21,12 @@ public class CommonStateIdle : StateBase
 {
     public override sbyte StateType => CommonState.Idle;
     private ButtonMask _lastButtons = ButtonMask.None;
+    public Func<CharacterEntity, bool> InputHook;
+
+    public CommonStateIdle(Func<CharacterEntity, bool> inputHook)
+    {
+        InputHook = inputHook;
+    }
 
     public override void Enter(CharacterEntity owner) 
     {
@@ -34,6 +42,11 @@ public class CommonStateIdle : StateBase
     public override void Update(CharacterEntity owner)
     {
         owner.velocity = Vector2.zero; // 确保静止
+
+        if(InputHook != null && InputHook(owner))
+        {
+            return;
+        }
 
         var input = owner.CurrInput;
         if (input == null) return;
@@ -53,6 +66,12 @@ public class CommonStateIdle : StateBase
 public class CommonStateRun : StateBase
 {
     public override sbyte StateType => CommonState.Run;
+    public Func<CharacterEntity, bool> InputHook;
+
+    public CommonStateRun(Func<CharacterEntity, bool> inputHook)
+    {
+        InputHook = inputHook;
+    }
 
     public override void Enter(CharacterEntity owner) 
     {
@@ -77,6 +96,11 @@ public class CommonStateRun : StateBase
     }
     public override void Update(CharacterEntity owner)
     {
+        if (InputHook != null && InputHook(owner))
+        {
+            return;
+        }
+
         var input = owner.CurrInput;
         if (input == null || input.JoyStickAngle == 255) { 
             owner.RootSM.ChangeState(CommonState.Idle); 
@@ -105,9 +129,11 @@ public class CommonStateHurt : StateBase
 
     private int anim_idx = 1;
     private string _currentHurtAnim = "";
+    private bool _isLanded = false;
 
     public override void Enter(CharacterEntity owner)
     {
+        _isLanded = false;
         // 1. 初始化击退速度
         if (owner.LastHitData != null)
         {
@@ -117,7 +143,10 @@ public class CommonStateHurt : StateBase
             bool alreadyInAir = owner.IsAirborne;
 
             if (!alreadyInAir)
+            {
                 owner.velocity = new Vector2(pushDir * owner.LastHitData.PushSpeed, 0);
+            }
+                
             else
                 owner.velocity = new Vector2(pushDir * owner.LastHitData.PushSpeedAir, 0);
             // 不用转向
@@ -194,8 +223,17 @@ public class CommonStateHurt : StateBase
             // 落地判定：必须高度归零且速度向下或为零
             if (owner.height <= 0 && owner.h_vel <= 0)
             {
-                owner.IsAirborne = false; // 清除浮空状态
-                owner.RootSM.ChangeState(CommonState.Land);
+                if(_isLanded)
+                {
+                    owner.IsAirborne = false; // 清除浮空状态
+                    owner.RootSM.ChangeState(CommonState.Land);
+                    return;
+                }
+
+                owner.h_vel = 25;
+                owner.velocity *= 0.2f;
+                owner.SwitchAnimation("Hurt_inair");
+                _isLanded = true;
                 return;
             }
 

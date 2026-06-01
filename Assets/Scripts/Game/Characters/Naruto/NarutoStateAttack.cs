@@ -1,8 +1,6 @@
 using KiHan.Logic;
 using UnityEngine;
-using System.Collections.Generic;
-using System.Data;
-using UnityEditor.Experimental.GraphView;
+
 
 // 鸣人特有的状态放在这里
 #region 战斗状态 (Attack / Skill)

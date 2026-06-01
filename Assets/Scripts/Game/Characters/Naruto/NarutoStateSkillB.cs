@@ -127,7 +127,7 @@ public class NarutoStateSkillB : StateBase
 
         data.Damage = 100;
         data.HitStun = 12;
-        data.PushSpeed = 20;
+        data.PushSpeed = 24;
         data.PushSpeedAir = 2f;
 
         //data.HitEffectName = "HitSpark_Normal";
@@ -145,7 +145,7 @@ public class NarutoStateSkillB : StateBase
             data.IsHeavyHit = true;
             data.PushSpeedY = 40;
             data.PushSpeed = 10;
-            data.PushSpeedAir = 2f;
+            data.PushSpeedAir = 4f;
         }
         return data;
     }

@@ -21,7 +21,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
 
     // --- 打击感控制参数 ---
     private int _impactState = 0;       // 0: 空闲, 1: 保持放大, -1: 保持恢复
-    private int _impactHoldFrames = 0;  // 状态剩余渲染帧数
+    private float _impactHoldTimer = 0f;  // 状态剩余持续时间
     private int _heavyHitCounter = 0;   // 剩余重击连震次数
     private float _currentZoom = 0f;
 
@@ -48,7 +48,13 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         if (immediate && TargetLogic != null)
         {
             float offset = TargetLogic.IsFacingLeft ? -lookAheadDistance : lookAheadDistance;
-            float targetX = Mathf.Clamp(TargetLogic.pos.x + offset, minX, maxX);
+            
+            // 尝试获取表现层位置
+            float startX = TargetLogic.pos.x;
+            var view = Managers.ViewManager.Instance.GetEntityView(TargetLogic);
+            if (view != null) startX = view.transform.position.x;
+
+            float targetX = Mathf.Clamp(startX + offset, minX, maxX);
             transform.position = new Vector3(targetX, yOffset, -10f);
         }
     }
@@ -67,7 +73,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         if (_originalSize <= 0) return;
         
         _heavyHitCounter = isHeavyHit ? 1 : 0; // 重击会额外再震动1次
-        _currentZoom = isHeavyHit ? 0.05f : 0.03f; // 重击放大5%，普攻放大3%
+        _currentZoom = isHeavyHit ? 0.05f : 0.05f; // 重击放大5%，普攻放大3%
         
         TriggerSingleImpact();
     }
@@ -75,7 +81,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     private void TriggerSingleImpact()
     {
         _impactState = 1;
-        _impactHoldFrames = 2; // 保持放大的渲染帧数 (2帧非常短促)
+        _impactHoldTimer = 0.04f; // 保持放大的渲染时间 (约 40ms)
         _cam.orthographicSize = _originalSize * (1f - _currentZoom);
     }
 
@@ -83,20 +89,28 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     {
         if (TargetLogic == null) return;
 
-        // 1. 计算基础目标位置
+        // 1. 获取表现层位置（避免摄像机追踪突变的逻辑位置导致画面相对抖动）
+        float baseX = TargetLogic.pos.x;
+        var view = Managers.ViewManager.Instance.GetEntityView(TargetLogic);
+        if (view != null)
+        {
+            baseX = view.transform.position.x;
+        }
+
+        // 2. 计算目标位置
         float offset = TargetLogic.IsFacingLeft ? -lookAheadDistance : lookAheadDistance;
-        float desiredX = TargetLogic.pos.x + offset;
+        float desiredX = baseX + offset;
         float targetX = Mathf.Clamp(desiredX, minX, maxX);
         Vector3 targetPos = new Vector3(targetX, yOffset, -10f);
 
-        // 2. 缓动跟随
+        // 3. 缓动跟随
         transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * smoothSpeed);
 
-        // 3. 处理帧驱动的打击感震屏
+        // 4. 处理时间驱动的打击感震屏
         if (_impactState == 1)
         {
-            _impactHoldFrames--;
-            if (_impactHoldFrames <= 0)
+            _impactHoldTimer -= Time.deltaTime;
+            if (_impactHoldTimer <= 0)
             {
                 // 瞬间恢复
                 _cam.orthographicSize = _originalSize;
@@ -105,7 +119,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
                 {
                     _heavyHitCounter--;
                     _impactState = -1;
-                    _impactHoldFrames = 2; // 两次震动之间的间隔帧数
+                    _impactHoldTimer = 0.04f; // 两次震动之间的间隔时间
                 }
                 else
                 {
@@ -115,8 +129,8 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         }
         else if (_impactState == -1)
         {
-            _impactHoldFrames--;
-            if (_impactHoldFrames <= 0)
+            _impactHoldTimer -= Time.deltaTime;
+            if (_impactHoldTimer <= 0)
             {
                 // 间隔结束，触发第二次震动
                 TriggerSingleImpact();

@@ -12,9 +12,6 @@ namespace View
     {
         public LogicEntity BindEntity;
         
-        [Header("平滑插值相关")]
-        public float SmoothTime = 0.05f; 
-        
         protected SpriteRenderer _mainSr;
         protected Transform _displayRoot;
         protected List<SpriteRenderer> _extraSrs = new List<SpriteRenderer>();
@@ -25,8 +22,12 @@ namespace View
         protected int _visualFrameIndex = 0;
         protected float _visualHeight = 0f; 
 
-        protected Vector3 _posVelocity = Vector3.zero;
-        protected float _heightVelocity = 0f;
+        protected Vector3 _targetPos;
+        protected float _targetHeight;
+        protected float _t;
+        protected float _totalTime;
+        protected float _hT;
+        protected float _hTotalTime;
 
         /// <summary>
         /// 瞬间同步位置并重置表现层动画状态，通常在对象池复用时调用
@@ -35,10 +36,14 @@ namespace View
         {
             if (BindEntity != null)
             {
-                transform.position = new Vector3(BindEntity.pos.x, BindEntity.pos.y, 0);
-                _visualHeight = BindEntity.height * 0.01f;
-                _posVelocity = Vector3.zero;
-                _heightVelocity = 0f;
+                _targetPos = new Vector3(BindEntity.pos.x, BindEntity.pos.y, 0);
+                _targetHeight = BindEntity.height * 0.01f;
+                transform.position = _targetPos;
+                _visualHeight = _targetHeight;
+                _t = 0;
+                _totalTime = 0;
+                _hT = 0;
+                _hTotalTime = 0;
 
                 // 强制重置动画相关参数
                 _lastAnim = null;
@@ -78,21 +83,47 @@ namespace View
         {
             if (BindEntity == null) return;
             
-            // 1. 位置平滑
-            Vector3 targetPos = new Vector3(BindEntity.pos.x, BindEntity.pos.y, 0);
-            transform.position = Vector3.SmoothDamp(transform.position, targetPos, ref _posVelocity, SmoothTime);
-
-            // 1.1 高度平滑
-            float targetHeight = BindEntity.height * 0.01f;
-            if (targetHeight <= 0)
+            // 1. 位置平滑推算
+            Vector3 unitPos = new Vector3(BindEntity.pos.x, BindEntity.pos.y, 0);
+            float speed = BindEntity.CurrentVelocity.magnitude;
+            
+            if (unitPos != _targetPos)
             {
-                // 逻辑落地时，取消平滑阻尼，改为极高速度的线性坠落
-                _visualHeight = Mathf.MoveTowards(_visualHeight, 0f, Time.deltaTime * 25f);
-                _heightVelocity = 0f;
+                float distance = (unitPos - _targetPos).magnitude;
+                _totalTime = speed > 0 ? distance / speed : LogicEntity.LOGIC_TICK_TIME;
+                if (_totalTime <= 0) _totalTime = LogicEntity.LOGIC_TICK_TIME; // 防止除零
+                _t = 0;
+                _targetPos = unitPos;
             }
-            else
+
+            _t += Time.deltaTime;
+            if (_totalTime > 0)
             {
-                _visualHeight = Mathf.SmoothDamp(_visualHeight, targetHeight, ref _heightVelocity, SmoothTime);
+                transform.position = Vector3.Lerp(transform.position, _targetPos, _t / _totalTime);
+            }
+
+            // 1.1 高度平滑推算
+            float unitHeight = BindEntity.height * 0.01f;
+            float hSpeed = Mathf.Abs(BindEntity.CurrentHVelocity);
+            
+            if (unitHeight != _targetHeight)
+            {
+                float hDistance = Mathf.Abs(unitHeight - _targetHeight);
+                _hTotalTime = hSpeed > 0 ? hDistance / hSpeed : LogicEntity.LOGIC_TICK_TIME;
+                if (_hTotalTime <= 0) _hTotalTime = LogicEntity.LOGIC_TICK_TIME;
+                _hT = 0;
+                _targetHeight = unitHeight;
+            }
+
+            _hT += Time.deltaTime;
+            if (unitHeight <= 0)
+            {
+                // 逻辑落地时，改为极高速度的线性坠落，防止表现层浮空
+                _visualHeight = Mathf.MoveTowards(_visualHeight, 0f, Time.deltaTime * 25f);
+            }
+            else if (_hTotalTime > 0)
+            {
+                _visualHeight = Mathf.Lerp(_visualHeight, _targetHeight, _hT / _hTotalTime);
             }
 
             // 2. 动画索引推进

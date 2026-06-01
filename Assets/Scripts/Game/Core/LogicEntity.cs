@@ -13,6 +13,9 @@ public abstract class LogicEntity
     public int Gravity = 10;  // 重力加速度 (新增：允许动态修改)
     public int owner;        // 所属玩家 ID
 
+    public Vector2 CurrentVelocity; // 当前水平真实速度 (units/s)，提供给 View 推算
+    public float CurrentHVelocity;  // 当前垂直真实速度 (units/s)，提供给 View 推算
+
     // --- 图像与动画 (纯逻辑层) ---
     public AnimationFrameData CurrAnim; 
     public int CurrentFrameIndex;
@@ -110,7 +113,6 @@ public abstract class LogicEntity
             if (step.RootMotion.x != 0 && step.Duration > 0)
             {
                 float p2u = 0.01f;
-                // 将位移平摊到逻辑帧中
                 float stepMoveX = (step.RootMotion.x * p2u) * GameConfig.RENDER_LOGIC_RATIO;
                 if (IsFacingLeft) stepMoveX = -stepMoveX;
                 finalVel.x += stepMoveX / LOGIC_TICK_TIME;

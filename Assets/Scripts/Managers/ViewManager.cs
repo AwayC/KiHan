@@ -63,5 +63,18 @@ namespace Managers
             }
             return null;
         }
+
+        public void ClearAll()
+        {
+            foreach (var view in _entityToEntityViewMap.Values)
+            {
+                if (view != null && view.gameObject != null)
+                {
+                    Destroy(view.gameObject);
+                }
+            }
+            _entityToViewMap.Clear();
+            _entityToEntityViewMap.Clear();
+        }
     }
 }

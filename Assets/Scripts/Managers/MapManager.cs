@@ -25,4 +25,14 @@ public class MapManager : UnitySingleton<MapManager>
         // 初始化地图边界逻辑
         CurrentMapLogic = new MapLogic();
     }
+
+    public void ClearMap()
+    {
+        if (_mapInstance != null)
+        {
+            Destroy(_mapInstance);
+            _mapInstance = null;
+        }
+        CurrentMapLogic = null;
+    }
 }

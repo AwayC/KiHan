@@ -38,7 +38,7 @@ public class NarutoSkillBEntity : SkillDerivedEntity
         _hitData.Player = creator;
         _hitData.Damage = 50;
         _hitData.HitStun = 10;
-        _hitData.PushSpeed = 20;
+        _hitData.PushSpeed = 25;
         _hitData.PushSpeedAir = 3f;
         
         _hitData.Pos = this.pos;

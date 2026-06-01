@@ -130,10 +130,10 @@ TextureImporter:
         x: 387
         y: 592
         width: 13
-        height: 104
+        height: 102
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
+      border: {x: 0, y: 2, z: 0, w: 2}
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -207,6 +207,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: stripeBg
+      rect:
+        serializedVersion: 2
+        x: 992
+        y: 695
+        width: 26
+        height: 65
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 29, z: 0, w: 29}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e24f83c676988e4ca8e6d2bd6a69c8c
+      internalID: -1437643402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -218,7 +239,6 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      BootLoading_0: 726426214
       BootLoading_1: 592698758
       BootLoading_10: 1044726193
       BootLoading_100: -733513108
@@ -354,6 +374,7 @@ TextureImporter:
       logo: -1169956151
       note: -483409973
       stripe: 390351648
+      stripeBg: -1437643402
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

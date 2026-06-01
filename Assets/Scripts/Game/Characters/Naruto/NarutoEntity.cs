@@ -2,6 +2,7 @@ using KiHan.Logic;
 using UnityEngine;
 using System.Collections.Generic;
 using Managers;
+using System;
 
 
 /// <summary>
@@ -22,15 +23,53 @@ public class NarutoEntity : CharacterEntity
         // 2. 加载动画
         LoadRes("Characters/naruto/");
 
+        Func<CharacterEntity, bool> inputHook = (owner) =>
+        {
+            var input = owner.CurrInput;
+            if (input == null) return false;
+
+            // 恢复为简单的状态检查：只要按着攻击键就进入攻击状态
+            if ((input.Buttons & ButtonMask.Skill1) != 0)
+            {
+                Debug.Log("skill1 btn");
+                owner.RootSM.ChangeState(NarutoState.SkillA);
+                return true;
+            }
+
+            if ((input.Buttons & ButtonMask.Skill2) != 0)
+            {
+                Debug.Log("skill2 btn");
+                owner.RootSM.ChangeState(NarutoState.SkillB);
+                return true;
+            }
+
+            if ((input.Buttons & ButtonMask.Attack) != 0)
+            {
+                Debug.Log("attack btn");
+                owner.RootSM.ChangeState(CommonState.Attack);
+                return true;
+            }
+
+            if (input.JoyStickAngle != 255)
+            {
+                Debug.Log("run");
+                owner.RootSM.ChangeState(CommonState.Run);
+            }
+
+            return false;
+        };
+
         // 3. 组装状态机
         RootSM = new NarutoStateMachine(this);
-        RootSM.RegisterState(new NarutoStateIdle());
-        RootSM.RegisterState(new CommonStateRun());
+        RootSM.RegisterState(new CommonStateIdle(inputHook));
+        RootSM.RegisterState(new CommonStateRun(inputHook));
         RootSM.RegisterState(new CommonStateHurt());
         RootSM.RegisterState(new CommonStateLand()); // 注册落地收招状态
         RootSM.RegisterState(new NarutoStateAttack()); // 注册普攻状态
         RootSM.RegisterState(new NarutoStateSkillA()); // 注册1技能
         RootSM.RegisterState(new NarutoStateSkillB()); // 注册2技能
+
+        
 
         // 4. 初始状态
         RootSM.ChangeState(CommonState.Idle);

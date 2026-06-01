@@ -14,6 +14,10 @@ public class GameLanch : UnitySingleton<GameLanch>
     void Start()
     {
         Debug.Log("[GameLanch] 启动并挂载逻辑模块...");
+        // 关闭锁帧
+        Application.targetFrameRate = 30;
+        QualitySettings.vSyncCount = 0;
+
         // 初始化游戏框架代码
         // end
 

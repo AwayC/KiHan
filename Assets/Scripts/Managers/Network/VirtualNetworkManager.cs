@@ -75,6 +75,12 @@ public class VirtualNetworkManager : NetworkManager
         // 模拟游戏开始通知
         OnOpCodeReceived?.Invoke(ServerOpCode.GameStartNtf, new ArraySegment<byte>(new byte[0]));
 
+        // 等待前端加载完成
+        while (GameApp.Instance == null || !GameApp.Instance.IsGameRunning)
+        {
+            yield return null;
+        }
+
         float nextTickTime = Time.realtimeSinceStartup;
 
         while (_isRunning)

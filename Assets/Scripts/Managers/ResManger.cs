@@ -37,6 +37,21 @@ namespace Managers
             return newAsset;
         }
 
+        public ResourceRequest LoadAsync<T>(string path) where T : Object
+        {
+            if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
+            
+            // 如果缓存里有，虽然没必要再异步，但为了统一返回格式，还是走系统接口
+            // 正常工程会返回自定义的 AsyncOperation wrapper
+            return Resources.LoadAsync<T>(path);
+        }
+
+        public void AddToCache(string path, Object obj)
+        {
+            if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
+            if (obj != null) _assetCache[path] = obj;
+        }
+
         public GameObject Spawn(string path, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             GameObject obj = null;

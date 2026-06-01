@@ -100,7 +100,9 @@ namespace Managers
 
                 yield return request.SendWebRequest();
 
-                if (request.result != UnityWebRequest.Result.Success)
+                bool isNetworkError = request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.DataProcessingError;
+
+                if (isNetworkError)
                 {
                     onError?.Invoke(request.error);
                 }
@@ -110,7 +112,16 @@ namespace Managers
                     {
                         string jsonRes = request.downloadHandler.text;
                         T res = JsonUtility.FromJson<T>(jsonRes);
-                        onSuccess?.Invoke(res);
+                        
+                        // 即使是 ProtocolError (如 HTTP 400)，只要服务端返回了规范的 JSON 错误体，就交由 onSuccess 让业务逻辑显示错误信息
+                        if (res != null && (request.result == UnityWebRequest.Result.Success || res.code != 0 || !string.IsNullOrEmpty(res.msg)))
+                        {
+                            onSuccess?.Invoke(res);
+                        }
+                        else
+                        {
+                            onError?.Invoke(request.error);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -181,6 +192,11 @@ namespace Managers
                 }
                 onSuccess?.Invoke(res);
             }, onError));
+        }
+
+        public void ClearToken()
+        {
+            Token = null;
         }
     }
 }
