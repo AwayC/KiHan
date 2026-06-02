@@ -40,7 +40,10 @@ public class NarutoSkillBEntity : SkillDerivedEntity
         _hitData.HitStun = 10;
         _hitData.PushSpeed = 25;
         _hitData.PushSpeedAir = 3f;
-        
+        _hitData.HitEffectOffset = new Vector2(-160, 400);
+        _hitData.HitEffectName = "Spark1";
+
+
         _hitData.Pos = this.pos;
         _hitData.Height = this.height;
         _hitData.PushDirX = this.IsFacingLeft ? -1f : 1f;

@@ -130,10 +130,11 @@ public class NarutoStateSkillB : StateBase
         data.PushSpeed = 24;
         data.PushSpeedAir = 2f;
 
-        //data.HitEffectName = "HitSpark_Normal";
+        data.HitEffectName = "HitSpark_Normal";
         //data.HitEffectOffset = new Vector2(50f, 60f);
+        data.HitEffectOffset = new Vector2(-160, 400);
 
-        if(_comIdx == 1)
+        if (_comIdx == 1)
         {
             data.HitCallBack = (_owner) =>
             {
@@ -146,6 +147,8 @@ public class NarutoStateSkillB : StateBase
             data.PushSpeedY = 40;
             data.PushSpeed = 10;
             data.PushSpeedAir = 4f;
+            data.HitEffectName = "Spark5";
+            data.HitEffectOffset = new Vector2(0, 100);
         }
         return data;
     }

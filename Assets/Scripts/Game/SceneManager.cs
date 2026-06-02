@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using KiHan.Logic;
 using View;
+using View.UI;
 
 public class SceneManager : UnitySingleton<SceneManager>
 {
@@ -136,6 +137,12 @@ public class SceneManager : UnitySingleton<SceneManager>
                 if (attacker.CanHit(target))
                 {
                     HitData hitData = attacker.GetHitData();
+                    
+                    // 将攻击者的 owner 和朝向信息附加或传递给 ApplyHit (这里为了不改动 HitData 结构，简单处理)
+                    // 我们可以直接在 ApplyHit 里触发跳字，但我们需要攻击者的信息
+                    // 其实最合理的做法是给 HitData 加一个 Attacker 引用
+                    // 但为了最少改动，直接在这里让 Target 自己处理也可以，或者把逻辑直接搬进 ApplyHit
+                    
                     target.ApplyHit(hitData);
                     attacker.RegisterHit(target); // 标记命中，防止同一段动作重复打击
 
@@ -144,5 +151,15 @@ public class SceneManager : UnitySingleton<SceneManager>
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 提供给逻辑层调用的接口，用于显示伤害飘字
+    /// </summary>
+    public void ShowDamageText(int damageValue, bool isPlayerHit, Vector3 visualPos, int hitDirection)
+    {
+        GameObject textGo = new GameObject("DamageText");
+        var textNode = textGo.AddComponent<View.Component.DamageTextNode>();
+        textNode.Init(damageValue, isPlayerHit, visualPos, hitDirection);
     }
 }

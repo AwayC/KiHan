@@ -1,11 +1,12 @@
 using UnityEngine;
 using KiHan.Logic;
 using System.Collections;
+using UnityEngine.Playables;
 
 namespace View
 {
     /// <summary>
-    /// 特效表现层节点
+    /// 特效表现层 node
     /// 挂载在特效预制体上，负责动画播放完后自动回收
     /// </summary>
     public class EffectNode : MonoBehaviour
@@ -14,6 +15,7 @@ namespace View
         public string PoolKey; // 记录是从哪个池子生成的，用于回收
         
         private Animator _animator;
+        private PlayableDirector _director;
         private bool _isRecycled = false;
 
         private LogicEntity _bindEntity;
@@ -24,7 +26,8 @@ namespace View
 
         private void Awake()
         {
-            _animator = GetComponent<Animator>();
+            _animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+            _director = GetComponent<PlayableDirector>() ?? GetComponentInChildren<PlayableDirector>();
             _srs = GetComponentsInChildren<SpriteRenderer>(true);
             if (_srs != null)
             {
@@ -43,6 +46,13 @@ namespace View
             _bindEntity = data.BindEntity;
             _data = data;
 
+            // 调试：改个名字方便您在 Hierarchy 视图中找到它
+            gameObject.name = $"[Effect]_{EffectId}_{PoolKey}";
+
+            // 重新查找组件（防止某些特效是动态挂载的）
+            if (_animator == null) _animator = GetComponentInChildren<Animator>();
+            if (_director == null) _director = GetComponentInChildren<PlayableDirector>();
+
             // 恢复所有渲染器可见性（防止上次回收时被隐藏）
             if (_srs != null)
             {
@@ -53,7 +63,6 @@ namespace View
             }
 
             // 1. 处理镜像翻转
-            // 原生动画如果需要左右翻转，最简单的方法是反转 Scale X
             Vector3 scale = transform.localScale;
             scale.x = data.IsFacingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
             transform.localScale = scale;
@@ -61,43 +70,52 @@ namespace View
             // 2. 检查绑定逻辑
             if (_bindEntity != null)
             {
-                // 向 ViewManager 索取该实体对应的表现层根节点
                 Transform targetViewRoot = Managers.ViewManager.Instance.GetViewRoot(_bindEntity);
                 if (targetViewRoot != null)
                 {
-                    // 设置为子物体，完美继承主体的位移平滑
                     transform.SetParent(targetViewRoot);
                     UpdateAnchoredPosition();
+                    Debug.Log($"[Effect] {gameObject.name} 已挂载到实体视图: {targetViewRoot.parent.name}");
                 }
                 else
                 {
                     // 容错：如果找不到 ViewRoot，则退化为基于绝对坐标的世界特效
                     transform.SetParent(null);
                     float p2u = 0.01f;
-                    transform.position = new Vector3(_bindEntity.pos.x + data.Offset.x * p2u, _bindEntity.pos.y + data.Offset.y * p2u, 0);
+                    transform.position = new Vector3(_bindEntity.pos.x + data.Offset.x * p2u, _bindEntity.pos.y + (_bindEntity.height + data.Offset.y) * p2u, 0);
                     UpdateSortingOrder(_bindEntity.pos.y);
                 }
             }
             else
             {
-                // 非绑定特效，直接放在世界坐标
+                // 非绑定特效，放在世界坐标，同时应用 Offset 和 Height
                 transform.SetParent(null);
-                transform.position = new Vector3(data.WorldPos.x, data.WorldPos.y, 0);
-                UpdateSortingOrder(data.WorldPos.y * 100f); // 假设传入的是真实的Unity坐标，转回逻辑y。如果传入的是逻辑y则不需要*100。不过统一处理也行
+                float p2u = 0.01f;
+                transform.position = new Vector3(data.WorldPos.x + data.Offset.x * p2u, data.WorldPos.y + (data.Height + data.Offset.y) * p2u, 0);
+                UpdateSortingOrder(data.WorldPos.y * 100f);
             }
 
             // 3. 监听动画结束自动销毁
-            if (_animator != null)
+            if (_animator != null || _director != null)
             {
-                // 强制重置动画并立即更新一帧，防止对象池复用时闪烁老残影
-                _animator.Play(0, -1, 0f);
-                _animator.Update(0f);
+                if (_animator != null)
+                {
+                    _animator.Play(0, -1, 0f);
+                    _animator.Update(0f);
+                }
                 
+                if (_director != null)
+                {
+                    _director.time = 0;
+                    _director.Evaluate(); 
+                    _director.Play();
+                }
+
                 StartCoroutine(WaitAndRecycle());
             }
             else
             {
-                // 如果没有 Animator，设置一个默认存活时间防泄漏
+                Debug.LogWarning($"[Effect] {gameObject.name} 未找到控制器，将在 2 秒后自动回收。");
                 Invoke(nameof(Recycle), 2.0f);
             }
         }
@@ -115,7 +133,6 @@ namespace View
             {
                 baseOrder += _bindEntity.owner;
             }
-            // 给个偏移，比如 10，让它盖在角色(及额外层)上面
             int effectBaseOrder = baseOrder + 10;
             
             if (_srs != null)
@@ -141,7 +158,6 @@ namespace View
                     float p2u = 0.01f;
                     Vector2 anchorPos = Vector2.zero;
 
-                    // 查找指定名称的锚点
                     if (!string.IsNullOrEmpty(_data.AnchorName) && frame.EffectAnchors != null)
                     {
                         var anchor = frame.EffectAnchors.Find(a => a.Name == _data.AnchorName);
@@ -159,12 +175,10 @@ namespace View
 
                     transform.localPosition = new Vector3(offX, offY, 0);
 
-                    // 实时同步主体的朝向，因为特效在播放过程中主体可能转身
                     Vector3 scale = transform.localScale;
                     scale.x = _bindEntity.IsFacingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
                     transform.localScale = scale;
 
-                    // 实时更新渲染图层，跟随角色层级
                     UpdateSortingOrder(_bindEntity.pos.y);
                 }
             }
@@ -172,16 +186,53 @@ namespace View
 
         private IEnumerator WaitAndRecycle()
         {
-            yield return null; 
+            float startTime = Time.time;
             
-            // 逐帧检测动画播放进度，接近 1.0 时立刻回收，防止 Animator 循环导致闪烁第一帧
+            // 延迟 2 帧，确保控制器状态同步
+            yield return null; 
+            yield return null;
+            
+            // 逐帧检测播放进度，完成时立刻回收
             while (true)
             {
-                AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
-                if (stateInfo.normalizedTime >= 0.95f)
+                // 安全保底：如果 8 秒还没播完，强制回收，防止僵尸特效留在场上
+                if (Time.time - startTime > 8.0f)
                 {
+                    Debug.LogWarning($"[Effect] {gameObject.name} 播放超时 (8秒)，执行保底回收。");
                     break;
                 }
+
+                bool isDone = false;
+
+                // 核心修复：如果存在 Timeline，优先以 Timeline 的状态为准
+                // 因为很多 Timeline 特效也会挂载 Animator 用于骨骼绑定，但 Animator 本身并不播放 Clip（时间永远是 0）
+                if (_director != null)
+                {
+                    if (_director.state != PlayState.Playing)
+                    {
+                        isDone = true;
+                    }
+                }
+                else if (_animator != null)
+                {
+                    AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+                    // 如果不是循环动画，normalizedTime >= 1.0 表示播放完毕
+                    if (stateInfo.normalizedTime >= 0.98f) 
+                    {
+                        isDone = true;
+                    }
+                }
+                else
+                {
+                    isDone = true; // 理论上走不到这里，Init 中有防御
+                }
+
+                if (isDone)
+                {
+                    Debug.Log($"[Effect] {gameObject.name} 检测到播放结束，准备回收。");
+                    break;
+                }
+                
                 yield return null;
             }
 

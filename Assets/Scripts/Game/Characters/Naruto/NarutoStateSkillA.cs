@@ -67,6 +67,8 @@ public class NarutoStateSkillA : StateBase
         data.HitStun = 12;
         data.PushSpeed = 0;
         data.PushSpeedAir = 0f; // ����׷��ʱ��ˮƽ���ˣ���Сһ���ֹ���̫Զ�Ӳ��ϣ�
+        data.HitEffectName = "Spark1";
+        data.HitEffectOffset = new Vector2(-160, 400);
 
         // Ĭ�ϴ�ֱ�ٶȣ�Ϊ��֧�ֿ���׷�� (Juggle)����ͨ����Ҳ��һ���������
         data.PushSpeedY = 10;
@@ -77,7 +79,9 @@ public class NarutoStateSkillA : StateBase
             data.PushSpeed = 0f;
             data.PushSpeedAir = 0f;
             data.PushSpeedY = 55; // 4a ���ɸ���
+            data.HitEffectName = "Spark5";
             data.IsHeavyHit = true; // �����ػ�����
+            data.HitEffectOffset = new Vector2(0, 100);
         }
         return data;
     }

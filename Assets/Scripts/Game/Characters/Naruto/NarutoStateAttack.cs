@@ -211,8 +211,8 @@ public class NarutoStateAttack : StateBase
         data.PushSpeedY = 30;
 
         // 配置打击特效
-        data.HitEffectName = "HitSpark_Normal";
-        data.HitEffectOffset = new Vector2(50f, 60f); // 相对受击者的偏移 (向着受击者前方)
+        data.HitEffectName = "Spark1";
+        data.HitEffectOffset = new Vector2(-160, 400); // 相对受击者的偏移 (向着受击者前方)
 
         if (_comboIdx == 4 && owner.CurrentFrameIndex >= 4)
         {
@@ -224,8 +224,8 @@ public class NarutoStateAttack : StateBase
             data.IsHeavyHit = true; // 触发重击连震
             
             // 最后一击替换为重击特效
-            data.HitEffectName = "HitSpark_Heavy";
-            data.HitEffectOffset = new Vector2(60f, 80f);
+            data.HitEffectName = "Spark5";
+            data.HitEffectOffset = new Vector2(0, 100);
         }
         return data;
     }

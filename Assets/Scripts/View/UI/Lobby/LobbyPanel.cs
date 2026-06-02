@@ -32,6 +32,8 @@ namespace KiHan.View.UI.Lobby
         private Button _createRoleBtn;
         private TMP_InputField _createRoleInput;
 
+        private GameObject _backPanel;
+
         // Cache original positions
         private Dictionary<RectTransform, Vector2> _originalPositions = new Dictionary<RectTransform, Vector2>();
 
@@ -46,6 +48,29 @@ namespace KiHan.View.UI.Lobby
             _userProfile = transform.Find("UserProfile")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "UserProfile")?.GetComponent<RectTransform>();
             _createPlayerPanel = transform.Find("CreatePlayerPanel")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "CreatePlayerPanel")?.GetComponent<RectTransform>();
 
+            // Back Panel (Exit Confirmation)
+            _backPanel = transform.Find("BackPanel")?.gameObject ?? FindChild(gameObject, "BackPanel");
+            if (_backPanel != null)
+            {
+                Transform container = _backPanel.transform.Find("container");
+                if (container != null)
+                {
+                    Button xBtn = container.Find("XBtn")?.GetComponent<Button>() ?? container.GetComponentInChildren<Button>(true);
+                    
+                    Transform btnsRoot = container.Find("Btns");
+                    Button cancelBtn = btnsRoot?.Find("CancelBtn")?.GetComponent<Button>() ?? FindChild(container.gameObject, "CancelBtn")?.GetComponent<Button>();
+                    Button confirmBtn = btnsRoot?.Find("ConfirmBtn")?.GetComponent<Button>() ?? FindChild(container.gameObject, "ConfirmBtn")?.GetComponent<Button>();
+
+                    xBtn?.onClick.AddListener(() => _backPanel.SetActive(false));
+                    cancelBtn?.onClick.AddListener(() => _backPanel.SetActive(false));
+                    confirmBtn?.onClick.AddListener(() => {
+                        _backPanel.SetActive(false);
+                        OnRealLogout();
+                    });
+                }
+                _backPanel.SetActive(false);
+            }
+
             // If StartPanel is missing (based on prefab text, it might just be the button and Info group directly)
             // Let's bind the StartBtn and Info dynamically
             if (_startPanel == null)
@@ -55,9 +80,9 @@ namespace KiHan.View.UI.Lobby
                 GameObject infoGo = FindChild(gameObject, "Info") ?? transform.Find("Info")?.gameObject;
                 if (infoGo != null)
                 {
-                    _onlineCntText = FindChild(infoGo, "onlineCnt")?.GetComponentInChildren<TMP_Text>(true) ?? FindChild(infoGo, "name")?.GetComponentInChildren<TMP_Text>(true); // online人数在预制体里叫name
-                    _winRateText = FindChild(infoGo, "winRate")?.GetComponentInChildren<TMP_Text>(true) ?? infoGo.transform.Find("winRate/num")?.GetComponent<TMP_Text>();
-                    _winCntText = FindChild(infoGo, "winCnt")?.GetComponentInChildren<TMP_Text>(true) ?? infoGo.transform.Find("winCnt/name")?.GetComponent<TMP_Text>(); // 胜场数
+                    _onlineCntText = infoGo.transform.Find("onlineCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "onlineCnt")?.transform.Find("num")?.GetComponent<TMP_Text>(); 
+                    _winRateText = infoGo.transform.Find("winRate/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "winRate")?.transform.Find("num")?.GetComponent<TMP_Text>();
+                    _winCntText = infoGo.transform.Find("winCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "winCnt")?.transform.Find("num")?.GetComponent<TMP_Text>();
                 }
             }
             else
@@ -66,9 +91,9 @@ namespace KiHan.View.UI.Lobby
                 GameObject infoGo = _startPanel.Find("Info")?.gameObject ?? FindChild(_startPanel.gameObject, "Info");
                 if (infoGo != null)
                 {
-                    _onlineCntText = FindChild(infoGo, "onlineCnt")?.GetComponentInChildren<TMP_Text>(true) ?? FindChild(infoGo, "name")?.GetComponentInChildren<TMP_Text>(true);
-                    _winRateText = FindChild(infoGo, "winRate")?.GetComponentInChildren<TMP_Text>(true) ?? infoGo.transform.Find("winRate/num")?.GetComponent<TMP_Text>();
-                    _winCntText = FindChild(infoGo, "winCnt")?.GetComponentInChildren<TMP_Text>(true) ?? infoGo.transform.Find("winCnt/name")?.GetComponent<TMP_Text>();
+                    _onlineCntText = infoGo.transform.Find("onlineCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "onlineCnt")?.transform.Find("num")?.GetComponent<TMP_Text>();
+                    _winRateText = infoGo.transform.Find("winRate/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "winRate")?.transform.Find("num")?.GetComponent<TMP_Text>();
+                    _winCntText = infoGo.transform.Find("winCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "winCnt")?.transform.Find("num")?.GetComponent<TMP_Text>();
                 }
             }
 
@@ -217,12 +242,16 @@ namespace KiHan.View.UI.Lobby
                 KiHan.Network.LobbyManager.Instance.OnPlayerDataUpdated += OnPlayerDataUpdated;
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleRequired += OnCreateRoleRequired;
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleResponse += OnCreateRoleResponse;
+                KiHan.Network.LobbyManager.Instance.OnOnlineCountUpdated += UpdateOnlineCount;
 
                 // 如果已经有缓存数据，直接刷新一次
                 if (KiHan.Network.LobbyManager.Instance.MyPlayerInfo != null)
                 {
                     OnPlayerDataUpdated(KiHan.Network.LobbyManager.Instance.MyPlayerInfo);
                 }
+
+                // 主动拉取在线人数
+                KiHan.Network.LobbyManager.Instance.RequestGetOnlineCount();
 
                 // 处理可能发生的竞态条件：在打开面板前就已经收到了创建角色通知或登录时返回了-2202无角色错误
                 if (KiHan.Network.LobbyManager.Instance.NeedsCreateRole)
@@ -239,6 +268,7 @@ namespace KiHan.View.UI.Lobby
                 KiHan.Network.LobbyManager.Instance.OnPlayerDataUpdated -= OnPlayerDataUpdated;
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleRequired -= OnCreateRoleRequired;
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleResponse -= OnCreateRoleResponse;
+                KiHan.Network.LobbyManager.Instance.OnOnlineCountUpdated -= UpdateOnlineCount;
             }
 
             StopAllCoroutines();
@@ -254,7 +284,7 @@ namespace KiHan.View.UI.Lobby
 
         private void OnPlayerDataUpdated(KiHan.Network.PlayerInfo info)
         {
-            UpdateUserProfile(info.nickname, $"UID:{info.uid}");
+            UpdateUserProfile(info.nickname, info.uid);
 
             if (!string.IsNullOrEmpty(info.data_json))
             {
@@ -380,6 +410,47 @@ namespace KiHan.View.UI.Lobby
 
         private void OnCloseClicked()
         {
+            if (_backPanel != null)
+            {
+                ShowPopup(_backPanel);
+            }
+            else
+            {
+                OnRealLogout();
+            }
+        }
+
+        private void ShowPopup(GameObject popup)
+        {
+            UIPanelAnim.Show(this, popup);
+        }
+
+        private void HidePopup(GameObject popup)
+        {
+            UIPanelAnim.Hide(this, popup);
+        }
+
+        private void OnRealLogout()
+        {
+            GameApp.Instance.PerformTransitionAsync(LogoutRoutine());
+        }
+
+        private IEnumerator LogoutRoutine()
+        {
+            // 1. 执行清理
+            KiHan.Network.GatewayManager.Instance?.Disconnect();
+            HttpClient.Instance.ClearToken();
+            
+            // 如果可能残留了战斗，一起清了
+            SceneManager.Instance.InitWorld();
+            MapManager.Instance.ClearMap();
+            VirtualNetworkManager.Instance.Stop();
+            Managers.ViewManager.Instance.ClearAll();
+            Managers.ResManager.Instance.Clear();
+
+            yield return new WaitForSecondsRealtime(0.5f); // 稍微展示一下进度感
+
+            // 2. 界面切换
             UIManager.Instance.ClosePanel(UIConst.LobbyPanel);
             UIManager.Instance.OpenPanel<KiHan.View.UI.Login.LoginPanel>(UIConst.LoginPanel);
         }
@@ -410,7 +481,7 @@ namespace KiHan.View.UI.Lobby
 
         public void UpdateWinCount(int count)
         {
-            if (_winCntText != null) _winCntText.text = count.ToString();
+            if (_winCntText != null) _winCntText.text = $"{count}场";
         }
 
         public void UpdateUserProfile(string nickname, string uid)

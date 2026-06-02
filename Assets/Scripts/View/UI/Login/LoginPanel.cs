@@ -28,6 +28,8 @@ namespace KiHan.View.UI.Login
         private TMP_InputField _regEmailInput;
 
         private VideoPlayer _videoPlayer;
+        private RawImage _videoRawImage;
+        private RenderTexture _videoRT;
         private bool _isLoggedIn = false;
 
         private void Awake()
@@ -58,6 +60,16 @@ namespace KiHan.View.UI.Login
 
             SetupVideoBackground();
             BindEvents();
+        }
+
+        private void OnDestroy()
+        {
+            if (_videoRT != null)
+            {
+                _videoRT.Release();
+                Destroy(_videoRT);
+                _videoRT = null;
+            }
         }
 
         private void BindPasswordToggle(TMP_InputField inputField)
@@ -128,27 +140,35 @@ namespace KiHan.View.UI.Login
             rt.offsetMax = Vector2.zero;
             rt.localScale = Vector3.one;
 
+            _videoRawImage = bgGo.AddComponent<RawImage>();
+            _videoRawImage.color = Color.white;
+
+            // 增加比例适配器，确保填满且不拉伸
+            var fitter = bgGo.AddComponent<AspectRatioFitter>();
+            fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            fitter.aspectRatio = 1.777778f; // 初始占位
+
             _videoPlayer = bgGo.AddComponent<VideoPlayer>();
             _videoPlayer.playOnAwake = true;
             _videoPlayer.isLooping = true;
-            _videoPlayer.renderMode = VideoRenderMode.CameraFarPlane;
-            _videoPlayer.targetCameraAlpha = 1f;
-            _videoPlayer.aspectRatio = VideoAspectRatio.FitVertically; // 高度对齐屏幕，宽度可能会被裁剪或留黑边
             
-            if (Camera.main != null)
-            {
-                _videoPlayer.targetCamera = Camera.main;
-            }
-            else
-            {
-                // 如果场景中没有主相机，动态创建一个供视频渲染使用
-                GameObject camGo = new GameObject("LoginCamera");
-                Camera cam = camGo.AddComponent<Camera>();
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black;
-                camGo.tag = "MainCamera";
-                _videoPlayer.targetCamera = cam;
-            }
+            // 使用 RenderTexture 渲染模式
+            _videoRT = new RenderTexture(1920, 1080, 0);
+            _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+            _videoPlayer.targetTexture = _videoRT;
+            _videoRawImage.texture = _videoRT;
+            
+            // 重要：让视频流完整填充 RenderTexture（可能会有拉伸），由 UI 的 AspectRatioFitter 负责还原比例
+            _videoPlayer.aspectRatio = VideoAspectRatio.Stretch; 
+
+            // 动态校准视频原始比例
+            _videoPlayer.prepareCompleted += (vp) => {
+                if (vp.height > 0) {
+                    float ratio = (float)vp.width / vp.height;
+                    fitter.aspectRatio = ratio;
+                    Debug.Log($"[LoginPanel] 视频原始比例已自动校准: {ratio}");
+                }
+            };
 
             string videoPath = global::System.IO.Path.Combine(Application.dataPath, "AssetPackages/Movies/LoginTen.mp4");
             _videoPlayer.url = videoPath;
@@ -229,7 +249,11 @@ namespace KiHan.View.UI.Login
             if (_registerPopup != null) _registerPopup.SetActive(false);
             RefreshState();
 
-            if (_videoPlayer != null) _videoPlayer.Play();
+            // 启动视频
+            if (_videoPlayer != null) 
+            {
+                _videoPlayer.Play();
+            }
 
             // 启动时检查版本
             CheckAppVersion();

@@ -93,6 +93,32 @@ namespace KiHan.Network
         }
     }
 
+    public class GetOnlineCountReq
+    {
+        public byte[] Serialize()
+        {
+            return new byte[0];
+        }
+    }
+
+    public class GetOnlineCountRsp
+    {
+        public int err_code;
+        public int online_count;
+
+        public static GetOnlineCountRsp Deserialize(byte[] data)
+        {
+            GetOnlineCountRsp obj = new GetOnlineCountRsp();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.err_code = reader.ReadInt32();
+                else if (fieldNumber == 2) obj.online_count = reader.ReadInt32();
+            }
+            return obj;
+        }
+    }
+
     public class GetPlayerDataReq
     {
         public byte[] Serialize()

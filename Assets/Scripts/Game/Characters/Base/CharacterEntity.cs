@@ -69,26 +69,41 @@ public abstract class CharacterEntity : LogicEntity
 
         // --- 默认受击流程 ---
         this.LastHitData = hit;
-        
+
         // 触发受击特效 (如果攻击方配置了的话)
-        //if (!string.IsNullOrEmpty(hit.HitEffectName))
-        //{
-        //    EffectData effect = new EffectData
-        //    {
-        //        EffectName = hit.HitEffectName,
-        //        WorldPos = this.pos,
-        //        Offset = hit.HitEffectOffset,
-        //        IsFacingLeft = this.IsFacingLeft,
-        //        BindEntity = null // 打击火花通常不随人动，而是留在受击那一刻的位置
-        //    };
-        //    EventManager.Instance.Emit("PlayEffect", effect);
-        //}
+        if (!string.IsNullOrEmpty(hit.HitEffectName))
+        {
+            EffectData effect = new EffectData
+            {
+                EffectName = hit.HitEffectName,
+                WorldPos = this.pos,
+                Offset = hit.HitEffectOffset,
+                IsFacingLeft = this.IsFacingLeft,
+                Height = this.height,
+                BindEntity = null // 打击火花通常不随人动，而是留在受击那一刻的位置
+            };
+            EventManager.Instance.Emit("PlayEffect", effect);
+        }
 
         // 扣血计算 (伤害 / 防御)
         this.Blood -= Mathf.Max(1, (int)(hit.Damage / Defence));
 
         // 记录硬直时间
         this.StunTimer = hit.HitStun;
+
+        // --- 触发伤害跳字特效 ---
+        // 为了方便，这里假定由于我们没有传递 Attacker 引用，受击者的反方向即为抛物线方向
+        // 且为了演示白/红字，假定只有 P1 (owner=1) 攻击时才会触发白字，但由于没传 attacker，
+        // 我们可以根据当前受击者是不是 P1 来反推：如果是 P1 挨打，说明是敌人打的（红字）；如果是 P2 挨打，说明是玩家打的（白字）。
+        bool isPlayerHit = this.owner != 1; 
+        int hitDirection = this.IsFacingLeft ? 1 : -1; // 抛向受击者面朝的反方向
+
+        var offset = 0.3f;
+        int damageValue = hit.Damage > 0 ? hit.Damage : 0;
+        Vector3 visualPos = new Vector3(this.pos.x, this.pos.y + this.height * 0.01f + offset, 0);
+
+        // 调用 SceneManager 接口解耦逻辑层和表现层
+        SceneManager.Instance.ShowDamageText(damageValue, isPlayerHit, visualPos, hitDirection);
 
         // 保存当前状态：是否被击飞或已经在空中
         if (hit.HType == HitType.ToAir || this.height > 0 || this.h_vel > 0)

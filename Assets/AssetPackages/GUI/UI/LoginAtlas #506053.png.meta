@@ -251,13 +251,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: LoginAtlas #506053_7
+      name: panelBg
       rect:
         serializedVersion: 2
         x: 255
-        y: 358
-        width: 56
-        height: 54
+        y: 359
+        width: 55
+        height: 53
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -511,7 +511,7 @@ TextureImporter:
         width: 823
         height: 394
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -541,12 +541,12 @@ TextureImporter:
       LoginAtlas #506053_10: 54870599
       LoginAtlas #506053_12: -1223826666
       LoginAtlas #506053_6: 1488886141
-      LoginAtlas #506053_7: -2058391104
       backBtn: -1359129713
       bigPanel: 2032577037
       bookBtn: -1756321438
       broadBtn: -211674007
       note: -76526570
+      panelBg: -2058391104
       pannel: 1171801660
       scancodeBtn: -5925881
       settingBtn: 226134170

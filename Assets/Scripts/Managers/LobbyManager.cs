@@ -12,6 +12,7 @@ namespace KiHan.Network
         public Action<int> OnMatchResponse;
         public Action OnCreateRoleRequired;
         public Action<int> OnCreateRoleResponse;
+        public Action<int> OnOnlineCountUpdated;
 
         private void Start()
         {
@@ -19,6 +20,12 @@ namespace KiHan.Network
             {
                 GatewayManager.Instance.OnAuthSuccess += OnGatewayAuthSuccess;
                 GatewayManager.Instance.OnMessageReceived += OnMessageReceived;
+
+                // 补丁：如果此时已经鉴权成功（错过了事件通知），手动调用一次
+                if (GatewayManager.Instance.IsAuthed)
+                {
+                    OnGatewayAuthSuccess();
+                }
             }
         }
 
@@ -58,6 +65,9 @@ namespace KiHan.Network
                 case 1008: // GetPlayerDataRsp
                     HandleGetPlayerDataRsp(payload);
                     break;
+                case 1009: // GetOnlineCountRsp
+                    HandleGetOnlineCountRsp(payload);
+                    break;
                 case 1005: // MatchGameRsp
                     HandleMatchGameRsp(payload);
                     break;
@@ -77,6 +87,8 @@ namespace KiHan.Network
                 MyPlayerInfo = rsp.player;
                 // 登录成功后主动拉取一次详细数据
                 RequestGetPlayerData();
+                // 顺便拉取在线人数
+                RequestGetOnlineCount();
             }
             else if (rsp.err_code == -2202) // LOBBY_ERR_PLAYER_NOT_EXISTS
             {
@@ -124,6 +136,16 @@ namespace KiHan.Network
             }
         }
 
+        private void HandleGetOnlineCountRsp(byte[] payload)
+        {
+            var rsp = GetOnlineCountRsp.Deserialize(payload);
+            Debug.Log($"[LobbyManager] GetOnlineCountRsp: count={rsp.online_count}");
+            if (rsp.err_code == 0)
+            {
+                OnOnlineCountUpdated?.Invoke(rsp.online_count);
+            }
+        }
+
         private void HandleMatchGameRsp(byte[] payload)
         {
             var rsp = MatchGameRsp.Deserialize(payload);
@@ -145,6 +167,13 @@ namespace KiHan.Network
             Debug.Log("[LobbyManager] Requesting GetPlayerData (1008)...");
             var req = new GetPlayerDataReq();
             GatewayManager.Instance.SendMsg(1008, req.Serialize());
+        }
+
+        public void RequestGetOnlineCount()
+        {
+            Debug.Log("[LobbyManager] Requesting GetOnlineCount (1009)...");
+            var req = new GetOnlineCountReq();
+            GatewayManager.Instance.SendMsg(1009, req.Serialize());
         }
 
         public void RequestMatch(int characterId)

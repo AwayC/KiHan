@@ -121,6 +121,10 @@ public class NarutoEntity : CharacterEntity
         EffectManager.Instance.Preload("Characters/naruto/effect/lxw/ball", 1, "lxw");
         EffectManager.Instance.Preload("Characters/naruto/effect/fengshen/fengshen", 1, "fengshen");
         EffectManager.Instance.Preload("Characters/naruto/effect/skill2_smk/skill2_smk", 1, "skill2_smk");
+
+        var sp = "Effect/Spark/";
+        EffectManager.Instance.Preload(sp + "Spark1/Spark", 1, "Spark1");
+        EffectManager.Instance.Preload(sp + "Spark5/Spark", 1, "Spark5");
     }
 
     //public override void ApplyHit(HitData hit)

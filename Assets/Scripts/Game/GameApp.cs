@@ -32,8 +32,11 @@ public class GameApp : UnitySingleton<GameApp>
         _myUid = (uint)(DateTime.Now.Ticks % 100000);
         Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化网络...");
 
-        // 启动 UI 框架与登录界面
-        UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
+        // 启动 UI 框架与登录界面 (调试后门已禁用正常启动)
+        // UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
+
+        // --- 调试后门：启动即进入单机战斗 ---
+        StartOfflineGame();
     }
 
     public void StartOfflineGame()
@@ -71,90 +74,106 @@ public class GameApp : UnitySingleton<GameApp>
     public void GameStart()
     {
         if (_isGameRunning) return;
-        
-        StartCoroutine(LoadGameAsync());
+        PerformTransitionAsync(LoadGameRoutine());
     }
 
-    private IEnumerator LoadGameAsync()
+    /// <summary>
+    /// 通用异步场景切换接口
+    /// </summary>
+    public void PerformTransitionAsync(IEnumerator transitionRoutine, Action onFinish = null)
     {
-        // 1. 加载并显示 Loading 界面
+        StopAllCoroutines();
+        StartCoroutine(UnifiedTransition(transitionRoutine, onFinish));
+    }
+
+    private IEnumerator UnifiedTransition(IEnumerator transitionRoutine, Action onFinish)
+    {
+        // 1. 显示 Loading 界面
         GameObject loadingPrefab = Resources.Load<GameObject>("UI/Loading/Canvas");
         GameObject loadingGo = null;
         UnityEngine.UI.Slider slider = null;
+        TMPro.TMP_Text percentText = null;
         
         if (loadingPrefab != null)
         {
             loadingGo = Instantiate(loadingPrefab);
             loadingGo.name = "LoadingUI";
             slider = loadingGo.GetComponentInChildren<UnityEngine.UI.Slider>(true);
-            if (slider != null) slider.value = 0;
             
-            // 确保LoadingUI在最上层
+            TMPro.TMP_Text[] texts = loadingGo.GetComponentsInChildren<TMPro.TMP_Text>(true);
+            foreach (var t in texts)
+            {
+                if (t.gameObject.name.ToLower().Contains("num") || t.gameObject.name.ToLower().Contains("text"))
+                {
+                    percentText = t;
+                    break;
+                }
+            }
+            
             Canvas canvas = loadingGo.GetComponent<Canvas>();
             if (canvas != null) canvas.sortingOrder = 999;
         }
 
-        // 模拟一点进度
-        if (slider != null) slider.value = 0.2f;
+        // 同步更新进度显示
+        Action<float> updateUI = (p) => {
+            if (slider != null) slider.value = p;
+            if (percentText != null) percentText.text = (p * 100f).ToString("F2") + "%";
+        };
+
+        updateUI(0f);
         yield return null;
 
-        // 2. 异步加载地图
-        Debug.Log($"[GameApp] 开始初始化世界，异步加载地图: {MapPath}");
+        // 2. 执行具体的加载/卸载任务
+        // 传入 updateUI 供具体的 Routine 调用（如果需要的话，或者 Routine 自己控制进度）
+        // 这里为了简单，我们让具体的 Routine 运行，如果它需要汇报进度，可以通过静态变量或闭包，
+        // 也可以通过 YieldReturn 一个 Float 值。
+        // 这里我们约定 Routine 内部自己管理大段的进度。
+        
+        yield return transitionRoutine;
+
+        // 3. 完成
+        updateUI(1.0f);
+        yield return new WaitForSecondsRealtime(0.2f);
+
+        if (loadingGo != null) Destroy(loadingGo);
+        onFinish?.Invoke();
+    }
+
+    private IEnumerator LoadGameRoutine()
+    {
+        // 这里的进度汇报逻辑需要和内部的 mapReq/uiReq 结合
+        // 由于 PerformTransitionAsync 已经接管了 LoadingUI 的生命周期，这里只需要 yield 具体任务
+
+        // 暂时先复用之前的分段进度逻辑，之后可以封装得更优雅
+        
+        // 模拟一点初始进度
+        yield return null;
+
+        // 1. 异步加载地图
         var mapReq = ResManager.Instance.LoadAsync<GameObject>(MapPath);
-        while (!mapReq.isDone)
-        {
-            if (slider != null) slider.value = 0.2f + mapReq.progress * 0.4f;
-            yield return null;
-        }
+        while (!mapReq.isDone) yield return null;
         ResManager.Instance.AddToCache(MapPath, mapReq.asset);
         MapManager.Instance.LoadMap(MapPath);
 
-        if (slider != null) slider.value = 0.6f;
-
-        // 3. 异步加载战斗UI
+        // 2. 异步加载战斗UI
         string uiPath = "UI/Button/Canvas";
         var uiReq = ResManager.Instance.LoadAsync<GameObject>(uiPath);
-        while (!uiReq.isDone)
-        {
-            if (slider != null) slider.value = 0.6f + uiReq.progress * 0.4f;
-            yield return null;
-        }
+        while (!uiReq.isDone) yield return null;
         ResManager.Instance.AddToCache(uiPath, uiReq.asset);
 
-        // 4. 初始化场景逻辑
+        // 3. 初始化逻辑
         SceneManager.Instance.InitWorld();
         InitCombatUI(uiReq.asset as GameObject);
 
-        // --- 5. 生成玩家 ---
-        PlayerView p1View = SceneManager.Instance.SpawnPlayer(1, new Vector2(-2, 0), playerViewPrefab, _combatUI, _myGameId);
-        PlayerView p2View = SceneManager.Instance.SpawnPlayer(2, new Vector2(2, 0), playerViewPrefab, _combatUI, _myGameId);
+        // 4. 生成玩家
+        SceneManager.Instance.SpawnPlayer(1, new Vector2(-2, 0), playerViewPrefab, _combatUI, _myGameId);
+        SceneManager.Instance.SpawnPlayer(2, new Vector2(2, 0), playerViewPrefab, _combatUI, _myGameId);
 
-        // 相机追踪：直接追踪本地玩家的逻辑实体
         CharacterEntity targetPlayer = SceneManager.Instance.GetPlayer(_myGameId);
-        if (targetPlayer != null)
-        {
-            Debug.Log($"[GameApp] 相机追踪目标设为 Player_{_myGameId} (逻辑对象)");
-            CameraControllor.Instance.SetTarget(targetPlayer, true);
-        }
-        else
-        {
-            Debug.LogError("[GameApp] 未能找到相机追踪的逻辑目标！");
-        }
+        if (targetPlayer != null) CameraControllor.Instance.SetTarget(targetPlayer, true);
 
-        if (slider != null) slider.value = 1.0f;
-        yield return new WaitForSeconds(0.2f); // 稍微停顿一下展示满进度
-
-        // 清理Loading
-        if (loadingGo != null)
-        {
-            Destroy(loadingGo);
-        }
-
-        // 隐藏大厅
         UIManager.Instance.ClosePanel(UIConst.LobbyPanel);
-
         _isGameRunning = true;
-        Debug.Log("[GameApp] 战斗开始！");
     }
 
     private void InitCombatUI(GameObject uiPrefab)
@@ -170,17 +189,6 @@ public class GameApp : UnitySingleton<GameApp>
                 _combatUI = _combatUIGo.AddComponent<View.UI.BattleUIPanel>();
             }
 
-            // 绑定退出按钮
-            UnityEngine.UI.Button[] btns = _combatUIGo.GetComponentsInChildren<UnityEngine.UI.Button>(true);
-            foreach (var btn in btns)
-            {
-                if (btn.gameObject.name.ToLower().Contains("back"))
-                {
-                    btn.onClick.AddListener(ExitGame);
-                    break;
-                }
-            }
-
             Debug.Log("[GameApp] 战斗 UI 初始化并绑定成功。");
         }
         else
@@ -189,40 +197,42 @@ public class GameApp : UnitySingleton<GameApp>
         }
     }
 
-    public void ExitGame()
+    private IEnumerator ExitGameRoutine()
     {
-        Debug.Log("[GameApp] 退出战斗");
+        Debug.Log("[GameApp] 正在清理战斗资源...");
         _isGameRunning = false;
         
-        // 销毁场景实体
+        // 停止网络
+        if (VirtualNetworkManager.Instance != null) VirtualNetworkManager.Instance.Stop();
+
+        // 销毁实体与地图
         SceneManager.Instance.InitWorld();
-        
-        // 销毁地图
         MapManager.Instance.ClearMap();
         
-        // 停止单机网络循环
-        if (VirtualNetworkManager.Instance != null)
-        {
-            VirtualNetworkManager.Instance.Stop();
-        }
-
-        // 销毁战斗UI
+        // 销毁 UI
         if (_combatUIGo != null)
         {
             Destroy(_combatUIGo);
             _combatUIGo = null;
         }
 
+        // 清理缓存
+        Managers.ViewManager.Instance.ClearAll();
+        Managers.ResManager.Instance.Clear();
+
         // 重置相机
         CameraControllor.Instance.SetTarget(null);
         CameraControllor.Instance.transform.position = new Vector3(0, CameraControllor.Instance.yOffset, -10f);
 
-        // 清除表现层映射和残留对象
-        Managers.ViewManager.Instance.ClearAll();
-        Managers.ResManager.Instance.Clear();
+        yield return new WaitForSecondsRealtime(0.3f); // 模拟一点卸载时间
 
         // 回到大厅
         UIManager.Instance.OpenPanel<KiHan.View.UI.Lobby.LobbyPanel>(UIConst.LobbyPanel);
+    }
+
+    public void ExitGame()
+    {
+        PerformTransitionAsync(ExitGameRoutine());
     }
 
     #region
