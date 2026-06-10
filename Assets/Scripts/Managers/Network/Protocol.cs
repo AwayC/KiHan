@@ -1,37 +1,8 @@
 using System;
-using System.Reflection.Emit;
 using System.Collections.Generic;
 
 namespace KiHan.Logic
 {
-    public enum ErrCode : byte
-    {
-        Ok = 0,
-        RoomFull = 1,
-        RoomInvalid = 2,
-        UnknownError = 100,
-    }
-
-    public enum ClientOpCode : byte
-    {
-        RoomEnterReq = 1, // + [4:uid][4:roomId][1:characterId][nick]
-        PlayerFrameInput = 2, // + [6:playerInput]
-        PlayerReadyReq = 3, // + null
-        PlayerListReq = 4, // + null
-    }
-
-    public enum ServerOpCode : byte
-    {
-        RoomEnterResp = 1, // + [1:ErrCode][4:roomId][1:gameId]
-        PlayerListResp = 2, // + [1:ErrCode][userInfo]
-        GameFrameUpdate = 3, // + [GameFrame]
-        GameStartNtf = 4, // + [4:roomId]
-        GameOverNtf = 5, // + [4:roomId]
-        PlayerReadyResp = 6, // [1:ErrCode]
-        PlayerJoinNtf = 7, // + [4:uid][1:gameId][1:characterId][nick]
-        PlayerLeftNtf = 8, // + [4:uid]
-    }
-
     [Flags]
     public enum ButtonMask : byte
     {

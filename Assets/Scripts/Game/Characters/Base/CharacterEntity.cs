@@ -103,7 +103,7 @@ public abstract class CharacterEntity : LogicEntity
         Vector3 visualPos = new Vector3(this.pos.x, this.pos.y + this.height * 0.01f + offset, 0);
 
         // 调用 SceneManager 接口解耦逻辑层和表现层
-        SceneManager.Instance.ShowDamageText(damageValue, isPlayerHit, visualPos, hitDirection);
+        SceneManager.Instance.ShowDamageText(damageValue, this.owner, visualPos, hitDirection);
 
         // 保存当前状态：是否被击飞或已经在空中
         if (hit.HType == HitType.ToAir || this.height > 0 || this.h_vel > 0)

@@ -4,14 +4,14 @@ namespace KiHan.Network
 {
     public class PlayerInfo
     {
-        public string uid;
+        public uint uid;
         public string nickname;
         public string data_json;
 
         public byte[] Serialize()
         {
             ProtoWriter writer = new ProtoWriter();
-            if (!string.IsNullOrEmpty(uid)) writer.WriteString(1, uid);
+            if (uid != 0) writer.WriteVarint(1, (int)uid);
             if (!string.IsNullOrEmpty(nickname)) writer.WriteString(2, nickname);
             if (!string.IsNullOrEmpty(data_json)) writer.WriteString(3, data_json);
             return writer.ToArray();
@@ -23,7 +23,7 @@ namespace KiHan.Network
             ProtoReader reader = new ProtoReader(data);
             while (reader.ReadTag(out int fieldNumber, out int wireType))
             {
-                if (fieldNumber == 1) obj.uid = reader.ReadString();
+                if (fieldNumber == 1) obj.uid = (uint)reader.ReadInt32();
                 else if (fieldNumber == 2) obj.nickname = reader.ReadString();
                 else if (fieldNumber == 3) obj.data_json = reader.ReadString();
             }
@@ -168,6 +168,54 @@ namespace KiHan.Network
             while (reader.ReadTag(out int fieldNumber, out int wireType))
             {
                 if (fieldNumber == 1) obj.err_code = reader.ReadInt32();
+            }
+            return obj;
+        }
+    }
+
+    public class MatchStopReq
+    {
+        public byte[] Serialize()
+        {
+            return new byte[0];
+        }
+    }
+
+    public class MatchStopRsp
+    {
+        public int err_code;
+        public bool success;
+
+        public static MatchStopRsp Deserialize(byte[] data)
+        {
+            MatchStopRsp obj = new MatchStopRsp();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.err_code = reader.ReadInt32();
+                else if (fieldNumber == 2) obj.success = reader.ReadInt32() == 1;
+            }
+            return obj;
+        }
+    }
+
+    public class MatchGameNtf
+    {
+        public int err_code;
+        public string room_id;
+        public int position;
+        public string room_snapshot_json;
+
+        public static MatchGameNtf Deserialize(byte[] data)
+        {
+            MatchGameNtf obj = new MatchGameNtf();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.err_code = reader.ReadInt32();
+                else if (fieldNumber == 2) obj.room_id = reader.ReadString();
+                else if (fieldNumber == 3) obj.position = reader.ReadInt32();
+                else if (fieldNumber == 4) obj.room_snapshot_json = reader.ReadString();
             }
             return obj;
         }

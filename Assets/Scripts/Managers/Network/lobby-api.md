@@ -1,7 +1,7 @@
 ## DB表: kihan_game_players (维护用户游戏内信息)
 
 ### 表内信息
-*   **uid**: string (主键，和 user 表的 uid 绑定)
+*   **uid**: uint32 (主键，和 user 表的 uid 绑定)
 *   **nickname**: varchar(64) (唯一昵称)
 *   **create_time**: datetime (创建时间)
 *   **data**: json (其他游戏数据，例如 `{}`)            
@@ -19,6 +19,28 @@
 | -2202 | LOBBY_ERR_PLAYER_NOT_EXISTS | 玩家不存在 |
 | -2300 | LOBBY_ERR_MATCH_FAILED | 匹配失败 |
 
+## 内部服务端 RPC 接口 (Internal gRPC Interface)
+除了对外提供的客户端协议，`lobby_server` 还与 `gateway` 以及 `game_server` 通过 gRPC 进行内部通信。
+
+### 1. Lobby <-> Game (大厅请求战斗服)
+大厅在匹配成功后，会调用 `game_server` 的接口来创建房间。
+*   **服务名**: `GameControlService` (在 `server_game.proto` 中定义)
+*   **RPC 方法**: `CreateRoom`
+*   **请求 Payload (`CreateRoomReq`)**:
+    包含 `player_list_json`，用于一次性将匹配到的两个玩家信息传递给战斗服。
+*   **响应 Payload (`CreateRoomRsp`)**:
+    包含 `err_code` 以及战斗服分配好的 `room_id`。
+
+### 2. Gateway <-> Lobby (网关与大厅通信)
+网关将收到的客户端二进制包转发给大厅，大厅处理完成后返回数据。
+*   **服务名**: `LobbyService` (在 `router.proto` 中定义)
+*   **RPC 方法**: 
+    1. `HandleRequest(GatewayRequest) returns (GatewayResponse)`: 典型的请求-响应模式，用于处理常规业务 (如登录、匹配请求)。
+    2. `ClientDisconnect(GatewayRequest) returns (GatewayResponse)`: 网关通知大厅客户端物理断开连接。
+    3. `Subscribe(Empty) returns (stream GatewayResponse)`: **新增流式推送接口**。大厅利用此流向网关主动推送数据 (例如当撮合成功后，主动向客户端下发 `MatchGameNtf` cmd_id: 1007)。
+
+---
+
 ## 接口协议 (Protobuf)
 网关支持 WebSocket 和 KCP/UDP 两种通道。**所有业务包体格式依据通道不同有所区分**。
 
@@ -32,7 +54,7 @@
 ### 通用数据结构
 ```protobuf
 message PlayerInfo {
-    string uid = 1;
+    uint32 uid = 1;
     string nickname = 2;
     string data_json = 3; // JSON 格式的游戏存档数据
 }

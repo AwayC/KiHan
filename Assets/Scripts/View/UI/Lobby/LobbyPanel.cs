@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using KiHan.View.UI.Login;
 using Managers;
 
 namespace KiHan.View.UI.Lobby
@@ -13,39 +14,49 @@ namespace KiHan.View.UI.Lobby
         private RectTransform _title;
         private RectTransform _closeBtn;
         private RectTransform _backBtn;
-        private RectTransform _startPanel;
         private RectTransform _userProfile;
-        private RectTransform _createPlayerPanel;
-
-        [Header("Start Panel Info")]
+        
+        // Start Group
+        private RectTransform _startPanel;
         private Button _realStartBtn;
-        private TMP_Text _onlineCntText;
-        private TMP_Text _winRateText;
-        private TMP_Text _winCntText;
+        private Button _offlineStartBtn;
+        
+        // Match Panel
+        private GameObject _matchPanelGo;
+        private TMP_Text _matchInfoText;
+        private TMP_Text _matchWaitTimeText;
+        private Animator _matchLoadingAnimator;
+        private Coroutine _matchTimerCoroutine;
+        private float _matchWaitTime = 0f;
 
-        [Header("User Profile Info")]
+        [Header("Profile Info")]
         private Button _userProfileBtn;
         private TMP_Text _nicknameText;
         private TMP_Text _uidText;
 
         [Header("Create Player Info")]
-        private Button _createRoleBtn;
+        private RectTransform _createPlayerPanel;
         private TMP_InputField _createRoleInput;
+        private Button _createRoleBtn;
+
+        [Header("Data Display")]
+        private TMP_Text _onlineCntText;
+        private TMP_Text _winRateText;
+        private TMP_Text _winCntText;
 
         private GameObject _backPanel;
-
-        // Cache original positions
         private Dictionary<RectTransform, Vector2> _originalPositions = new Dictionary<RectTransform, Vector2>();
 
+        // 把原来的 Init() 改回 Awake()，UIManager 不会调用 Init，只有 Unity 会调用 Awake
         private void Awake()
         {
             // Bind RectTransforms for animation
-            // 优先查找根节点的直接子物体，防止和深层节点的同名物体（如 nickname/title）冲突
-            _title = transform.Find("Title")?.GetComponent<RectTransform>() ?? transform.Find("title")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "Title")?.GetComponent<RectTransform>();
+            // 优先查找根节点的直接子物体，防止和深层节点的同名物体冲突
+            _title = transform.Find("Title")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "Title")?.GetComponent<RectTransform>();
             _closeBtn = transform.Find("CloseBtn")?.GetComponent<RectTransform>() ?? transform.Find("xBtn")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "CloseBtn")?.GetComponent<RectTransform>();
-            _backBtn = transform.Find("BackBtn")?.GetComponent<RectTransform>() ?? transform.Find("backBtn")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "backBtn")?.GetComponent<RectTransform>();
-            _startPanel = transform.Find("StartPanel")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "StartPanel")?.GetComponent<RectTransform>();
+            _backBtn = transform.Find("BackBtn")?.GetComponent<RectTransform>() ?? transform.Find("backBtn")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "BackBtn")?.GetComponent<RectTransform>();
             _userProfile = transform.Find("UserProfile")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "UserProfile")?.GetComponent<RectTransform>();
+            _startPanel = transform.Find("StartPanel")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "StartPanel")?.GetComponent<RectTransform>();
             _createPlayerPanel = transform.Find("CreatePlayerPanel")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "CreatePlayerPanel")?.GetComponent<RectTransform>();
 
             // Back Panel (Exit Confirmation)
@@ -71,24 +82,25 @@ namespace KiHan.View.UI.Lobby
                 _backPanel.SetActive(false);
             }
 
-            // If StartPanel is missing (based on prefab text, it might just be the button and Info group directly)
-            // Let's bind the StartBtn and Info dynamically
-            if (_startPanel == null)
+            // Bind StartBtn, OfflineStartBtn and Info
+            if (_startPanel != null)
             {
-                // Fallback to finding them in root if StartPanel group doesn't exist
-                _realStartBtn = FindChild(gameObject, "StartBtn")?.GetComponent<Button>() ?? transform.Find("StartBtn")?.GetComponent<Button>();
-                GameObject infoGo = FindChild(gameObject, "Info") ?? transform.Find("Info")?.gameObject;
+                _realStartBtn = _startPanel.Find("StartBtn")?.GetComponent<Button>() ?? FindChild(_startPanel.gameObject, "StartBtn")?.GetComponent<Button>();
+                _offlineStartBtn = _startPanel.Find("OfflineStartBtn")?.GetComponent<Button>() ?? FindChild(_startPanel.gameObject, "OfflineStartBtn")?.GetComponent<Button>();
+                GameObject infoGo = _startPanel.Find("Info")?.gameObject ?? FindChild(_startPanel.gameObject, "Info");
                 if (infoGo != null)
                 {
-                    _onlineCntText = infoGo.transform.Find("onlineCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "onlineCnt")?.transform.Find("num")?.GetComponent<TMP_Text>(); 
+                    _onlineCntText = infoGo.transform.Find("onlineCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "onlineCnt")?.transform.Find("num")?.GetComponent<TMP_Text>();
                     _winRateText = infoGo.transform.Find("winRate/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "winRate")?.transform.Find("num")?.GetComponent<TMP_Text>();
                     _winCntText = infoGo.transform.Find("winCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "winCnt")?.transform.Find("num")?.GetComponent<TMP_Text>();
                 }
             }
             else
             {
-                _realStartBtn = _startPanel.Find("StartBtn")?.GetComponent<Button>() ?? FindChild(_startPanel.gameObject, "StartBtn")?.GetComponent<Button>();
-                GameObject infoGo = _startPanel.Find("Info")?.gameObject ?? FindChild(_startPanel.gameObject, "Info");
+                // Fallback: StartPanel 不作为独立节点存在时，直接从根节点找
+                _realStartBtn = FindChild(gameObject, "StartBtn")?.GetComponent<Button>() ?? transform.Find("StartBtn")?.GetComponent<Button>();
+                _offlineStartBtn = FindChild(gameObject, "OfflineStartBtn")?.GetComponent<Button>();
+                GameObject infoGo = FindChild(gameObject, "Info") ?? transform.Find("Info")?.gameObject;
                 if (infoGo != null)
                 {
                     _onlineCntText = infoGo.transform.Find("onlineCnt/num")?.GetComponent<TMP_Text>() ?? FindChild(infoGo, "onlineCnt")?.transform.Find("num")?.GetComponent<TMP_Text>();
@@ -102,32 +114,19 @@ namespace KiHan.View.UI.Lobby
             {
                 _userProfileBtn = _userProfile.GetComponent<Button>();
                 _nicknameText = _userProfile.Find("Info/Nickname/nickname")?.GetComponent<TMP_Text>() ?? FindChild(_userProfile.gameObject, "nickname")?.GetComponent<TMP_Text>();
-                _uidText = _userProfile.Find("Info/UID/UID")?.GetComponent<TMP_Text>() ?? FindChild(_userProfile.gameObject, "title")?.GetComponent<TMP_Text>(); // 预制体里UID叫title
+                _uidText = _userProfile.Find("Info/UID/UID")?.GetComponent<TMP_Text>() ?? FindChild(_userProfile.gameObject, "title")?.GetComponent<TMP_Text>();
             }
 
             // Create Player Panel
             if (_createPlayerPanel != null)
             {
-                Debug.Log("[LobbyPanel] 成功找到 CreatePlayerPanel");
-                
                 Transform container = _createPlayerPanel.Find("container") ?? FindChild(_createPlayerPanel.gameObject, "container")?.transform;
                 if (container != null)
                 {
                     _createRoleBtn = container.Find("CreateBtn")?.GetComponent<Button>() ?? FindChild(container.gameObject, "CreateBtn")?.GetComponent<Button>();
                     _createRoleInput = container.Find("Input")?.GetComponentInChildren<TMP_InputField>(true) ?? FindChild(container.gameObject, "Input")?.GetComponentInChildren<TMP_InputField>(true);
                 }
-
-                if (_createRoleBtn == null) Debug.LogError("[LobbyPanel] 错误：未找到 CreateBtn 组件！");
-                else Debug.Log("[LobbyPanel] 成功找到 CreateBtn 组件！");
-
-                if (_createRoleInput == null) Debug.LogError("[LobbyPanel] 错误：未找到 TMP_InputField 组件！");
-                else Debug.Log("[LobbyPanel] 成功找到 TMP_InputField 组件！");
-
-                _createPlayerPanel.gameObject.SetActive(false); // 默认隐藏
-            }
-            else
-            {
-                Debug.LogError("[LobbyPanel] 错误：根本没有找到 CreatePlayerPanel！");
+                _createPlayerPanel.gameObject.SetActive(false);
             }
 
             // Cache positions
@@ -135,10 +134,11 @@ namespace KiHan.View.UI.Lobby
             CachePosition(_closeBtn);
             CachePosition(_backBtn);
             CachePosition(_userProfile);
-            
-            // For StartBtn and Info if StartPanel doesn't exist as a single group
-            if (_startPanel != null) CachePosition(_startPanel);
-            else 
+            if (_startPanel != null)
+            {
+                CachePosition(_startPanel);
+            }
+            else
             {
                 if (_realStartBtn != null) CachePosition(_realStartBtn.GetComponent<RectTransform>());
                 RectTransform infoRect = FindChild(gameObject, "Info")?.GetComponent<RectTransform>();
@@ -199,6 +199,11 @@ namespace KiHan.View.UI.Lobby
                 _realStartBtn.onClick.AddListener(OnStartMatchClicked);
             }
 
+            if (_offlineStartBtn != null)
+            {
+                _offlineStartBtn.onClick.AddListener(OnOfflineStartClicked);
+            }
+
             if (_userProfileBtn != null)
             {
                 _userProfileBtn.onClick.AddListener(OnUserProfileClicked);
@@ -213,6 +218,53 @@ namespace KiHan.View.UI.Lobby
                 });
             }
         }
+
+        #region Slide Animation
+
+        private void PlaySlideAnim(RectTransform rt, SlideDir dir, bool isEnter)
+        {
+            if (rt == null) return;
+            if (!_originalPositions.TryGetValue(rt, out Vector2 origPos)) return;
+
+            Vector2 startPos = origPos;
+            float offset = 1000f;
+            
+            switch (dir)
+            {
+                case SlideDir.Top: startPos.y += offset; break;
+                case SlideDir.Bottom: startPos.y -= offset; break;
+                case SlideDir.Left: startPos.x -= offset; break;
+                case SlideDir.Right: startPos.x += offset; break;
+            }
+
+            if (isEnter)
+            {
+                rt.anchoredPosition = startPos;
+                StartCoroutine(LerpPos(rt, startPos, origPos, 0.3f));
+            }
+            else
+            {
+                StartCoroutine(LerpPos(rt, origPos, startPos, 0.2f));
+            }
+        }
+
+        private IEnumerator LerpPos(RectTransform rt, Vector2 start, Vector2 end, float duration)
+        {
+            float t = 0;
+            while (t < duration)
+            {
+                t += Time.unscaledDeltaTime;
+                if (rt != null) rt.anchoredPosition = Vector2.Lerp(start, end, t / duration);
+                yield return null;
+            }
+            if (rt != null) rt.anchoredPosition = end;
+        }
+
+        public enum SlideDir { Top, Bottom, Left, Right }
+
+        #endregion
+
+        #region Panel Lifecycle
 
         public override void OnOpen(object data = null)
         {
@@ -243,6 +295,8 @@ namespace KiHan.View.UI.Lobby
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleRequired += OnCreateRoleRequired;
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleResponse += OnCreateRoleResponse;
                 KiHan.Network.LobbyManager.Instance.OnOnlineCountUpdated += UpdateOnlineCount;
+                KiHan.Network.LobbyManager.Instance.OnMatchNtfReceived += OnMatchGameNtf;
+                KiHan.Network.LobbyManager.Instance.OnMatchCancelResponse += OnMatchCancelResponse;
 
                 // 如果已经有缓存数据，直接刷新一次
                 if (KiHan.Network.LobbyManager.Instance.MyPlayerInfo != null)
@@ -253,7 +307,7 @@ namespace KiHan.View.UI.Lobby
                 // 主动拉取在线人数
                 KiHan.Network.LobbyManager.Instance.RequestGetOnlineCount();
 
-                // 处理可能发生的竞态条件：在打开面板前就已经收到了创建角色通知或登录时返回了-2202无角色错误
+                // 处理竞态条件：在打开面板前就已经收到了创建角色通知
                 if (KiHan.Network.LobbyManager.Instance.NeedsCreateRole)
                 {
                     OnCreateRoleRequired();
@@ -269,11 +323,46 @@ namespace KiHan.View.UI.Lobby
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleRequired -= OnCreateRoleRequired;
                 KiHan.Network.LobbyManager.Instance.OnCreateRoleResponse -= OnCreateRoleResponse;
                 KiHan.Network.LobbyManager.Instance.OnOnlineCountUpdated -= UpdateOnlineCount;
+                KiHan.Network.LobbyManager.Instance.OnMatchNtfReceived -= OnMatchGameNtf;
+                KiHan.Network.LobbyManager.Instance.OnMatchCancelResponse -= OnMatchCancelResponse;
             }
 
+            if (_matchPanelGo != null)
+            {
+                Destroy(_matchPanelGo);
+                _matchPanelGo = null;
+            }
+
+            // 先停止旧协程，再启动关闭动画协程
             StopAllCoroutines();
             StartCoroutine(CloseRoutine());
         }
+
+        private IEnumerator CloseRoutine()
+        {
+            PlaySlideAnim(_title, SlideDir.Top, false);
+            PlaySlideAnim(_closeBtn, SlideDir.Top, false);
+            PlaySlideAnim(_backBtn, SlideDir.Bottom, false);
+            PlaySlideAnim(_userProfile, SlideDir.Left, false);
+
+            if (_startPanel != null)
+            {
+                PlaySlideAnim(_startPanel, SlideDir.Right, false);
+            }
+            else
+            {
+                if (_realStartBtn != null) PlaySlideAnim(_realStartBtn.GetComponent<RectTransform>(), SlideDir.Right, false);
+                RectTransform infoRect = FindChild(gameObject, "Info")?.GetComponent<RectTransform>();
+                if (infoRect != null) PlaySlideAnim(infoRect, SlideDir.Right, false);
+            }
+
+            yield return new WaitForSecondsRealtime(0.3f);
+            gameObject.SetActive(false);
+        }
+
+        #endregion
+
+        #region Data Callbacks
 
         [global::System.Serializable]
         private class PlayerDataJson
@@ -284,6 +373,7 @@ namespace KiHan.View.UI.Lobby
 
         private void OnPlayerDataUpdated(KiHan.Network.PlayerInfo info)
         {
+            Debug.Log($"[LobbyPanel] update player Data");
             UpdateUserProfile(info.nickname, info.uid);
 
             if (!string.IsNullOrEmpty(info.data_json))
@@ -295,7 +385,6 @@ namespace KiHan.View.UI.Lobby
                     {
                         int total = data.total_battle_count;
                         int win = data.win_count;
-                        
                         UpdateWinCount(win);
 
                         if (total > 0)
@@ -316,7 +405,7 @@ namespace KiHan.View.UI.Lobby
                 }
                 catch (global::System.Exception e)
                 {
-                    Debug.LogError($"[LobbyPanel] Parse data_json error: {e.Message}");
+                    Debug.LogError($"[LobbyPanel] 解析玩家数据失败: {e.Message}");
                     UpdateWinCount(0);
                     UpdateWinRate("0%");
                 }
@@ -330,88 +419,48 @@ namespace KiHan.View.UI.Lobby
 
         private void OnCreateRoleRequired()
         {
-            Debug.Log("[LobbyPanel] Showing Create Player Panel.");
+            Debug.Log("[LobbyPanel] 接收到创角要求，弹出创角面板");
             if (_createPlayerPanel != null)
             {
                 _createPlayerPanel.gameObject.SetActive(true);
-                _createPlayerPanel.SetAsLastSibling(); // 确保在最上层，防止被挡住点击不到
+                _createPlayerPanel.SetAsLastSibling();
+                UIPanelAnim.Show(this, _createPlayerPanel.gameObject);
             }
         }
 
         private void OnCreateRoleResponse(int errCode)
         {
+            Debug.Log($"[LobbyPanel] 接收到创角结果: {errCode}");
             if (errCode == 0)
             {
-                Debug.Log("[LobbyPanel] Create Role Success.");
                 if (_createPlayerPanel != null)
                 {
-                    _createPlayerPanel.gameObject.SetActive(false);
+                    UIPanelAnim.Hide(this, _createPlayerPanel.gameObject);
                 }
             }
             else
             {
-                Debug.LogError($"[LobbyPanel] Create Role Failed with code: {errCode}");
-                // TODO: 可以在界面上提示错误，比如弹个Toast
+                Debug.LogError($"[LobbyPanel] 创角失败，错误码: {errCode}");
+                UIManager.Instance.ShowTip($"创角失败({errCode})");
             }
         }
 
-        private void OnCreateRoleClicked()
+        private void UpdateOnlineCount(int count)
         {
-            if (_createRoleInput != null)
-            {
-                string nickname = _createRoleInput.text.Trim();
-                if (string.IsNullOrEmpty(nickname))
-                {
-                    UIManager.Instance.ShowTip("昵称不能为空！");
-                    return;
-                }
-                
-                // 给个点击后的UI提示反馈
-                UIManager.Instance.ShowTip("正在创建角色...");
-                KiHan.Network.LobbyManager.Instance?.RequestCreateRole(nickname);
-            }
-            else
-            {
-                UIManager.Instance.ShowTip("UI组件绑定失败，找不到输入框");
-            }
+            Debug.Log($"[LobbyPanel] get online count: {count}");
+            if (_onlineCntText != null) _onlineCntText.text = count.ToString();
         }
 
-        private IEnumerator CloseRoutine()
-        {
-            // Slide out components
-            PlaySlideAnim(_title, SlideDir.Top, false);
-            PlaySlideAnim(_closeBtn, SlideDir.Top, false);
-            PlaySlideAnim(_backBtn, SlideDir.Bottom, false);
-            PlaySlideAnim(_userProfile, SlideDir.Left, false);
+        #endregion
 
-            if (_startPanel != null)
-            {
-                PlaySlideAnim(_startPanel, SlideDir.Right, false);
-            }
-            else
-            {
-                if (_realStartBtn != null) PlaySlideAnim(_realStartBtn.GetComponent<RectTransform>(), SlideDir.Right, false);
-                RectTransform infoRect = FindChild(gameObject, "Info")?.GetComponent<RectTransform>();
-                if (infoRect != null) PlaySlideAnim(infoRect, SlideDir.Right, false);
-            }
-
-            // Wait for animation to finish (duration is 0.3f by default in UISlideAnim)
-            yield return new WaitForSecondsRealtime(0.3f);
-            gameObject.SetActive(false);
-        }
-
-        private void PlaySlideAnim(RectTransform target, SlideDir dir, bool isShow)
-        {
-            if (target != null && _originalPositions.TryGetValue(target, out Vector2 origPos))
-            {
-                StartCoroutine(UISlideAnim.DoSlide(target, origPos, dir, isShow, 0.5f, 800f));
-            }
-        }
+        #region Button Handlers
 
         private void OnCloseClicked()
         {
+            Debug.Log("[LobbyPanel] Close clicked. Showing confirmation.");
             if (_backPanel != null)
             {
+                _backPanel.SetActive(true);
                 ShowPopup(_backPanel);
             }
             else
@@ -419,6 +468,191 @@ namespace KiHan.View.UI.Lobby
                 OnRealLogout();
             }
         }
+
+        private void OnOfflineStartClicked()
+        {
+            Debug.Log("[LobbyPanel] OfflineStartBtn clicked.");
+            GameApp.Instance.StartOfflineGame();
+        }
+
+        private void OnStartMatchClicked()
+        {
+            Debug.Log("[LobbyPanel] StartMatch clicked.");
+            
+            // 暂定角色ID为1
+            KiHan.Network.LobbyManager.Instance.RequestMatch(1);
+            
+            // 实例化匹配面板
+            if (_matchPanelGo == null)
+            {
+                var prefab = Resources.Load<GameObject>("UI/Lobby/MatchPanel");
+                if (prefab != null)
+                {
+                    // MatchPanel 自带 Canvas，直接生成到场景根节点，不要嵌套到 LobbyPanel 下
+                    _matchPanelGo = Instantiate(prefab);
+                    _matchPanelGo.transform.localScale = Vector3.one;
+                    _matchPanelGo.transform.localPosition = Vector3.zero;
+
+                    // 确保 MatchPanel 的 Canvas 层级高于 LobbyPanel，显示在最上层
+                    Canvas matchCanvas = _matchPanelGo.GetComponent<Canvas>();
+                    if (matchCanvas != null)
+                    {
+                        // 强制 Overlay 模式，避免编辑器/打包行为不一致
+                        matchCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                        matchCanvas.sortingOrder = 900;
+                    }
+                    
+                    var container = _matchPanelGo.transform.Find("container");
+                    if (container != null)
+                    {
+                        _matchInfoText = container.Find("Info/name")?.GetComponent<TMP_Text>();
+                        _matchWaitTimeText = container.Find("WaitInfo/WaitTime/num")?.GetComponent<TMP_Text>();
+                        _matchLoadingAnimator = container.Find("loading")?.GetComponent<Animator>();
+
+                        if (_matchInfoText != null) _matchInfoText.text = "正在寻找旗鼓相当的对手...";
+                        if (_matchWaitTimeText != null) _matchWaitTimeText.text = "0秒";
+
+                        Button cancelBtn = container.Find("CancelBtn")?.GetComponent<Button>();
+                        cancelBtn?.onClick.AddListener(OnCancelMatchClicked);
+                    }
+                }
+            }
+
+            if (_matchPanelGo != null)
+            {
+                _matchPanelGo.SetActive(true);
+                UIPanelAnim.Show(this, _matchPanelGo);
+                
+                _matchWaitTime = 0f;
+                if (_matchTimerCoroutine != null) StopCoroutine(_matchTimerCoroutine);
+                _matchTimerCoroutine = StartCoroutine(MatchTimerRoutine());
+            }
+        }
+
+        private void OnCancelMatchClicked()
+        {
+            KiHan.Network.LobbyManager.Instance.CancelMatch();
+        }
+
+        private void OnUserProfileClicked()
+        {
+            Debug.Log("[LobbyPanel] UserProfile clicked.");
+        }
+
+        private void OnCreateRoleClicked()
+        {
+            if (_createRoleInput != null && !string.IsNullOrEmpty(_createRoleInput.text.Trim()))
+            {
+                string nickname = _createRoleInput.text.Trim();
+                Debug.Log($"[LobbyPanel] Confirm create role with name: {nickname}");
+                UIManager.Instance.ShowTip("正在创建角色...");
+                KiHan.Network.LobbyManager.Instance?.RequestCreateRole(nickname);
+            }
+            else
+            {
+                UIManager.Instance.ShowTip("昵称不能为空！");
+            }
+        }
+
+        #endregion
+
+        #region Match Logic
+
+        private IEnumerator MatchTimerRoutine()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(1f);
+                _matchWaitTime += 1f;
+                if (_matchWaitTimeText != null)
+                {
+                    _matchWaitTimeText.text = $"{Mathf.FloorToInt(_matchWaitTime)}秒";
+                }
+            }
+        }
+
+        private void OnMatchCancelResponse(int errCode, bool success)
+        {
+            if (success)
+            {
+                if (_matchTimerCoroutine != null) StopCoroutine(_matchTimerCoroutine);
+                if (_matchPanelGo != null)
+                {
+                    UIPanelAnim.Hide(this, _matchPanelGo);
+                    StartCoroutine(WaitAndDestroyMatchPanel(0.3f));
+                }
+            }
+        }
+
+        private IEnumerator WaitAndDestroyMatchPanel(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (_matchPanelGo != null)
+            {
+                Destroy(_matchPanelGo);
+                _matchPanelGo = null;
+            }
+        }
+
+        private void OnMatchGameNtf(KiHan.Network.MatchGameNtf ntf)
+        {
+            if (ntf.err_code == 0)
+            {
+                if (_matchTimerCoroutine != null) StopCoroutine(_matchTimerCoroutine);
+
+                if (_matchInfoText != null) _matchInfoText.text = "匹配成功，正在进入战斗...";
+                if (_matchLoadingAnimator != null) _matchLoadingAnimator.Play("loaded");
+
+                // 立即启动战斗初始化（注册 LockstepManager 回调），不能等 UI 动画
+                if (uint.TryParse(ntf.room_id, out uint roomId))
+                {
+                    BattleManager.Instance.EnterBattle(true, roomId);
+                }
+
+                // UI 清理延迟执行，不影响核心逻辑
+                StartCoroutine(CleanupMatchPanelRoutine());
+            }
+            else
+            {
+                Debug.LogError($"[LobbyPanel] Match failed: {ntf.err_code}");
+                OnCancelMatchClicked();
+            }
+        }
+
+        private IEnumerator CleanupMatchPanelRoutine()
+        {
+            yield return new WaitForSeconds(1.0f);
+            
+            if (_matchPanelGo != null)
+            {
+                Destroy(_matchPanelGo);
+                _matchPanelGo = null;
+            }
+        }
+
+        #endregion
+
+        #region Data Updaters
+
+        public void UpdateWinRate(string rateStr)
+        {
+            if (_winRateText != null) _winRateText.text = rateStr;
+        }
+
+        public void UpdateWinCount(int count)
+        {
+            if (_winCntText != null) _winCntText.text = $"{count}场";
+        }
+
+        public void UpdateUserProfile(string nickname, uint uid)
+        {
+            if (_nicknameText != null) _nicknameText.text = nickname;
+            if (_uidText != null) _uidText.text = uid.ToString();
+        }
+
+        #endregion
+
+        #region Popup & Logout
 
         private void ShowPopup(GameObject popup)
         {
@@ -437,57 +671,21 @@ namespace KiHan.View.UI.Lobby
 
         private IEnumerator LogoutRoutine()
         {
-            // 1. 执行清理
             KiHan.Network.GatewayManager.Instance?.Disconnect();
             HttpClient.Instance.ClearToken();
             
-            // 如果可能残留了战斗，一起清了
             SceneManager.Instance.InitWorld();
             MapManager.Instance.ClearMap();
-            VirtualNetworkManager.Instance.Stop();
+            if (VirtualNetworkManager.Instance != null) VirtualNetworkManager.Instance.Stop();
             Managers.ViewManager.Instance.ClearAll();
             Managers.ResManager.Instance.Clear();
 
-            yield return new WaitForSecondsRealtime(0.5f); // 稍微展示一下进度感
+            yield return new WaitForSecondsRealtime(0.5f);
 
-            // 2. 界面切换
             UIManager.Instance.ClosePanel(UIConst.LobbyPanel);
-            UIManager.Instance.OpenPanel<KiHan.View.UI.Login.LoginPanel>(UIConst.LoginPanel);
+            UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
         }
 
-        private void OnStartMatchClicked()
-        {
-            Debug.Log("[LobbyPanel] Start Offline Game...");
-            // 单机测试：直接调用 GameApp 的单机启动逻辑
-            GameApp.Instance.StartOfflineGame();
-        }
-
-        private void OnUserProfileClicked()
-        {
-            Debug.Log("[LobbyPanel] 打开用户信息面板接口预留...");
-        }
-
-        // --- 供外部调用的数据刷新接口 ---
-
-        public void UpdateOnlineCount(int count)
-        {
-            if (_onlineCntText != null) _onlineCntText.text = count.ToString();
-        }
-
-        public void UpdateWinRate(string rateStr)
-        {
-            if (_winRateText != null) _winRateText.text = rateStr;
-        }
-
-        public void UpdateWinCount(int count)
-        {
-            if (_winCntText != null) _winCntText.text = $"{count}场";
-        }
-
-        public void UpdateUserProfile(string nickname, string uid)
-        {
-            if (_nicknameText != null) _nicknameText.text = nickname;
-            if (_uidText != null) _uidText.text = uid;
-        }
+        #endregion
     }
 }

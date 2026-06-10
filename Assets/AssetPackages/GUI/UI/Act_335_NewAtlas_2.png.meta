@@ -105,7 +105,7 @@ TextureImporter:
         width: 156
         height: 171
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -126,7 +126,7 @@ TextureImporter:
         width: 253
         height: 97
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -147,7 +147,7 @@ TextureImporter:
         width: 83
         height: 202
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -168,7 +168,7 @@ TextureImporter:
         width: 265
         height: 129
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -176,6 +176,27 @@ TextureImporter:
       bones: []
       spriteID: 7f5bddd1f3c706e4a89214d36d9b780b
       internalID: -1838960256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: startBtn1
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 268
+        width: 156
+        height: 173
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c675a985e2c6cd4ea27e292f7b0b94d
+      internalID: 946619004
       vertices: []
       indices: 
       edges: []
@@ -193,6 +214,7 @@ TextureImporter:
     nameFileIdTable:
       corner: -1696198914
       startBtn: 1112861952
+      startBtn1: 946619004
       title: -1838960256
       titleBG: -806215348
   mipmapLimitGroupName: 

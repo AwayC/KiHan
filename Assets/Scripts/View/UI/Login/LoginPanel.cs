@@ -170,7 +170,7 @@ namespace KiHan.View.UI.Login
                 }
             };
 
-            string videoPath = global::System.IO.Path.Combine(Application.dataPath, "AssetPackages/Movies/LoginTen.mp4");
+            string videoPath = global::System.IO.Path.Combine(Application.streamingAssetsPath, "LoginTen.mp4");
             _videoPlayer.url = videoPath;
             _videoPlayer.Play();
         }

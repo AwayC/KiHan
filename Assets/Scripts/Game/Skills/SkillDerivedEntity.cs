@@ -45,7 +45,7 @@ namespace KiHan.Logic
         public virtual void DestroySelf()
         {
             // 从场景管理器中安全移除
-            SceneManager.Instance.RemoveEntity(this);
+            BattleManager.Instance.ActiveRoom?.RemoveEntity(this);
         }
 
         public override void LoadRes(string basePath)

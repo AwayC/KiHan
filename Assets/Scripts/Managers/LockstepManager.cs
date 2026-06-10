@@ -2,35 +2,59 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using KiHan.Logic;
-using kcp2k;
+using KiHan.Network;
 using Managers;
+using System.Security.Cryptography;
 
 public class LockstepManager : UnitySingleton<LockstepManager>
 {
     public static float LOGIC_INTERVAL => GameConfig.LOGIC_TICK_TIME; 
 
-    private NetworkManager _network; 
-
-
-    public void Init(NetworkManager network)
-    {
-        _network = network;
-        if (_network != null)
-        {
-            _network.OnOpCodeReceived += HandleNetworkOpCode;
-        }
-    }
-
     private uint _currFrameId = 0;   
     private uint _nextSendFrameId = 1; 
     
-    private float _timer = 0;
     private bool _gameStarted = false;
 
     private SortedList<uint, RoomFrame> _serverFrames = new SortedList<uint, RoomFrame>();
 
     public Action<RoomFrame> OnExecuteFrame;  
+    public Action OnGameStart;
     public byte MyGameId { get; private set; }
+
+    private INetworkChannel _netChannel;
+
+    public void Init(INetworkChannel channel)
+    {
+        if (_netChannel != null)
+        {
+            _netChannel.OnMessageReceived -= HandleNetworkMessage;
+        }
+
+        _netChannel = channel;
+
+        if (_netChannel != null)
+        {
+            _netChannel.OnMessageReceived += HandleNetworkMessage;
+        }
+    }
+
+    private void Start()
+    {
+        // 自动寻找默认通道 (兼容老逻辑)
+        //if (GatewayManager.Instance != null)
+        //{
+        //    Init(GatewayManager.Instance);
+        //}
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        if (_netChannel != null)
+        {
+            _netChannel.OnMessageReceived -= HandleNetworkMessage;
+        }
+    }
 
     public void StartGame()
     {
@@ -39,14 +63,21 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         _currFrameId = 0;
         _nextSendFrameId = 1;
         _serverFrames.Clear();
+        OnGameStart?.Invoke();
     }
 
-    protected override void OnDestroy()
+    public void StopGame()
     {
-        base.OnDestroy();
-        if (_network != null)
+        Debug.Log("[Lockstep] 停止帧同步");
+        _gameStarted = false;
+        _serverFrames.Clear();
+        _currFrameId = 0;
+        _nextSendFrameId = 1;
+        
+        if (_netChannel != null)
         {
-            _network.OnOpCodeReceived -= HandleNetworkOpCode;
+            _netChannel.OnMessageReceived -= HandleNetworkMessage;
+            _netChannel = null;
         }
     }
 
@@ -92,41 +123,78 @@ public class LockstepManager : UnitySingleton<LockstepManager>
 
     private void SendInputToServer(InputFrame input)
     {
-        if (_network == null || !_network.Connected) return;
-        byte[] data = new byte[7]; 
-        data[0] = (byte)ClientOpCode.PlayerFrameInput;
-        input.Serialize(data, 1);
-        _network.Send(data);
+        // 按照新协议：raw_input 是 6 字节: [FrameId(4,大端)][Joystick(1)][Buttons(1)]
+        byte[] raw = new byte[6];
+        raw[0] = (byte)((input.FrameId >> 24) & 0xFF);
+        raw[1] = (byte)((input.FrameId >> 16) & 0xFF);
+        raw[2] = (byte)((input.FrameId >> 8) & 0xFF);
+        raw[3] = (byte)(input.FrameId & 0xFF);
+        raw[4] = input.JoyStickAngle;
+        raw[5] = (byte)input.Buttons;
+
+        // 封装为 protobuf 的 PlayerFrameInput 对象
+        //var req = new PlayerFrameInput { raw_input = raw };
+
+        if (_netChannel != null && _netChannel.IsConnected)
+        {
+            _netChannel.SendMsg(2004, raw);
+        }
     }
 
-    private void HandleNetworkOpCode(ServerOpCode opCode, ArraySegment<byte> payload)
+    public void InjectLocalFrame(RoomFrame frame)
     {
-        if (opCode == ServerOpCode.GameFrameUpdate)
+        if (frame != null && !_serverFrames.ContainsKey(frame.FrameId))
         {
-            uint frameId = BitConverter.ToUInt32(payload.Array, payload.Offset);
-            int playerCount = payload.Array[payload.Offset + 4];
-            
-            Dictionary<byte, InputFrame> playerInputs = new Dictionary<byte, InputFrame>();
-            // 协议格式：[1:gId][6:input]
-            for (int i = 0; i < playerCount; i++)
-            {
-                int offset = payload.Offset + 5 + i * 7; 
-                byte gId = payload.Array[offset];
-                InputFrame input = new InputFrame();
-                input.Deserialize(payload.Array, offset + 1);
-                playerInputs[gId] = input;
-            }
-
-            RoomFrame gameFrame = new RoomFrame { FrameId = frameId, InputFrames = playerInputs };
-            if (!_serverFrames.ContainsKey(frameId)) _serverFrames.Add(frameId, gameFrame);
+            _serverFrames.Add(frame.FrameId, frame);
         }
-        else if (opCode == ServerOpCode.GameStartNtf)
+    }
+
+    private void HandleNetworkMessage(ushort cmdId, byte[] payload)
+    {
+        if (cmdId == 2005) // RoomFrameUpdate
         {
+            var update = RoomFrameUpdate.Deserialize(payload);
+            if (update != null && update.frame != null)
+            {
+                if (!_serverFrames.ContainsKey(update.frame.FrameId))
+                {
+                    _serverFrames.Add(update.frame.FrameId, update.frame);
+                }
+            }
+        }
+        else if (cmdId == 2003) // GameStartNtf
+        {
+            Debug.Log($"[Lockstep] GameStartNtf");
+            var ntf = GameStartNtf.Deserialize(payload);
             StartGame();
         }
-        else if (opCode == ServerOpCode.RoomEnterResp)
+        else if (cmdId == 2001) // EnterRoomRsp
         {
-            MyGameId = payload.Array[payload.Offset + 5];
+            var rsp = EnterRoomRsp.Deserialize(payload);
+            if (rsp.err_code == 0)
+            {
+                MyGameId = (byte)rsp.my_game_id;
+                
+                // TODO: 可以在这里提取 snapshot.player_list_json，初始化玩家实体
+                Debug.Log($"[Lockstep] EnterRoomRsp: MyGameId={MyGameId}, Snapshot={rsp.snapshot?.player_list_json}");
+
+                // 进房成功后，发送 2002 PlayerReadyReq
+                var readyReq = new PlayerReadyReq { room_id = rsp.snapshot != null ? rsp.snapshot.room_id : 1 };
+                _netChannel?.SendMsg(2002, readyReq.Serialize());
+            }
+        } 
+        else if (cmdId == 2002) // PlayerReadyRsp
+        {
+            Debug.Log($"[Lockstep] PlayerReadyRsp");
+        }
+        else if (cmdId == 2007) // GameOverNtf
+        {
+            var ntf = GameOverNtf.Deserialize(payload);
+            Debug.Log($"[Lockstep] GameOverNtf received, winner is {ntf.winner_uid}");
+            StopGame();
+            
+            // 自动回到大厅
+            GameApp.Instance.ExitGame();
         }
     }
 }

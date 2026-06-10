@@ -66,6 +66,7 @@ namespace View
             Vector3 scale = transform.localScale;
             scale.x = data.IsFacingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
             transform.localScale = scale;
+            data.Offset.x *= data.IsFacingLeft ? 1 : -1;
 
             // 2. 检查绑定逻辑
             if (_bindEntity != null)

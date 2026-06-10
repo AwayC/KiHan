@@ -20,8 +20,8 @@ public class EntityFactory
             naruto.Init();
         }
         
-        // 交给 SceneManager 统一管理并分配 ID
-        SceneManager.Instance.AddPlayer(logic);
+        // 交给 Room 统一管理并分配 ID
+        BattleManager.Instance.ActiveRoom?.AddPlayer(logic);
         
         // 创建表现层
         GameObject viewGo = new GameObject($"{typeof(T).Name}_View_{gId}");
@@ -43,10 +43,10 @@ public class EntityFactory
     /// </summary>
     public static EntityView CreateSkillEntity<T>(T logicEntity, bool autoAdd = true) where T : SkillDerivedEntity
     {
-        // 交给 SceneManager 统一管理并分配 ID
+        // 交给 Room 统一管理并分配 ID
         if (autoAdd)
         {
-            SceneManager.Instance.AddEntity(logicEntity);
+            BattleManager.Instance.ActiveRoom?.AddEntity(logicEntity);
         }
 
         // 创建表现层

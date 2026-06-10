@@ -10,6 +10,8 @@ namespace KiHan.Network
 
         public Action<PlayerInfo> OnPlayerDataUpdated;
         public Action<int> OnMatchResponse;
+        public Action<MatchGameNtf> OnMatchNtfReceived;
+        public Action<int, bool> OnMatchCancelResponse;
         public Action OnCreateRoleRequired;
         public Action<int> OnCreateRoleResponse;
         public Action<int> OnOnlineCountUpdated;
@@ -70,6 +72,12 @@ namespace KiHan.Network
                     break;
                 case 1005: // MatchGameRsp
                     HandleMatchGameRsp(payload);
+                    break;
+                case 1006: // MatchStopRsp
+                    HandleMatchStopRsp(payload);
+                    break;
+                case 1007: // MatchGameNtf
+                    HandleMatchGameNtf(payload);
                     break;
                 default:
                     Debug.LogWarning($"[LobbyManager] Unhandled CmdID: {cmdId}");
@@ -153,7 +161,28 @@ namespace KiHan.Network
             OnMatchResponse?.Invoke(rsp.err_code);
         }
 
+        private void HandleMatchStopRsp(byte[] payload)
+        {
+            var rsp = MatchStopRsp.Deserialize(payload);
+            Debug.Log($"[LobbyManager] MatchStopRsp: err_code={rsp.err_code}, success={rsp.success}");
+            OnMatchCancelResponse?.Invoke(rsp.err_code, rsp.success);
+        }
+
+        private void HandleMatchGameNtf(byte[] payload)
+        {
+            var ntf = MatchGameNtf.Deserialize(payload);
+            Debug.Log($"[LobbyManager] MatchGameNtf: err_code={ntf.err_code}, room_id={ntf.room_id}");
+            OnMatchNtfReceived?.Invoke(ntf);
+        }
+
         // --- Public APIs for UI ---
+
+        public void CancelMatch()
+        {
+            Debug.Log($"[LobbyManager] Requesting MatchStop (1006)...");
+            var req = new MatchStopReq();
+            GatewayManager.Instance.SendMsg(1006, req.Serialize());
+        }
 
         public void RequestCreateRole(string nickname)
         {
