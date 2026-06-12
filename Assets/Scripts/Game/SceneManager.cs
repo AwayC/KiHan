@@ -14,12 +14,13 @@ public class SceneManager : UnitySingleton<SceneManager>
         my_gid = LockstepManager.Instance.MyGameId;
     }
 
-    public PlayerView SpawnPlayer(byte gId, Vector2 pos, GameObject playerViewPrefab, View.UI.BattleUIPanel combatUI, byte myGameId)
+    public PlayerView SpawnPlayer(byte gId, int CharId, Vector2 pos, View.UI.BattleUIPanel combatUI, byte myGameId)
     {
         Debug.Log($"[SceneManager] 生成玩家: {gId} 于 {pos}");
         
         // 使用工厂模式创建玩家实体和表现层
-        PlayerView view = EntityFactory.CreatePlayer<NarutoEntity>(gId, pos, playerViewPrefab);
+
+        PlayerView view = CharacterFactory.CreatePlayer(gId, CharId, pos);
         
         // --- 核心：当本地角色“加载”时，同步 UI 按键图标 ---
         if (gId == myGameId && combatUI != null)

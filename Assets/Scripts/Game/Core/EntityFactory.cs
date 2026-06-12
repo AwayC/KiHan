@@ -7,18 +7,15 @@ public class EntityFactory
     /// <summary>
     /// 创建角色实体及表现层
     /// </summary>
-    public static PlayerView CreatePlayer<T>(byte gId, Vector2 pos, GameObject playerViewPrefab = null) where T : CharacterEntity, new()
+    public static PlayerView CreatePlayer<T>(byte gId, Vector2 pos) where T : CharacterEntity, new()
     {
         T logic = new T();
         logic.owner = gId;
         logic.pos = pos;
         logic.IsFacingLeft = (gId == 2);
-        
+
         // TODO: 后续可以抽象一个 IInitializable 接口，这里为了简单先强转处理特有初始化
-        if (logic is NarutoEntity naruto)
-        {
-            naruto.Init();
-        }
+        logic.Init();
         
         // 交给 Room 统一管理并分配 ID
         BattleManager.Instance.ActiveRoom?.AddPlayer(logic);
@@ -29,11 +26,6 @@ public class EntityFactory
         
         var view = viewGo.AddComponent<PlayerView>();
         view.BindEntity = logic;
-        
-        if (playerViewPrefab != null)
-        {
-            GameObject.Instantiate(playerViewPrefab, viewGo.transform);
-        }
         
         return view;
     }

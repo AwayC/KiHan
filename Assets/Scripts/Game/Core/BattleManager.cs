@@ -4,6 +4,9 @@ using UnityEngine;
 using KiHan.Logic;
 using KiHan.Network;
 using Managers;
+using UnityEngine.Assertions;
+using KiHan.DebugTools;
+using System.Collections.Generic;
 
 public interface IBattleFactory
 {
@@ -64,12 +67,36 @@ public class BattleManager : UnitySingleton<BattleManager>
 
     public LSRoom ActiveRoom { get; set; }
 
+    public bool IsOnline;
+    private bool _isDebug;
+
+    private List<int> CharIdList = new List<int>
+    {
+        (int)CharacterId.Naruto, (int)CharacterId.Naruto, // 默认单机鸣人
+    };
+
     /// <summary>
     /// 进入战斗入口
     /// </summary>
     public void EnterBattle(bool isOnline, uint targetRoomId = 1)
     {
         this.roomId = targetRoomId;
+        this.IsOnline = isOnline;
+
+        // 如果是单机
+        if(!IsOnline)
+        {
+            // 加载调试配置
+            DebugConfig dbgConfig = Resources.Load<DebugConfig>(DebugConfig.DefaultPath);
+            // 设置预设的调试角色
+            if(dbgConfig != null && dbgConfig.isBattleDebug)
+            {
+                CharIdList.Clear();
+                _isDebug = true;
+                CharIdList.Add(dbgConfig.debugPlayer1CharId);
+                CharIdList.Add(dbgConfig.debugPlayer2CharId);
+            }
+        }
         
         // 1. 明确网络职责：通知网络层连接（单机就连虚拟网，联机就连真实网）
         IBattleFactory factory = isOnline ? new OnlineBattleFactory() : (IBattleFactory)new OfflineBattleFactory();
@@ -139,23 +166,37 @@ public class BattleManager : UnitySingleton<BattleManager>
         SceneManager.Instance.InitWorld();
         InitCombatUI(uiReq.asset as GameObject);
 
-        // 4. 生成玩家 (从 LockstepManager 获取 MyGameId, 但 Virtual 默认为 1)
-        byte myGameId = LockstepManager.Instance.MyGameId;
-        Debug.Log($"[BattleManger] my game id {myGameId}");
-        if (myGameId == 0) myGameId = 1; // 单机保底
 
+        // 4. 生成玩家 (从 LockstepManager 获取 MyGameId, 但 Virtual 默认为 1)
+        byte myGameId = 0;
+        if (!IsOnline) myGameId = 1; // 单机
+        else // 联机
+        {
+            myGameId = LockstepManager.Instance.MyGameId;
+            Debug.Log($"[BattleManger] my game id {myGameId}"); 
+        }
+        
         // 加载并绑定 playerViewPrefab。这里需要确保您在 Inspector 里给 BattleManager 挂载了 Prefab。
         // 如果预制体为空，尝试使用 Resources 动态加载
-        if (playerViewPrefab == null)
+        //if (playerViewPrefab == null)
+        //{
+        //    var pReq = Resources.LoadAsync<GameObject>("Characters/naruto/naruto");
+        //    while (!pReq.isDone) yield return null;
+        //    playerViewPrefab = pReq.asset as GameObject;
+        //}
+
+        if(IsOnline == false)
+        {   
+            SceneManager.Instance.SpawnPlayer(1, CharIdList[0], new Vector2(-2, 0), _combatUI, myGameId);
+            SceneManager.Instance.SpawnPlayer(2, CharIdList[0], new Vector2(2, 0), _combatUI, myGameId);
+        } else
         {
-            var pReq = Resources.LoadAsync<GameObject>("Characters/naruto/naruto");
-            while (!pReq.isDone) yield return null;
-            playerViewPrefab = pReq.asset as GameObject;
+            //TODO: 加载房间内玩家的Id
+            int NarutoId = (int)CharacterId.Naruto; // 默认鸣人
+            SceneManager.Instance.SpawnPlayer(1, NarutoId, new Vector2(-2, 0), _combatUI, myGameId);
+            SceneManager.Instance.SpawnPlayer(2, NarutoId, new Vector2(2, 0), _combatUI, myGameId);
         }
-
-        SceneManager.Instance.SpawnPlayer(1, new Vector2(-2, 0), playerViewPrefab, _combatUI, myGameId);
-        SceneManager.Instance.SpawnPlayer(2, new Vector2(2, 0), playerViewPrefab, _combatUI, myGameId);
-
+        
         CharacterEntity targetPlayer = ActiveRoom?.GetPlayer(myGameId);
         if (targetPlayer != null) CameraControllor.Instance.SetTarget(targetPlayer, true);
 

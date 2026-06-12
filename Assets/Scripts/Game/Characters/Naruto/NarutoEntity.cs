@@ -13,7 +13,7 @@ public class NarutoEntity : CharacterEntity
 {
     public override string Name => "Naruto";
 
-    public void Init()
+    public override void Init()
     {
         // 1. 设置属性
         CharacterId = 90001; 

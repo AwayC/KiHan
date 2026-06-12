@@ -5,10 +5,10 @@ using System;
 using System.Collections;
 using Managers;
 using KiHan.View.UI.Login;
+using KiHan.DebugTools;
 
 public class GameApp : UnitySingleton<GameApp>
 {
-    private uint _myUid;
     private bool _isGameRunning = false;
     public bool IsGameRunning => _isGameRunning;
 
@@ -16,6 +16,28 @@ public class GameApp : UnitySingleton<GameApp>
     {
         _isGameRunning = isRunning;
     }
+
+    private void Start()
+    {
+        Debug.Log($"[GameApp] 启动");
+
+        // 确保 Camera 存在，防止打包后场景无 Camera 导致 buffer trailing
+        var _ = CameraControllor.Instance;
+
+        DebugConfig dbgConfig = Resources.Load<DebugConfig>(DebugConfig.DefaultPath);
+
+        // --- 调试后门：启动即进入单机战斗 ---
+        if (dbgConfig != null && dbgConfig.isBattleDebug)
+        {
+            StartOfflineGame();
+        } else
+        {
+            // 启动 UI 框架与登录界面
+            UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
+        }
+
+    }
+
 
     /// <summary>
     /// 通用异步场景切换接口
@@ -69,21 +91,6 @@ public class GameApp : UnitySingleton<GameApp>
 
         if (loadingGo != null) Destroy(loadingGo);
         onFinish?.Invoke();
-    }
-
-    private void Start()
-    {
-        _myUid = (uint)(DateTime.Now.Ticks % 100000);
-        Debug.Log($"[GameApp] 启动, UID: {_myUid}。正在初始化网络...");
-
-        // 确保 Camera 存在，防止打包后场景无 Camera 导致 buffer trailing
-        var _ = CameraControllor.Instance;
-
-        // 启动 UI 框架与登录界面
-        UIManager.Instance.OpenPanel<LoginPanel>(UIConst.LoginPanel);
-
-        // --- 调试后门：启动即进入单机战斗 ---
-        //StartOfflineGame();
     }
 
     public void StartOfflineGame()

@@ -35,7 +35,12 @@ public abstract class CharacterEntity : LogicEntity
     public HitData LastHitData;
     public ArmorLevel armorLevel;
     public bool IsAirborne = false; // 记录是否处于击飞/浮空状态
-    
+
+    public virtual void Init()
+    {
+
+    }
+
     public virtual void UpdateInput(InputFrame input)
     {
         CurrInput = input;
