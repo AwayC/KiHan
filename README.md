@@ -20,7 +20,7 @@ KiHan是一个基于Unity的火影手游复刻的学习项目，期望通过项�
 - 角色扩展：通过继承角色接口，即可独立开发每个角色
 - 角色动画帧编辑器：参照mugen的编辑器，加快人物开发
 
-服务端：[仓库链接]([AwayC/KiHanServer-Distributed](https://github.com/AwayC/KiHanServer-Distributed))
+服务端：[仓库链接](https://github.com/AwayC/KiHanServer-Distributed)
 
 - 分布式架构：分离各项业务，分布式开发
 - 网关内外隔离：对外使用统一网关维护多种协议连接，隔离内部和外部网络，解耦业务与网络连接
