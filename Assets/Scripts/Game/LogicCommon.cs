@@ -41,7 +41,7 @@ namespace KiHan.Logic
         public Vector2 Pos;
         public int Height;
         public LogicEntity Owner = null;
-        public CharacterEntity Player = null;
+        public LogicEntity Player = null;
 
         public Action<LogicEntity> HitCallBack = null;  // 击中回调
 

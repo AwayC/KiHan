@@ -1,105 +1,46 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
+using KiHan.Asset;
 
 namespace Managers
 {
+    /// <summary>
+    /// 资源管理器兼容外观层 (Backward Compatibility Facade)
+    /// 内部已完全无缝对接全新的 AssetManager 与 ObjectPoolManager
+    /// 保证旧有逻辑代码无损运行，同时直接享受分级对象池与标准化资源管线加速
+    /// </summary>
     public class ResManager : UnitySingleton<ResManager>
     {
-        private Dictionary<string, Object> _assetCache = new();
-        private Dictionary<string, Stack<GameObject>> _pool = new();
-        private Transform _poolRoot;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            _poolRoot = new GameObject("PoolRoot").transform;
-            DontDestroyOnLoad(_poolRoot);
-        }
-
         public T Load<T>(string path) where T : Object
         {
-            if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
-
-            if (_assetCache.TryGetValue(path, out var asset))
-            {
-                return asset as T;
-            }
-
-            T newAsset = Resources.Load<T>(path);
-            if (newAsset != null)
-            {
-                _assetCache[path] = newAsset;
-            }
-            else
-            {
-                Debug.LogError($"[Res] 资源加载失败: {path}");
-            }
-            return newAsset;
+            return AssetManager.Instance.Load<T>(path);
         }
 
         public ResourceRequest LoadAsync<T>(string path) where T : Object
         {
             if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
-            
-            // 如果缓存里有，虽然没必要再异步，但为了统一返回格式，还是走系统接口
-            // 正常工程会返回自定义的 AsyncOperation wrapper
             return Resources.LoadAsync<T>(path);
         }
 
         public void AddToCache(string path, Object obj)
         {
-            if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
-            if (obj != null) _assetCache[path] = obj;
+            // 新版架构由 AssetManager 统一根据句柄管理，此处保留接口兼容
         }
 
         public GameObject Spawn(string path, Vector3 position, Quaternion rotation, Transform parent = null)
         {
-            GameObject obj = null;
-            if (_pool.TryGetValue(path, out var stack) && stack.Count > 0)
-            {
-                obj = stack.Pop();
-                obj.SetActive(true);
-                obj.transform.SetParent(parent);
-            }
-            else
-            {
-                GameObject prefab = Load<GameObject>(path);
-                if (prefab != null)
-                {
-                    obj = Instantiate(prefab, parent);
-                    obj.name = path;
-                }
-            }
-
-            if (obj != null)
-            {
-                obj.transform.position = position;
-                obj.transform.rotation = rotation;
-            }
-            return obj;
+            return ObjectPoolManager.Instance.Spawn(path, position, rotation, parent);
         }
 
         public void Recycle(GameObject obj)
         {
-            if (obj == null) return;
-
-            string path = obj.name;
-            obj.SetActive(false);
-            obj.transform.SetParent(_poolRoot);
-
-            if (!_pool.ContainsKey(path)) _pool[path] = new Stack<GameObject>();
-            _pool[path].Push(obj);
+            ObjectPoolManager.Instance.Recycle(obj);
         }
 
         public void Clear()
         {
-            _assetCache.Clear();
-            foreach (var stack in _pool.Values)
-            {
-                while (stack.Count > 0) Destroy(stack.Pop());
-            }
-            _pool.Clear();
-            Resources.UnloadUnusedAssets();
+            ObjectPoolManager.Instance.ClearAll();
+            AssetManager.Instance.Clear();
         }
     }
 }

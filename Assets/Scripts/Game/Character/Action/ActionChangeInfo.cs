@@ -1,0 +1,56 @@
+using System;
+using TrueSync;
+using UnityEngine;
+
+namespace KiHan.Logic
+{
+    /// <summary>
+    /// 攻击判定的推力方向
+    /// </summary>
+    [Serializable]
+    public enum ForceDirection
+    {
+        Forward,  // 向前推
+        Backward, // 向后推
+        Overhead, // 破防/下砸重击
+    }
+
+    /// <summary>
+    /// 动作变化信息，预约角色动作变化的一种信息
+    /// 通常在动作命中对方的时候，会得出双方的ActionChangeInfo，用来调整双方动作走向
+    /// </summary>
+    [Serializable]
+    public struct ActionChangeInfo
+    {
+        [Tooltip("动作变化方式")] public ActionChangeType changeType;
+
+        [Tooltip("变化方式的参数，如果是ToActionId则是要指向的Action的id；如果是ByCatalog则指向Action的Catalog属性")]
+        public string param;
+
+        [Tooltip("优先级，因为有多个变化信息会要求角色变化动作，但是角色最后只能变到一个，所以得冒泡")]
+        public int priority;
+
+        [Tooltip("从第几帧开始这个动作")]
+        public int fromFrame;
+
+        [Tooltip("切换动作后产生的卡帧/受击硬直停顿时间 (定点数秒)")]
+        public FP freezingAfterChange;
+    }
+
+    [Serializable]
+    public enum ActionChangeType
+    {
+        /// <summary>
+        /// 不发生变化
+        /// </summary>
+        Keep,
+        /// <summary>
+        /// 预约某个指定的ActionId的动画
+        /// </summary>
+        ChangeToActionId,
+        /// <summary>
+        /// 根据Catalog来预约Action
+        /// </summary>
+        ChangeByCatalog,
+    }
+}

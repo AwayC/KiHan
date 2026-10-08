@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------
+# KiHan IDE 编码与排版规范 (.editorconfig)
+# 支持 Visual Studio, Rider, VS Code, JetBrains IDE
+# ---------------------------------------------------------------
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# 源码排版标准
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# JSON 与配置文件
+[*.{json,yaml,yml,xml}]
+indent_style = space
+indent_size = 2
+
+# Markdown 文档
+[*.md]
+trim_trailing_whitespace = false

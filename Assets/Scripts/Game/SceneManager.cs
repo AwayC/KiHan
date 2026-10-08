@@ -1,34 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using KiHan.Logic;
-using View;
 using View.Component;
+using KiHan.Asset;
 
+/// <summary>
+/// 表现层场景与视觉实体协调器
+/// </summary>
 public class SceneManager : UnitySingleton<SceneManager>
 {
     private int my_gid;
 
     public void InitWorld()
     {
-        // 主要是清空之前的表现层残留
-        my_gid = LockstepManager.Instance.MyGameId;
-    }
-
-    public PlayerView SpawnPlayer(byte gId, int CharId, Vector2 pos, View.UI.BattleUIPanel combatUI, byte myGameId)
-    {
-        Debug.Log($"[SceneManager] 生成玩家: {gId} 于 {pos}");
-        
-        // 使用工厂模式创建玩家实体和表现层
-
-        PlayerView view = CharacterFactory.CreatePlayer(gId, CharId, pos);
-        
-        // --- 核心：当本地角色“加载”时，同步 UI 按键图标 ---
-        if (gId == myGameId && combatUI != null)
-        {
-            combatUI.SetupIcons(((CharacterEntity)view.BindEntity).CharacterId);
-        }
-
-        return view;
+        my_gid = LockstepManager.Instance != null ? LockstepManager.Instance.MyGameId : 1;
     }
 
     /// <summary>

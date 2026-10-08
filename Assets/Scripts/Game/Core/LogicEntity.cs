@@ -105,25 +105,6 @@ public abstract class LogicEntity
     protected virtual void ProcessPhysics()
     {
         Vector2 finalVel = velocity;
-        if (CurrAnim != null && CurrentFrameIndex < CurrAnim.Steps.Count)
-        {
-            var step = CurrAnim.Steps[CurrentFrameIndex];
-            
-            // X轴：视为该帧的总位移 (Displacement)
-            if (step.RootMotion.x != 0 && step.Duration > 0)
-            {
-                float p2u = 0.01f;
-                float stepMoveX = (step.RootMotion.x * p2u) * GameConfig.RENDER_LOGIC_RATIO;
-                if (IsFacingLeft) stepMoveX = -stepMoveX;
-                finalVel.x += stepMoveX / LOGIC_TICK_TIME;
-            }
-
-            // Y轴：直接视为垂直速度 (Vertical Velocity)
-            if (step.RootMotion.y != 0)
-            {
-                h_vel = (int)step.RootMotion.y;
-            }
-        }
 
         // 1. 处理重力与垂直逻辑
         if (height > 0 || h_vel != 0)
@@ -171,7 +152,7 @@ public abstract class LogicEntity
                     LogicalTickCounter -= duration;
                     CurrentFrameIndex++;
                 }
-                else if ((CurrAnim.IsLoop && !ForceNotLoop) || ForceLoop)
+                else if (ForceLoop && !ForceNotLoop)
                 {
                     LogicalTickCounter -= duration;
                     CurrentFrameIndex = 0;

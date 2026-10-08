@@ -1,19 +1,23 @@
 using UnityEngine;
 using System.Collections.Generic;
 using KiHan.Logic;
+using KiHan.Asset;
+using KiHan.View.Render;
 using View;
 
 namespace Managers
 {
     /// <summary>
-    /// 表现层特效管理器 (对象池实现)
-    /// 监听逻辑层事件，负责加载、实例化和管理 EffectNode
+    /// 全新表现层特效管理器
+    /// 核心能力：
+    /// 1. 对接全新 3D 纵深特效组件 (EffectView)
+    /// 2. 底层接入 EnhancedObjectPool (全池化与开局预热，0 GC)
+    /// 3. 兼容旧版 EffectNode 资产平滑过渡
     /// </summary>
     public class EffectManager : UnitySingleton<EffectManager>
     {
-        private Dictionary<string, string> _aliasMap = new Dictionary<string, string>();
-        private Dictionary<string, Queue<EffectNode>> _pool = new Dictionary<string, Queue<EffectNode>>();
-        private Dictionary<int, EffectNode> _activeEffects = new Dictionary<int, EffectNode>();
+        private readonly Dictionary<string, string> _aliasMap = new();
+        private readonly Dictionary<int, GameObject> _activeEffectObjects = new();
         private int _nextEffectId = 1;
 
         protected override void Awake()
@@ -31,7 +35,7 @@ namespace Managers
             }
         }
 
-        private string GetResourcePath(string effectName)
+        public string GetResourcePath(string effectName)
         {
             if (_aliasMap.TryGetValue(effectName, out string mappedPath))
             {
@@ -45,41 +49,20 @@ namespace Managers
         }
 
         /// <summary>
-        /// 预加载特效到对象池，支持别名注册
+        /// 预加载特效到全局分级对象池
         /// </summary>
         public void Preload(string resourcePath, int count, string alias = null)
         {
             if (string.IsNullOrEmpty(resourcePath)) return;
 
             string key = string.IsNullOrEmpty(alias) ? resourcePath : alias;
-
-            // 注册别名
             if (!string.IsNullOrEmpty(alias))
             {
                 _aliasMap[alias] = resourcePath;
             }
 
-            if (!_pool.ContainsKey(key))
-            {
-                _pool[key] = new Queue<EffectNode>();
-            }
-
             string resPath = GetResourcePath(key);
-            GameObject prefab = Resources.Load<GameObject>(resPath);
-            if (prefab == null)
-            {
-                Debug.LogWarning($"[EffectManager] 预加载失败，找不到特效: {resPath}");
-                return;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                GameObject go = Instantiate(prefab, transform);
-                go.SetActive(false);
-                var node = go.GetComponent<EffectNode>() ?? go.AddComponent<EffectNode>();
-                node.PoolKey = key; // 记录池子归属
-                _pool[key].Enqueue(node);
-            }
+            ObjectPoolManager.Instance.Prewarm(resPath, count, PoolCategory.FX);
         }
 
         private void OnPlayEffectEvent(object dataObj)
@@ -91,84 +74,93 @@ namespace Managers
         }
 
         /// <summary>
-        /// 播放特效，返回句柄ID
+        /// 播放特效，返回句柄 ID
         /// </summary>
         public int PlayEffect(EffectData data)
         {
             if (string.IsNullOrEmpty(data.EffectName)) return -1;
 
-            EffectNode node = GetFromPool(data.EffectName);
-            if (node == null) return -1;
-
+            string resPath = GetResourcePath(data.EffectName);
             int id = _nextEffectId++;
-            _activeEffects[id] = node;
 
-            node.gameObject.SetActive(true);
-            node.Init(id, data);
+            // 1. 从增强分级对象池获取实例
+            GameObject effectGo = ObjectPoolManager.Instance.Spawn(
+                resPath, 
+                Vector3.zero, 
+                Quaternion.identity, 
+                null, 
+                PoolCategory.FX
+            );
+
+            if (effectGo == null)
+            {
+                Debug.LogWarning($"[EffectManager] 特效生成失败，找不到资源: {resPath}");
+                return -1;
+            }
+
+            _activeEffectObjects[id] = effectGo;
+
+            // 2. 优先通过全新的 3D 纵深 EffectView 初始化
+            var effectView = effectGo.GetComponent<EffectView>();
+            if (effectView == null)
+            {
+                // 如果是老旧预制体且有 EffectNode 则走 EffectNode
+                var legacyNode = effectGo.GetComponent<EffectNode>();
+                if (legacyNode != null)
+                {
+                    legacyNode.Init(id, data);
+                    return id;
+                }
+
+                // 否则自动挂载新版 EffectView
+                effectView = effectGo.AddComponent<EffectView>();
+            }
+
+            effectView.PoolKey = data.EffectName;
+            effectView.Init(id, data);
 
             return id;
         }
 
         /// <summary>
-        /// 提前终止某个特效
+        /// 提前手动终止某个特效
         /// </summary>
         public void StopEffect(int effectId)
         {
-            if (_activeEffects.TryGetValue(effectId, out EffectNode node))
+            if (_activeEffectObjects.TryGetValue(effectId, out GameObject effectGo))
             {
-                node.Recycle();
+                _activeEffectObjects.Remove(effectId);
+                if (effectGo != null)
+                {
+                    var effectView = effectGo.GetComponent<EffectView>();
+                    if (effectView != null)
+                    {
+                        effectView.RecycleSelf();
+                    }
+                    else
+                    {
+                        ObjectPoolManager.Instance.Recycle(effectGo);
+                    }
+                }
             }
         }
-
-        private EffectNode GetFromPool(string effectName)
-        {
-            if (_pool.ContainsKey(effectName) && _pool[effectName].Count > 0)
-            {
-                return _pool[effectName].Dequeue();
-            }
-
-            // 动态加载作为后备手段
-            string resPath = GetResourcePath(effectName);
-            GameObject prefab = Resources.Load<GameObject>(resPath);
-            if (prefab != null)
-            {
-                GameObject go = Instantiate(prefab, transform);
-                var node = go.GetComponent<EffectNode>() ?? go.AddComponent<EffectNode>();
-                node.PoolKey = effectName; // 记录池子归属
-                return node;
-            }
-
-            Debug.LogWarning($"[EffectManager] 播放失败，找不到特效: {resPath}");
-            return null;
-        }
-
+        /// <summary>
+        /// 兼容旧版 EffectNode 回收接口
+        /// </summary>
         public void RecycleEffect(EffectNode node)
         {
             if (node == null) return;
-            
-            node.gameObject.SetActive(false);
-            node.transform.SetParent(this.transform);
+            ObjectPoolManager.Instance.Recycle(node.gameObject);
+        }
 
-            // 清理活跃列表
-            if (_activeEffects.ContainsKey(node.EffectId))
-            {
-                _activeEffects.Remove(node.EffectId);
-            }
 
-            // 放回对应的池子，实现真正的对象池回收
-            if (!string.IsNullOrEmpty(node.PoolKey))
-            {
-                if (!_pool.ContainsKey(node.PoolKey))
-                {
-                    _pool[node.PoolKey] = new Queue<EffectNode>();
-                }
-                _pool[node.PoolKey].Enqueue(node);
-            }
-            else
-            {
-                // 没有 PoolKey (异常情况)，安全销毁
-                Destroy(node.gameObject); 
-            }
+        /// <summary>
+        /// 清理局内所有活跃特效
+        /// </summary>
+        public void Clear()
+        {
+            _activeEffectObjects.Clear();
+            ObjectPoolManager.Instance.ClearCategory(PoolCategory.FX);
         }
     }
 }

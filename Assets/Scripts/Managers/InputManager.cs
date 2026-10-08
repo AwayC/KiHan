@@ -1,6 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
 using KiHan.Logic;
+using System;
+
+[Flags]
+public enum ButtonMask : byte
+{
+    None = 0,
+    Attack = 1 << 0,
+    Skill1 = 1 << 1,
+    Skill2 = 1 << 2,
+    Ultimate = 1 << 3,
+    Substitution = 1 << 4, // 替身
+    Secret = 1 << 5,       // 秘卷
+    Summon = 1 << 6,        // 通灵
+    Other = 1 << 7,         // 预留
+}
 
 namespace Managers
 {

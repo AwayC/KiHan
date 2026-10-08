@@ -150,7 +150,7 @@ namespace View
             _visualTimer += Time.deltaTime;
             float renderTickTime = GameConfig.RENDER_TICK_TIME;
 
-            bool isLooping = (currentAnim.IsLoop && !BindEntity.ForceNotLoop) || BindEntity.ForceLoop;
+            bool isLooping = BindEntity.ForceLoop && !BindEntity.ForceNotLoop;
             
             if (_visualFrameIndex >= currentAnim.Steps.Count) _visualFrameIndex = 0;
             
