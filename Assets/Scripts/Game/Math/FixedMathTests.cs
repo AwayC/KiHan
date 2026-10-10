@@ -38,29 +38,29 @@ namespace KiHan.Tests
 
             Test("1. 基础乘除法精度 (Multiplication & Division)", () =>
             {
-                FP a = (FP)2.5f;
-                FP b = (FP)4.0f;
+                FP a = FP.Parse("2.5");
+                FP b = 4;
                 FP mul = a * b;
-                AssertTrue(Mathf.Abs(mul.ToFloat() - 10.0f) < 0.0001f, $"2.5 * 4.0 应为 10.0，实际: {mul.ToFloat()}");
+                AssertTrue(mul == 10, $"2.5 * 4 应为 10，实际: {mul}");
 
-                FP d = (FP)10.0f;
-                FP e = (FP)2.5f;
+                FP d = 10;
+                FP e = FP.Parse("2.5");
                 FP div = d / e;
-                AssertTrue(Mathf.Abs(div.ToFloat() - 4.0f) < 0.0001f, $"10.0 / 2.5 应为 4.0，实际: {div.ToFloat()}");
+                AssertTrue(div == 4, $"10 / 2.5 应为 4，实际: {div}");
             }, ref passCount, ref totalCount);
 
             Test("2. 负数符号与溢出边界 (Negative & Signs)", () =>
             {
-                FP negA = (FP)(-3.5f);
-                FP posB = (FP)2.0f;
+                FP negA = FP.Parse("-3.5");
+                FP posB = 2;
                 FP mul = negA * posB;
-                AssertTrue(Mathf.Abs(mul.ToFloat() - (-7.0f)) < 0.0001f, $"-3.5 * 2.0 应为 -7.0，实际: {mul.ToFloat()}");
+                AssertTrue(mul == -7, $"-3.5 * 2 应为 -7，实际: {mul}");
 
-                FP div = mul / (FP)(-2.0f);
-                AssertTrue(Mathf.Abs(div.ToFloat() - 3.5f) < 0.0001f, $"-7.0 / -2.0 应为 3.5，实际: {div.ToFloat()}");
+                FP div = mul / -2;
+                AssertTrue(div == FP.Parse("3.5"), $"-7 / -2 应为 3.5，实际: {div}");
 
                 FP absVal = FPMath.Abs(negA);
-                AssertTrue(absVal == (FP)3.5f, "Abs(-3.5) 应为 3.5");
+                AssertTrue(absVal == FP.Parse("3.5"), "Abs(-3.5) 应为 3.5");
             }, ref passCount, ref totalCount);
 
             Test("3. 查表三角函数 (Sin, Cos, Tan)", () =>
@@ -80,10 +80,10 @@ namespace KiHan.Tests
 
             Test("4. 牛顿迭代开方 (Sqrt)", () =>
             {
-                FP sqrt4 = FPMath.Sqrt((FP)4.0f);
-                FP sqrt9 = FPMath.Sqrt((FP)9.0f);
-                FP sqrt2 = FPMath.Sqrt((FP)2.0f);
-                FP sqrt100 = FPMath.Sqrt((FP)100.0f);
+                FP sqrt4 = FPMath.Sqrt(4);
+                FP sqrt9 = FPMath.Sqrt(9);
+                FP sqrt2 = FPMath.Sqrt(2);
+                FP sqrt100 = FPMath.Sqrt(100);
 
                 AssertTrue(Mathf.Abs(sqrt4.ToFloat() - 2.0f) < 0.0001f, "Sqrt(4) 应为 2");
                 AssertTrue(Mathf.Abs(sqrt9.ToFloat() - 3.0f) < 0.0001f, "Sqrt(9) 应为 3");
@@ -93,9 +93,9 @@ namespace KiHan.Tests
 
             Test("5. Atan2 角度换算 (Atan2)", () =>
             {
-                FP angle45 = FPMath.Atan2((FP)1.0f, (FP)1.0f) * FPMath.Rad2Deg;
-                FP angle90 = FPMath.Atan2((FP)1.0f, (FP)0.0f) * FPMath.Rad2Deg;
-                FP angle180 = FPMath.Atan2((FP)0.0f, (FP)(-1.0f)) * FPMath.Rad2Deg;
+                FP angle45 = FPMath.Atan2(1, 1) * FPMath.Rad2Deg;
+                FP angle90 = FPMath.Atan2(1, 0) * FPMath.Rad2Deg;
+                FP angle180 = FPMath.Atan2(0, -1) * FPMath.Rad2Deg;
 
                 AssertTrue(Mathf.Abs(angle45.ToFloat() - 45.0f) < 0.5f, $"Atan2(1,1) 应为 ~45°，实际: {angle45.ToFloat()}");
                 AssertTrue(Mathf.Abs(angle90.ToFloat() - 90.0f) < 0.5f, $"Atan2(1,0) 应为 ~90°，实际: {angle90.ToFloat()}");
@@ -131,8 +131,9 @@ namespace KiHan.Tests
             Test("8. 100,000 步动力学模拟哈希确定性", () =>
             {
                 FP pos = FP.Zero;
-                FP vel = (FP)10.0f;
-                FP gravity = (FP)0.5f;
+                FP vel = 10;
+                FP gravity = FP.Half;
+                FP bounceFactor = FP.Parse("0.8");
 
                 for (int i = 0; i < 100000; i++)
                 {
@@ -140,16 +141,33 @@ namespace KiHan.Tests
                     vel -= gravity;
                     if (pos < FP.Zero)
                     {
-                        pos = -pos * (FP)0.8f;
-                        vel = -vel * (FP)0.8f;
+                        pos = -pos * bounceFactor;
+                        vel = -vel * bounceFactor;
                     }
                 }
 
-                // 确定的 RawValue 结果
-                const long EXPECTED_HASH = 78793090073L;
+                // 基于 FP.Parse("0.8") 纯整型运算的 100% 确定性校验和
+                const long EXPECTED_HASH = 78793089710L;
                 AssertTrue(pos.RawValue == EXPECTED_HASH, $"100,000 步模拟校验和不一致！期望: {EXPECTED_HASH}, 实际: {pos.RawValue}");
             }, ref passCount, ref totalCount);
 
+            Test("9. 字符串解析与纯整型 0 浮点确定性 (String-First Standard)", () =>
+            {
+                FP p1 = FP.Parse("0.15");
+                FP p2 = FP.Parse("0.1");
+                FP p3 = FP.Parse("0.05");
+                FP p4 = FP.Parse("-12.345");
+
+                // 验证二进制 Q32.32 rawValue 精确匹配
+                AssertTrue(p1.RawValue == 644245094L, $"0.15 RawValue 应为 644245094，实际: {p1.RawValue}");
+                AssertTrue(p2.RawValue == 429496729L, $"0.1 RawValue 应为 429496729，实际: {p2.RawValue}");
+                AssertTrue(p3.RawValue == 214748364L, $"0.05 RawValue 应为 214748364，实际: {p3.RawValue}");
+                AssertTrue(p4.RawValue == -53021371269L, $"-12.345 RawValue 应为 -53021371269，实际: {p4.RawValue}");
+
+                // 验证隐式字符串转换与 Parse 严格一致
+                FP implicitVal = "0.15";
+                AssertTrue(implicitVal == p1, "隐式字符串赋值应与 FP.Parse 完全一致");
+            }, ref passCount, ref totalCount);
             Debug.Log($"<color={(passCount == totalCount ? "green" : "red")}>====== [KiHan Fixed Math] 测试完成: {passCount}/{totalCount} 通过 ======</color>");
             return passCount == totalCount;
         }

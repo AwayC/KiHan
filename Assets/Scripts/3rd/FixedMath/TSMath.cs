@@ -189,19 +189,20 @@ namespace TrueSync
             return res;
         }
 
+        // 多项式展开系数 (Q32.32 预计算纯整数常量，彻底消除运行时浮点转换开销与跨平台 FPU 尾数偏差)
+        private static readonly FP AtanC1 = FP.FromRaw(4294391770L); // 0.999866
+        private static readonly FP AtanC2 = FP.FromRaw(1418625550L); // 0.3302995
+        private static readonly FP AtanC3 = FP.FromRaw(773699703L);  // 0.180141
+        private static readonly FP AtanC4 = FP.FromRaw(365643450L);  // 0.085133
+        private static readonly FP AtanC5 = FP.FromRaw(89486073L);   // 0.0208351
+
         /// <summary>
         /// 针对 |z| <= 1 的高精度奇多项式展开: z * (0.999866 - 0.3302995*z^2 + 0.180141*z^4 - ...)
         /// </summary>
         private static FP AtanPolynomial(FP z)
         {
             FP z2 = z * z;
-            FP c1 = (FP)0.999866f;
-            FP c2 = (FP)0.3302995f;
-            FP c3 = (FP)0.180141f;
-            FP c4 = (FP)0.085133f;
-            FP c5 = (FP)0.0208351f;
-
-            FP poly = c1 - z2 * (c2 - z2 * (c3 - z2 * (c4 - z2 * c5)));
+            FP poly = AtanC1 - z2 * (AtanC2 - z2 * (AtanC3 - z2 * (AtanC4 - z2 * AtanC5)));
             return z * poly;
         }
 

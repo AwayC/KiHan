@@ -50,10 +50,5 @@ namespace KiHan.Logic
                 if (Cooldown < FP.Zero) Cooldown = FP.Zero;
             }
         }
-
-        public void Tick(float delta)
-        {
-            Tick(FP.FromFloatDeterministic(delta));
-        }
     }
 }

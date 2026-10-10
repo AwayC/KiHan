@@ -155,34 +155,33 @@ namespace KiHan.Logic
                 return;
             }
 
-            // 0~180 对应 0°~360°
-            float deg = angleByte * 2f;
-            AngleDegrees = deg;
+            // 0~180 对应 0°~360° (纯整型度数换算)
+            int degInt = angleByte * 2;
+            AngleDegrees = degInt;
 
-            float rad = deg * Mathf.Deg2Rad;
-            float cos = Mathf.Cos(rad);
-            float sin = Mathf.Sin(rad);
-
-            MoveDirection = new Vector2(cos, sin);
-
-            FP radFP = FP.FromFloat(rad);
+            // 纯定点数确定性方向计算 (0 浮点误差与跨平台 FPU 尾数偏差)
+            FP degFP = degInt;
+            FP radFP = degFP * TSMath.Deg2Rad;
             MoveDirectionFP = new FPVector2(TSMath.Cos(radFP), TSMath.Sin(radFP));
 
-            // 计算当前所在的离散扇区
-            CurrentDirection = CalculateDirectionSector(deg);
+            // 表现层视图平滑向量 (单向由定点数映射)
+            MoveDirection = MoveDirectionFP.ToVector2();
+
+            // 计算当前所在的离散扇区 (纯整型比较)
+            CurrentDirection = CalculateDirectionSector(degInt);
         }
 
-        private CommandKey CalculateDirectionSector(float deg)
+        private CommandKey CalculateDirectionSector(int deg)
         {
-            // 4 扇区划分:
+            // 4 扇区划分 (纯整数角度):
             // 上: 45° ~ 135°
             // 下: 225° ~ 315°
             // 右: 315° ~ 45°
             // 左: 135° ~ 225°
-            if (deg >= 45f && deg < 135f) return CommandKey.Up;
-            if (deg >= 225f && deg < 315f) return CommandKey.Down;
+            if (deg >= 45 && deg < 135) return CommandKey.Up;
+            if (deg >= 225 && deg < 315) return CommandKey.Down;
 
-            bool isRight = (deg >= 315f || deg < 45f);
+            bool isRight = (deg >= 315 || deg < 45);
             if (isRight)
             {
                 return inversed ? CommandKey.Backward : CommandKey.Forward;
@@ -356,7 +355,12 @@ namespace KiHan.Logic
             return ActionOccur(ButtonMaskToCommandKey(button));
         }
 
-        public bool ActionOccur(CommandKey key, float validInSec = 0.15f)
+        public bool ActionOccur(CommandKey key, string validInSec = "0.15")
+        {
+            return ActionOccur(new ActionCommand(key, validInSec));
+        }
+
+        public bool ActionOccur(CommandKey key, FP validInSec)
         {
             return ActionOccur(new ActionCommand(key, validInSec));
         }

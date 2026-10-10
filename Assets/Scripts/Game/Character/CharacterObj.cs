@@ -180,10 +180,6 @@ namespace KiHan.Logic
             return NatureMove(deltaFP);
         }
 
-        public Vector3 ThisTickMove(float delta)
-        {
-            return ThisTickMove(FP.FromFloatDeterministic(delta)).ToVector3();
-        }
 
         /// <summary>
         /// 设置强制外力位移

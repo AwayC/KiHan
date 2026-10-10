@@ -47,21 +47,24 @@ namespace TrueSync
 
         #region 类型转换构造
 
+        [Obsolete("严禁在确定性逻辑中使用浮点转换！为杜绝跨平台 FPU 尾数偏差，请使用 FP.Parse(\"...\") 或 FP.FromInt()。此方法仅供表现层单向转换使用。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FP FromFloat(float value)
         {
-            return new FP((long)(value * ONE));
+            return new FP((long)((double)value * ONE));
         }
 
+        [Obsolete("严禁在确定性逻辑中使用浮点转换！为杜绝跨平台 FPU 尾数偏差，请使用 FP.Parse(\"...\") 或 FP.FromInt()。此方法仅供表现层单向转换使用。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FP FromDouble(double value)
         {
             return new FP((long)(value * ONE));
         }
+
         /// <summary>
-        /// 跨平台确定性浮点数转换 (规整到指定小数精度，杜绝不同平台 FPU 尾数微差)
-        /// 默认精度为 10000 (0.1毫秒精度，完全满足格斗动作要求)
+        /// 浮点数规整转换 (仅供表现层/离线工具使用，确定性逻辑请使用纯整型 FP.Parse)
         /// </summary>
+        [Obsolete("确定性逻辑严禁依赖浮点四舍五入！请使用 FP.Parse 彻底杜绝 FPU 平台微差。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FP FromFloatDeterministic(float value, int precision = 10000)
         {
@@ -69,13 +72,13 @@ namespace TrueSync
             return new FP((scaled << FRACTIONAL_PLACES) / precision);
         }
 
+        [Obsolete("确定性逻辑严禁依赖浮点四舍五入！请使用 FP.Parse 彻底杜绝 FPU 平台微差。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FP FromDoubleDeterministic(double value, int precision = 10000)
         {
             long scaled = (long)Math.Round(value * precision);
             return new FP((scaled << FRACTIONAL_PLACES) / precision);
         }
-
         /// <summary>
         /// 从字符串解析定点数 (纯整型运算，0 浮点误差)
         /// 支持 "0.15", "12", "-1.5" 等格式
@@ -186,12 +189,19 @@ namespace TrueSync
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator FP(int value) => FromInt(value);
 
+        /// <summary>
+        /// 字符串隐式转换为定点数 (调用纯整型解析器，100% 确定性)
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FP(string value) => Parse(value);
+
+        [Obsolete("严禁在确定性逻辑中显式强转浮点数！请使用 FP.Parse(\"...\") 或纯整型。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator FP(float value) => FromFloat(value);
 
+        [Obsolete("严禁在确定性逻辑中显式强转浮点数！请使用 FP.Parse(\"...\") 或纯整型。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator FP(double value) => FromDouble(value);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static explicit operator FP(long value) => FromLong(value);
 
@@ -353,9 +363,20 @@ namespace TrueSync
 
         public override string ToString()
         {
-            return AsFloat().ToString("0.000");
+            if (_serializedValue == 0) return "0.000";
+            bool neg = _serializedValue < 0;
+            ulong abs = (ulong)(neg ? -_serializedValue : _serializedValue);
+            ulong integerPart = abs >> FRACTIONAL_PLACES;
+            ulong fracPart = abs & 0xFFFFFFFFUL;
+            // 纯整型四舍五入到 3 位小数: (fracPart * 1000 + HALF) >> 32
+            ulong fracDec = ((fracPart * 1000UL) + (1UL << 31)) >> FRACTIONAL_PLACES;
+            if (fracDec >= 1000UL)
+            {
+                integerPart += 1;
+                fracDec = 0;
+            }
+            return neg ? $"-{integerPart}.{fracDec:D3}" : $"{integerPart}.{fracDec:D3}";
         }
-
         #endregion
 
         #region 基础数学函数

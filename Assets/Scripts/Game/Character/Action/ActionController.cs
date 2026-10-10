@@ -430,9 +430,9 @@ namespace KiHan.Logic
             }
         }
 
-        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo, ForceDirection forceDir, float freezingSec)
+        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo, ForceDirection forceDir, string freezingSec)
         {
-            PreorderActionByActionChangeInfo(acInfo, forceDir, FP.FromFloatDeterministic(freezingSec));
+            PreorderActionByActionChangeInfo(acInfo, forceDir, FP.Parse(freezingSec));
         }
 
         /// <summary>
@@ -444,10 +444,9 @@ namespace KiHan.Logic
             if (anim != null) anim.SetFreezing(_freezeTicks);
         }
 
-        public void SetFreezing(float freezingSec)
+        public void SetFreezing(string freezingSec)
         {
-            int ticks = Mathf.CeilToInt(freezingSec / GameConfig.LOGIC_TICK_TIME);
-            SetFreezing(ticks);
+            SetFreezing(FP.Parse(freezingSec));
         }
         public void SetFreezing(FP freezingSec)
         {

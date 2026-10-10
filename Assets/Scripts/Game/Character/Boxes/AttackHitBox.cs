@@ -22,15 +22,14 @@ namespace KiHan.Logic
         [HideInInspector] public CharacterObj master;
 
         /// <summary>
-        /// Inspector 面板伤害倍率 (浮点配置)
+        /// Inspector 面板伤害倍率 (纯字符串确定性配置，如 "1.0", "1.5")
         /// </summary>
-        [Tooltip("伤害倍率"), Range(0, float.MaxValue)] public float damageRate = 1f;
+        [Tooltip("伤害倍率 (纯字符串确定性配置，如 1.0)")] public string damageRate = "1.0";
 
         /// <summary>
         /// 定点数确定性伤害倍率
         /// </summary>
-        public FP damageRateFP => FP.FromFloatDeterministic(damageRate);
-
+        public FP damageRateFP => FP.TryParse(damageRate, out var rate) ? rate : FP.One;
         /// <summary>
         /// 基础优先级
         /// </summary>

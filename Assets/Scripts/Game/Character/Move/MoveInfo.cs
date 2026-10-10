@@ -17,7 +17,7 @@ namespace KiHan.Logic
         public FPVector3 moveDistance;
 
         /// <summary>
-        /// 持续时间 (定点数秒，例如 FP.FromFloat(0.3f))
+        /// 持续时间 (定点数秒，例如 FP.Parse("0.3"))
         /// </summary>
         public FP inSec;
 

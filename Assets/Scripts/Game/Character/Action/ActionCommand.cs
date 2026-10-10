@@ -39,17 +39,5 @@ namespace KiHan.Logic
             this.validInSec = FP.Parse(validInSec);
         }
 
-
-        public ActionCommand(CommandKey key, float validInSec = 0.15f)
-        {
-            this.keySequence = new[] { key };
-            this.validInSec = FP.FromFloatDeterministic(validInSec);
-        }
-
-        public ActionCommand(CommandKey[] sequence, float validInSec = 0.2f)
-        {
-            this.keySequence = sequence;
-            this.validInSec = FP.FromFloatDeterministic(validInSec);
-        }
     }
 }

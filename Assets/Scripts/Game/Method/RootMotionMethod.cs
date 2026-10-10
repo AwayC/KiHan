@@ -18,9 +18,9 @@ namespace KiHan.Logic
                     "GoStraight",
                     (pec, param) =>
                     {
-                        FP totalDis = param.Length > 0 ? FP.FromFloat(float.Parse(param[0])) : FP.Zero;
-                        FP startPec = param.Length > 1 ? FP.FromFloat(float.Parse(param[1])) : FP.Zero;
-                        FP endPec = param.Length > 2 ? FP.FromFloat(float.Parse(param[2])) : FP.One;
+                        FP totalDis = param.Length > 0 ? FP.Parse(param[0]) : FP.Zero;
+                        FP startPec = param.Length > 1 ? FP.Parse(param[1]) : FP.Zero;
+                        FP endPec = param.Length > 2 ? FP.Parse(param[2]) : FP.One;
                         return pec <= startPec ? FPVector3.zero :
                             pec >= endPec ? new FPVector3(totalDis, FP.Zero, FP.Zero) : new FPVector3(pec * totalDis, FP.Zero, FP.Zero);
                     }

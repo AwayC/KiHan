@@ -60,6 +60,10 @@ namespace KiHan.Math
             }
         }
 
+        /// <summary>
+        /// 从 Unity Vector2 转换 (仅供表现层/离线工具使用，确定性逻辑请使用 new FPVector2("x", "y"))
+        /// </summary>
+        [Obsolete("严禁在确定性逻辑中使用 Vector2 浮点转换！请使用 new FPVector2(string x, string y)。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FPVector2 FromVector2Deterministic(Vector2 v, int precision = 10000)
         {
@@ -242,6 +246,10 @@ namespace KiHan.Math
         {
             return new Vector3(x.AsFloat(), y.AsFloat(), z.AsFloat());
         }
+        /// <summary>
+        /// 从 Unity Vector3 转换 (仅供表现层/离线工具使用，确定性逻辑请使用 new FPVector3("x", "y", "z"))
+        /// </summary>
+        [Obsolete("严禁在确定性逻辑中使用 Vector3 浮点转换！请使用 new FPVector3(string x, string y, string z)。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FPVector3 FromVector3Deterministic(Vector3 v, int precision = 10000)
         {
@@ -377,6 +385,7 @@ namespace KiHan.Math
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ToInt(this FP fp) => fp.AsInt();
 
+        [Obsolete("严禁在确定性逻辑中将 float 转换为 FP！请使用 FP.Parse 或整数类型。")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FP ToFP(this float val) => FP.FromFloat(val);
 
@@ -384,8 +393,13 @@ namespace KiHan.Math
         public static FP ToFP(this int val) => FP.FromInt(val);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FP ToFP(this string str) => FP.Parse(str);
+
+        [Obsolete("严禁在确定性逻辑中使用 Vector2 转 FPVector2！")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FPVector2 ToFPVector2(this Vector2 v) => new FPVector2(FP.FromFloat(v.x), FP.FromFloat(v.y));
 
+        [Obsolete("严禁在确定性逻辑中使用 Vector3 转 FPVector3！")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FPVector3 ToFPVector3(this Vector3 v) => new FPVector3(FP.FromFloat(v.x), FP.FromFloat(v.y), FP.FromFloat(v.z));
     }
