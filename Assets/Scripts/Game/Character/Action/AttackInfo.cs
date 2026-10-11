@@ -31,12 +31,43 @@ namespace KiHan.Logic
         public MoveInfo pushPower;
 
         /// <summary>
-        /// 目标受击硬直时间 (定点数秒，如 0.2s)
+        /// 目标僵直时长 (定点数秒，如 0.3s)：地面受击进入僵直状态，期间不能主动行动、循环播放受击动作
+        /// 为 0 表示该攻击不施加僵直 (不改变目标当前的僵直)
         /// </summary>
         public FP hitStun;
 
         /// <summary>
-        /// 攻击者自身卡帧停顿时间 (定点数秒，如 0.08s)
+        /// 击飞竖直初速度 (单位/秒)：大于 0 时目标进入击飞状态；目标已在空中时无论是否配置都进入击飞状态
+        /// </summary>
+        public FP launchVelocity;
+
+        /// <summary>
+        /// 命中空中目标时设置的竖直速度 (空中追击上挑)；为 0 时沿用 launchVelocity，两者都为 0 则保持目标当前竖直速度
+        /// </summary>
+        public FP airLaunchVelocity;
+
+        /// <summary>
+        /// 破霸等级：>= 受击者当前霸体等级时完整受击，否则只结算伤害
+        /// </summary>
+        public ArmorLevel armorBreak;
+
+        /// <summary>
+        /// 能否命中倒地 (Lie 姿态) 的目标 (扫地)
+        /// </summary>
+        public bool canHitLying;
+
+        /// <summary>
+        /// 抓取配置
+        /// </summary>
+        public GrabInfo grab;
+
+        /// <summary>
+        /// 吸附配置
+        /// </summary>
+        public SuctionInfo suction;
+
+        /// <summary>
+        /// 停帧时长 (定点数秒)：预留给全局停帧 (freeze)，当前未生效
         /// </summary>
         public FP freeze;
         /// <summary>
@@ -54,9 +85,14 @@ namespace KiHan.Logic
         public ActionChangeInfo selfActionChange;
 
         /// <summary>
-        /// 命中时对手动作变换
+        /// 命中时对手动作变换 (僵直状态使用，如 ChangeToActionId hurt_1)
         /// </summary>
         public ActionChangeInfo targetActionChange;
+
+        /// <summary>
+        /// 命中使对手进入击飞状态时的动作变换 (如 hurt_toair)；未配置 (Keep) 时沿用 targetActionChange
+        /// </summary>
+        public ActionChangeInfo launchActionChange;
 
         /// <summary>
         /// 命中时临时激活的 TempBeCancelledTag ID

@@ -12,7 +12,7 @@
   - [2. 真实 3D 纵深渲染与 2D/3D 混合深度穿插](#2-真实-3d-纵深渲染与-2d3d-混合深度穿插)
   - [3. 统一资源管理与分级对象池体系](#3-统一资源管理与分级对象池体系)
   - [4. ACT 数据驱动动作框架与确定性输入流](#4-act-数据驱动动作框架与确定性输入流)
-  - [5. 5 维打击反馈、霸体与浮空/扫地/站立保护机制](#5-5-维打击反馈霸体与浮空扫地站立保护机制)
+  - [5. 5 维打击反馈、受击状态与霸体](#5-5-维打击反馈受击状态与霸体)
   - [6. 技能资源系统、查克拉与分身生成体系](#6-技能资源系统查克拉与分身生成体系)
   - [7. 动画表现驱动解耦与骨骼挂点系统](#7-动画表现驱动解耦与骨骼挂点系统)
   - [8. ACT 可视化动作时间轴编辑器](#8-act-可视化动作时间轴编辑器)
@@ -70,7 +70,7 @@
                     │
   ┌─────────────────┼──────────────────────────────┐
   │                 │                              │
-[定点数动力学]     [5维受击与保护]               [技能与生成工厂]
+[定点数动力学]     [5维受击与霸体]               [技能与生成工厂]
 ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Actor 分身
   │                 │                              │
   └─────────────────┼──────────────────────────────┘
@@ -165,26 +165,33 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - 维护固定容量的滑动逻辑帧队列，支持按键有效帧窗口校验（`validInTicks`）与经典格斗搓招识别。
 - **位移计算模型 (`ForceMove`)**：
   - 动作位移分为常规移动（`NatureMove` = 摇杆输入 $\times$ `MoveInputAcceptance` + `RootMotion`）与强制外力位移（`ForceMove`）。
+  - `rootMotion` 为分段列表，每段带 `frameRange`：水平 `moveX/moveY` 按 `tweenMethod` (与 ForceMove 共用缓动表) 分配到区间内，多段同帧相加；竖直 `velocityZ` 在区间起始帧设置竖直速度 (起跳/二段跳)，`accelerationZ` 在区间内附加加速度。动作按状态切分 (循环、输入入口、落地转换、受击)，同一段连续动画上的位移变化用多段描述，不拆动作。
   - 处于受击推移、技能突进时，`ForceMove` 接管角色位移，采用确定性定点数插值曲线（Linear, QuadOut 等）。
 
-### 5. 5 维打击反馈、霸体与浮空/扫地/站立保护机制
-- **5 维打击物理与判定流转**：
-  1. **平推 (Push)**：受击者保持地面受击状态（`hurt_1`, `hurt_2`），施加水平 `ForceMove` 位移；若受击者已在空中，自动转换为击飞。
-  2. **击飞 (ToAir / Launch)**：赋予垂直初速度 `h_vel`，受击者强制切换至 `hurt_toair`，在重力作用下经历滞空、掉落（`hurt_fall`）、落地（`hurt_land`）。
-  3. **吸附 (Suction)**：以技能核心点为中心，每帧向受击者施加定点数向心拉扯位移。
-  4. **抓取 (Grab)**：
-     - 判定生效时，受击者被强制锁定为专用抓取受击动作，坐标硬性吸附于释放者的抓取锚点。
-     - 抓取属于强控制，无视普通霸体；若释放者在抓取过程中被第三方打断，受击者绑定立即解除并转为倒地。
-  5. **扫地 (OTG - Off The Ground)**：
-     - 检测受击者是否处于倒地状态（`lie` / `fall`）。仅当招式携带 `canHitLying = true` 时才能将倒地目标二次挑起。
-- **霸体等级裁决体系 (`ArmorLevel`)**：
-  - 等级顺序：`Normal(0) < Skill(1) < Super(2) < KingKong(3) < Invincible(4)`。
-  - 当受击发生时，若攻击方的破霸等级低于受击者当前的 `ArmorLevel`，受击者仅结算伤害与火花，不触发受击动作、不打断当前招式、不进入硬直。
-- **火影手游级保护体系 (Juggle & Stun Protection)**：
-  - **黄保阶段**：受击者离地后累计承受伤害达到阈值（如最大生命值 15%），受击硬直减少 30%，身体受击轮廓变黄。
-  - **红保阶段**：累计伤害达到高危阈值（如最大生命值 28%），受击者重力加速度增加 150%（急速下坠），受击推力衰减，强制终止浮空无限连。
-  - **扫地保护**：倒地遭受的第一段扫地伤害计入保护池，倒地受击伤害超过上限（如最大生命值 20%），触发保护机制，受击者闪白并无敌翻滚起身。
-  - **站立保护**：连续受到地面平推时，硬直累计达到上限强制倒地，防止地面无限连推。
+### 5. 5 维打击反馈、受击状态与霸体
+> 范围调整 (2026-10-10)：**停帧 (全局 Freeze) 与保护机制 (浮空黄保/红保、扫地保护、站立保护) 移出本计划**；受击后不改变朝向；攻击种类 (普通/技能/抓取/毒伤) 细分与霸体矩阵后续再做；撞墙不反弹；闪现等动作后续再做。
+
+- **物理约定**：逻辑坐标 `x` 横向、`y` 纵深、`z` 高度；水平面走曲线位移 (RootMotion / ForceMove / 吸附)，竖直方向只走速度模型 (起跳/击飞速度 + 附加加速度 + 重力，匀加速精确积分)；墙体仅为地图边界墙；角色之间不碰撞。
+- **受击状态 (`HurtState`)**：
+  - **僵直 (Stun)**：地面受击，不能主动行动，受击动作循环播放，`hitStun` 秒到期后回到受击动作的 `autoNextActionId`。
+  - **击飞 (Launch)**：空中受击或被击飞，不能主动行动，按速度模型下落，落地即解除并固定进入 `hurt_land`。
+  - **被抓取 (Grabbed)**：位置逐帧锁定在抓取者的帧锚点上，不受重力与外力影响。
+  - **倒地**：当前动作为 `lie` 时视为倒地，只有 `canHitLying` 的攻击能命中。
+- **通用受击动作 (`HurtActionIds`)**：所有角色共用同一套受击流程，以下动作 id 固定且必须全部配置 (加载时检查缺失)：`hurt_1` `hurt_2` `hurt_toair` `hurt_inair` `hurt_fall` `hurt_land` `lie` `standup`。攻击未配置 `targetActionChange` / `launchActionChange` 时，僵直默认 `hurt_1`、抓取默认 `hurt_2`、击飞默认 `hurt_toair`。
+- **姿态隐性控制 (不配置 `posture`)**：
+  - 进入条件由 `cancelTag` / `beCancelledTag` 的取消关系决定 (如空中攻击只挂在跳跃动作的取消窗口上)。
+  - 配置了 `onLand` 且自身不起跳的动作视为空中动作，在地面上视同落地触发 `onLand`。
+  - 倒地、击飞落地等状态由上面的固定受击动作 id 决定。
+- **5 维打击物理**：
+  1. **平推 (Push)**：`pushPower` 水平 `ForceMove` (按秒配置，与动作帧无关)，按攻击者朝向转为世界方向。
+  2. **击飞 (Launch)**：`launchVelocity` 设置竖直初速度；目标已在空中时进入击飞，`airLaunchVelocity` 用于空中追击上挑。
+  3. **吸附 (Suction)**：命中后在 `inSec` 秒内以 `speed` 把目标水平拉向攻击者本地核心点 (随攻击者移动，不越过核心点)。
+  4. **抓取 (Grab)**：锚点即抓取。`grab.anchor` 指定帧库 `EffectAnchors` 中的锚点名 (默认 `grab`，整数像素，x 随朝向镜像、y 为高度)，抓取者当前处理的动画帧上存在该锚点即维持抓取并逐帧跟随 (可跨动作)，锚点消失即释放 (主动松手 / 动作播完 / 被打断)，目标按 `releaseActionChange` 转换，在空中则击飞下落；投掷伤害与击飞由抓取者对目标的后续攻击完成。加载时校验抓取段开启区间内是否画有锚点。
+  5. **扫地 (OTG)**：`canHitLying` 的攻击可命中倒地目标；带击飞速度时重新挑起，否则保持倒地只结算伤害。
+- **霸体等级裁决 (`ArmorLevel`)**：
+  - 等级顺序：`None(0) < Skill(1) < Super(2) < KingKong(3) < Invincible(4)`，由动作 `armorPhase` 按动画帧区间配置。
+  - 攻击 `armorBreak` >= 受击者当前霸体等级时完整受击，否则只结算伤害、不打断当前动作；`Invincible` 不产生命中。
+- **结算流程 (`BattleWorld` + `HitResolver`)**：输入 → 动作推进 (收集预约) → 物理 → 抓取/吸附 → 命中收集 → 统一结算 (扣血、霸体裁决、受击反应) → 动作预约按优先级当帧裁决。
 
 ### 6. 技能资源系统、查克拉与分身生成体系
 - **技能资源控制器 (`SkillController`)**：
@@ -235,7 +242,7 @@ gantt
     M3: 真实3D深度渲染与层级穿插         :m3, after m1, 6d
     section 动作内核
     M4: ACT 动作框架与确定性输入流       :m4, after m2, 8d
-    M5: 5维受击反馈与保护机制           :m5, after m4, 8d
+    M5: 5维受击反馈与霸体               :m5, after m4, 8d
     M6: 技能资源/Buff/分身生成系统      :m6, after m5, 6d
     section 工具与落地
     M7: ACT 可视化动作时间轴编辑器      :m7, after m4, 10d
@@ -248,7 +255,7 @@ gantt
 | **M2: 资源管理与对象池** | `Managers/Asset/IAssetProvider.cs`<br>`Managers/Asset/ObjectPoolManager.cs`<br>`View/Component/AutoRecycleFX.cs` | 1. 抽象资源提供器接口<br>2. 实现按类型隔离的分级对象池<br>3. 改造战斗前加载预热流程 | 连续对战 5 分钟，战斗运行时无任何 `Resources.Load` 与新实例分配产生的 GC Spike。 |
 | **M3: 3D 纵深渲染与穿插** | `View/EntityView.cs`<br>`View/Rendering/ZWriteSprite.shader`<br>`View/Component/SocketAnchor.cs` | 1. `EntityView` 坐标映射为 X->X, Height->Y, Y->Z<br>2. 摄像机调整为 18° 正交倾角<br>3. 角色材质开启 Alpha-Test ZWrite | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
 | **M4: ACT 动作核心与输入** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`DeterministicCommandSource.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 搓招按键队列与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
-| **M5: 5 维打击与保护体系** | `Characters/Combat/HitSystem.cs`<br>`JuggleProtectionTracker.cs`<br>`ArmorLevel.cs`<br>`HitRecord.cs` | 1. 落地平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 霸体等级判定<br>3. 浮空黄保、红保加重与扫地强制保护起身 | 浮空受击累计达到阈值时光速下坠断连；扫地伤害超标后闪白无敌起身。 |
+| **M5: 5 维打击与受击状态** | `Game/Core/BattleWorld.cs`<br>`Game/Physics/MotionBody.cs`<br>`Character/Fight/HitResolver.cs`<br>`Character/Fight/CombatTypes.cs`<br>`Character/Fight/HurtState.cs`<br>`Character/Fight/HiRecord.cs` | 1. 平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 僵直/击飞/被抓/倒地受击状态<br>3. 霸体等级判定 | 僵直期间不能行动且循环受击动画；击飞落地转倒地；霸体只扣血不打断；抓取逐帧跟随帧锚点、锚点消失即释放；整条命中链路 0 GC。（停帧与保护机制已移出计划） |
 | **M6: 技能/查克拉/分身系统** | `Characters/Combat/SkillController.cs`<br>`SpawnFactory.cs`<br>`SpawnedActorLifecycle.cs`<br>`CloneBrain.cs` | 1. 多段技能 CD 与查克拉奥义点管理<br>2. 区分 SimpleEntity 与 Actor 分身生成<br>3. 分身通过 `CloneBrain` 驱动动作控制器 | 鸣人可释放多段技能；分身生成后独立执行攻击动作并按存活时限回收。 |
 | **M7: 可视化时间轴编辑器** | `Editor/ActionTimeline/ActionEditorWindow.cs`<br>`TimelineTracks.cs`<br>`BoxGizmoDrawer.cs` | 1. 实现时间轴多轨道可视化（帧/盒/打断/事件/位移）<br>2. Scene 视口鼠标直观拖拽编辑判定盒<br>3. 动作数据完整性校验与导出 | 策划或开发者无需手写 JSON，在编辑器内 10 分钟内完成一个全新动作的完整配表。 |
 | **M8: 鸣人迁移与联机验收** | `ArtAssets/Characters/90001_Naruto/`<br>`naruto_actions.json`<br>`NarutoEntity.cs` | 1. 迁移鸣人全部动作至新框架<br>2. 彻底移除旧版状态机代码<br>3. 双端联机帧同步对战压力测试 | 双端 KCP 联机对战，连续执行 1000 帧复杂连招对抗，状态校验和一致，0 脱同步。 |
@@ -266,7 +273,7 @@ gantt
 | **`attack1`** | `Attack` | `attack1`, `attack` | 50%~100% 允许 `attack2`, `skill1`, `skill2` | `idle` | 平推受击判定，造成轻微地面推移 |
 | **`attack2`** | `Attack` | `attack2`, `attack` | 45%~100% 允许 `attack3`, `skill1`, `skill2` | `idle` | 平推受击判定，带前冲 RootMotion |
 | **`attack3`** | `Attack` | `attack3`, `attack` | 50%~100% 允许 `attack4`, `skill1`, `skill2` | `idle` | 击退判定，使目标进入较大受击硬直 |
-| **`attack4`** | `Attack` | `attack4`, `attack` | 60%~100% 允许 `skill1`, `skill2` | `idle` | 击飞判定（`ToAir`），目标升空并进入浮空保护计算 |
+| **`attack4`** | `Attack` | `attack4`, `attack` | 60%~100% 允许 `skill1`, `skill2` | `idle` | 击飞判定（`launchVelocity`），目标升空进入击飞状态 |
 | **`skill1`** | `Skill` | `skill`, `skill1` | 后摇阶段允许 `beCancelTag` | `idle` | 突进分身踢击，霸体等级为 `Skill` |
 | **`skill2_1`** | `Skill` | `skill`, `skill2_1` | 允许派生 `skill2_2` | `skill2_2` | 第 10 帧触发事件 `spawnEntity: CharClone` 召唤分身协同 |
 | **`skill2_2`** | `Skill` | `skill`, `skill2_2` | 后摇阶段允许取消 | `idle` | 螺旋丸本体突进多段判定，最后一击重度击飞 |
@@ -274,10 +281,10 @@ gantt
 | **`hurt_2`** | `Hurt` | - | 无 | `idle` | 地面重受击硬直 |
 | **`hurt_toair`**| `Hurt` | - | 无 | `hurt_inair` | 浮空上升阶段 |
 | **`hurt_inair`**| `Hurt` | - | 无 | `hurt_fall` | 浮空最高点下落阶段 |
-| **`hurt_fall`** | `Hurt` | - | 无 | `hurt_land` | 坠落阶段（可被扫地技能挑起） |
+| **`hurt_fall`** | `Hurt` | - | 无 | `hurt_fall` | 坠落阶段，循环播放直到落地（落地固定进入 `hurt_land`） |
 | **`hurt_land`** | `Hurt` | - | 无 | `lie` | 倒地触地弹起阶段 |
-| **`lie`** | `Lie` | - | 达到保护阈值时允许触发闪白起身 | `standup` | 倒地不起状态，仅受扫地技能影响 |
-| **`standup`** | `Standup`| - | 起身无敌帧 | `idle` | 起身阶段，附带 `Invincible` 霸体 |
+| **`lie`** | `Lie` | - | 无 | `standup` | 倒地不起状态（固定 id 即倒地标记），仅受扫地技能影响 |
+| **`standup`** | `Standup`| - | 起身无敌帧 | `idle` | 起身阶段，`armorPhase` 配置 `Invincible` |
 
 ---
 

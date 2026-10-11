@@ -50,6 +50,19 @@ namespace KiHan.Logic
         public bool IsFinished => ElapsedFrames >= TotalFrames;
 
         /// <summary>
+        /// 每个逻辑帧推进的动画帧数 (素材 30fps / 同步 30fps = 1；同步帧率低于素材帧率时 > 1，跳过显示的帧仍参与逻辑处理)
+        /// </summary>
+        public const int FRAMES_PER_TICK = GameConfig.RENDER_LOGIC_RATIO;
+
+        /// <summary>
+        /// 本逻辑帧处理过的动画帧区间 [TickFromFrame, TickToFrame)
+        /// 正常推进时包含 FRAMES_PER_TICK 帧；刚切换动作、卡帧或已播完时为空区间
+        /// 判定盒检测、攻击阶段、jump、附加加速度等按帧配置的逻辑统一以此区间为准，保证每个动画帧恰好被处理一次
+        /// </summary>
+        public int TickFromFrame { get; private set; } = 0;
+        public int TickToFrame { get; private set; } = 0;
+
+        /// <summary>
         /// 剩余卡帧停顿帧数 (HitStop)
         /// </summary>
         public int FreezeTicks { get; private set; } = 0;
@@ -115,6 +128,8 @@ namespace KiHan.Logic
             // 定位到起始帧
             startFromFrame = Mathf.Clamp(startFromFrame, 0, Mathf.Max(0, TotalFrames - 1));
             ElapsedFrames = startFromFrame;
+            TickFromFrame = startFromFrame;
+            TickToFrame = startFromFrame;
 
             LocateStepByElapsedFrames(startFromFrame);
             ApplyCurrentVisualFrame();
@@ -133,29 +148,36 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 核心驱动：由外部逻辑帧时钟 (CharacterEntity.Tick 或 Room.Tick) 每帧显式调用
+        /// 核心驱动：由外部逻辑帧时钟每个逻辑帧显式调用一次，推进 FRAMES_PER_TICK 个动画帧 (最多推进到动作末尾)
         /// </summary>
         public void Tick()
         {
-            if (CurrentAnimData == null || TotalFrames <= 0) return;
-
-            //// 1. 卡帧停顿 (HitStop) 期间，时钟完全冻结
-            //if (FreezeTicks > 0)
-            //{
-            //    FreezeTicks--;
-            //    return;
-            //}
-
-            // 2. 如果已经播完最后一帧，不再递增
-            if (IsFinished)
+            TickFromFrame = ElapsedFrames;
+            if (CurrentAnimData != null && TotalFrames > 0)
             {
-                return;
+                for (int i = 0; i < FRAMES_PER_TICK && !IsFinished; i++)
+                {
+                    AdvanceOneFrame();
+                }
             }
+            TickToFrame = ElapsedFrames;
+        }
 
-            // 3. 推进总整数帧数
+        /// <summary>
+        /// 本逻辑帧不推进 (卡帧)：处理区间置空
+        /// </summary>
+        public void Hold()
+        {
+            TickFromFrame = ElapsedFrames;
+            TickToFrame = ElapsedFrames;
+        }
+
+        private void AdvanceOneFrame()
+        {
+            // 1. 推进总整数帧数
             ElapsedFrames++;
 
-            // 4. 推进当前 Step 的流逝帧数并步进切片
+            // 2. 推进当前 Step 的流逝帧数并步进切片
             if (CurrentAnimData.Steps != null && CurrentAnimData.Steps.Count > 0)
             {
                 CurrentStepElapsedTicks++;
@@ -258,6 +280,79 @@ namespace KiHan.Logic
         }
 
         /// <summary>
+        /// 获取指定动画帧上的攻击盒列表 (用于逐帧检测本逻辑帧处理过的每一个动画帧)
+        /// </summary>
+        public List<LogicBox> GetHitBoxesAtFrame(int frame)
+        {
+            if (CurrentAnimData == null) return null;
+            return CurrentAnimData.GetHitBoxes(StepIndexOfFrame(frame));
+        }
+
+        /// <summary>
+        /// 动画帧号 -> 切片步索引 (超出范围时夹取到首尾步)
+        /// </summary>
+        public int StepIndexOfFrame(int frame) => StepIndexOfFrame(CurrentAnimData, frame);
+
+        private static int StepIndexOfFrame(AnimationFrameData animData, int frame)
+        {
+            if (animData == null || animData.Steps == null || animData.Steps.Count == 0) return 0;
+
+            int accumulated = 0;
+            for (int i = 0; i < animData.Steps.Count; i++)
+            {
+                accumulated += Mathf.Max(1, animData.Steps[i].Duration);
+                if (frame < accumulated) return i;
+            }
+            return animData.Steps.Count - 1;
+        }
+
+        /// <summary>
+        /// 获取当前动画指定动画帧上的指定名称锚点 (整数像素，相对脚底，未镜像)
+        /// </summary>
+        public bool TryGetAnchorAtFrame(int frame, string anchorName, out Vector2Int position)
+        {
+            return TryGetAnchor(CurrentAnimData, frame, anchorName, out position);
+        }
+
+        /// <summary>
+        /// 获取指定动画指定动画帧上的指定名称锚点 (用于加载时校验配置)
+        /// </summary>
+        public bool TryGetAnchorAtFrame(string animKey, int frame, string anchorName, out Vector2Int position)
+        {
+            position = Vector2Int.zero;
+            return animKey != null && _animDict.TryGetValue(animKey, out AnimationFrameData animData) &&
+                   TryGetAnchor(animData, frame, anchorName, out position);
+        }
+
+        /// <summary>
+        /// 指定动画的总帧数，动画未注册时返回 0
+        /// </summary>
+        public int GetTotalFrames(string animKey)
+        {
+            return animKey != null && _animDict.TryGetValue(animKey, out AnimationFrameData animData) ? CalculateTotalFrames(animData) : 0;
+        }
+
+        private static bool TryGetAnchor(AnimationFrameData animData, int frame, string anchorName, out Vector2Int position)
+        {
+            position = Vector2Int.zero;
+            if (animData == null) return false;
+
+            SpriteFrameData frameData = animData.GetCurrentFrameData(StepIndexOfFrame(animData, frame));
+            if (frameData == null || frameData.EffectAnchors == null) return false;
+
+            for (int i = 0; i < frameData.EffectAnchors.Count; i++)
+            {
+                EffectAnchorInfo anchor = frameData.EffectAnchors[i];
+                if (anchor != null && anchor.Name == anchorName)
+                {
+                    position = anchor.Position;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// 判定当前流逝的帧数是否落在指定区间内 [startFrame, endFrame]
         /// </summary>
         public bool IsInFrameRange(int startFrame, int endFrame)
@@ -285,6 +380,8 @@ namespace KiHan.Logic
             CurrentStepIndex = 0;
             CurrentStepElapsedTicks = 0;
             FreezeTicks = 0;
+            TickFromFrame = 0;
+            TickToFrame = 0;
         }
 
         #endregion

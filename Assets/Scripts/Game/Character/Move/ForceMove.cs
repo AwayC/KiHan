@@ -1,47 +1,61 @@
 using System;
 using TrueSync;
 using KiHan.Math;
-using UnityEngine;
 
 namespace KiHan.Logic
 {
     /// <summary>
-    /// 运行时受击/外力强制位移状态跟踪器 (纯定点数确定性运算)
+    /// 运行时受击/外力强制位移状态 (纯定点数确定性运算)
+    /// 值类型，作为角色字段原地复用：命中时 Start 覆盖，结束或打断时 Stop，0 GC
+    /// 按时间 (秒) 配置，与动作帧无关；卡帧期间不调用 Step，计时随之暂停
     /// </summary>
-    public class ForceMove
+    public struct ForceMove
     {
         public MoveInfo Data;
-        public FP TimeElapsed = FP.Zero;
-        public FP WasElapsed = FP.Zero;
-        public Func<ForceMove, FPVector3> MoveTween = _ => FPVector3.zero;
-
-        public static ForceMove FromData(MoveInfo data) => new ForceMove
-        {
-            Data = data,
-            TimeElapsed = FP.Zero,
-            WasElapsed = FP.Zero,
-            MoveTween = ForceMoveMethod.Methods.ContainsKey(data.tweenMethod)
-                ? ForceMoveMethod.Methods[data.tweenMethod]
-                : _ => FPVector3.zero
-        };
-
-        public static ForceMove NoForceMove => new ForceMove
-        {
-            Data = new MoveInfo(),
-            WasElapsed = FP.MaxValue,
-            TimeElapsed = FP.MaxValue,
-            MoveTween = _ => FPVector3.zero
-        };
 
         /// <summary>
-        /// 推进一个逻辑帧的位移时钟 (默认以 GameConfig.LOGIC_TICK_TIME_FP 推进)
+        /// 已流逝时间 (定点数秒)
         /// </summary>
-        public void StepTick() => StepTick(GameConfig.LOGIC_TICK_TIME_FP);
+        public FP TimeElapsed;
 
-        public void StepTick(FP deltaFP)
+        private Func<FP, FP> _ease;
+
+        /// <summary>
+        /// 是否仍在施加外力
+        /// </summary>
+        public bool Active => _ease != null && TimeElapsed < Data.inSec;
+
+        /// <summary>
+        /// 开始一段新的外力位移 (覆盖当前外力)
+        /// </summary>
+        /// <param name="worldData">世界空间位移配置 (本地配置需先经 MoveInfo.ToWorld 转换)</param>
+        public void Start(MoveInfo worldData)
         {
-            WasElapsed = TimeElapsed;
+            Data = worldData;
+            TimeElapsed = FP.Zero;
+            _ease = worldData.inSec > FP.Zero ? ForceMoveMethod.Get(worldData.tweenMethod) : null;
+        }
+
+        public void Stop()
+        {
+            Data = default;
+            TimeElapsed = FP.Zero;
+            _ease = null;
+        }
+
+        /// <summary>
+        /// 推进一个逻辑帧并返回本帧位移 = 总位移 × (ease(当前进度) - ease(上帧进度))
+        /// </summary>
+        public FPVector3 Step(FP deltaFP)
+        {
+            if (!Active) return FPVector3.zero;
+
+            FP total = Data.inSec;
+            FP wasPec = _ease(FPMath.Clamp01(TimeElapsed / total));
             TimeElapsed += deltaFP;
+            FP curPec = _ease(FPMath.Clamp01(TimeElapsed / total));
+
+            return Data.moveDistance * (curPec - wasPec);
         }
     }
 }

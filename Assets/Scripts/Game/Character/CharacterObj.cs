@@ -8,9 +8,25 @@ namespace KiHan.Logic
 {
     /// <summary>
     /// 角色动作与战斗实体逻辑主体 (纯定点数确定性运算)
+    /// 由 BattleWorld 按 EntityId 顺序显式驱动，不依赖 Unity Update 与物理系统
     /// </summary>
     public class CharacterObj : MonoBehaviour
     {
+        /// <summary>
+        /// 逻辑实体唯一 ID (决定遍历与结算顺序，必须在双端一致)
+        /// </summary>
+        public int EntityId;
+
+        /// <summary>
+        /// 阵营 ID，同阵营之间不产生命中
+        /// </summary>
+        public int TeamId;
+
+        /// <summary>
+        /// 对应 RoomFrame.InputFrames 的玩家槽位，-1 表示不接收网络输入 (如分身/AI)
+        /// </summary>
+        public int InputSlot = -1;
+
         /// <summary>
         /// 动作控制器
         /// </summary>
@@ -22,49 +38,83 @@ namespace KiHan.Logic
         public InputToCommand input;
 
         /// <summary>
-        /// 角色重量 (定点数)，影响下落加速度
+        /// 确定性运动体 (位置、竖直速度、滞空状态)
         /// </summary>
-        public FP weight = FP.Parse("4.5");
+        public readonly MotionBody motion = new MotionBody();
 
         /// <summary>
-        /// 是否处于下落状态 (由物理环境层或主逻辑统一裁决)
+        /// 移动速度 (定点数，单位/秒)
         /// </summary>
-        private bool _falling = false;
+        public FP moveSpeed = FP.Parse("3.0");
 
         /// <summary>
-        /// 当前下落累计重力位移量 (定点数)
+        /// 重力加速度 (定点数，单位/秒²)
         /// </summary>
-        private FP _curWeight = FP.Zero;
-
-        public bool Falling
-        {
-            get => _falling;
-            set
-            {
-                if (value && !_falling)
-                {
-                    _curWeight = FP.Zero;
-                }
-                _falling = value;
-            }
-        }
+        public FP gravity = FP.Parse("40");
 
         /// <summary>
-        /// 攻击盒与受击盒当前的接触状态缓存
+        /// 最大生命值 (定点数)
         /// </summary>
-        private readonly Dictionary<AttackHitBox, List<BeHitBox>> _boxTouches = new Dictionary<AttackHitBox, List<BeHitBox>>();
+        public FP maxHp = FP.Parse("1000");
 
         /// <summary>
-        /// 当前动作对各目标的命中冷却记录 (换动作时重置)
+        /// 当前生命值 (由 ResetCombatState 初始化为 maxHp)
         /// </summary>
-        public List<HitRecord> HitRecords { get; private set; } = new List<HitRecord>();
+        public FP Hp { get; private set; }
+
+        public bool IsDead => Hp <= FP.Zero;
 
         /// <summary>
-        /// 当前施加的强制外力位移
+        /// 当前动作对各目标的命中冷却记录 (换动作时重置；值类型按下标原地更新，预留容量避免扩容)
         /// </summary>
-        private ForceMove _forceMove = ForceMove.NoForceMove;
+        public List<HitRecord> HitRecords { get; private set; } = new List<HitRecord>(8);
 
-        private bool UnderForceMove => _forceMove.TimeElapsed <= _forceMove.Data.inSec;
+        /// <summary>
+        /// 本帧产生的物理事件
+        /// </summary>
+        public PhysicsEvent LastPhysicsEvent { get; private set; }
+
+        /// <summary>
+        /// 当前受击状态 (僵直/击飞期间不能主动行动)
+        /// </summary>
+        public HurtState Hurt { get; private set; } = HurtState.None;
+
+        /// <summary>
+        /// 剩余僵直逻辑帧数 (仅 Hurt == Stun 时有效)
+        /// </summary>
+        public int StunTicks { get; private set; }
+
+        /// <summary>
+        /// 抓住自己的角色 (仅 Hurt == Grabbed 时有效)
+        /// </summary>
+        public CharacterObj GrabbedBy { get; private set; }
+
+        /// <summary>
+        /// 自己正在抓取的目标
+        /// </summary>
+        public CharacterObj GrabTarget { get; private set; }
+
+        private string _grabAnchorName;
+
+        /// <summary>
+        /// 最近一次读取到的抓取锚点 (本地逻辑坐标，未按朝向镜像)；卡帧未推进动画帧时沿用
+        /// </summary>
+        private FPVector3 _grabAnchorLocal;
+        private ActionChangeInfo _grabRelease;
+
+        /// <summary>
+        /// 吸附来源与配置 (值类型/引用原地复用，0 GC)
+        /// </summary>
+        private CharacterObj _suctionSource;
+        private SuctionInfo _suction;
+        private FP _suctionElapsed;
+
+        /// <summary>
+        /// 当前施加的强制外力位移 (世界空间，值类型原地复用)
+        /// </summary>
+        private ForceMove _forceMove;
+
+        private bool UnderForceMove => _forceMove.Active;
 
         public bool Inversed
         {
@@ -75,16 +125,17 @@ namespace KiHan.Logic
             }
         }
 
-        private bool WishToMoveForward =>
-            input != null && (input.IsKeyHolding(CommandKey.Forward) || input.ActionOccur(new CommandKey[] { CommandKey.Forward }, validTicks: 1));
+        /// <summary>
+        /// 是否面朝左 (判定盒与 RootMotion 水平镜像)
+        /// </summary>
+        public bool FacingLeft => Inversed;
 
-        private bool WishToMoveBackward =>
-            input != null && (input.IsKeyHolding(CommandKey.Backward) || input.ActionOccur(new CommandKey[] { CommandKey.Backward }, validTicks: 1));
+        public bool IsAirborne => motion.IsAirborne;
 
         /// <summary>
-        /// 移动速度 (定点数，米/秒)
+        /// 是否倒地 (当前动作为通用倒地动作 lie)，倒地时只有 canHitLying 的攻击能命中
         /// </summary>
-        public FP moveSpeed = FP.Parse("3.0");
+        public bool IsLying => action != null && action.CurrentAction.id == HurtActionIds.Lie;
 
         private void Awake()
         {
@@ -96,224 +147,489 @@ namespace KiHan.Logic
                     HitRecords.Clear();
                 });
             }
-
-            // 初始化子物体中的判定盒所属主人
-            Transform[] transforms = GetComponentsInChildren<Transform>(true);
-            foreach (Transform trans in transforms)
-            {
-                AttackHitBox ahb = trans.GetComponent<AttackHitBox>();
-                if (ahb != null) ahb.master = this;
-
-                BeHitBox bhb = trans.GetComponent<BeHitBox>();
-                if (bhb != null) bhb.master = this;
-            }
         }
 
+        #region 逻辑帧驱动
+
         /// <summary>
-        /// 房间逻辑帧步进：默认以 GameConfig.LOGIC_TICK_TIME_FP 推进
+        /// 动作推进：默认以 GameConfig.LOGIC_TICK_TIME_FP 推进
         /// </summary>
         public void Tick() => Tick(GameConfig.LOGIC_TICK_TIME_FP);
 
         public void Tick(FP deltaFP)
         {
+            // 僵直倒计时：命中帧之后再经过 StunTicks 帧解除，解除当帧回到受击动作的 autoNext
+            if (Hurt == HurtState.Stun)
+            {
+                StunTicks--;
+                if (StunTicks <= 0) ExitHurt(true);
+            }
+
             // 推进动作状态机
             action?.Tick();
 
             // 推进命中冷却倒计时 (非受击停顿/卡帧时)
-            if (action != null && !action.Freezing)
+            if (action != null && !action.FrozenThisTick)
             {
                 for (int i = 0; i < HitRecords.Count; i++)
                 {
-                    HitRecords[i].Tick(deltaFP);
+                    HitRecord rec = HitRecords[i];
+                    rec.Tick(deltaFP);
+                    HitRecords[i] = rec;
                 }
             }
         }
 
         /// <summary>
-        /// 自然移动位移计算 (纯定点数确定性向量)
+        /// 物理推进：外力/自然位移 + 重力 + 地面 + 边界墙，并把落地等事件反馈给动作控制器
         /// </summary>
-        public FPVector3 NatureMove() => NatureMove(GameConfig.LOGIC_TICK_TIME_FP);
+        public PhysicsEvent PhysicsTick(MapLogic map) => PhysicsTick(map, GameConfig.LOGIC_TICK_TIME_FP);
 
-        public FPVector3 NatureMove(FP deltaFP)
+        public PhysicsEvent PhysicsTick(MapLogic map, FP deltaFP)
         {
-            FP horizMove = FP.Zero;
-            if (WishToMoveForward)
-                horizMove = moveSpeed * action.MoveInputAcceptance * deltaFP;
-            else if (WishToMoveBackward)
-                horizMove = -moveSpeed * action.MoveInputAcceptance * deltaFP;
+            LastPhysicsEvent = PhysicsEvent.None;
 
-            FP x = (horizMove + action.RootMotionMove.x) * (Inversed ? -FP.One : FP.One);
-            FP y = action.RootMotionMove.y - _curWeight;
-            FP z = action.RootMotionMove.z;
+            // 卡帧时位移、重力、外力计时全部冻结；被抓取时位置由抓取者在 UpdateGrab 中设置
+            if (action == null || action.FrozenThisTick || Hurt == HurtState.Grabbed) return LastPhysicsEvent;
 
-            return new FPVector3(x, y, z);
-        }
-
-        public Vector3 NatureMove(int ticks)
-        {
-            return NatureMove(GameConfig.LOGIC_TICK_TIME_FP * ticks).ToVector3();
-        }
-
-        /// <summary>
-        /// 获取当前逻辑帧的总位移增量 (纯定点数确定性运算)
-        /// </summary>
-        public FPVector3 ThisTickMove() => ThisTickMove(GameConfig.LOGIC_TICK_TIME_FP);
-
-        public FPVector3 ThisTickMove(FP deltaFP)
-        {
-            // 卡顿/硬直时不移动
-            if (action != null && action.Freezing) return FPVector3.zero;
-
-            // 优先执行强制外力位移
+            FPVector3 delta;
             if (UnderForceMove)
             {
-                FPVector3 fMove = _forceMove.MoveTween(_forceMove);
-                _forceMove.StepTick(deltaFP);
-                return fMove;
+                delta = _forceMove.Step(deltaFP);
+            }
+            else
+            {
+                delta = NatureMove(deltaFP);
             }
 
-            // 下落重力累加
-            if (_falling) _curWeight += weight * deltaFP;
-            else _curWeight = FP.Zero;
+            // 竖直只走速度模型：起跳设置速度，动作附加加速度与重力合成积分 (曲线位移的 z 分量不参与)
+            if (action.VelocityZTriggered) motion.Launch(action.VelocityZ);
 
-            // 无强制外力时执行自然移动
-            return NatureMove(deltaFP);
-        }
+            LastPhysicsEvent = motion.Step(delta, action.ZAcceleration, gravity, deltaFP, map);
 
-
-        /// <summary>
-        /// 设置强制外力位移
-        /// </summary>
-        public void SetForceMove(MoveInfo force)
-        {
-            _forceMove = ForceMove.FromData(force);
-        }
-
-        /// <summary>
-        /// 攻击盒子当前是否激活？
-        /// </summary>
-        public bool ShouldAttackBoxActive(string[] tags)
-        {
-            if (tags == null || action == null) return false;
-            foreach (string s in tags)
+            // 落地兜底：空中动作或击飞状态在地面上 (从未真正离地，不会产生 Landed 事件) 时视同落地
+            if ((LastPhysicsEvent & PhysicsEvent.Landed) == 0 && motion.IsGrounded &&
+                (action.CurrentAction.IsAirAction || Hurt == HurtState.Launch))
             {
-                if (action.ActiveAttackBoxTag.Contains(s))
-                    return true;
+                LastPhysicsEvent |= PhysicsEvent.Landed;
+            }
+
+            // 击飞状态落地即解除，并强制进入通用落地受击动作 (之后经 autoNext 链转倒地/起身)
+            if (Hurt == HurtState.Launch && (LastPhysicsEvent & PhysicsEvent.Landed) != 0)
+            {
+                ExitHurt(false);
+                action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(HurtActionIds.Land), ForceDirection.Forward);
+            }
+
+            action.OnPhysicsEvent(LastPhysicsEvent);
+            return LastPhysicsEvent;
+        }
+
+        /// <summary>
+        /// 自然水平位移：摇杆输入 × 动作移动接受率 + RootMotion (x 随朝向镜像)
+        /// </summary>
+        public FPVector3 NatureMove(FP deltaFP)
+        {
+            FPVector3 rootMotion = action.RootMotionMove;
+            FPVector2 dir = input != null && !action.ControlLocked ? input.MoveDirectionFP : FPVector2.zero;
+            FP step = moveSpeed * action.MoveInputAcceptance * deltaFP;
+            FP facing = FacingLeft ? -FP.One : FP.One;
+
+            return new FPVector3(
+                dir.x * step + rootMotion.x * facing,
+                dir.y * step + rootMotion.y,
+                FP.Zero
+            );
+        }
+
+        /// <summary>
+        /// 设置强制外力位移 (世界空间，本地配置需先经 MoveInfo.ToWorld 按施力者朝向转换)
+        /// </summary>
+        public void SetForceMove(MoveInfo worldForce)
+        {
+            _forceMove.Start(worldForce);
+        }
+
+        public void ClearForceMove()
+        {
+            _forceMove.Stop();
+        }
+
+        #endregion
+
+        #region 受击状态
+
+        /// <summary>
+        /// 进入僵直：覆盖剩余僵直时长；ticks <= 0 时不改变当前状态
+        /// </summary>
+        public void EnterStun(int ticks)
+        {
+            if (ticks <= 0) return;
+            Hurt = HurtState.Stun;
+            StunTicks = ticks;
+            GrabbedBy = null;
+            action?.Lock(true);
+        }
+
+        /// <summary>
+        /// 进入击飞 (竖直速度由调用方通过 motion.Launch 设置)，持续到落地
+        /// </summary>
+        public void EnterLaunch()
+        {
+            Hurt = HurtState.Launch;
+            StunTicks = 0;
+            GrabbedBy = null;
+            action?.Lock(false);
+        }
+
+        /// <summary>
+        /// 被抓取：清除竖直速度、外力与吸附，位置交由抓取者每帧设置
+        /// </summary>
+        public void EnterGrabbed(CharacterObj grabber)
+        {
+            Hurt = HurtState.Grabbed;
+            StunTicks = 0;
+            GrabbedBy = grabber;
+            motion.Launch(FP.Zero);
+            ClearForceMove();
+            StopSuction();
+            action?.Lock(true);
+        }
+
+        private void ExitHurt(bool toAutoNext)
+        {
+            Hurt = HurtState.None;
+            StunTicks = 0;
+            GrabbedBy = null;
+            action?.Unlock(toAutoNext);
+        }
+
+        /// <summary>
+        /// 扣除生命值 (霸体抵挡时同样结算)
+        /// </summary>
+        public void TakeDamage(FP damage)
+        {
+            if (damage <= FP.Zero) return;
+            Hp = FPMath.Max(FP.Zero, Hp - damage);
+        }
+
+        /// <summary>
+        /// 进入战斗时重置战斗状态
+        /// </summary>
+        public void ResetCombatState()
+        {
+            Hp = maxHp;
+            Hurt = HurtState.None;
+            StunTicks = 0;
+            GrabbedBy = null;
+            GrabTarget = null;
+            ClearForceMove();
+            StopSuction();
+            HitRecords.Clear();
+        }
+
+        #endregion
+
+        #region 抓取与吸附 (BattleWorld 在全部角色物理之后统一更新，保证使用抓取者/吸附源本帧的最终位置)
+
+        /// <summary>
+        /// 抓住目标
+        /// </summary>
+        public void StartGrab(CharacterObj target, GrabInfo grab)
+        {
+            if (GrabTarget != null && GrabTarget != target) ReleaseGrab();
+            GrabTarget = target;
+            _grabAnchorName = string.IsNullOrEmpty(grab.anchor) ? GrabInfo.DefaultAnchor : grab.anchor;
+            _grabRelease = grab.releaseActionChange;
+            _grabAnchorLocal = FPVector3.zero;
+            TryReadGrabAnchor(out _grabAnchorLocal);
+            target.EnterGrabbed(this);
+        }
+
+        /// <summary>
+        /// 维持抓取 (锚点即抓取)：
+        /// 1. 目标已被其他命中改变状态 (如投掷命中) 则断开
+        /// 2. 本逻辑帧推进了动画帧时，读取最后处理的动画帧上的抓取锚点：锚点消失即释放 (主动松手 / 动作播完 / 被打断)
+        ///    卡帧未推进时沿用上次锚点
+        /// 3. 把目标锁到锚点
+        /// </summary>
+        public void UpdateGrab(MapLogic map)
+        {
+            if (GrabTarget == null) return;
+
+            if (GrabTarget.Hurt != HurtState.Grabbed || GrabTarget.GrabbedBy != this)
+            {
+                GrabTarget = null;
+                return;
+            }
+
+            FrameAnimator anim = action != null ? action.anim : null;
+            if (anim != null && anim.TickToFrame > anim.TickFromFrame)
+            {
+                if (!TryReadGrabAnchor(out FPVector3 local))
+                {
+                    ReleaseGrab();
+                    return;
+                }
+                _grabAnchorLocal = local;
+            }
+
+            FPVector3 pos = motion.Position + new FPVector3(FacingLeft ? -_grabAnchorLocal.x : _grabAnchorLocal.x, _grabAnchorLocal.y, _grabAnchorLocal.z);
+            if (pos.z < FP.Zero) pos.z = FP.Zero;
+            map?.ClampPlanar(ref pos);
+            GrabTarget.motion.Position = pos;
+        }
+
+        /// <summary>
+        /// 读取本逻辑帧最后处理的动画帧上的抓取锚点 (像素 -> 逻辑单位：x 前方, z 高度, 纵深为 0)
+        /// </summary>
+        private bool TryReadGrabAnchor(out FPVector3 local)
+        {
+            local = FPVector3.zero;
+            FrameAnimator anim = action != null ? action.anim : null;
+            if (anim == null) return false;
+
+            int frame = anim.TickToFrame > anim.TickFromFrame ? anim.TickToFrame - 1 : anim.TickToFrame;
+            if (!anim.TryGetAnchorAtFrame(frame, _grabAnchorName, out Vector2Int px)) return false;
+
+            local = new FPVector3(GameConfig.PixelToUnit(px.x), FP.Zero, GameConfig.PixelToUnit(px.y));
+            return true;
+        }
+
+        /// <summary>
+        /// 非投掷方式解除抓取 (锚点消失 / 移出战场)：目标按 releaseActionChange 变化动作，在空中则转为击飞状态下落
+        /// </summary>
+        public void ReleaseGrab()
+        {
+            CharacterObj target = GrabTarget;
+            GrabTarget = null;
+            if (target != null && target.GrabbedBy == this) target.ReleaseFromGrab(_grabRelease);
+        }
+
+        private void ReleaseFromGrab(ActionChangeInfo releaseChange)
+        {
+            GrabbedBy = null;
+            if (motion.Position.z > FP.Zero)
+            {
+                EnterLaunch();
+            }
+            else
+            {
+                ExitHurt(false);
+            }
+            action?.PreorderActionByActionChangeInfo(releaseChange, ForceDirection.Forward);
+        }
+
+        /// <summary>
+        /// 开始被吸附 (覆盖当前吸附)
+        /// </summary>
+        public void StartSuction(CharacterObj source, SuctionInfo suction)
+        {
+            _suctionSource = source;
+            _suction = suction;
+            _suctionElapsed = FP.Zero;
+        }
+
+        public void StopSuction()
+        {
+            _suctionSource = null;
+            _suctionElapsed = FP.Zero;
+        }
+
+        /// <summary>
+        /// 吸附：每帧把水平位置向吸附源的核心点拉近 speed × dt，不越过核心点 (竖直方向不受影响)
+        /// </summary>
+        public void UpdateSuction(MapLogic map, FP deltaFP)
+        {
+            if (_suctionSource == null) return;
+            if (Hurt == HurtState.Grabbed || (action != null && action.FrozenThisTick)) return;
+            if (_suctionElapsed >= _suction.inSec)
+            {
+                StopSuction();
+                return;
+            }
+            _suctionElapsed += deltaFP;
+
+            FPVector3 src = _suctionSource.motion.Position;
+            FP cx = src.x + (_suctionSource.FacingLeft ? -_suction.center.x : _suction.center.x);
+            FP cy = src.y + _suction.center.y;
+
+            FPVector3 pos = motion.Position;
+            FPVector2 toCenter = new FPVector2(cx - pos.x, cy - pos.y);
+            FP dist = toCenter.magnitude;
+            FP step = _suction.speed * deltaFP;
+
+            if (dist <= step)
+            {
+                pos.x = cx;
+                pos.y = cy;
+            }
+            else
+            {
+                FPVector2 move = toCenter * (step / dist);
+                pos.x += move.x;
+                pos.y += move.y;
+            }
+
+            map?.ClampPlanar(ref pos);
+            motion.Position = pos;
+        }
+
+        #endregion
+
+        #region 判定盒 (逐帧像素盒 + 动作阶段 tag 门控)
+
+        /// <summary>
+        /// 攻击盒在指定动画帧是否被当前动作的攻击阶段开启，并给出对应阶段 (同时命中多个阶段取优先级最高者)
+        /// </summary>
+        private bool TryGetAttackPhaseAtFrame(LogicBox box, int frame, out AttackBoxTurnOnInfo phase)
+        {
+            phase = default;
+            bool found = false;
+            AttackBoxTurnOnInfo[] phases = action.CurrentAction.attackPhase;
+            if (phases == null) return false;
+
+            foreach (AttackBoxTurnOnInfo info in phases)
+            {
+                if (!InRanges(info.inPercentage, frame) || !TagMatch(box.Tag, info.tag)) continue;
+                if (!found || info.priority > phase.priority)
+                {
+                    phase = info;
+                    found = true;
+                }
+            }
+            return found;
+        }
+
+        private static bool InRanges(FrameRange[] ranges, int frame)
+        {
+            if (ranges == null) return false;
+            foreach (FrameRange range in ranges)
+            {
+                if (frame >= range.min && frame <= range.max) return true;
             }
             return false;
         }
 
         /// <summary>
-        /// 受击盒子当前是否激活？
+        /// 受击盒是否开启：动作未配置 defensePhase 时所有受击盒默认开启；
+        /// 配置了 defensePhase 时仅在其开启区间内生效 (区间外即无敌)
         /// </summary>
-        public bool ShouldBeHitBoxActive(string[] tags)
+        private bool TryGetDefensePhase(LogicBox box, out BeHitBoxTurnOnInfo phase)
         {
-            if (tags == null || action == null) return false;
-            foreach (string s in tags)
+            phase = default;
+            ActionInfo cur = action.CurrentAction;
+            if (cur.defensePhase == null || cur.defensePhase.Length == 0) return true;
+
+            bool found = false;
+            foreach (BeHitBoxTurnOnInfo info in action.ActiveBeHitBoxInfo)
             {
-                if (action.ActiveBeHitBoxTag.Contains(s))
-                    return true;
-            }
-            return false;
-        }
-
-        public void OnAttackBoxHit(AttackHitBox attackHitBox, BeHitBox targetBox)
-        {
-            if (attackHitBox == null || targetBox == null) return;
-
-            if (!_boxTouches.ContainsKey(attackHitBox))
-                _boxTouches.Add(attackHitBox, new List<BeHitBox>());
-
-            if (!_boxTouches[attackHitBox].Contains(targetBox))
-                _boxTouches[attackHitBox].Add(targetBox);
-        }
-
-        public void OnAttackBoxExit(AttackHitBox attackHitBox, BeHitBox beHitBox)
-        {
-            if (attackHitBox == null || beHitBox == null) return;
-            if (!_boxTouches.ContainsKey(attackHitBox)) return;
-            _boxTouches[attackHitBox].Remove(beHitBox);
-        }
-
-        private BeHitBoxTurnOnInfo GetDefensePhaseByBeHitBox(BeHitBox box)
-        {
-            if (box == null || box.tags == null || action == null) return new BeHitBoxTurnOnInfo();
-
-            foreach (string boxTag in box.tags)
-            {
-                foreach (BeHitBoxTurnOnInfo info in action.ActiveBeHitBoxInfo)
+                if (!TagMatch(box.Tag, info.tag)) continue;
+                if (!found || info.priority > phase.priority)
                 {
-                    if (info.tag == null) continue;
-                    foreach (string infoTag in info.tag)
-                    {
-                        if (infoTag == boxTag)
-                            return info;
-                    }
+                    phase = info;
+                    found = true;
                 }
             }
-            return new BeHitBoxTurnOnInfo();
+            return found;
         }
 
         /// <summary>
-        /// 判定当前帧是否命中目标角色 (冒泡出最高优先级的判定结果)
+        /// 盒 Tag 为空时匹配任意开启的阶段，否则需在阶段 tag 列表中
         /// </summary>
-        public bool CanAttackTargetNow(CharacterObj target, out AttackInfo attackPhase, out BeHitBoxTurnOnInfo defensePhase, out AttackHitBox attackBox, out BeHitBox targetBox)
+        private static bool TagMatch(string boxTag, string[] phaseTags)
         {
-            attackBox = null;
-            targetBox = null;
-            attackPhase = new AttackInfo();
-            defensePhase = new BeHitBoxTurnOnInfo();
-
-            if (target == null || target.action == null || action == null) return false;
-
-            // 收集目标激活的受击盒 Tag
-            List<string> activeBoxTag = new List<string>();
-            foreach (BeHitBoxTurnOnInfo info in target.action.ActiveBeHitBoxInfo)
+            if (string.IsNullOrEmpty(boxTag)) return true;
+            if (phaseTags == null) return false;
+            foreach (string t in phaseTags)
             {
-                if (info.tag == null) continue;
-                foreach (string t in info.tag)
-                {
-                    if (!activeBoxTag.Contains(t)) activeBoxTag.Add(t);
-                }
+                if (t == boxTag) return true;
             }
-
-            // 遍历自身所有激活的攻击盒判定
-            foreach (AttackBoxTurnOnInfo boxInfo in action.ActiveAttackBoxInfo)
-            {
-                foreach (KeyValuePair<AttackHitBox, List<BeHitBox>> touch in _boxTouches)
-                {
-                    if (!touch.Key.Active) continue;
-
-                    BeHitBox best = null;
-                    int bestPriority = 0;
-                    foreach (BeHitBox hitBox in touch.Value)
-                    {
-                        if (hitBox == null || !hitBox.Active || hitBox.master != target || !hitBox.TagHit(activeBoxTag)) continue;
-
-                        BeHitBoxTurnOnInfo info = GetDefensePhaseByBeHitBox(hitBox);
-                        int thisPriority = hitBox.Priority + info.priority;
-                        if (best == null || thisPriority > bestPriority)
-                        {
-                            best = hitBox;
-                            bestPriority = thisPriority;
-                            defensePhase = info;
-                        }
-                    }
-
-                    if (best == null) continue;
-
-                    attackBox = touch.Key;
-                    targetBox = best;
-                    if (action.CurrentAction.attacks != null && boxInfo.attackPhase >= 0 && boxInfo.attackPhase < action.CurrentAction.attacks.Length)
-                    {
-                        attackPhase = action.CurrentAction.attacks[boxInfo.attackPhase];
-                    }
-                    return true;
-                }
-            }
-
             return false;
         }
+
+        /// <summary>
+        /// 判定当前逻辑帧是否命中目标角色 (纯定点数 AABB 检测，冒泡出最高优先级的盒子组合)
+        /// 攻击方：逐个检测本逻辑帧处理过的每个动画帧 [TickFromFrame, TickToFrame) 上的攻击盒，跳过显示的帧也参与判定
+        /// 受击方：使用当前姿态 (当前切片步) 的受击盒
+        /// </summary>
+        public bool CanAttackTargetNow(CharacterObj target, out HitResult hit)
+        {
+            hit = default;
+            if (target == null || target == this || target.action == null || action == null) return false;
+            if (action.anim == null || target.action.anim == null) return false;
+            if (action.ActiveAttackBoxInfo.Count == 0) return false;
+
+            // 无敌不产生命中；已死亡不再受击
+            if (target.IsDead || target.action.CurrentArmor == ArmorLevel.Invincible) return false;
+
+            List<LogicBox> hurtBoxes = target.action.anim.GetCurrentHurtBoxes();
+            if (hurtBoxes == null || hurtBoxes.Count == 0) return false;
+
+            bool found = false;
+            for (int frame = action.anim.TickFromFrame; frame < action.anim.TickToFrame; frame++)
+            {
+                if (CheckHitAtFrame(target, frame, hurtBoxes, ref hit)) found = true;
+            }
+            return found;
+        }
+
+        /// <summary>
+        /// 检测攻击方某一动画帧的攻击盒，若得到更高优先级的命中则写入 hit
+        /// </summary>
+        private bool CheckHitAtFrame(CharacterObj target, int frame, List<LogicBox> hurtBoxes, ref HitResult hit)
+        {
+            List<LogicBox> hitBoxes = action.anim.GetHitBoxesAtFrame(frame);
+            if (hitBoxes == null || hitBoxes.Count == 0) return false;
+
+            ActionInfo cur = action.CurrentAction;
+            bool found = false;
+
+            foreach (LogicBox hitBox in hitBoxes)
+            {
+                if (!hitBox.IsValid || !TryGetAttackPhaseAtFrame(hitBox, frame, out AttackBoxTurnOnInfo atkPhase)) continue;
+
+                int phaseIdx = atkPhase.attackPhase;
+                if (cur.attacks == null || phaseIdx < 0 || phaseIdx >= cur.attacks.Length) continue;
+
+                // 倒地目标只能被扫地 (canHitLying) 攻击命中
+                if (target.IsLying && !cur.attacks[phaseIdx].canHitLying) continue;
+
+                int recIdx = IndexOfHitRecord(target, phaseIdx);
+                if (recIdx >= 0 && !HitRecords[recIdx].CanHitNow) continue;
+
+                FPBox atkWorld = hitBox.ToWorld(motion.Position, FacingLeft);
+
+                foreach (LogicBox hurtBox in hurtBoxes)
+                {
+                    if (!hurtBox.IsValid || !target.TryGetDefensePhase(hurtBox, out BeHitBoxTurnOnInfo defPhase)) continue;
+
+                    FPBox defWorld = hurtBox.ToWorld(target.motion.Position, target.FacingLeft);
+                    if (!atkWorld.Overlaps(defWorld)) continue;
+
+                    int priority = atkPhase.priority + defPhase.priority;
+                    if (hit.Attacker != null && priority <= hit.Priority) continue;
+
+                    found = true;
+                    hit = new HitResult
+                    {
+                        Attacker = this,
+                        Target = target,
+                        AttackPhase = phaseIdx,
+                        Attack = cur.attacks[phaseIdx],
+                        Defense = defPhase,
+                        HitPoint = atkWorld.IntersectionCenter(defWorld),
+                        Priority = priority
+                    };
+                }
+            }
+
+            return found;
+        }
+
+        #endregion
+
+        #region 命中记录
 
         /// <summary>
         /// 添加或更新命中记录 (使用定点数冷却)
@@ -321,33 +637,38 @@ namespace KiHan.Logic
         public void AddHitRecord(CharacterObj target, int attackPhase)
         {
             if (target == null || action == null) return;
+            ActionInfo cur = action.CurrentAction;
+            if (cur.attacks == null || attackPhase < 0 || attackPhase >= cur.attacks.Length) return;
 
-            int idx = action.IndexOfAttack(attackPhase);
-            if (idx < 0 || action.CurrentAction.attacks == null || idx >= action.CurrentAction.attacks.Length) return;
-
-            var atk = action.CurrentAction.attacks[idx];
-            HitRecord rec = GetHitRecord(target, attackPhase);
-            if (rec == null)
+            AttackInfo atk = cur.attacks[attackPhase];
+            int recIdx = IndexOfHitRecord(target, attackPhase);
+            if (recIdx < 0)
             {
                 HitRecords.Add(new HitRecord(target, attackPhase, atk.canHitSameTarget - 1, atk.hitSameTargetDelay));
             }
             else
             {
+                HitRecord rec = HitRecords[recIdx];
                 rec.Cooldown = atk.hitSameTargetDelay;
                 rec.CanHitTimes -= 1;
+                HitRecords[recIdx] = rec;
             }
         }
 
-        public HitRecord GetHitRecord(CharacterObj target, int phase)
+        /// <summary>
+        /// 查找对目标某段伤害的命中记录下标，不存在返回 -1
+        /// </summary>
+        public int IndexOfHitRecord(CharacterObj target, int phase)
         {
-            if (target == null) return null;
-            int targetId = target.gameObject.GetInstanceID();
+            if (target == null) return -1;
             for (int i = 0; i < HitRecords.Count; i++)
             {
-                if (HitRecords[i].UniqueId == targetId && HitRecords[i].Phase == phase)
-                    return HitRecords[i];
+                if (HitRecords[i].UniqueId == target.EntityId && HitRecords[i].Phase == phase)
+                    return i;
             }
-            return null;
+            return -1;
         }
+
+        #endregion
     }
 }

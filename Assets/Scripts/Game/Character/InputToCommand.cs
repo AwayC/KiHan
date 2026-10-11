@@ -61,7 +61,12 @@ namespace KiHan.Logic
         public bool inversed = false;
 
         [Header("历史记录最多保留的逻辑帧数")]
-        [SerializeField] private uint maxKeepTicks = 45; // 45帧 (15 FPS 下为 3秒)
+        [SerializeField] private uint maxKeepTicks = GameConfig.LOGIC_FPS * 3; // 3 秒
+
+        /// <summary>
+        /// 指令未配置有效窗口时的默认逻辑帧数 (0.4 秒)
+        /// </summary>
+        private const int DefaultValidTicks = GameConfig.LOGIC_FPS * 2 / 5;
 
         // ------------------ 轨道 A: 连续物理方向 (保留真实角度) ------------------
         /// <summary>
@@ -299,7 +304,7 @@ namespace KiHan.Logic
             int seqIdx = command.keySequence.Length - 1;
             int validTicks = command.validInSec > FP.Zero 
                 ? (int)FP.Ceiling(command.validInSec * GameConfig.LOGIC_FPS) 
-                : 6; // 默认 6 逻辑帧 (~0.4秒)
+                : DefaultValidTicks;
 
             for (int i = _inputHistory.Count - 1; i >= 0; i--)
             {
@@ -325,7 +330,7 @@ namespace KiHan.Logic
         /// </summary>
         /// <param name="sequence">指令序列</param>
         /// <param name="validTicks">有效逻辑帧跨度</param>
-        public bool ActionOccur(CommandKey[] sequence, int validTicks = 6)
+        public bool ActionOccur(CommandKey[] sequence, int validTicks = DefaultValidTicks)
         {
             if (sequence == null || sequence.Length == 0) return false;
 

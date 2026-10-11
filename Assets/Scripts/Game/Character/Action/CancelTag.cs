@@ -23,9 +23,9 @@ namespace KiHan.Logic
     public struct BeCancelledTag
     {
         /// <summary>
-        /// 允许打断的帧区间 (x: 起始帧, y: 结束帧)
+        /// 允许打断的动画帧区间 (30fps 素材帧，x: 起始帧, y: 结束帧)
         /// </summary>
-        public Vector2 range;
+        public Vector2Int range;
 
         /// <summary>
         /// 可以 Cancel 的 CancelTag
@@ -42,7 +42,7 @@ namespace KiHan.Logic
         /// </summary>
         public static BeCancelledTag FromTemp(TempBeCancelledTag tempTag, int currentFrame) => new BeCancelledTag
         {
-            range = new Vector2(currentFrame, currentFrame + tempTag.startFrames),
+            range = new Vector2Int(currentFrame, currentFrame + tempTag.startFrames),
             cancelTag = tempTag.cancelTag,
             priority = tempTag.priority
         };

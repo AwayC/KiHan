@@ -255,13 +255,11 @@ namespace KiHan.Logic
 
         /// <summary>
 
-        /// 指向Methods/RootMotionMethods下的RootMotion函数
-
-        /// 如果这个函数找不到或者这个值为空，则会返回停留在原地(Vector3.zero)
+        /// RootMotion 分段列表 (水平缓动位移 + 竖直速度/加速度)，为空则原地不动
 
         /// </summary>
 
-        public ScriptMethodInfo rootMotionTween;
+        public RootMotionSegment[] rootMotion;
 
 
 
@@ -274,6 +272,55 @@ namespace KiHan.Logic
         /// </summary>
 
         public int priority;
+
+
+
+        /// <summary>
+
+        /// 滞空中落地时的动作变化 (如 jump_fall -> land、air_attack -> land)
+
+        /// changeType 为 Keep 时落地不改变动作；击飞落地固定进入 hurt_land，不读取此字段
+
+        /// </summary>
+
+        public ActionChangeInfo onLand;
+
+
+
+        /// <summary>
+
+        /// 是否为空中动作 (隐性姿态)：配置了 onLand 且没有设置竖直速度的分段 (自身不起跳)，在地面上时视同落地
+
+        /// 动作的进入条件不再单独配置姿态，由 cancelTag / beCancelledTag 的取消关系决定 (如空中攻击只挂在跳跃动作的取消窗口上)
+
+        /// </summary>
+
+        public bool IsAirAction => onLand.changeType != ActionChangeType.Keep && !HasVelocityZSegment;
+
+
+
+        public bool HasVelocityZSegment
+        {
+            get
+            {
+                if (rootMotion == null) return false;
+                for (int i = 0; i < rootMotion.Length; i++)
+                {
+                    if (rootMotion[i].hasVelocityZ) return true;
+                }
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+
+        /// 霸体开启区间，多个区间重叠时取最高等级
+
+        /// </summary>
+
+        public ArmorPhaseInfo[] armorPhase;
 
     }
 
@@ -311,11 +358,11 @@ namespace KiHan.Logic
 
         /// <summary>
 
-        /// 在百分比多少的阶段
+        /// 生效的动画帧区间 (30fps 素材帧，x: 起始帧, y: 结束帧)
 
         /// </summary>
 
-        public Vector2 range;
+        public Vector2Int range;
 
         /// <summary>
 

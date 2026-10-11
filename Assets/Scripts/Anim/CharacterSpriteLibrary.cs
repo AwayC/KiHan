@@ -4,11 +4,15 @@ using KiHan.Logic;
 
 namespace KiHan.Logic
 {
+    /// <summary>
+    /// 帧锚点 (整数像素，相对脚底中心；x 面朝方向为正, y 高度)
+    /// 表现层用作特效挂点；逻辑层按名称读取 (如抓取锚点 "grab")，因此必须为整数保证确定性
+    /// </summary>
     [System.Serializable]
     public class EffectAnchorInfo
     {
         public string Name = "Default";
-        public Vector2 Position;
+        public Vector2Int Position;
     }
 
     [System.Serializable]
@@ -29,12 +33,12 @@ namespace KiHan.Logic
 [CreateAssetMenu(fileName = "NewSpriteLibrary", menuName = "Naruto/Sprite Library")]
 public class CharacterSpriteLibrary : ScriptableObject
 {
-    [Header("判定盒模板 (像素单位)")]
-    public LogicBox DefaultHurtBox = new LogicBox(new Vector2(0f, 60f), new Vector2(60f, 140f), 80.0f);
-    public LogicBox DefaultHitBox = new LogicBox(new Vector2(40f, 60f), new Vector2(60f, 60f), 80.0f);
+    [Header("判定盒模板 (整数像素单位)")]
+    public LogicBox DefaultHurtBox = new LogicBox(new Vector2Int(0, 60), new Vector2Int(60, 140), 80);
+    public LogicBox DefaultHitBox = new LogicBox(new Vector2Int(40, 60), new Vector2Int(60, 60), 80);
 
-    [Header("厚度预设 (Side Presets)")]
-    public List<float> SidePresets = new List<float> { 50.0f, 80.0f, 100.0f, 150.0f };
+    [Header("厚度预设 (Side Presets，整数像素)")]
+    public List<int> SidePresets = new List<int> { 50, 80, 100, 150 };
 
     public List<SpriteFrameData> AllFrames = new List<SpriteFrameData>();
 

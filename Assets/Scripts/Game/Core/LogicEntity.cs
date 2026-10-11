@@ -125,8 +125,8 @@ public abstract class LogicEntity
         if (MapManager.Instance != null && MapManager.Instance.CurrentMapLogic != null)
         {
             var map = MapManager.Instance.CurrentMapLogic;
-            pos.x = Mathf.Clamp(pos.x, map.MinX, map.MaxX);
-            pos.y = Mathf.Clamp(pos.y, map.MinY, map.MaxY);
+            pos.x = Mathf.Clamp(pos.x, map.MinX.AsFloat(), map.MaxX.AsFloat());
+            pos.y = Mathf.Clamp(pos.y, map.MinY.AsFloat(), map.MaxY.AsFloat());
         }
     }
 

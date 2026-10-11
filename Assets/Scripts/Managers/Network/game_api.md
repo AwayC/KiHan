@@ -71,7 +71,7 @@ message RoomFrame {
 
 ### CmdID: 2003 - 游戏开始通知 (Server 推送)
 *   **通知: GameStartNtf**
-    *   **描述**: 所有人准备完毕，服务器广播开始，同时开始以固定频率 (如 66ms) 下发逻辑帧。
+    *   **描述**: 所有人准备完毕，服务器广播开始，同时开始以固定频率 (1/30 秒，约 33.3ms) 下发逻辑帧。
     *   **Payload**: `message GameStartNtf { int32 room_id = 1; }`
 
 ### CmdID: 2004 - 客户端帧输入上报
@@ -88,7 +88,7 @@ message RoomFrame {
 
 ### CmdID: 2005 - 房间物理/逻辑帧广播 (Server 推送)
 *   **通知: RoomFrameUpdate**
-    *   **描述**: 服务器以 66ms (15FPS) 频率向房间内所有人广播整合后的操作帧。
+    *   **描述**: 服务器以约 33.3ms (30FPS) 频率向房间内所有人广播整合后的操作帧。
     *   **Payload**: `message RoomFrameUpdate { RoomFrame frame = 1; }`
 
 ### CmdID: 2006 - 客户端上报游戏结束
@@ -111,6 +111,6 @@ message RoomFrame {
 1.  **掉线判定**:
     如果有一方在战斗时连接断开 (`Gateway` 触发 `ClientDisconnect`)，`game_server` 应直接广播 `GameOverNtf`，判定留下的玩家获胜，并上报给 Lobby 结算。
 2.  **帧同步机制**:
-    *   **Tick**: 服务器以固定间隔 (如 66ms) 执行 Tick。
+    *   **Tick**: 服务器以固定间隔 (1/30 秒，约 33.3ms) 执行 Tick。
     *   **收集**: 每帧收集玩家上报的 `PlayerFrameInput`。若玩家某帧无输入，则默认为空操作或复制上一帧输入。
     *   **广播**: Tick 触发时，封装 `RoomFrame` 并广播给房间内所有有效玩家。客户端需要根据收到的 `RoomFrameUpdate` 推进游戏逻辑。

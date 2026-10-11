@@ -54,7 +54,7 @@ public class SpriteLibraryEditor : Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.PropertyField(_presetsProp.GetArrayElementAtIndex(i), GUIContent.none);
-                    float val = _presetsProp.GetArrayElementAtIndex(i).floatValue;
+                    int val = _presetsProp.GetArrayElementAtIndex(i).intValue;
                     if (GUILayout.Button("全局套用", GUILayout.Width(70))) ApplySideToAll(val);
                     if (GUILayout.Button(i == _activePresetIndex ? "★当前默认" : "设为默认", GUILayout.Width(70))) _activePresetIndex = i;
                     if (GUILayout.Button("×", GUILayout.Width(20)))
@@ -262,8 +262,8 @@ public class SpriteLibraryEditor : Editor
                 _editMode = (e.button == 0) ? 1 : 2;
                 Undo.RecordObject(_lib, "Draw Box");
                 _dragStartPos = mouseLogicPos;
-                float side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80.0f;
-                var nb = new LogicBox(mouseLogicPos, new Vector2(4f, 4f), side);
+                int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80;
+                var nb = new LogicBox(Vector2Int.RoundToInt(mouseLogicPos), new Vector2Int(4, 4), side);
 
                 if (_editMode == 1)
                 {
@@ -336,15 +336,17 @@ public class SpriteLibraryEditor : Editor
             }
             else if (_editMode == 5 && _activeAnchorIndex >= 0 && _activeAnchorIndex < frame.EffectAnchors.Count)
             {
-                frame.EffectAnchors[_activeAnchorIndex].Position = mouseLogicPos;
+                // 锚点同样参与逻辑 (抓取)，统一吸附到整数像素
+                frame.EffectAnchors[_activeAnchorIndex].Position = Vector2Int.RoundToInt(mouseLogicPos);
                 EditorUtility.SetDirty(_lib);
             }
             else if (_editMode == 1 || _editMode == 2)
             {
-                Vector2 min = Vector2.Min(_dragStartPos, mouseLogicPos);
-                Vector2 max = Vector2.Max(_dragStartPos, mouseLogicPos);
-                Vector2 center = (min + max) * 0.5f;
-                Vector2 size = new Vector2(Mathf.Max(4f, max.x - min.x), Mathf.Max(4f, max.y - min.y));
+                // 判定盒统一吸附到整数像素，保证逻辑层 0 浮点
+                Vector2Int min = Vector2Int.RoundToInt(Vector2.Min(_dragStartPos, mouseLogicPos));
+                Vector2Int max = Vector2Int.RoundToInt(Vector2.Max(_dragStartPos, mouseLogicPos));
+                Vector2Int size = new Vector2Int(Mathf.Max(4, max.x - min.x), Mathf.Max(4, max.y - min.y));
+                Vector2Int center = new Vector2Int(min.x + size.x / 2, min.y + size.y / 2);
 
                 if (_editMode == 1 && _activeBoxIndex >= 0 && _activeBoxIndex < frame.HurtBoxes.Count)
                 {
@@ -402,7 +404,7 @@ public class SpriteLibraryEditor : Editor
                 listProp.InsertArrayElementAtIndex(listProp.arraySize);
                 var newAnchor = listProp.GetArrayElementAtIndex(listProp.arraySize - 1);
                 newAnchor.FindPropertyRelative("Name").stringValue = "Anchor" + listProp.arraySize;
-                newAnchor.FindPropertyRelative("Position").vector2Value = Vector2.zero;
+                newAnchor.FindPropertyRelative("Position").vector2IntValue = Vector2Int.zero;
                 EditorUtility.SetDirty(_lib);
             }
             EditorGUILayout.EndHorizontal();
@@ -480,10 +482,11 @@ public class SpriteLibraryEditor : Editor
                 {
                     listProp.InsertArrayElementAtIndex(listProp.arraySize);
                     var newBox = listProp.GetArrayElementAtIndex(listProp.arraySize - 1);
-                    float side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80.0f;
-                    newBox.FindPropertyRelative("Center").vector2Value = isHitBox ? new Vector2(30, 50) : new Vector2(0, 50);
-                    newBox.FindPropertyRelative("Size").vector2Value = isHitBox ? new Vector2(50, 50) : new Vector2(50, 120);
-                    newBox.FindPropertyRelative("Side").floatValue = side;
+                    int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80;
+                    newBox.FindPropertyRelative("Center").vector2IntValue = isHitBox ? new Vector2Int(30, 50) : new Vector2Int(0, 50);
+                    newBox.FindPropertyRelative("Size").vector2IntValue = isHitBox ? new Vector2Int(50, 50) : new Vector2Int(50, 120);
+                    newBox.FindPropertyRelative("Side").intValue = side;
+                    newBox.FindPropertyRelative("Tag").stringValue = string.Empty;
                     EditorUtility.SetDirty(_lib);
                 }
             }
@@ -498,17 +501,19 @@ public class SpriteLibraryEditor : Editor
                     EditorGUILayout.PropertyField(boxProp.FindPropertyRelative("Center"), GUIContent.none, GUILayout.Width(90));
                     EditorGUILayout.LabelField("尺寸:", GUILayout.Width(30));
                     EditorGUILayout.PropertyField(boxProp.FindPropertyRelative("Size"), GUIContent.none, GUILayout.Width(90));
+                    EditorGUILayout.LabelField("Tag:", GUILayout.Width(28));
+                    EditorGUILayout.PropertyField(boxProp.FindPropertyRelative("Tag"), GUIContent.none, GUILayout.Width(60));
 
-                    float currentSide = boxProp.FindPropertyRelative("Side").floatValue;
-                    if (EditorGUILayout.DropdownButton(new GUIContent($"厚:{currentSide:F0}"), FocusType.Passive, GUILayout.Width(55)))
+                    int currentSide = boxProp.FindPropertyRelative("Side").intValue;
+                    if (EditorGUILayout.DropdownButton(new GUIContent($"厚:{currentSide}"), FocusType.Passive, GUILayout.Width(55)))
                     {
                         GenericMenu menu = new GenericMenu();
-                        foreach (float preset in _lib.SidePresets)
+                        foreach (int preset in _lib.SidePresets)
                         {
-                            float val = preset;
-                            menu.AddItem(new GUIContent(val.ToString("F0")), Mathf.Approximately(val, currentSide), () =>
+                            int val = preset;
+                            menu.AddItem(new GUIContent(val.ToString()), val == currentSide, () =>
                             {
-                                boxProp.FindPropertyRelative("Side").floatValue = val;
+                                boxProp.FindPropertyRelative("Side").intValue = val;
                                 serializedObject.ApplyModifiedProperties();
                                 EditorUtility.SetDirty(_lib);
                             });
@@ -557,9 +562,9 @@ public class SpriteLibraryEditor : Editor
         }
     }
 
-    private void ApplySideToAll(float side)
+    private void ApplySideToAll(int side)
     {
-        if (!EditorUtility.DisplayDialog("批量更新厚度", $"确定将帧库内所有攻击盒与受击盒的纵深厚度统一设为 {side:F1} 吗？", "确定", "取消")) return;
+        if (!EditorUtility.DisplayDialog("批量更新厚度", $"确定将帧库内所有攻击盒与受击盒的纵深厚度统一设为 {side} 吗？", "确定", "取消")) return;
         Undo.RecordObject(_lib, "Global Apply Side");
         foreach (var f in _lib.AllFrames)
         {

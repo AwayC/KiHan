@@ -1,5 +1,5 @@
 # KiHan 架构重构与开发规范约定 (Project Specification)
-# 更新时间：2026-10-08
+# 更新时间：2026-10-10
 
 本文档记录当前项目在 ACT 格斗框架集成与帧同步（Lockstep）改造过程中的核心强制规范。所有后续开发与子模块实现均须严格遵守。
 
@@ -18,11 +18,13 @@
 
 ## 二、 帧同步时钟与帧率标准 (Lockstep Clock & FPS)
 
-1. **当前逻辑帧率严格锁定为 15 FPS**：
-   - `GameConfig.LOGIC_FPS = 15;`
+1. **当前逻辑帧率严格锁定为 30 FPS**（与 30fps 动画素材一一对应，每个逻辑帧推进 1 个动画帧）：
+   - `GameConfig.LOGIC_FPS = 30;`
+   - 服务器下发逻辑帧间隔需同步为 1/30 秒（约 33.3ms）。
 2. **逻辑时钟单帧步长必须使用纯定点数**：
-   - 逻辑步长常数必须为 `public static readonly FP LOGIC_TICK_TIME_FP = FP.One / LOGIC_FPS;`（Q32.32 精度，约 0.066666667 秒，绝对零累积漂移）。
-   - **严禁写死 `0.066f` 浮点数**（15 帧累积仅 0.99 秒，每秒会导致 10ms 逻辑时滞）。
+   - 逻辑步长常数必须为 `public static readonly FP LOGIC_TICK_TIME_FP = FP.One / LOGIC_FPS;`（Q32.32 精度，约 0.033333333 秒，绝对零累积漂移）。
+   - **严禁写死 `0.033f` 之类的近似浮点数**（会产生逐秒累积的逻辑时滞）。
+   - 以逻辑帧数表示的默认值必须由 `LOGIC_FPS` 推导（如 `GameConfig.LOGIC_FPS * 3` 表示 3 秒），禁止写死帧数。
 3. **表现层/渲染层时钟独立**：
    - 表现层（View/插值/动画）可运行于 30/60/120 FPS（`GameConfig.RENDER_FPS = 30`）。
    - 仅在表现层（`EntityView`、`ActorView`、UI）允许使用 Unity 的浮点数 `Time.deltaTime` 进行平滑 Lerp 插值。
@@ -59,6 +61,7 @@
 2. **JSON 配置范例**：
    ```json
    {
+     "keySequence": ["Down", "Skill1"],
      "validInSec": "0.05",
      "rate": "1.0",
      "hitStun": "0.12",
