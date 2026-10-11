@@ -1,0 +1,44 @@
+{
+  "data": [
+    {
+      "id": "idle",
+      "animKey": "Idle",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move"], "priority": 0 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 999 }, "rate": "0", "turn": true }
+      ]
+    },
+    {
+      "id": "move",
+      "animKey": "Run",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoTerminate": true,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "move", "startFormFrame": 0, "priority": 0 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move"], "priority": 0 }
+      ],
+      "commands": [
+        { "keySequence": ["Move"] }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 999 }, "rate": "1", "turn": true }
+      ]
+    },
+    { "id": "hurt_1",     "animKey": "Hurt_1",     "catalog": "Hurt" },
+    { "id": "hurt_2",     "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "hurt_toair", "animKey": "Hurt_toair", "catalog": "Hurt" },
+    { "id": "hurt_inair", "animKey": "Hurt_inair", "catalog": "Hurt" },
+    { "id": "hurt_fall",  "animKey": "Hurt_fall",  "catalog": "Hurt" },
+    { "id": "lie",        "animKey": "Hurt_land",  "catalog": "Hurt" },
+    { "id": "standup",    "animKey": "Land",       "catalog": "Hurt" }
+  ]
+}

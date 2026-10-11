@@ -24,27 +24,11 @@ namespace KiHan.Logic
         /// </summary>
         public int FromFrame;
 
-        /// <summary>
-        /// 切换动作后产生的卡帧/受击硬直停顿时间 (定点数秒，如 0.2s)
-        /// </summary>
-        public FP FreezingAfterChangeAction;
-
-        public PreorderActionInfo(string actionId, int priority = 0,
-            int fromFrame = 0, FP freezingAfterChangeAction = default)
+        public PreorderActionInfo(string actionId, int priority = 0, int fromFrame = 0)
         {
             ActionId = actionId;
             Priority = priority;
             FromFrame = fromFrame;
-            FreezingAfterChangeAction = freezingAfterChangeAction;
-        }
-
-        public PreorderActionInfo(string actionId, int priority,
-            int fromFrame, string freezingAfterChangeActionSec)
-        {
-            ActionId = actionId;
-            Priority = priority;
-            FromFrame = fromFrame;
-            FreezingAfterChangeAction = FP.Parse(freezingAfterChangeActionSec);
         }
     }
 }

@@ -105,3 +105,7 @@ build/
 tmp/
 Assets/temp/
 Assets/temp.meta
+# 逻辑层命令行测试 (Tests/LogicTests)：保留测试工程文件，忽略编译产物
+!Tests/LogicTests/**/*.csproj
+Tests/LogicTests/**/bin/
+Tests/LogicTests/**/obj/

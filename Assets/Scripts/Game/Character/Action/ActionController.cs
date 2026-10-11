@@ -12,20 +12,39 @@ namespace KiHan.Logic
     /// 1. 基于纯整数帧驱动当前动作推进 (由 FrameAnimator 驱动)
     /// 2. 匹配 CancelTag 与 BeCancelledTag 整数帧打断窗口，结合 InputToCommand 决策出招
     /// 3. 管理自动流向 (autoNextActionId) 与循环动作维持 (keepPlayingAnim)
-    /// 4. 激活当前帧攻击盒与受击盒，计算移动速度倍率与受击硬直停顿
+    /// 4. 激活当前帧攻击盒与受击盒，计算移动速度倍率
     /// </summary>
     public class ActionController : MonoBehaviour
     {
         [Tooltip("角色的动画播放器 (纯整数帧驱动)")]
         public FrameAnimator anim;
 
-        [Tooltip("角色的指令输入解析器")]
-        public InputToCommand command;
+        /// <summary>
+        /// 角色的指令输入解析器 (由 CharacterObj.input 统一设置，不单独配置)
+        /// </summary>
+        public InputToCommand command { get; internal set; }
 
         /// <summary>
         /// 当前正在执行的动作数据
         /// </summary>
         public ActionInfo CurrentAction { get; private set; }
+
+        private bool _facingLeft;
+
+        /// <summary>
+        /// 角色朝向 (权威逻辑状态)：是否面朝左
+        /// 判定盒、RootMotion、平推、吸附与抓取锚点均按此水平镜像；进入 inverse 动作时翻转 (随动作切换在 FlushPreorders 生效)
+        /// 同步给动画播放器用于表现层翻转；输入只记录绝对左右，指令中的前/后在匹配时按此朝向换算
+        /// </summary>
+        public bool FacingLeft
+        {
+            get => _facingLeft;
+            set
+            {
+                _facingLeft = value;
+                if (anim != null) anim.IsFacingLeft = value;
+            }
+        }
 
         /// <summary>
         /// 当前激活的被取消标签窗口列表 (含静态配置与运行时动态临时标签)
@@ -64,6 +83,11 @@ namespace KiHan.Logic
         public FP MoveInputAcceptance { get; private set; } = FP.Zero;
 
         /// <summary>
+        /// 本帧是否允许随摇杆转向 (inputAcceptance 中 turn 为 true 的区间)
+        /// </summary>
+        public bool TurnAllowed { get; private set; }
+
+        /// <summary>
         /// 当前帧激活的受击盒 Tag 与详情列表
         /// </summary>
         public List<string> ActiveBeHitBoxTag { get; private set; } = new List<string>();
@@ -95,20 +119,14 @@ namespace KiHan.Logic
         private Action<ActionInfo, ActionInfo> _onChangeAction = null;
 
         /// <summary>
-        /// 硬直/卡帧逻辑帧数 (HitStop Ticks)
-        /// </summary>
-        private int _freezeTicks = 0;
-        public bool Freezing => _freezeTicks > 0;
-
-        /// <summary>
-        /// 本逻辑帧是否处于卡帧 (动画未推进)，物理位移与命中冷却以此为准同步冻结
-        /// </summary>
-        public bool FrozenThisTick { get; private set; }
-
-        /// <summary>
-        /// 受控锁定 (僵直/击飞/被抓)：为 true 时屏蔽一切主动打断与摇杆移动，只接受命中/落地等外部预约的动作变化
+        /// 受控锁定 (受击状态)：为 true 时屏蔽一切主动打断、摇杆移动与 autoNext，动作流转只接受命中/落地/受击流程的预约
         /// </summary>
         public bool ControlLocked { get; private set; }
+
+        /// <summary>
+        /// 默认动作 (SetAllActions 指定，通常为 idle)：受击流程结束后回到此动作
+        /// </summary>
+        public string DefaultActionId { get; private set; } = string.Empty;
 
         /// <summary>
         /// 当前霸体等级 (按本逻辑帧最新处理的动画帧计算)
@@ -116,14 +134,9 @@ namespace KiHan.Logic
         public ArmorLevel CurrentArmor { get; private set; } = ArmorLevel.None;
 
         /// <summary>
-        /// 锁定期间当前动作播完后循环播放，不走 autoNext (僵直)
+        /// 锁定期间当前动作播完后循环播放 (僵直 / 被抓)；为 false 时停在最后一帧，由受击流程预约下一个动作
         /// </summary>
         private bool _loopWhileLocked;
-
-        /// <summary>
-        /// 解除锁定的当帧强制走 autoNext (僵直结束回到 idle)
-        /// </summary>
-        private bool _releaseToAutoNext;
 
         /// <summary>
         /// 当前动作执行到的整数逻辑帧数
@@ -138,14 +151,8 @@ namespace KiHan.Logic
         {
             if (AllActions.Count <= 0 || anim == null) return;
 
-            // 1. 卡帧停顿 (HitStop / Freeze)
-            FrozenThisTick = _freezeTicks > 0;
-            if (_freezeTicks > 0)
-            {
-                _freezeTicks--;
-                anim.Hold();
-            }
-            else anim.Tick();
+            // 1. 推进动画
+            anim.Tick();
 
             _curFrame = anim.ElapsedFrames;
 
@@ -153,8 +160,9 @@ namespace KiHan.Logic
             CalculateBoxInfo(_wasFrame, _curFrame);
             CalculateArmor(_wasFrame, _curFrame);
 
-            // 4. 计算移动输入接受倍率
+            // 4. 计算移动输入接受倍率与转向许可，并随摇杆转向 (先于物理与命中检测，本帧即按新朝向镜像)
             CalculateInputAcceptance(_wasFrame, _curFrame);
+            ApplyInputTurn();
 
             // 5. RootMotion 分段：水平缓动位移、竖直速度设置、竖直附加加速度
             CalculateRootMotion(_wasFrame, _curFrame);
@@ -169,24 +177,20 @@ namespace KiHan.Logic
                         _preorderActions.Add(new PreorderActionInfo(
                             action.id,
                             bcTag.priority + cancelTag.priority + action.priority,
-                            cancelTag.startFormFrame,
-                            FP.Zero
+                            cancelTag.startFormFrame
                         ));
                     }
                 }
             }
 
-            // 7. 自然播放结束、输入中断 (autoTerminate) 或僵直解除时预约下一个动作；僵直中改为循环播放
-            bool loopHold = ControlLocked && _loopWhileLocked;
-            if (!loopHold && _preorderActions.Count <= 0 &&
-                (anim.IsFinished || CurrentAction.autoTerminate || _releaseToAutoNext))
+            // 7. 自然播放结束或输入中断 (autoTerminate) 时预约 autoNext；受控锁定时不走 autoNext (循环或由受击流程驱动)
+            if (!ControlLocked && _preorderActions.Count <= 0 && (anim.IsFinished || CurrentAction.autoTerminate))
             {
                 if (!string.IsNullOrEmpty(CurrentAction.autoNextActionId))
                 {
                     _preorderActions.Add(new PreorderActionInfo(CurrentAction.autoNextActionId));
                 }
             }
-            _releaseToAutoNext = false;
 
             // 8. 动作切换不在此处执行：统一延迟到 FlushPreorders 裁决
             //    保证本逻辑帧的物理与命中检测使用的仍是实际推进了 [TickFromFrame, TickToFrame) 这些动画帧的动作
@@ -237,7 +241,7 @@ namespace KiHan.Logic
                 }
                 else
                 {
-                    ChangeAction(winner.ActionId, winner.FromFrame, winner.FreezingAfterChangeAction);
+                    ChangeAction(winner.ActionId, winner.FromFrame);
                 }
             }
 
@@ -247,23 +251,20 @@ namespace KiHan.Logic
         /// <summary>
         /// 进入受控锁定
         /// </summary>
-        /// <param name="loopCurrentAction">锁定期间受击动作播完是否循环播放 (僵直为 true，击飞为 false 走 autoNext 链)</param>
+        /// <param name="loopCurrentAction">锁定期间受击动作播完是否循环播放 (僵直/被抓为 true；击飞/倒地/起身为 false，由受击流程驱动)</param>
         public void Lock(bool loopCurrentAction)
         {
             ControlLocked = true;
             _loopWhileLocked = loopCurrentAction;
-            _releaseToAutoNext = false;
         }
 
         /// <summary>
-        /// 解除受控锁定
+        /// 解除受控锁定 (之后的动作由调用方预约)
         /// </summary>
-        /// <param name="toAutoNext">是否在下一次 Tick 立即转向当前动作的 autoNext (僵直结束)</param>
-        public void Unlock(bool toAutoNext)
+        public void Unlock()
         {
             ControlLocked = false;
             _loopWhileLocked = false;
-            _releaseToAutoNext = toAutoNext;
         }
 
         public void Set(Action<ActionInfo, ActionInfo> onActionChanged)
@@ -282,7 +283,7 @@ namespace KiHan.Logic
             int frame = curFrame > wasFrame ? curFrame - 1 : curFrame;
             foreach (ArmorPhaseInfo phase in CurrentAction.armorPhase)
             {
-                if (frame >= phase.range.min && frame <= phase.range.max && phase.level > CurrentArmor)
+                if (frame >= phase.range.x && frame <= phase.range.y && phase.level > CurrentArmor)
                 {
                     CurrentArmor = phase.level;
                 }
@@ -290,7 +291,7 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 按本逻辑帧处理过的动画帧 [wasFrame, curFrame) 计算全部 RootMotion 分段 (卡帧时区间为空，全部为 0)
+        /// 按本逻辑帧处理过的动画帧 [wasFrame, curFrame) 计算全部 RootMotion 分段 (本帧未推进动画帧时区间为空，全部为 0)
         /// - 水平：每段位移 = move × (进度(curFrame) - 进度(wasFrame))，多段相加
         /// - 竖直速度：区间覆盖分段起始帧时触发
         /// - 竖直加速度：按区间内实际覆盖的帧数折算，保证一个逻辑帧包含多个动画帧时与逐动画帧积分一致
@@ -317,7 +318,7 @@ namespace KiHan.Logic
                         moveY += seg.moveY * progress;
                     }
 
-                    if (seg.hasVelocityZ && wasFrame <= seg.frameRange.min && seg.frameRange.min < curFrame)
+                    if (seg.hasVelocityZ && wasFrame <= seg.frameRange.x && seg.frameRange.x < curFrame)
                     {
                         VelocityZTriggered = true;
                         VelocityZ = seg.velocityZ;
@@ -325,7 +326,7 @@ namespace KiHan.Logic
 
                     if (seg.accelerationZ != FP.Zero)
                     {
-                        int overlap = System.Math.Min(curFrame, seg.frameRange.max + 1) - System.Math.Max(wasFrame, seg.frameRange.min);
+                        int overlap = System.Math.Min(curFrame, seg.frameRange.y + 1) - System.Math.Max(wasFrame, seg.frameRange.x);
                         if (overlap > 0) ZAcceleration += seg.accelerationZ * overlap / stride;
                     }
                 }
@@ -337,15 +338,30 @@ namespace KiHan.Logic
         public void CalculateInputAcceptance(int wasFrame, int curFrame)
         {
             MoveInputAcceptance = FP.Zero;
+            TurnAllowed = false;
             if (CurrentAction.inputAcceptance == null) return;
             foreach (MoveInputAcceptance acceptance in CurrentAction.inputAcceptance)
             {
-                if (wasFrame <= acceptance.range.y && curFrame > acceptance.range.x &&
-                    (MoveInputAcceptance <= FP.Zero || acceptance.rate < MoveInputAcceptance))
+                if (wasFrame <= acceptance.range.y && curFrame > acceptance.range.x)
                 {
-                    MoveInputAcceptance = acceptance.rate;
+                    if (MoveInputAcceptance <= FP.Zero || acceptance.rate < MoveInputAcceptance)
+                    {
+                        MoveInputAcceptance = acceptance.rate;
+                    }
+                    if (acceptance.turn) TurnAllowed = true;
                 }
             }
+        }
+
+        /// <summary>
+        /// 随摇杆转向：本帧处于允许转向的区间且未被受控锁定时，朝向跟随摇杆水平方向
+        /// </summary>
+        private void ApplyInputTurn()
+        {
+            if (!TurnAllowed || ControlLocked || command == null) return;
+            int sign = command.HorizontalSign;
+            if (sign < 0 && !_facingLeft) FacingLeft = true;
+            else if (sign > 0 && _facingLeft) FacingLeft = false;
         }
 
         private void CalculateBoxInfo(int wasFrame, int curFrame)
@@ -357,12 +373,12 @@ namespace KiHan.Logic
                 foreach (AttackBoxTurnOnInfo aBox in CurrentAction.attackPhase)
                 {
                     bool open = false;
-                    if (aBox.inPercentage != null)
+                    if (aBox.frameRanges != null)
                     {
-                        foreach (FrameRange range in aBox.inPercentage)
+                        foreach (FrameRange range in aBox.frameRanges)
                         {
-                            // 本逻辑帧处理过的动画帧 [wasFrame, curFrame) 与 [min, max] 有交集即开启
-                            if (wasFrame <= range.max && curFrame > range.min)
+                            // 本逻辑帧处理过的动画帧 [wasFrame, curFrame) 与 [x, y] 有交集即开启
+                            if (wasFrame <= range.y && curFrame > range.x)
                             {
                                 open = true;
                                 break;
@@ -391,11 +407,11 @@ namespace KiHan.Logic
                 foreach (BeHitBoxTurnOnInfo bHitBox in CurrentAction.defensePhase)
                 {
                     bool open = false;
-                    if (bHitBox.inPercentage != null)
+                    if (bHitBox.frameRanges != null)
                     {
-                        foreach (FrameRange range in bHitBox.inPercentage)
+                        foreach (FrameRange range in bHitBox.frameRanges)
                         {
-                            if (curFrame >= range.min && curFrame <= range.max)
+                            if (curFrame >= range.x && curFrame <= range.y)
                             {
                                 open = true;
                                 break;
@@ -449,17 +465,14 @@ namespace KiHan.Logic
 
                 if (!tagFit) continue;
 
-                // 检查按键指令匹配
-                if (checkCommand && command != null)
+                // 检查按键指令匹配：配置了指令的动作必须由输入触发 (无输入组件的角色不会误触发)
+                if (checkCommand && action.commands != null && action.commands.Length > 0)
                 {
-                    if (action.commands != null && action.commands.Length > 0)
+                    if (command == null) continue;
+                    foreach (ActionCommand ac in action.commands)
                     {
-                        foreach (ActionCommand ac in action.commands)
-                        {
-                            if (command.ActionOccur(ac)) return true;
-                        }
+                        if (command.ActionOccur(ac, _facingLeft)) return true;
                     }
-                    else return true;
                 }
                 else return true;
             }
@@ -467,7 +480,7 @@ namespace KiHan.Logic
             return false;
         }
 
-        private void ChangeAction(string actionId, int fromFrame, FP freezingAfterChange)
+        private void ChangeAction(string actionId, int fromFrame)
         {
             ActionInfo aInfo = GetActionById(actionId, out bool foundAction);
             if (foundAction)
@@ -484,11 +497,6 @@ namespace KiHan.Logic
                     CurrentBeCancelledTag.AddRange(aInfo.beCancelledTag);
                 }
 
-                // 与已有卡帧取较大值，避免命中结算时切换受击动作把同帧的打击停顿清零
-                int changeFreeze = (int)FP.Ceiling(freezingAfterChange * GameConfig.LOGIC_FPS);
-                _freezeTicks = System.Math.Max(_freezeTicks, changeFreeze);
-                if (anim != null && _freezeTicks > 0) anim.SetFreezing(_freezeTicks);
-
                 ActiveBeHitBoxInfo.Clear();
                 ActiveBeHitBoxTag.Clear();
                 ActiveAttackBoxTag.Clear();
@@ -502,12 +510,8 @@ namespace KiHan.Logic
                 _curFrame = fromFrame;
                 _wasFrame = fromFrame;
 
-                // 面向翻转处理
-                if (command != null)
-                {
-                    if (aInfo.inverse) command.inversed = !command.inversed;
-                    if (anim != null) anim.IsFacingLeft = command.inversed;
-                }
+                // 面向翻转处理 (与是否挂有输入组件无关)
+                FacingLeft = aInfo.inverse ? !_facingLeft : _facingLeft;
             }
         }
 
@@ -559,6 +563,7 @@ namespace KiHan.Logic
         {
             // 直接替换引用：不能先 Clear 旧列表，否则传入的正是当前列表时会把动作库清空
             AllActions = actions ?? new List<ActionInfo>();
+            DefaultActionId = defaultActionId ?? string.Empty;
 
             // 通用受击动作必须全部配置 (受击流程按固定 id 切换动作)
             List<string> missing = HurtActionIds.FindMissing(AllActions);
@@ -568,7 +573,7 @@ namespace KiHan.Logic
             }
 
             ValidateGrabAnchors();
-            ChangeAction(defaultActionId, 0, FP.Zero);
+            ChangeAction(defaultActionId, 0);
         }
 
         /// <summary>
@@ -588,13 +593,13 @@ namespace KiHan.Logic
                 foreach (AttackBoxTurnOnInfo phase in info.attackPhase)
                 {
                     int idx = phase.attackPhase;
-                    if (idx < 0 || idx >= info.attacks.Length || !info.attacks[idx].grab.enabled || phase.inPercentage == null) continue;
+                    if (idx < 0 || idx >= info.attacks.Length || !info.attacks[idx].grab.enabled || phase.frameRanges == null) continue;
 
                     string anchorName = string.IsNullOrEmpty(info.attacks[idx].grab.anchor) ? GrabInfo.DefaultAnchor : info.attacks[idx].grab.anchor;
-                    foreach (FrameRange range in phase.inPercentage)
+                    foreach (FrameRange range in phase.frameRanges)
                     {
-                        int to = Mathf.Min(range.max + 1, total - 1);
-                        for (int f = Mathf.Max(0, range.min); f <= to; f++)
+                        int to = Mathf.Min(range.y + 1, total - 1);
+                        for (int f = Mathf.Max(0, range.x); f <= to; f++)
                         {
                             if (!anim.TryGetAnchorAtFrame(info.animKey, f, anchorName, out _))
                             {
@@ -607,9 +612,8 @@ namespace KiHan.Logic
             }
         }
 
-        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo, ForceDirection forceDir, FP freezing = default)
+        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo, ForceDirection forceDir)
         {
-            FP finalFreeze = freezing > FP.Zero ? freezing : acInfo.freezingAfterChange;
             switch (acInfo.changeType)
             {
                 case ActionChangeType.Keep:
@@ -634,8 +638,7 @@ namespace KiHan.Logic
                         _preorderActions.Add(new PreorderActionInfo(
                             picked.id,
                             acInfo.priority + picked.priority,
-                            acInfo.fromFrame,
-                            finalFreeze
+                            acInfo.fromFrame
                         ));
                     }
                     break;
@@ -647,36 +650,11 @@ namespace KiHan.Logic
                         _preorderActions.Add(new PreorderActionInfo(
                             aInfo.id,
                             acInfo.priority + aInfo.priority,
-                            acInfo.fromFrame,
-                            finalFreeze
+                            acInfo.fromFrame
                         ));
                     }
                     break;
             }
-        }
-
-        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo, ForceDirection forceDir, string freezingSec)
-        {
-            PreorderActionByActionChangeInfo(acInfo, forceDir, FP.Parse(freezingSec));
-        }
-
-        /// <summary>
-        /// 设置卡帧/打击停顿 (以房间确定性逻辑帧为单位)
-        /// </summary>
-        public void SetFreezing(int freezeTicks)
-        {
-            _freezeTicks = System.Math.Max(_freezeTicks, freezeTicks);
-            if (anim != null) anim.SetFreezing(_freezeTicks);
-        }
-
-        public void SetFreezing(string freezingSec)
-        {
-            SetFreezing(FP.Parse(freezingSec));
-        }
-        public void SetFreezing(FP freezingSec)
-        {
-            int ticks = (int)FP.Ceiling(freezingSec * GameConfig.LOGIC_FPS);
-            SetFreezing(ticks);
         }
 
         public void AddTempBeCancelledTag(TempBeCancelledTag beCancelledTag)

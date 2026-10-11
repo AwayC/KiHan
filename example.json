@@ -1,15 +1,51 @@
 // 动作配置示例 (JSONC：带注释，仅供查阅；JsonUtility 不支持注释，实际配置需去掉所有 // 注释)
 // 约定：
-//   - 帧数一律为 30fps 素材帧，区间为闭区间 [min, max]
+//   - 帧数一律为 30fps 素材帧，区间为闭区间 { "x": 起始帧, "y": 结束帧 }
 //   - 定点数字段一律写字符串 ("0.2")，由 ActionData.ParseFP 转换
 //   - 枚举字段写名称字符串 ("Ground", "Super", "Attack")，忽略大小写
 //   - 坐标轴：x 横向 (面朝方向为正), y 纵深, z 高度；距离单位为逻辑单位 (100 像素 = 1)
 //   - changeType：0 = Keep (不变), 1 = ChangeToActionId (param 为动作 id), 2 = ChangeByCatalog (param 为 catalog)
-//   - 通用受击动作 id 固定且必须配置：hurt_1 hurt_2 hurt_toair hurt_inair hurt_fall hurt_land lie standup
-//     攻击不配置 targetActionChange / launchActionChange 时：僵直默认 hurt_1，抓取默认 hurt_2，击飞默认 hurt_toair；击飞落地固定进入 hurt_land
-//   - 不配置姿态：进入条件由取消关系决定；配置 onLand 且不起跳的动作视为空中动作；当前动作为 lie 即倒地
+//   - 通用受击动作 id 固定且必须配置：hurt_1 hurt_2 hurt_toair hurt_inair hurt_fall lie standup (最小配置见 action_template.json)
+//     受击流程由框架驱动 (toair -> inair -> fall -> 触地弹起或倒地 -> lie -> standup 无敌 -> 默认动作)，受击动作无需配置 autoNext
+//     攻击不配置 targetActionChange / launchActionChange 时：僵直默认 hurt_1，抓取默认 hurt_2，地面击飞默认 hurt_toair，空中受击默认 hurt_inair
+//   - 不配置姿态：进入条件由取消关系决定；配置 onLand 且不设置 velocityZ 的动作视为空中动作
 {
   "data": [
+    // ==================== 基础：idle / move (按住摇杆持续移动，随摇杆转向) ====================
+    {
+      "id": "idle",
+      "animKey": "Idle",
+      "catalog": "Base",
+      "keepPlayingAnim": true,                           // 循环播放，被自己的预约保持时不从头播
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill1", "skill2"], "priority": 0 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 999 }, "rate": "0", "turn": true }   // 站立不移动，但允许随摇杆转向
+      ]
+    },
+    {
+      "id": "move",
+      "animKey": "Run",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoTerminate": true,                             // 没有任何预约维持时转 autoNext：松开摇杆即回 idle
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "move", "startFormFrame": 0, "priority": 0 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill1", "skill2"], "priority": 0 }   // 含 move 自身：按住时每帧自我维持
+      ],
+      "commands": [
+        { "keySequence": ["Move"] }                      // Move 是状态键：摇杆当前有任意方向即满足，不查输入历史
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 999 }, "rate": "1", "turn": true }   // 全速跟随摇杆，朝向跟随摇杆左右
+      ]
+    },
+
     // ==================== 普攻：attack4 (跳起上挑，击飞) ====================
     {
       "id": "attack4",                                   // 动作唯一 id
@@ -21,26 +57,26 @@
         { "tag": "attack4", "startFormFrame": 0, "priority": 10 }   // startFormFrame：打断进入时从第几帧开始播
       ],
       "beCancelledTag": [                                // 允许被打断的窗口
-        { "frameRange": { "min": 14, "max": 23 }, "cancelTag": ["skill1", "skill2"], "priority": 5 }   // 第 14~23 帧可被取消
+        { "frameRange": { "x": 14, "y": 23 }, "cancelTag": ["skill1", "skill2"], "priority": 5 }   // 第 14~23 帧可被取消
       ],
       "tempBeCancelledTag": [                            // 临时取消窗口模板 (由 tempBeCancelledTagTurnOn 按 id 开启)
         { "id": "atk4_hit", "startFrames": 6, "cancelTag": ["skill"], "priority": 5 }         // startFrames：从开启时刻起持续多少帧
       ],
       "commands": [                                      // 触发本动作的按键序列
-        { "keySequence": ["Attack"], "validInSec": "0.2" }   // keySequence：CommandKey 名称；validInSec：整套序列有效秒数
+        { "keySequence": ["Attack"], "validInSec": "0.2" }   // keySequence：CommandKey 名称 (按下 Attack / 松开 AttackRelease / 方向 Forward 等)；validInSec：整套序列有效秒数
       ],
       "inputAcceptance": [                               // 摇杆移动速度接受比率
-        { "range": { "min": 0, "max": 3 }, "rate": "0.2" }    // 第 0~3 帧保留 20% 移动速度
+        { "range": { "x": 0, "y": 3 }, "rate": "0.2" }    // 第 0~3 帧保留 20% 移动速度
       ],
       "rootMotion": [                                    // 根运动分段：每段按自己的帧区间生效，水平走缓动位移，竖直只走速度模型
-        { "frameRange": { "min": 2, "max": 8 }, "moveX": "0.6", "tweenMethod": "Linear" },   // 第 2~8 帧前进 0.6 (moveX 面朝方向为正, moveY 纵深；多段同帧相加)
-        { "frameRange": { "min": 6, "max": 6 }, "velocityZ": "6" },                          // 第 6 帧把竖直速度设为 6 (起跳；再写一段即二段跳)
-        { "frameRange": { "min": 10, "max": 13 }, "accelerationZ": "30" },                   // 第 10~13 帧附加 +30 (重力 40 时净 -10，形成滞空)
-        { "frameRange": { "min": 16, "max": 20 }, "moveX": "-0.2", "tweenMethod": "Slowly" } // 第 16~20 帧后撤 0.2，先快后慢
+        { "frameRange": { "x": 2, "y": 8 }, "moveX": "0.6", "tweenMethod": "Linear" },   // 第 2~8 帧前进 0.6 (moveX 面朝方向为正, moveY 纵深；多段同帧相加)
+        { "frameRange": { "x": 6, "y": 6 }, "velocityZ": "6" },                          // 第 6 帧把竖直速度设为 6 (起跳；再写一段即二段跳)
+        { "frameRange": { "x": 10, "y": 13 }, "accelerationZ": "30" },                   // 第 10~13 帧附加 +30 (重力 40 时净 -10，形成滞空)
+        { "frameRange": { "x": 16, "y": 20 }, "moveX": "-0.2", "tweenMethod": "Slowly" } // 第 16~20 帧后撤 0.2，先快后慢
       ],
       "onLand": { "changeType": 1, "param": "idle", "priority": 10, "fromFrame": 0 },   // 落地时的动作变化 (本动作有 velocityZ 段，起跳前在地面不会触发)
       "attackPhase": [                                   // 攻击盒开启阶段
-        { "inPercentage": [{ "min": 9, "max": 11 }], "tag": [], "attackPhase": 0, "priority": 10 }   // tag 为空匹配全部攻击盒；attackPhase 指向 attacks 下标
+        { "frameRanges": [{ "x": 9, "y": 11 }], "tag": [], "attackPhase": 0, "priority": 10 }   // tag 为空匹配全部攻击盒；attackPhase 指向 attacks 下标
       ],
       "attacks": [                                       // 伤害段 (下标对应 attackPhase.attackPhase)
         {
@@ -79,22 +115,22 @@
         { "tag": "skill2_2", "startFormFrame": 0, "priority": 20 }
       ],
       "beCancelledTag": [
-        { "frameRange": { "min": 34, "max": 39 }, "cancelTag": ["move", "attack1"], "priority": 0 }   // 后摇可被移动/普攻取消
+        { "frameRange": { "x": 34, "y": 39 }, "cancelTag": ["move", "attack1"], "priority": 0 }   // 后摇可被移动/普攻取消
       ],
       "commands": [
         { "keySequence": ["Down", "Skill2"], "validInSec": "0.2" }   // 下 + 技能2
       ],
       "armorPhase": [                                    // 霸体区间
-        { "range": { "min": 0, "max": 30 }, "level": "Super" },   // 等级：None / Skill / Super / KingKong / Invincible
-        { "range": { "min": 31, "max": 39 }, "level": "Skill" }   // 后摇降为技能体
+        { "range": { "x": 0, "y": 30 }, "level": "Super" },   // 等级：None / Skill / Super / KingKong / Invincible
+        { "range": { "x": 31, "y": 39 }, "level": "Skill" }   // 后摇降为技能体
       ],
       "rootMotion": [
-        { "frameRange": { "min": 0, "max": 8 }, "moveX": "1.2" }   // 第 0~8 帧匀速突进 1.2 (tweenMethod 留空为 Linear)
+        { "frameRange": { "x": 0, "y": 8 }, "moveX": "1.2" }   // 第 0~8 帧匀速突进 1.2 (tweenMethod 留空为 Linear)
       ],
       "attackPhase": [
-        { "inPercentage": [{ "min": 6, "max": 14 }], "tag": [], "attackPhase": 0, "priority": 10 },    // 吸附多段
-        { "inPercentage": [{ "min": 16, "max": 17 }], "tag": [], "attackPhase": 1, "priority": 20 },   // 抓取
-        { "inPercentage": [{ "min": 32, "max": 33 }], "tag": [], "attackPhase": 2, "priority": 30 }    // 爆发
+        { "frameRanges": [{ "x": 6, "y": 14 }], "tag": [], "attackPhase": 0, "priority": 10 },    // 吸附多段
+        { "frameRanges": [{ "x": 16, "y": 17 }], "tag": [], "attackPhase": 1, "priority": 20 },   // 抓取
+        { "frameRanges": [{ "x": 32, "y": 33 }], "tag": [], "attackPhase": 2, "priority": 30 }    // 爆发 (grab 锚点画到第 31 帧，第 32 帧消失即释放，同帧爆发正常击飞)
       ],
       "attacks": [
         {
@@ -113,7 +149,7 @@
           "targetActionChange": { "changeType": 1, "param": "hurt_1", "priority": 100 }
         },
         {
-          "phase": 1,                                    // 第二段：抓取 (抓取后任何命中都会解除抓取，所以必须放在终结段之前)
+          "phase": 1,                                    // 第二段：抓取 (被抓期间任何命中只扣血、保持抓取，可在此期间打多段)
           "attack": "10",
           "armorBreak": "Super",
           "grab": {                                      // 抓取：目标逐帧锁定在攻击者帧锚点上，不受重力与外力影响
@@ -136,7 +172,7 @@
             "tweenMethod": "Slowly"
           },
           "launchVelocity": "7",                         // 地面目标的击飞速度
-          "airLaunchVelocity": "10",                     // 被抓目标若被锚点举在空中 (锚点 y > 0)，实际使用 10
+          "airLaunchVelocity": "10",                     // 释放瞬间目标若在空中 (锚点 y > 0)，实际使用 10
           "armorBreak": "Super",
           "canHitSameTarget": 1,
           "launchActionChange": { "changeType": 1, "param": "hurt_toair", "priority": 100 }   // 可省略，默认 hurt_toair

@@ -34,6 +34,8 @@ namespace KiHan.Logic
         Lying,
         /// <summary>被抓取</summary>
         Grab,
+        /// <summary>被抓中受击，只结算伤害，保持原抓取状态</summary>
+        GrabbedHit,
     }
 
     /// <summary>
@@ -43,7 +45,7 @@ namespace KiHan.Logic
     public struct ArmorPhaseInfo
     {
         /// <summary>
-        /// 生效的动画帧区间 [min, max] (30fps 素材帧)
+        /// 生效的动画帧区间 [x, y] (30fps 素材帧，闭区间)
         /// </summary>
         public FrameRange range;
 
@@ -53,7 +55,9 @@ namespace KiHan.Logic
     /// <summary>
     /// 抓取配置 (攻击命中后把目标锁定在攻击者帧锚点上)
     /// 锚点即抓取：攻击者每个逻辑帧最后处理的动画帧上存在该锚点则维持抓取并跟随锚点 (动作切换后同样生效)，
-    /// 锚点消失 (主动松手 / 动作播完 / 被打断进入受击动作) 即释放；目标被其他命中改变受击状态 (如投掷命中) 时断开
+    /// 锚点消失 (主动松手 / 动作播完 / 被打断进入受击动作) 即释放
+    /// 被抓期间目标受到的任何命中 (包括抓取者自己的多段攻击与第三方攻击) 只结算伤害，保持原抓取状态，也不会被其他抓取覆盖
+    /// 投掷：让锚点在第 N 帧消失，并在同一帧开启投掷攻击盒 (释放先于命中检测)，投掷命中按正常受击结算
     /// </summary>
     [Serializable]
     public struct GrabInfo

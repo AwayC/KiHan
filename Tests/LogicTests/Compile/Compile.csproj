@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 只做编译检查：netstandard2.1 与 Unity 2022.3 的 API 级别一致 -->
+  <Import Project="../LogicSources.props" />
+  <PropertyGroup><TargetFramework>netstandard2.1</TargetFramework></PropertyGroup>
+</Project>

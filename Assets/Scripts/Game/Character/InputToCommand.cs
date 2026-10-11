@@ -15,11 +15,18 @@ namespace KiHan.Logic
     {
         None = 0,
 
-        // 离散方位 (由摇杆角度计算，结合 Inversed 自动镜像左右)
+        // 前/后：相对朝向，只出现在指令配置中，匹配时按角色当前朝向换算为左/右 (输入历史只记录绝对方向)
         Forward = 1,  // 前
         Backward = 2, // 后
         Up = 3,       // 上
         Down = 4,     // 下
+
+        // 状态键：摇杆当前有任意方向输入 (只看当前状态，不记入输入历史)
+        Move = 5,
+
+        // 绝对水平方向 (输入历史与 CurrentDirection 记录的方向)
+        Left = 6,
+        Right = 7,
 
         // 战斗功能键 (与 ButtonMask 对应)
         Attack = 10,       // 普攻
@@ -28,7 +35,16 @@ namespace KiHan.Logic
         Ultimate = 13,     // 奥义
         Substitution = 14, // 替身
         Secret = 15,       // 秘卷
-        Summon = 16        // 通灵
+        Summon = 16,       // 通灵
+
+        // 功能键松开 (松开瞬间记入输入历史，与按下事件同样参与顺序匹配)
+        AttackRelease = 20,
+        Skill1Release = 21,
+        Skill2Release = 22,
+        UltimateRelease = 23,
+        SubstitutionRelease = 24,
+        SecretRelease = 25,
+        SummonRelease = 26,
     }
 
     /// <summary>
@@ -56,10 +72,6 @@ namespace KiHan.Logic
     /// </summary>
     public class InputToCommand : MonoBehaviour
     {
-        [Header("角色朝向状态")]
-        [Tooltip("是否朝左 (朝左时前后输入自动镜像翻转)")]
-        public bool inversed = false;
-
         [Header("历史记录最多保留的逻辑帧数")]
         [SerializeField] private uint maxKeepTicks = GameConfig.LOGIC_FPS * 3; // 3 秒
 
@@ -85,6 +97,20 @@ namespace KiHan.Logic
         public bool HasDirectionInput => JoyStickAngle != 255;
 
         /// <summary>
+        /// 摇杆水平方向 (按整数角度判定，确定性)：-1 偏左，1 偏右，0 无输入或正上/正下
+        /// </summary>
+        public int HorizontalSign
+        {
+            get
+            {
+                if (JoyStickAngle == 255) return 0;
+                int deg = JoyStickAngle * 2;
+                if (deg == 90 || deg == 270) return 0;
+                return deg > 90 && deg < 270 ? -1 : 1;
+            }
+        }
+
+        /// <summary>
         /// 360° 连续移动单位向量 (供表现层与常规移动)
         /// </summary>
         public Vector2 MoveDirection { get; private set; } = Vector2.zero;
@@ -101,7 +127,7 @@ namespace KiHan.Logic
         public uint CurrentFrameId { get; private set; } = 0;
 
         /// <summary>
-        /// 当前摇杆推向的意图方向 (None, Forward, Backward, Up, Down)
+        /// 当前摇杆所在的绝对方位 (None, Left, Right, Up, Down)，与角色朝向无关
         /// </summary>
         public CommandKey CurrentDirection { get; private set; } = CommandKey.None;
 
@@ -189,11 +215,11 @@ namespace KiHan.Logic
             bool isRight = (deg >= 315 || deg < 45);
             if (isRight)
             {
-                return inversed ? CommandKey.Backward : CommandKey.Forward;
+                return CommandKey.Right;
             }
             else
             {
-                return inversed ? CommandKey.Forward : CommandKey.Backward;
+                return CommandKey.Left;
             }
         }
 
@@ -226,6 +252,16 @@ namespace KiHan.Logic
             if ((newPress & ButtonMask.Secret) != 0) PushRecord(CommandKey.Secret, frameId);
             if ((newPress & ButtonMask.Summon) != 0) PushRecord(CommandKey.Summon, frameId);
 
+            // 松开边缘：上一帧按住、本帧未按住
+            ButtonMask released = _lastButtons & ~currentButtons;
+            if ((released & ButtonMask.Attack) != 0) PushRecord(CommandKey.AttackRelease, frameId);
+            if ((released & ButtonMask.Skill1) != 0) PushRecord(CommandKey.Skill1Release, frameId);
+            if ((released & ButtonMask.Skill2) != 0) PushRecord(CommandKey.Skill2Release, frameId);
+            if ((released & ButtonMask.Ultimate) != 0) PushRecord(CommandKey.UltimateRelease, frameId);
+            if ((released & ButtonMask.Substitution) != 0) PushRecord(CommandKey.SubstitutionRelease, frameId);
+            if ((released & ButtonMask.Secret) != 0) PushRecord(CommandKey.SecretRelease, frameId);
+            if ((released & ButtonMask.Summon) != 0) PushRecord(CommandKey.SummonRelease, frameId);
+
             _lastButtons = currentButtons;
         }
 
@@ -254,6 +290,16 @@ namespace KiHan.Logic
 
         private void PushRecord(CommandKey key, uint frameId)
         {
+            // 同一个键再次按下：作废它之前的松开记录 (连按时只有最后一次按下之后的松开才有效)
+            if (key >= CommandKey.Attack && key <= CommandKey.Summon)
+            {
+                CommandKey release = key + (CommandKey.AttackRelease - CommandKey.Attack);
+                for (int i = _inputHistory.Count - 1; i >= 0; i--)
+                {
+                    if (_inputHistory[i].Key == release) _inputHistory.RemoveAt(i);
+                }
+            }
+
             if (_inputHistory.Count >= 48)
             {
                 _inputHistory.RemoveAt(0);
@@ -295,13 +341,39 @@ namespace KiHan.Logic
 
         #region 指令判定 API (时序与搓招匹配)
         /// <summary>
+        /// 指令键 -> 输入历史中的绝对键：前/后按朝向换算为左/右，其余不变
+        /// </summary>
+        public static CommandKey Resolve(CommandKey key, bool facingLeft)
+        {
+            switch (key)
+            {
+                case CommandKey.Forward: return facingLeft ? CommandKey.Left : CommandKey.Right;
+                case CommandKey.Backward: return facingLeft ? CommandKey.Right : CommandKey.Left;
+                default: return key;
+            }
+        }
+
+        /// <summary>
         /// 判定招式指令序列 (ActionCommand) 是否在有效时间窗口内触发
         /// </summary>
-        public bool ActionOccur(ActionCommand command)
+        /// <param name="facingLeft">角色当前朝向，用于把指令中的前/后换算为左/右</param>
+        public bool ActionOccur(ActionCommand command, bool facingLeft = false)
         {
             if (command.keySequence == null || command.keySequence.Length == 0) return false;
 
-            int seqIdx = command.keySequence.Length - 1;
+            // 状态键 (Move) 只看当前状态，必须全部满足；其余事件键 (按下/松开/方向) 在输入历史中按顺序匹配
+            bool hasEventKey = false;
+            foreach (CommandKey key in command.keySequence)
+            {
+                if (IsStateKey(key))
+                {
+                    if (!IsHeld(key, facingLeft)) return false;
+                }
+                else hasEventKey = true;
+            }
+            if (!hasEventKey) return true;
+
+            int seqIdx = PrevEventKeyIndex(command.keySequence, command.keySequence.Length - 1);
             int validTicks = command.validInSec > FP.Zero 
                 ? (int)FP.Ceiling(command.validInSec * GameConfig.LOGIC_FPS) 
                 : DefaultValidTicks;
@@ -315,9 +387,9 @@ namespace KiHan.Logic
                     break; // 超出有效逻辑帧窗口
                 }
 
-                if (record.Key == command.keySequence[seqIdx])
+                if (record.Key == Resolve(command.keySequence[seqIdx], facingLeft))
                 {
-                    seqIdx--;
+                    seqIdx = PrevEventKeyIndex(command.keySequence, seqIdx - 1);
                     if (seqIdx < 0) return true;
                 }
             }
@@ -326,11 +398,23 @@ namespace KiHan.Logic
         }
 
         /// <summary>
+        /// 状态键：只看当前是否满足，不记入输入历史
+        /// </summary>
+        public static bool IsStateKey(CommandKey key) => key == CommandKey.Move;
+
+        private static int PrevEventKeyIndex(CommandKey[] sequence, int index)
+        {
+            while (index >= 0 && IsStateKey(sequence[index])) index--;
+            return index;
+        }
+
+        /// <summary>
         /// 判定混合指令序列 (支持方向与按键混合，如 [Forward, Forward] 冲刺, [Skill1, Attack] 滑A)
         /// </summary>
         /// <param name="sequence">指令序列</param>
         /// <param name="validTicks">有效逻辑帧跨度</param>
-        public bool ActionOccur(CommandKey[] sequence, int validTicks = DefaultValidTicks)
+        /// <param name="facingLeft">角色当前朝向，用于把前/后换算为左/右</param>
+        public bool ActionOccur(CommandKey[] sequence, int validTicks = DefaultValidTicks, bool facingLeft = false)
         {
             if (sequence == null || sequence.Length == 0) return false;
 
@@ -344,7 +428,7 @@ namespace KiHan.Logic
                     break;
                 }
 
-                if (record.Key == sequence[seqIdx])
+                if (record.Key == Resolve(sequence[seqIdx], facingLeft))
                 {
                     seqIdx--;
                     if (seqIdx < 0) return true;
@@ -385,14 +469,14 @@ namespace KiHan.Logic
         public bool IsDown => CurrentDirection == CommandKey.Down;
 
         /// <summary>
-        /// 摇杆当前是否推向面朝方向 (前推)
+        /// 摇杆当前是否推向左方 (135° ~ 225°)
         /// </summary>
-        public bool IsForward => CurrentDirection == CommandKey.Forward;
+        public bool IsLeft => CurrentDirection == CommandKey.Left;
 
         /// <summary>
-        /// 摇杆当前是否推向面朝反方向 (后拉)
+        /// 摇杆当前是否推向右方 (315° ~ 45°)
         /// </summary>
-        public bool IsBackward => CurrentDirection == CommandKey.Backward;
+        public bool IsRight => CurrentDirection == CommandKey.Right;
 
         /// <summary>
         /// 查询按键当前是否处于按住状态
@@ -400,6 +484,26 @@ namespace KiHan.Logic
         public bool IsKeyHolding(CommandKey key)
         {
             return GetKeyHoldTicks(key) > 0;
+        }
+
+        /// <summary>
+        /// 当前是否按住：Move 为摇杆有任意方向，方向键为当前摇杆方位 (前/后按朝向换算)，其余为功能键按住
+        /// </summary>
+        public bool IsHeld(CommandKey key, bool facingLeft = false)
+        {
+            key = Resolve(key, facingLeft);
+            switch (key)
+            {
+                case CommandKey.Move:
+                    return HasDirectionInput;
+                case CommandKey.Left:
+                case CommandKey.Right:
+                case CommandKey.Up:
+                case CommandKey.Down:
+                    return CurrentDirection == key;
+                default:
+                    return IsKeyHolding(key);
+            }
         }
 
         public int GetKeyHoldTicks(CommandKey key)
@@ -424,14 +528,14 @@ namespace KiHan.Logic
             // 1. 摇杆与方向状态
             string dirStr = CurrentDirection switch
             {
-                CommandKey.Forward => inversed ? "【← 前】" : "【→ 前】",
-                CommandKey.Backward => inversed ? "【→ 后】" : "【← 后】",
+                CommandKey.Left => "【← 左】",
+                CommandKey.Right => "【→ 右】",
                 CommandKey.Up => "【↑ 上】",
                 CommandKey.Down => "【↓ 下】",
                 _ => "【居中】"
             };
 
-            sb.AppendLine($"摇杆: {(HasDirectionInput ? $"{AngleDegrees:F0}°" : "无输入")} | 方位: {dirStr} | 朝向: {(inversed ? "朝左" : "朝右")}");
+            sb.AppendLine($"摇杆: {(HasDirectionInput ? $"{AngleDegrees:F0}°" : "无输入")} | 方位: {dirStr}");
 
             // 2. 近期输入指令序列 (展示最近输入的 8 个操作)
             sb.Append("指令流: ");
@@ -459,6 +563,8 @@ namespace KiHan.Logic
             {
                 CommandKey.Forward => "【前】",
                 CommandKey.Backward => "【后】",
+                CommandKey.Left => "【左】",
+                CommandKey.Right => "【右】",
                 CommandKey.Up => "【上】",
                 CommandKey.Down => "【下】",
                 CommandKey.Attack => "【普攻】",
@@ -468,6 +574,13 @@ namespace KiHan.Logic
                 CommandKey.Substitution => "【替身】",
                 CommandKey.Secret => "【秘卷】",
                 CommandKey.Summon => "【通灵】",
+                CommandKey.AttackRelease => "【松普攻】",
+                CommandKey.Skill1Release => "【松技能1】",
+                CommandKey.Skill2Release => "【松技能2】",
+                CommandKey.UltimateRelease => "【松奥义】",
+                CommandKey.SubstitutionRelease => "【松替身】",
+                CommandKey.SecretRelease => "【松秘卷】",
+                CommandKey.SummonRelease => "【松通灵】",
                 _ => "【-】"
             };
         }
@@ -475,12 +588,14 @@ namespace KiHan.Logic
         #endregion
 
         /// <summary>
-        /// 动作切换时清空功能按键记录 (保留方向记录)，防止普攻连发粘连
+        /// 动作切换时清除按键的按下记录，防止一次按下触发多个动作
+        /// 保留方向记录与松开记录：松开记录在新动作中仍可匹配 (如蓄力动作开始前就已松开，进入蓄力后立即释放)，
+        /// 直到同一个键再次按下或超出时间窗口
+        /// 不重置按键的上一帧状态：按住跨越动作切换时不会被当成再次按下 (按住不连发)，之后松开仍能正确记录松开事件
         /// </summary>
         public void CleanNonDirectionInputs()
         {
-            _inputHistory.RemoveAll(r => r.Key != CommandKey.Forward && r.Key != CommandKey.Backward && r.Key != CommandKey.Up && r.Key != CommandKey.Down);
-            _lastButtons = ButtonMask.None;
+            _inputHistory.RemoveAll(r => r.Key >= CommandKey.Attack && r.Key <= CommandKey.Summon);
         }
 
         private void PruneHistory(uint currentFrame)

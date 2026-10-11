@@ -32,9 +32,6 @@ namespace KiHan.Logic
 
         [Tooltip("从第几帧开始这个动作")]
         public int fromFrame;
-
-        [Tooltip("切换动作后产生的卡帧/受击硬直停顿时间 (定点数秒)")]
-        public FP freezingAfterChange;
     }
 
     [Serializable]

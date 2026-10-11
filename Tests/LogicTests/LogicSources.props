@@ -1,0 +1,20 @@
+<Project>
+  <!-- 逻辑层源码 + Unity 替身：所有测试工程共用。路径相对本文件，指向仓库 Assets 下的真实代码 -->
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS0618;CS0649;CS0414;CS0169;CS0067</NoWarn>
+    <Scripts>$(MSBuildThisFileDirectory)../../Assets/Scripts/</Scripts>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Stubs/*.cs" />
+    <Compile Include="$(Scripts)3rd/FixedMath/*.cs" />
+    <Compile Include="$(Scripts)Game/Math/FPMathFacade.cs" />
+    <Compile Include="$(Scripts)Game/Character/**/*.cs" />
+    <Compile Include="$(Scripts)Game/Core/BattleWorld.cs;$(Scripts)Game/Core/LogicEntity.cs" />
+    <Compile Include="$(Scripts)Game/Physics/*.cs;$(Scripts)Game/Method/*.cs" />
+    <Compile Include="$(Scripts)Game/LogicCommon.cs;$(Scripts)Game/GameConfig.cs;$(Scripts)Game/MapLogic.cs" />
+    <Compile Include="$(Scripts)Anim/*.cs;$(Scripts)Managers/Network/Protocol.cs" />
+  </ItemGroup>
+</Project>

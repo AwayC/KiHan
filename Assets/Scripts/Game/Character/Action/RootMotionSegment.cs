@@ -9,7 +9,7 @@ namespace KiHan.Logic
     /// 水平面 (x 面朝方向前方, y 纵深)：本段总位移 (moveX, moveY) 按 tweenMethod 缓动分配到 frameRange 内，
     ///   区间内每个动画帧推进 1 / 区间帧数 的进度，多段同帧重叠时位移相加
     /// 竖直 (z 高度)：不使用曲线，只用速度模型
-    ///   - velocityZ：在 frameRange.min 帧把竖直速度设置为该值 (起跳 / 二段跳 / 下砸；"0" 表示清零竖直速度)
+    ///   - velocityZ：在 frameRange.x 帧把竖直速度设置为该值 (起跳 / 二段跳 / 下砸；"0" 表示清零竖直速度)
     ///   - accelerationZ：在 frameRange 内附加竖直加速度，与重力合成后积分 (= 重力即抵消重力，顶点处即悬停；> 重力即向上推升)
     /// </summary>
     [Serializable]
@@ -33,7 +33,7 @@ namespace KiHan.Logic
         public string tweenMethod;
 
         /// <summary>
-        /// 是否在 frameRange.min 帧设置竖直速度
+        /// 是否在 frameRange.x 帧设置竖直速度
         /// </summary>
         public bool hasVelocityZ;
 
@@ -54,15 +54,15 @@ namespace KiHan.Logic
         /// </summary>
         public FP MoveProgress(int frame)
         {
-            int span = frameRange.max - frameRange.min + 1;
+            int span = frameRange.y - frameRange.x + 1;
             FP t;
             if (span <= 0)
             {
-                t = frame > frameRange.min ? FP.One : FP.Zero;
+                t = frame > frameRange.x ? FP.One : FP.Zero;
             }
             else
             {
-                int done = frame - frameRange.min;
+                int done = frame - frameRange.x;
                 t = done <= 0 ? FP.Zero : done >= span ? FP.One : (FP)done / span;
             }
             return ForceMoveMethod.Get(tweenMethod)(t);

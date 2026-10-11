@@ -101,3 +101,10 @@
    - 老版本 `LogicEntity` 与老状态机体系后续将逐步废弃，全面交由 `CharacterObj` + `ActionController` 驱动。
 2. **保证主干双端编译通过**：
    - 重构过程中所有中间改动必须维持 `Assembly-CSharp` 和 `Assembly-CSharp-Editor` 双端编译通过（0 警告、0 错误）。
+
+---
+
+## 七、 测试规范 (Testing)
+
+1. 测试分层、用例写法、提交前检查与 Unity 验证清单见 [testing.md](testing.md)。
+2. 逻辑层改动提交前必须运行 `Tests/LogicTests/run_all.sh` 并全部通过；无 Unity 环境完成的 Unity 侧改动须在提交说明中注明「未经 Unity 验证」。

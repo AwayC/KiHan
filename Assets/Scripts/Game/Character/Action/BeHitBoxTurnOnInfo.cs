@@ -10,7 +10,7 @@ namespace KiHan.Logic
     public struct BeHitBoxTurnOnInfo
     {
         [Tooltip("开启的帧数/百分比区间")]
-        public FrameRange[] inPercentage;
+        public FrameRange[] frameRanges;
 
         [Tooltip("开启的受击盒 Tag")]
         public string[] tag;

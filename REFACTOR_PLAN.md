@@ -174,10 +174,13 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 - **物理约定**：逻辑坐标 `x` 横向、`y` 纵深、`z` 高度；水平面走曲线位移 (RootMotion / ForceMove / 吸附)，竖直方向只走速度模型 (起跳/击飞速度 + 附加加速度 + 重力，匀加速精确积分)；墙体仅为地图边界墙；角色之间不碰撞。
 - **受击状态 (`HurtState`)**：
   - **僵直 (Stun)**：地面受击，不能主动行动，受击动作循环播放，`hitStun` 秒到期后回到受击动作的 `autoNextActionId`。
-  - **击飞 (Launch)**：空中受击或被击飞，不能主动行动，按速度模型下落，落地即解除并固定进入 `hurt_land`。
+  - **击飞 (Launch)**：空中受击或被击飞，不能主动行动，按速度模型下落。地面被击飞 `hurt_toair → hurt_inair → hurt_fall`，空中受击直接 `hurt_inair → hurt_fall`，`hurt_fall` 循环到触地。触地时弹起速度 = 落地速度 × `bounceRestitution`，不低于 `minBounceVelocity` 则弹起 (重播 `hurt_inair`，无伤害，保持击飞)，否则倒地。
   - **被抓取 (Grabbed)**：位置逐帧锁定在抓取者的帧锚点上，不受重力与外力影响。
-  - **倒地**：当前动作为 `lie` 时视为倒地，只有 `canHitLying` 的攻击能命中。
-- **通用受击动作 (`HurtActionIds`)**：所有角色共用同一套受击流程，以下动作 id 固定且必须全部配置 (加载时检查缺失)：`hurt_1` `hurt_2` `hurt_toair` `hurt_inair` `hurt_fall` `hurt_land` `lie` `standup`。攻击未配置 `targetActionChange` / `launchActionChange` 时，僵直默认 `hurt_1`、抓取默认 `hurt_2`、击飞默认 `hurt_toair`。
+  - **倒地 (Lying)**：播放 `lie`，播完即起身 (倒地时长 = lie 动画长度)；只有 `canHitLying` 的攻击能命中，带击飞速度时重新浮空。
+  - **起身 (Standup)**：播放 `standup`，期间无敌 (不产生任何命中)，播完回到默认动作并追加 `standupInvincibleSec` 秒无敌。
+  - 受击流程由框架驱动，受击动作只提供动画，`autoNextActionId` 不参与；命中切换优先级 100 > 触地结果 95 > 动画播完推进 90。
+- **通用受击动作 (`HurtActionIds`)**：所有角色共用同一套受击流程，以下动作 id 固定且必须全部配置 (加载时检查缺失)：`hurt_1` `hurt_2` `hurt_toair` `hurt_inair` `hurt_fall` `lie` `standup`。攻击未配置 `targetActionChange` / `launchActionChange` 时，僵直默认 `hurt_1`、抓取默认 `hurt_2`、地面击飞默认 `hurt_toair`、空中受击默认 `hurt_inair`。最小配置见 `action_template.json`。
+- **角色物理参数** (CharacterObj，带默认值)：`gravity`、`bounceRestitution` (0.5)、`minBounceVelocity` (3)、`standupInvincibleSec` (0.5)。
 - **姿态隐性控制 (不配置 `posture`)**：
   - 进入条件由 `cancelTag` / `beCancelledTag` 的取消关系决定 (如空中攻击只挂在跳跃动作的取消窗口上)。
   - 配置了 `onLand` 且自身不起跳的动作视为空中动作，在地面上视同落地触发 `onLand`。
@@ -186,7 +189,7 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   1. **平推 (Push)**：`pushPower` 水平 `ForceMove` (按秒配置，与动作帧无关)，按攻击者朝向转为世界方向。
   2. **击飞 (Launch)**：`launchVelocity` 设置竖直初速度；目标已在空中时进入击飞，`airLaunchVelocity` 用于空中追击上挑。
   3. **吸附 (Suction)**：命中后在 `inSec` 秒内以 `speed` 把目标水平拉向攻击者本地核心点 (随攻击者移动，不越过核心点)。
-  4. **抓取 (Grab)**：锚点即抓取。`grab.anchor` 指定帧库 `EffectAnchors` 中的锚点名 (默认 `grab`，整数像素，x 随朝向镜像、y 为高度)，抓取者当前处理的动画帧上存在该锚点即维持抓取并逐帧跟随 (可跨动作)，锚点消失即释放 (主动松手 / 动作播完 / 被打断)，目标按 `releaseActionChange` 转换，在空中则击飞下落；投掷伤害与击飞由抓取者对目标的后续攻击完成。加载时校验抓取段开启区间内是否画有锚点。
+  4. **抓取 (Grab)**：锚点即抓取。`grab.anchor` 指定帧库 `EffectAnchors` 中的锚点名 (默认 `grab`，整数像素，x 随朝向镜像、y 为高度)，抓取者当前处理的动画帧上存在该锚点即维持抓取并逐帧跟随 (可跨动作)，锚点消失即释放 (主动松手 / 动作播完 / 被打断)，目标按 `releaseActionChange` 转换，在空中则击飞下落。被抓期间受到的任何命中 (抓取者的多段攻击、第三方攻击) 只结算伤害，保持原抓取状态，也不会被其他抓取覆盖；投掷做法是让锚点在第 N 帧消失、同一帧开启投掷攻击盒 (释放先于命中检测)，投掷命中按正常受击结算。加载时校验抓取段开启区间内是否画有锚点。
   5. **扫地 (OTG)**：`canHitLying` 的攻击可命中倒地目标；带击飞速度时重新挑起，否则保持倒地只结算伤害。
 - **霸体等级裁决 (`ArmorLevel`)**：
   - 等级顺序：`None(0) < Skill(1) < Super(2) < KingKong(3) < Invincible(4)`，由动作 `armorPhase` 按动画帧区间配置。
@@ -277,14 +280,13 @@ gantt
 | **`skill1`** | `Skill` | `skill`, `skill1` | 后摇阶段允许 `beCancelTag` | `idle` | 突进分身踢击，霸体等级为 `Skill` |
 | **`skill2_1`** | `Skill` | `skill`, `skill2_1` | 允许派生 `skill2_2` | `skill2_2` | 第 10 帧触发事件 `spawnEntity: CharClone` 召唤分身协同 |
 | **`skill2_2`** | `Skill` | `skill`, `skill2_2` | 后摇阶段允许取消 | `idle` | 螺旋丸本体突进多段判定，最后一击重度击飞 |
-| **`hurt_1`** | `Hurt` | - | 无（硬直结束后解脱） | `idle` | 地面轻受击硬直 |
-| **`hurt_2`** | `Hurt` | - | 无 | `idle` | 地面重受击硬直 |
-| **`hurt_toair`**| `Hurt` | - | 无 | `hurt_inair` | 浮空上升阶段 |
-| **`hurt_inair`**| `Hurt` | - | 无 | `hurt_fall` | 浮空最高点下落阶段 |
-| **`hurt_fall`** | `Hurt` | - | 无 | `hurt_fall` | 坠落阶段，循环播放直到落地（落地固定进入 `hurt_land`） |
-| **`hurt_land`** | `Hurt` | - | 无 | `lie` | 倒地触地弹起阶段 |
-| **`lie`** | `Lie` | - | 无 | `standup` | 倒地不起状态（固定 id 即倒地标记），仅受扫地技能影响 |
-| **`standup`** | `Standup`| - | 起身无敌帧 | `idle` | 起身阶段，`armorPhase` 配置 `Invincible` |
+| **`hurt_1`** | `Hurt` | - | 无 | (框架) | 地面轻受击僵直，循环播放，僵直结束回默认动作 |
+| **`hurt_2`** | `Hurt` | - | 无 | (框架) | 地面重受击僵直 / 被抓循环 |
+| **`hurt_toair`**| `Hurt` | - | 无 | (框架) | 地面被击飞的上升段，播完转 `hurt_inair` |
+| **`hurt_inair`**| `Hurt` | - | 无 | (框架) | 空中受击 / 触地弹起，播完转 `hurt_fall` |
+| **`hurt_fall`** | `Hurt` | - | 无 | (框架) | 坠落阶段，循环播放直到触地 (弹起或倒地) |
+| **`lie`** | `Hurt` | - | 无 | (框架) | 倒地，播完起身，仅受扫地技能影响 |
+| **`standup`** | `Hurt`| - | 无 | (框架) | 起身阶段，框架强制无敌，结束后追加无敌 |
 
 ---
 

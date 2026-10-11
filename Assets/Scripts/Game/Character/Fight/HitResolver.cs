@@ -7,15 +7,17 @@ namespace KiHan.Logic
     /// 命中结算 (纯确定性)
     ///
     /// 流程：
-    /// 1. 命中记录、扣血 (霸体抵挡同样扣血)
-    /// 2. 霸体裁决：攻击破霸等级 &lt; 受击者霸体等级 -> 只结算伤害，不产生任何受击反应
-    /// 3. 受击反应 (按优先级)，受击动作未配置时使用 HurtActionIds 中的固定动作：
+    /// 1. 命中记录、扣血 (霸体抵挡、被抓中同样扣血)
+    /// 2. 被抓中的目标：只结算伤害，保持原抓取状态 (不受击退/击飞/外力影响，也不会被其他抓取覆盖)
+    ///    投掷做法：抓取锚点在第 N 帧消失 (先于命中检测释放)，同一帧开启的攻击即按正常受击结算
+    /// 3. 霸体裁决：攻击破霸等级 &lt; 受击者霸体等级 -> 只结算伤害，不产生任何受击反应
+    /// 4. 受击反应 (按优先级)，受击动作未配置时使用 HurtActionIds 中的固定动作：
     ///    - 抓取：目标锁定到攻击者锚点 (默认 hurt_2)
-    ///    - 击飞：配置了击飞速度，或目标已在空中 (空中追击优先使用 airLaunchVelocity，默认 hurt_toair)
+    ///    - 击飞：配置了击飞速度，或目标已在空中 (空中追击优先使用 airLaunchVelocity；地面默认 hurt_toair，空中默认 hurt_inair)
     ///    - 倒地中被扫地且未挑起：保持倒地，只结算伤害
     ///    - 僵直：地面受击 (默认 hurt_1)
     ///    以及平推 (pushPower) 与吸附 (suction) 两种水平外力
-    /// 4. 双方动作变化与临时取消窗口 (动作切换在 BattleWorld 第 6 步统一裁决)
+    /// 5. 双方动作变化与临时取消窗口 (动作切换在 BattleWorld 第 6 步统一裁决)
     /// </summary>
     public static class HitResolver
     {
@@ -28,11 +30,19 @@ namespace KiHan.Logic
             attacker.AddHitRecord(target, hit.AttackPhase);
             target.TakeDamage(atk.attack);
 
-            HitReaction reaction = atk.armorBreak >= target.action.CurrentArmor
-                ? ApplyReaction(hit, attacker, target, atk)
-                : HitReaction.ArmorBlocked;
+            HitReaction reaction;
+            if (target.Hurt == HurtState.Grabbed)
+            {
+                reaction = HitReaction.GrabbedHit;
+            }
+            else
+            {
+                reaction = atk.armorBreak >= target.action.CurrentArmor
+                    ? ApplyReaction(hit, attacker, target, atk)
+                    : HitReaction.ArmorBlocked;
+            }
 
-            // 攻击方：命中即生效 (无论是否被霸体抵挡)
+            // 攻击方：命中即生效 (无论是否被霸体抵挡或目标处于被抓中)
             attacker.action.PreorderActionByActionChangeInfo(atk.selfActionChange, atk.forceDir);
             if (atk.tempBeCancelledTagTurnOn != null)
             {
@@ -72,9 +82,10 @@ namespace KiHan.Logic
                 {
                     if (velocity > FP.Zero) target.motion.Launch(velocity);
                     target.EnterLaunch();
+                    // 地面被击飞先播上升段，空中受击直接播空中受击段
                     targetChange = atk.launchActionChange.changeType != ActionChangeType.Keep
                         ? atk.launchActionChange
-                        : HurtActionIds.ChangeTo(HurtActionIds.ToAir);
+                        : HurtActionIds.ChangeTo(airborne ? HurtActionIds.InAir : HurtActionIds.ToAir);
                     reaction = HitReaction.Launch;
                 }
                 else if (target.IsLying)

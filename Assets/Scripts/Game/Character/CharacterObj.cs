@@ -27,15 +27,39 @@ namespace KiHan.Logic
         /// </summary>
         public int InputSlot = -1;
 
-        /// <summary>
-        /// 动作控制器
-        /// </summary>
-        public ActionController action;
+        [SerializeField] private ActionController _action;
+        [SerializeField] private InputToCommand _input;
 
         /// <summary>
-        /// 指令与输入系统
+        /// 动作控制器 (设置时自动把当前输入组件同步给它)
         /// </summary>
-        public InputToCommand input;
+        public ActionController action
+        {
+            get => _action;
+            set
+            {
+                _action = value;
+                SyncInputToAction();
+            }
+        }
+
+        /// <summary>
+        /// 指令与输入系统：输入组件只在这里设置，动作控制器的指令判定引用由此统一同步
+        /// </summary>
+        public InputToCommand input
+        {
+            get => _input;
+            set
+            {
+                _input = value;
+                SyncInputToAction();
+            }
+        }
+
+        private void SyncInputToAction()
+        {
+            if (_action != null) _action.command = _input;
+        }
 
         /// <summary>
         /// 确定性运动体 (位置、竖直速度、滞空状态)
@@ -56,6 +80,26 @@ namespace KiHan.Logic
         /// 最大生命值 (定点数)
         /// </summary>
         public FP maxHp = FP.Parse("1000");
+
+        /// <summary>
+        /// 击飞触地弹起的速度衰减系数：弹起速度 = 落地瞬间下落速度 × 该系数
+        /// </summary>
+        public FP bounceRestitution = FP.Parse("0.5");
+
+        /// <summary>
+        /// 最小弹起速度 (单位/秒)：衰减后低于该值不再弹起，转为倒地
+        /// </summary>
+        public FP minBounceVelocity = FP.Parse("3");
+
+        /// <summary>
+        /// 起身动作结束后追加的无敌时长 (定点数秒，0 表示只有起身期间无敌)
+        /// </summary>
+        public FP standupInvincibleSec = FP.Parse("0.5");
+
+        /// <summary>
+        /// 剩余的起身后无敌逻辑帧数
+        /// </summary>
+        public int InvincibleTicks { get; private set; }
 
         /// <summary>
         /// 当前生命值 (由 ResetCombatState 初始化为 maxHp)
@@ -97,7 +141,7 @@ namespace KiHan.Logic
         private string _grabAnchorName;
 
         /// <summary>
-        /// 最近一次读取到的抓取锚点 (本地逻辑坐标，未按朝向镜像)；卡帧未推进动画帧时沿用
+        /// 最近一次读取到的抓取锚点 (本地逻辑坐标，未按朝向镜像)；本帧未推进动画帧时沿用
         /// </summary>
         private FPVector3 _grabAnchorLocal;
         private ActionChangeInfo _grabRelease;
@@ -116,29 +160,34 @@ namespace KiHan.Logic
 
         private bool UnderForceMove => _forceMove.Active;
 
-        public bool Inversed
+        /// <summary>
+        /// 是否面朝左 (权威状态在 ActionController，判定盒、RootMotion、外力与锚点水平镜像)
+        /// 不依赖输入组件，AI 分身、召唤物等无输入的逻辑实体同样可以转向
+        /// </summary>
+        public bool FacingLeft
         {
-            get => input != null && input.inversed;
+            get => action != null && action.FacingLeft;
             set
             {
-                if (input != null) input.inversed = value;
+                if (action != null) action.FacingLeft = value;
             }
         }
-
-        /// <summary>
-        /// 是否面朝左 (判定盒与 RootMotion 水平镜像)
-        /// </summary>
-        public bool FacingLeft => Inversed;
 
         public bool IsAirborne => motion.IsAirborne;
 
         /// <summary>
-        /// 是否倒地 (当前动作为通用倒地动作 lie)，倒地时只有 canHitLying 的攻击能命中
+        /// 是否倒地，倒地时只有 canHitLying 的攻击能命中
         /// </summary>
-        public bool IsLying => action != null && action.CurrentAction.id == HurtActionIds.Lie;
+        public bool IsLying => Hurt == HurtState.Lying;
+
+        /// <summary>
+        /// 是否无敌 (起身期间与起身后的追加时间)：不产生任何命中，不受伤害与任何效果
+        /// </summary>
+        public bool IsInvincible => Hurt == HurtState.Standup || InvincibleTicks > 0;
 
         private void Awake()
         {
+            SyncInputToAction();
             if (action != null)
             {
                 action.Set((wasAction, toAction) =>
@@ -158,18 +207,22 @@ namespace KiHan.Logic
 
         public void Tick(FP deltaFP)
         {
-            // 僵直倒计时：命中帧之后再经过 StunTicks 帧解除，解除当帧回到受击动作的 autoNext
+            if (InvincibleTicks > 0) InvincibleTicks--;
+
+            // 僵直倒计时：命中帧之后再经过 StunTicks 帧解除，解除当帧回到默认动作
             if (Hurt == HurtState.Stun)
             {
                 StunTicks--;
-                if (StunTicks <= 0) ExitHurt(true);
+                if (StunTicks <= 0) ExitHurt();
             }
 
             // 推进动作状态机
             action?.Tick();
 
-            // 推进命中冷却倒计时 (非受击停顿/卡帧时)
-            if (action != null && !action.FrozenThisTick)
+            // 受击流程：受击动作播完时由框架决定下一个动作
+            UpdateHurtFlow();
+
+            // 推进命中冷却倒计时
             {
                 for (int i = 0; i < HitRecords.Count; i++)
                 {
@@ -189,8 +242,8 @@ namespace KiHan.Logic
         {
             LastPhysicsEvent = PhysicsEvent.None;
 
-            // 卡帧时位移、重力、外力计时全部冻结；被抓取时位置由抓取者在 UpdateGrab 中设置
-            if (action == null || action.FrozenThisTick || Hurt == HurtState.Grabbed) return LastPhysicsEvent;
+            // 被抓取时位置由抓取者在 UpdateGrab 中设置
+            if (action == null || Hurt == HurtState.Grabbed) return LastPhysicsEvent;
 
             FPVector3 delta;
             if (UnderForceMove)
@@ -214,11 +267,20 @@ namespace KiHan.Logic
                 LastPhysicsEvent |= PhysicsEvent.Landed;
             }
 
-            // 击飞状态落地即解除，并强制进入通用落地受击动作 (之后经 autoNext 链转倒地/起身)
+            // 击飞触地：按落地速度衰减弹起 (无伤害，保持击飞并重播 hurt_inair)，弹不起则倒地
             if (Hurt == HurtState.Launch && (LastPhysicsEvent & PhysicsEvent.Landed) != 0)
             {
-                ExitHurt(false);
-                action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(HurtActionIds.Land), ForceDirection.Forward);
+                FP bounce = motion.LastImpactSpeed * bounceRestitution;
+                if (bounce > FP.Zero && bounce >= minBounceVelocity)
+                {
+                    motion.Launch(bounce);
+                    LastPhysicsEvent = (LastPhysicsEvent & ~PhysicsEvent.Landed) | PhysicsEvent.Bounced;
+                    PreorderHurtFlow(HurtActionIds.InAir, HurtActionIds.LandPriority);
+                }
+                else
+                {
+                    EnterLying();
+                }
             }
 
             action.OnPhysicsEvent(LastPhysicsEvent);
@@ -272,7 +334,7 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 进入击飞 (竖直速度由调用方通过 motion.Launch 设置)，持续到落地
+        /// 进入击飞 (竖直速度由调用方通过 motion.Launch 设置)，持续到触地弹不起
         /// </summary>
         public void EnterLaunch()
         {
@@ -296,12 +358,74 @@ namespace KiHan.Logic
             action?.Lock(true);
         }
 
-        private void ExitHurt(bool toAutoNext)
+        /// <summary>
+        /// 倒地：播放 lie，播完起身 (击飞触地弹不起时进入，也可供直接击倒类效果调用)
+        /// </summary>
+        public void EnterLying()
+        {
+            Hurt = HurtState.Lying;
+            StunTicks = 0;
+            action?.Lock(false);
+            PreorderHurtFlow(HurtActionIds.Lie, HurtActionIds.LandPriority);
+        }
+
+        /// <summary>
+        /// 起身：播放 standup，期间无敌；不再受吸附等持续效果影响
+        /// </summary>
+        private void EnterStandup()
+        {
+            Hurt = HurtState.Standup;
+            StopSuction();
+            action?.Lock(false);
+            PreorderHurtFlow(HurtActionIds.Standup);
+        }
+
+        /// <summary>
+        /// 解除受击状态并回到默认动作 (调用方另有预约时以优先级更高者为准)
+        /// </summary>
+        private void ExitHurt()
         {
             Hurt = HurtState.None;
             StunTicks = 0;
             GrabbedBy = null;
-            action?.Unlock(toAutoNext);
+            if (action == null) return;
+            action.Unlock();
+            PreorderHurtFlow(action.DefaultActionId);
+        }
+
+        /// <summary>
+        /// 受击流程推进：当前受击动作播完时决定下一个动作
+        /// - 击飞：hurt_toair -> hurt_inair，其余 (hurt_inair / hurt_fall / 自定义击飞动作) -> hurt_fall (循环到落地)
+        /// - 倒地：lie 播完 -> 起身
+        /// - 起身：standup 播完 -> 默认动作，并追加起身后无敌
+        /// </summary>
+        private void UpdateHurtFlow()
+        {
+            if (action == null || action.anim == null || !action.anim.IsFinished) return;
+            string current = action.CurrentAction.id;
+
+            switch (Hurt)
+            {
+                case HurtState.Launch:
+                    PreorderHurtFlow(current == HurtActionIds.ToAir ? HurtActionIds.InAir : HurtActionIds.Fall);
+                    break;
+                case HurtState.Lying:
+                    if (current == HurtActionIds.Lie) EnterStandup();
+                    break;
+                case HurtState.Standup:
+                    if (current == HurtActionIds.Standup)
+                    {
+                        ExitHurt();
+                        InvincibleTicks = GameConfig.SecondsToTicks(standupInvincibleSec);
+                    }
+                    break;
+            }
+        }
+
+        private void PreorderHurtFlow(string actionId, int priority = HurtActionIds.FlowPriority)
+        {
+            if (action == null || string.IsNullOrEmpty(actionId)) return;
+            action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(actionId, priority), ForceDirection.Forward);
         }
 
         /// <summary>
@@ -321,6 +445,7 @@ namespace KiHan.Logic
             Hp = maxHp;
             Hurt = HurtState.None;
             StunTicks = 0;
+            InvincibleTicks = 0;
             GrabbedBy = null;
             GrabTarget = null;
             ClearForceMove();
@@ -348,9 +473,9 @@ namespace KiHan.Logic
 
         /// <summary>
         /// 维持抓取 (锚点即抓取)：
-        /// 1. 目标已被其他命中改变状态 (如投掷命中) 则断开
+        /// 1. 目标已不处于被本角色抓取的状态 (如被直接击倒等外部效果改变状态) 则断开
         /// 2. 本逻辑帧推进了动画帧时，读取最后处理的动画帧上的抓取锚点：锚点消失即释放 (主动松手 / 动作播完 / 被打断)
-        ///    卡帧未推进时沿用上次锚点
+        ///    本帧未推进动画帧时沿用上次锚点
         /// 3. 把目标锁到锚点
         /// </summary>
         public void UpdateGrab(MapLogic map)
@@ -415,7 +540,7 @@ namespace KiHan.Logic
             }
             else
             {
-                ExitHurt(false);
+                ExitHurt();
             }
             action?.PreorderActionByActionChangeInfo(releaseChange, ForceDirection.Forward);
         }
@@ -442,7 +567,7 @@ namespace KiHan.Logic
         public void UpdateSuction(MapLogic map, FP deltaFP)
         {
             if (_suctionSource == null) return;
-            if (Hurt == HurtState.Grabbed || (action != null && action.FrozenThisTick)) return;
+            if (Hurt == HurtState.Grabbed) return;
             if (_suctionElapsed >= _suction.inSec)
             {
                 StopSuction();
@@ -491,7 +616,7 @@ namespace KiHan.Logic
 
             foreach (AttackBoxTurnOnInfo info in phases)
             {
-                if (!InRanges(info.inPercentage, frame) || !TagMatch(box.Tag, info.tag)) continue;
+                if (!InRanges(info.frameRanges, frame) || !TagMatch(box.Tag, info.tag)) continue;
                 if (!found || info.priority > phase.priority)
                 {
                     phase = info;
@@ -506,7 +631,7 @@ namespace KiHan.Logic
             if (ranges == null) return false;
             foreach (FrameRange range in ranges)
             {
-                if (frame >= range.min && frame <= range.max) return true;
+                if (frame >= range.x && frame <= range.y) return true;
             }
             return false;
         }
@@ -561,7 +686,7 @@ namespace KiHan.Logic
             if (action.ActiveAttackBoxInfo.Count == 0) return false;
 
             // 无敌不产生命中；已死亡不再受击
-            if (target.IsDead || target.action.CurrentArmor == ArmorLevel.Invincible) return false;
+            if (target.IsDead || target.IsInvincible || target.action.CurrentArmor == ArmorLevel.Invincible) return false;
 
             List<LogicBox> hurtBoxes = target.action.anim.GetCurrentHurtBoxes();
             if (hurtBoxes == null || hurtBoxes.Count == 0) return false;

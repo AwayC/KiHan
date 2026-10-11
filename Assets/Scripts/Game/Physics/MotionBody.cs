@@ -19,6 +19,8 @@ namespace KiHan.Logic
         HitWallLeft = 1 << 2,
         /// <summary>本帧撞到右边界墙</summary>
         HitWallRight = 1 << 3,
+        /// <summary>本帧击飞触地弹起 (由受击流程替换 Landed)</summary>
+        Bounced = 1 << 4,
     }
 
     /// <summary>
@@ -62,6 +64,11 @@ namespace KiHan.Logic
         public bool IsGrounded => !IsAirborne;
 
         /// <summary>
+        /// 本帧落地瞬间的下落速度大小 (单位/秒，>= 0)，未落地的帧为 0；用于击飞触地弹起
+        /// </summary>
+        public FP LastImpactSpeed { get; private set; }
+
+        /// <summary>
         /// 推进一个逻辑帧
         /// </summary>
         /// <param name="planarDelta">本帧水平面位移 (x 横向, y 纵深)，z 分量忽略</param>
@@ -88,10 +95,12 @@ namespace KiHan.Logic
             }
 
             PhysicsEvent evt = PhysicsEvent.None;
+            LastImpactSpeed = FP.Zero;
 
             if (pos.z <= GroundEpsilon && VelocityZ <= FP.Zero)
             {
                 pos.z = FP.Zero;
+                if (!wasOnGround) LastImpactSpeed = -VelocityZ;
                 VelocityZ = FP.Zero;
                 if (!wasOnGround) evt |= PhysicsEvent.Landed;
             }
@@ -119,6 +128,7 @@ namespace KiHan.Logic
             Position = position;
             VelocityZ = FP.Zero;
             GravityScale = FP.One;
+            LastImpactSpeed = FP.Zero;
         }
     }
 }

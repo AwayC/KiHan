@@ -372,6 +372,14 @@ namespace KiHan.Logic
 
         public FP rate;
 
+        /// <summary>
+
+        /// 区间内是否允许随摇杆转向：摇杆偏左则朝左、偏右则朝右 (正上/正下不改变朝向)，受控锁定时无效
+
+        /// </summary>
+
+        public bool turn;
+
     }
 
 }

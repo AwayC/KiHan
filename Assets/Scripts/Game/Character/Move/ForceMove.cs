@@ -7,7 +7,7 @@ namespace KiHan.Logic
     /// <summary>
     /// 运行时受击/外力强制位移状态 (纯定点数确定性运算)
     /// 值类型，作为角色字段原地复用：命中时 Start 覆盖，结束或打断时 Stop，0 GC
-    /// 按时间 (秒) 配置，与动作帧无关；卡帧期间不调用 Step，计时随之暂停
+    /// 按时间 (秒) 配置，与动作帧无关
     /// </summary>
     public struct ForceMove
     {

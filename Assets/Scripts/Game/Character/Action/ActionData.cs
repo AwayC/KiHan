@@ -108,7 +108,7 @@ namespace KiHan.Logic
                 info.armorPhase = Array.Empty<ArmorPhaseInfo>();
             }
 
-            // 1. 转换 BeCancelledTag (支持 frameRange 或 range 字段)
+            // 1. 转换 BeCancelledTag
             if (beCancelledTag != null)
             {
                 info.beCancelledTag = new BeCancelledTag[beCancelledTag.Length];
@@ -174,20 +174,16 @@ namespace KiHan.Logic
     [Serializable]
     public struct BeCancelledTagData
     {
+        [Tooltip("允许被打断的动画帧区间 { x: 起始帧, y: 结束帧 }")]
         public FrameRange frameRange;
-        public Vector2Int range;
         public string[] cancelTag;
         public int priority;
 
         public BeCancelledTag ToRuntime()
         {
-            Vector2Int finalRange = (frameRange.max > 0 || frameRange.min > 0)
-                ? new Vector2Int(frameRange.min, frameRange.max)
-                : range;
-
             return new BeCancelledTag
             {
-                range = finalRange,
+                range = new Vector2Int(frameRange.x, frameRange.y),
                 cancelTag = cancelTag ?? Array.Empty<string>(),
                 priority = priority
             };
@@ -200,7 +196,7 @@ namespace KiHan.Logic
     [Serializable]
     public struct ActionCommandData
     {
-        [Tooltip("按键顺序序列 (CommandKey 名称，忽略大小写，如 [\"Down\", \"Skill1\"])")]
+        [Tooltip("按键顺序序列 (CommandKey 名称，忽略大小写，如 [\"Down\", \"Skill1\"]、[\"Skill1Release\"]、[\"Move\"])")]
         public string[] keySequence;
 
         [Tooltip("招式有效时间窗口 (字符串秒数，如 \"0.15\")")]
@@ -247,12 +243,16 @@ namespace KiHan.Logic
         [Tooltip("速度接受倍率 (字符串，如 \"1.0\", \"0.5\")")]
         public string rate;
 
+        [Tooltip("区间内是否允许随摇杆左右转向")]
+        public bool turn;
+
         public MoveInputAcceptance ToRuntime()
         {
             return new MoveInputAcceptance
             {
-                range = new Vector2Int(range.min, range.max),
-                rate = ActionData.ParseFP(rate)
+                range = new Vector2Int(range.x, range.y),
+                rate = ActionData.ParseFP(rate),
+                turn = turn
             };
         }
     }
@@ -367,7 +367,7 @@ namespace KiHan.Logic
     [Serializable]
     public struct ArmorPhaseData
     {
-        [Tooltip("生效的动画帧区间 [min, max] (30fps 素材帧)")]
+        [Tooltip("生效的动画帧区间 [x, y] (30fps 素材帧，闭区间)")]
         public FrameRange range;
 
         [Tooltip("霸体等级：None / Skill / Super / KingKong / Invincible")]
@@ -440,7 +440,7 @@ namespace KiHan.Logic
     [Serializable]
     public struct RootMotionSegmentData
     {
-        [Tooltip("生效的动画帧区间 [min, max] (30fps 素材帧)")]
+        [Tooltip("生效的动画帧区间 [x, y] (30fps 素材帧，闭区间)")]
         public FrameRange frameRange;
 
         [Tooltip("本段水平总位移 x (字符串，面朝方向前方为正)")]
@@ -452,7 +452,7 @@ namespace KiHan.Logic
         [Tooltip("水平位移缓动：Linear / Slowly，留空为 Linear")]
         public string tweenMethod;
 
-        [Tooltip("在 frameRange.min 帧设置的竖直速度 (字符串，单位/秒)，留空表示不设置")]
+        [Tooltip("在 frameRange.x 帧设置的竖直速度 (字符串，单位/秒)，留空表示不设置")]
         public string velocityZ;
 
         [Tooltip("区间内附加的竖直加速度 (字符串，单位/秒²，向上为正)")]
@@ -474,7 +474,7 @@ namespace KiHan.Logic
     }
 
     /// <summary>
-    /// 动作变化预约配置 DTO (采用字符串硬直停顿秒数)
+    /// 动作变化预约配置 DTO
     /// </summary>
     [Serializable]
     public class ActionChangeData
@@ -484,9 +484,6 @@ namespace KiHan.Logic
         public int priority;
         public int fromFrame;
 
-        [Tooltip("切换动作后产生的硬直停顿时间 (字符串秒数，如 \"0.2\")")]
-        public string freezingAfterChange;
-
         public ActionChangeInfo ToRuntime()
         {
             return new ActionChangeInfo
@@ -494,8 +491,7 @@ namespace KiHan.Logic
                 changeType = (ActionChangeType)changeType,
                 param = param ?? string.Empty,
                 priority = priority,
-                fromFrame = fromFrame,
-                freezingAfterChange = ActionData.ParseFP(freezingAfterChange)
+                fromFrame = fromFrame
             };
         }
     }

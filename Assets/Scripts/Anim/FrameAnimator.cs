@@ -56,17 +56,11 @@ namespace KiHan.Logic
 
         /// <summary>
         /// 本逻辑帧处理过的动画帧区间 [TickFromFrame, TickToFrame)
-        /// 正常推进时包含 FRAMES_PER_TICK 帧；刚切换动作、卡帧或已播完时为空区间
+        /// 正常推进时包含 FRAMES_PER_TICK 帧；刚切换动作或已播完时为空区间
         /// 判定盒检测、攻击阶段、jump、附加加速度等按帧配置的逻辑统一以此区间为准，保证每个动画帧恰好被处理一次
         /// </summary>
         public int TickFromFrame { get; private set; } = 0;
         public int TickToFrame { get; private set; } = 0;
-
-        /// <summary>
-        /// 剩余卡帧停顿帧数 (HitStop)
-        /// </summary>
-        public int FreezeTicks { get; private set; } = 0;
-        public bool IsFreezing => FreezeTicks > 0;
 
         /// <summary>
         /// 朝向：是否朝左 (影响切片 SpriteRenderer.flipX 与帧偏移)
@@ -163,15 +157,6 @@ namespace KiHan.Logic
             TickToFrame = ElapsedFrames;
         }
 
-        /// <summary>
-        /// 本逻辑帧不推进 (卡帧)：处理区间置空
-        /// </summary>
-        public void Hold()
-        {
-            TickFromFrame = ElapsedFrames;
-            TickToFrame = ElapsedFrames;
-        }
-
         private void AdvanceOneFrame()
         {
             // 1. 推进总整数帧数
@@ -259,7 +244,7 @@ namespace KiHan.Logic
 
         #endregion
 
-        #region 判定盒与卡帧 API (整数帧)
+        #region 判定盒 API (整数帧)
 
         /// <summary>
         /// 获取当前切片步激活的受击盒列表 (HurtBoxes)
@@ -361,14 +346,6 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 施加攻击卡帧或受击停顿 (以整数逻辑帧为单位)
-        /// </summary>
-        public void SetFreezing(int freezeTicks)
-        {
-            FreezeTicks = Mathf.Max(FreezeTicks, freezeTicks);
-        }
-
-        /// <summary>
         /// 重置动画状态
         /// </summary>
         public void Reset()
@@ -379,7 +356,6 @@ namespace KiHan.Logic
             TotalFrames = 0;
             CurrentStepIndex = 0;
             CurrentStepElapsedTicks = 0;
-            FreezeTicks = 0;
             TickFromFrame = 0;
             TickToFrame = 0;
         }
