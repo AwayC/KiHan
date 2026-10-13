@@ -140,7 +140,7 @@ namespace KiHan.Logic
         private readonly Dictionary<CommandKey, int> _keyHoldTicks = new();
 
         /// <summary>
-        /// 外部逻辑帧唯一驱动入口 (由 CharacterEntity.Tick / LSRoom.Tick 显式调用)
+        /// 外部逻辑帧唯一驱动入口 (由 BattleWorld.Tick 显式调用)
         /// </summary>
         /// <param name="input">网络或单机同步到的当前帧数据</param>
         /// <param name="currentFrameId">房间当前的逻辑帧编号 (FrameId)</param>

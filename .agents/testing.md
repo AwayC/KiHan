@@ -19,10 +19,17 @@
 
 ### 1. 运行
 
+**Bash (Linux / macOS / Git Bash):**
 ```bash
 Tests/LogicTests/run_all.sh
 ```
 
+**PowerShell (Windows 原生):**
+```powershell
+powershell -ExecutionPolicy Bypass -File Tests/LogicTests/run_all.ps1
+# 或仅运行单工程:
+powershell -ExecutionPolicy Bypass -File Tests/LogicTests/run_all.ps1 -Project Combat -Detailed
+```
 - 先以 `netstandard2.1` (与 Unity 2022.3 API 级别一致) 编译全部逻辑代码，再依次运行各测试工程。
 - 任一编译失败、`[FAIL]`、未捕获异常或非零退出码，脚本返回非零并打印 `SOME TESTS FAILED`；全部通过打印 `ALL PASSED`。
 
@@ -94,11 +101,6 @@ Tests/LogicTests/
 
 ### 1. 编译与元数据
 - [ ] 打开工程等待导入完成，Console 中 `Assembly-CSharp` 与 `Assembly-CSharp-Editor` **0 错误、0 警告** ([rules.md](rules.md) 六.2)。
-- [ ] 提交以下新文件自动生成的 `.meta` (当前缺失)：
-  - `Assets/Scripts/Game/Physics/` (目录)、`Physics/FPBox.cs`、`Physics/MotionBody.cs`
-  - `Assets/Scripts/Game/Core/BattleWorld.cs`
-  - `Assets/Scripts/Game/Character/Action/RootMotionSegment.cs`
-  - `Assets/Scripts/Game/Character/Fight/` 下的 `CombatTypes.cs`、`HitResolver.cs`、`HitResult.cs`、`HurtActionIds.cs`、`HurtState.cs`
 
 ### 2. 帧库与编辑器 (`SpriteLibraryEditor` / `naruto/frameLib.asset`)
 - [ ] 打开帧库编辑器，判定盒、锚点均显示为整数像素；拖动绘制判定盒、Alt 拖动锚点后数值仍为整数。
@@ -111,8 +113,13 @@ L1 中的模板加载用的是 `System.Text.Json`，与游戏实际使用的 `Js
 - [ ] `example.json` 去掉 `//` 注释后同样加载：重点核对字符串定点数 (`"0.6"`)、帧区间 `{ "x": .., "y": .. }` (`frameRange` / `frameRanges` / `range`)、`keySequence` 按键名 (`"Move"`、`"Skill1Release"`)、嵌套结构 (`rootMotion` 分段、`grab`、`suction`、`pushPower`)。
 - [ ] 缺省字段的默认值：未配置的 `ActionChangeData` (class) 在 `JsonUtility` 下会被实例化为默认对象，`changeType = 0 (Keep)`，确认不会产生意外的动作切换。
 
-### 4. 运行时抽查 (可选)
-- [ ] 在编辑器中用测试场景或临时脚本创建两个角色，按 `action_template.json` 配置，确认 idle / move / 受击流程与 L1 结果一致。
+### 4. 战斗表现 (M3)
+`LocalDebugConfig.isBattleDebug = true` 时 Play 直接进入单机对局 (WASD 移动，攻击键普攻)：
+- [ ] 地图背景、双方角色、脚下阴影圆盘正常显示，画面布局与旧版一致 (1P 左、2P 右，脚底在地面纵深带内)。
+- [ ] 上下移动：1P 纵深大于 2P 且横向重叠时被 2P 遮挡，纵深小于 2P 时遮挡 2P；角色边缘无黑边。
+- [ ] 普攻命中：打击火花、伤害跳字 (1P 造成白字) 显示在双方之前，镜头震动；2P 进入 hurt_1 僵直。
+- [ ] 退出战斗 (BackPanel 确认) 后无残留角色、阴影、特效，回到大厅。
+- [ ] Device Simulator (手机机型) 下按住虚拟攻击键约 1 秒后松开：按钮缩放与角色动作在 1~2 帧内复原，无"按下后很久才释放"。编辑器锁帧由 `EditorFramePacer` 负责，不得改回 `Application.targetFrameRate`。
 
 ---
 

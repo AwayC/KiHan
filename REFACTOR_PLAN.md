@@ -78,10 +78,10 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
          生成逻辑快照 Snapshot 与 ActionEvent 队列 (纯数据)
 ══════════════════════════════════════════════════════════════════ [逻辑/表现严格分水岭]
                     ↓ (单向通知)
-         EntityView 表现层 (LateUpdate 插值平滑)
-                    ├─ Transform 映射: X->X, Height->Y, Y(纵深)->Z (真实3D深度)
-                    ├─ 深度测试: Alpha-Test ZWrite Shader (GPU 硬件裁剪)
-                    ├─ 动画驱动: IAnimationDriver (2D 序列帧 / 3D Animator)
+         ActorView 表现层 (逻辑帧快照插值，只读 CharacterObj)
+                    ├─ 坐标映射: BattleViewSpace (纵深 -> 真实 Z 深度，屏幕布局与原 2D 一致)
+                    ├─ 深度测试: Alpha-Test ZWrite Shader (透明队列 + 写深度)
+                    ├─ 精灵帧: 直接读取 FrameAnimator 当前切片步 (素材帧率 = 逻辑帧率)
                     └─ 资源管理: AssetManager + EnhancedObjectPool (全池化)
 ```
 
@@ -93,38 +93,27 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 - **定点数方案选择**：
   - 引入 64 位定点数（Q32.32 精度）基础库 `FP`，整数部分 32 位，小数部分 32 位，精度达 $2.32 \times 10^{-10}$，满足跨平台绝对一致性。
   - 数据结构：`FP`、`FPVector2`、`FPVector3`、`FPMath`（含查表法的高性能确定性 `Sin`, `Cos`, `Atan2`, `Sqrt`）。
-- **实体物理字段重构 (`LogicEntity.cs`)**：
-  ```csharp
-  public abstract class LogicEntity
-  {
-      public int EntityId;
-      public FPVector2 pos;       // 水平二维坐标 (X: 左右横向, Y: 决斗场纵深前后)
-      public FP height;           // 离地真实高度
-      public FPVector2 velocity;  // 水平速度
-      public FP h_vel;            // 垂直起跳/受击速度
-      public FP Gravity;          // 动态重力加速度
-      public bool IsAirborne => height > FP.Zero || h_vel > FP.Zero;
-  }
-  ```
+- **确定性运动体 (`Game/Physics/MotionBody.cs`)**：`Position` (`FPVector3`：x 横向、y 纵深、z 离地高度)、`VelocityZ`、`GravityScale`；水平面走曲线位移，竖直只走速度模型。旧 `LogicEntity` 已随 M3 删除。
 - **表现层转换器规范**：
-  - 逻辑层禁止引用 `UnityEngine.Vector3`，表现层仅在渲染更新时单向读取 `pos.ToVector3()`。
+  - 逻辑层禁止引用 `UnityEngine.Vector3`，表现层仅在渲染更新时单向读取定点数并经 `BattleViewSpace` 映射。
 
-### 2. 真实 3D 纵深渲染与 2D/3D 混合深度穿插
-- **坐标系映射公式**：
-  $$\text{World Position} = \left( pos.x.\text{ToFloat}(),\, height.\text{ToFloat}(),\, pos.y.\text{ToFloat}() \right)$$
-  - 左右走位对应世界坐标 $X$。
-  - 跳跃与浮空对应世界坐标 $Y$（真实高度）。
-  - 决斗场上下跑动对应世界坐标 $Z$（真实纵深）。
-- **摄像机视角标定**：
-  - 采用**正交倾角相机 (Orthographic Camera)**：
-    - `Rotation = (18°, 0°, 0°)` 俯视决斗场。
-    - 优势：完全消除广角透视引起的 2D 像素角色近大远小变形，同时为 3D 空间提供自然的前后视深。
-- **2D/3D 深度穿插 Shader 规范**：
-  - 角色 2D 材质采用带 `ZWrite On` 的 Alpha-Test Shader（Cutoff = 0.1f）。
-  - 角色在 3D 场景中等价于带深度写入的立式广告牌，3D 特效（如螺旋丸、雷切网格粒子）穿过身前或身后时，由 GPU 深度缓冲区自动裁切，无需手动计算 sortingOrder。
-- **地图与阴影**：
-  - 地表平铺于 $Y = 0$ 平面（水平 X-Z 面）。
-  - 脚下阴影 Quad 锚定在 $Y = 0.01$，坐标恒为 $(pos.x, 0.01, pos.y)$，随跳跃高度仅缩放透明度与大小。
+### 2. 真实 3D 纵深渲染与 2D/3D 混合深度穿插 (M3 已完成)
+- **唯一映射入口 `View/Render/BattleViewSpace.cs`**：不旋转的正交相机 (沿 +Z 观察)，角色、特效、地图等 2D 素材同样不旋转，正立显示。
+  $$\text{World}(x, y, z) = (x,\; k\,y + z,\; y),\quad k = \texttt{DepthToScreenY}\ (\text{默认 } 0.35，与脚下阴影圆盘纵向压缩共用)$$
+  - 逻辑坐标：$x$ 横向、$y$ 纵深、$z$ 离地高度 (与 `MotionBody` 一致)。
+  - 屏幕横坐标 $= x$，屏幕纵坐标 $= k\,y + z$：纵深按比例 $k$ 压缩到屏幕纵向，高度 1:1；地图美术无需改动。
+  - 世界 Z $= y$，只取决于纵深：跳跃不改变前后关系；同一像素上前后由深度缓冲裁决，角色之间不再计算 sortingOrder。
+  - 逻辑层不感知相机：`FPVector2.ToRenderWorldPos` 已删除，表现层统一调用 `BattleViewSpace.ToWorld / GroundToWorld`。
+- **渲染顺序与 Shader**：
+  - 角色材质 `Resources/Render/SpriteZWriteAlphaTest.mat` (`KiHan/Render/SpriteZWriteAlphaTest`)：`ZWrite On` + `clip(alpha - 0.1)`，渲染队列为 **Transparent**。与背景、阴影、特效同队列按 sortingOrder + 与相机的距离排序，边缘半透明像素混合到已绘制的背景上，避免黑边。
+  - 地图为 2D 背景板，放在所有角色之后 (世界 Z = `BackdropDistance`)，sortingOrder 整体偏移 `BackdropSortingOffset` 保证最先绘制 (不写深度的特效不会被背景覆盖)。
+  - 额外图层 (`EffectLayerInfo.OrderOffset`) 换算为朝相机 (-Z) 的微小深度偏移。
+  - 打击火花、伤害跳字朝相机 (-Z) 前移 `ForegroundOffset`，位于参与命中的双方之前。
+- **角色视图 `ActorView` (代码构建，无预制体，全部节点不旋转)**：`ActorView(地面锚点 (x, y, y)) / { 脚下阴影, Body(本地 Y = 高度 z) / Sprite / ExtraLayer_n }`。
+  - 位置在相邻两个逻辑帧快照之间插值 (滞后一帧，任意渲染帧率平滑)；精灵帧与朝向直接读取逻辑当前状态。
+  - 脚下阴影挂在地面锚点节点，不随跳跃升高，+Z 略微后移保证在本角色身后。
+  - 跟随型特效挂到 `ActorView.Body`；Gizmos 按逻辑判定盒 (`LogicBox.ToWorld`) 绘制。
+- **逻辑 -> 表现事件**：`BattleManager.OnBattleTick` 驱动 `BattleWorld.Tick` 后调用 `SceneManager.OnLogicTick`：推进视图快照，并把本帧 `HitEvents` 转为火花 / 伤害跳字 / 震屏 (`HitEvents` 每帧清空，必须逐帧消费)。
 
 ### 3. 统一资源管理与分级对象池体系
 - **资源路径解耦与提供器模式 (`IAssetProvider`)**：
@@ -207,14 +196,9 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - 分身生命周期组件 (`SpawnedActorLifecycle`)：追踪主人归属、存活逻辑帧倒计时、消失动作调用与对象池回收。
 
 ### 7. 动画表现驱动解耦与骨骼挂点系统
-- **确定性动画控制器抽象 (`IAnimationDriver`)**：
-  - 逻辑层只输出动作 ID、当前逻辑帧索引、归一化进度百分比。
-  - 表现层按需装配：
-    - `Sprite2DAnimationDriver`：解析 2D 序列帧图集进行 Sprite 切换，支持残影生成与图层贴花。
-    - `Animator3DDriver`：为后续升级 3D 角色预留，直接根据 ActionId 执行 `CrossFadeInFixedTime`。
-- **骨骼与锚点挂接系统 (`SocketAnchor`)**：
-  - 统一定义标准骨骼挂点：`Socket_Head`、`Socket_Chest`、`Socket_Hand_L`、`Socket_Hand_R`、`Socket_Root`。
-  - 技能光效、武器、受击火花、抓取依附严格绑定至对应挂点，并随角色面向翻转保持对称。
+- **逻辑与渲染分离 (M3 已完成)**：`FrameAnimator` 为纯逻辑整数帧播放器 (推进帧、判定盒、锚点)，不再持有 SpriteRenderer；`ActorView` 读取 `CurrentAnimData` / `CurrentStepIndex` 与 `CharacterObj.FacingLeft` 绘制。
+- **3D 角色驱动 (未开始)**：`Animator3DDriver` 根据 ActionId 执行 `CrossFadeInFixedTime`，届时与 `ActorView` 的 2D 精灵绘制并列。
+- **挂点 (未开始)**：帧库 `EffectAnchors` 已提供逐帧整数锚点 (逻辑抓取在用)；表现层挂点需按当前帧锚点定位特效，当前跟随型特效统一挂在 `ActorView.Body` 上加像素偏移。
 
 ### 8. ACT 可视化动作时间轴编辑器 (Action Timeline Editor)
 - **编辑器界面核心布局**：
@@ -254,9 +238,9 @@ gantt
 
 | 里程碑 | 核心产出文件 | 重点改造内容 | 验收标准 |
 | :--- | :--- | :--- | :--- |
-| **M1: 定点数数学库与物理改造** | `Math/FP.cs`<br>`Math/FPVector2.cs`<br>`Core/LogicEntity.cs`<br>`LogicCommon.cs` | 1. 建立纯定点数数学运算库<br>2. 实体坐标、速度、高度、重力定点数化<br>3. 判定盒 `LogicBox` 切换为定点数碰撞 | 编写纯单元测试：跨平台运行 10000 次复杂物理模拟运算，哈希值绝对一致。 |
+| **M1: 定点数数学库与物理改造** | `Math/FP.cs`<br>`Math/FPVector2.cs`<br>`Physics/MotionBody.cs`<br>`LogicCommon.cs` | 1. 建立纯定点数数学运算库<br>2. 实体坐标、速度、高度、重力定点数化<br>3. 判定盒 `LogicBox` 切换为定点数碰撞 | 编写纯单元测试：跨平台运行 10000 次复杂物理模拟运算，哈希值绝对一致。 |
 | **M2: 资源管理与对象池** | `Managers/Asset/IAssetProvider.cs`<br>`Managers/Asset/ObjectPoolManager.cs`<br>`View/Component/AutoRecycleFX.cs` | 1. 抽象资源提供器接口<br>2. 实现按类型隔离的分级对象池<br>3. 改造战斗前加载预热流程 | 连续对战 5 分钟，战斗运行时无任何 `Resources.Load` 与新实例分配产生的 GC Spike。 |
-| **M3: 3D 纵深渲染与穿插** | `View/EntityView.cs`<br>`View/Rendering/ZWriteSprite.shader`<br>`View/Component/SocketAnchor.cs` | 1. `EntityView` 坐标映射为 X->X, Height->Y, Y->Z<br>2. 摄像机调整为 18° 正交倾角<br>3. 角色材质开启 Alpha-Test ZWrite | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
+| **M3: 3D 纵深渲染与穿插 (已完成)** | `View/Render/BattleViewSpace.cs`<br>`View/Render/ActorView.cs`<br>`View/Render/Shaders/SpriteZWriteAlphaTest.shader`<br>`Game/Core/BattleManager.cs`<br>`Game/Core/CharacterFactory.cs`<br>`Game/SceneManager.cs` | 1. `BattleViewSpace` 统一映射 `World = (x, k·y + z, y)` (`DepthToScreenY`)：纵深为真实 Z 深度并按比例投到屏幕纵向<br>2. 相机与素材均不旋转 (正交，沿 +Z 观察)，地图为放在最远处的背景板<br>3. 角色材质 Alpha-Test ZWrite (透明队列)<br>4. `ActorView` 只读绑定 `CharacterObj`，`BattleManager` 驱动 `BattleWorld`，`HitEvents` 转火花/跳字/震屏<br>5. 删除旧表现链路 `LogicEntity` / `EntityView` / `EffectNode` / `HitData` | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
 | **M4: ACT 动作核心与输入** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`DeterministicCommandSource.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 搓招按键队列与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
 | **M5: 5 维打击与受击状态** | `Game/Core/BattleWorld.cs`<br>`Game/Physics/MotionBody.cs`<br>`Character/Fight/HitResolver.cs`<br>`Character/Fight/CombatTypes.cs`<br>`Character/Fight/HurtState.cs`<br>`Character/Fight/HiRecord.cs` | 1. 平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 僵直/击飞/被抓/倒地受击状态<br>3. 霸体等级判定 | 僵直期间不能行动且循环受击动画；击飞落地转倒地；霸体只扣血不打断；抓取逐帧跟随帧锚点、锚点消失即释放；整条命中链路 0 GC。（停帧与保护机制已移出计划） |
 | **M6: 技能/查克拉/分身系统** | `Characters/Combat/SkillController.cs`<br>`SpawnFactory.cs`<br>`SpawnedActorLifecycle.cs`<br>`CloneBrain.cs` | 1. 多段技能 CD 与查克拉奥义点管理<br>2. 区分 SimpleEntity 与 Actor 分身生成<br>3. 分身通过 `CloneBrain` 驱动动作控制器 | 鸣人可释放多段技能；分身生成后独立执行攻击动作并按存活时限回收。 |
@@ -300,7 +284,7 @@ gantt
 
 ### 2. 核心技术风险与对应预案
 1. **风险：2D Sprite 开启 ZWrite 后产生透明边缘黑边/穿插瑕疵**
-   - **预案**：使用 Alpha Testing (Cutoff) 时，图集边缘留出 2px 扩张透明边；对半透明特效（羽化火花）独立走半透明渲染队列并关闭 ZWrite。
+   - **预案 (M3 已落实)**：角色 Alpha-Test ZWrite 材质放在透明队列，背景板最先绘制，边缘半透明像素混合到背景上；半透明特效 (羽化火花) 走默认精灵材质，不写深度。
 2. **风险：定点数与 Unity 浮点渲染插值抖动**
    - **预案**：表现层使用时间累加插值算法（`Time.deltaTime / LOGIC_TICK_TIME`），保证当逻辑帧率为 30 FPS 时，表现层在 120Hz/144Hz 刷新率下依然丝滑平滑过渡。
 3. **风险：重构周期长导致主干功能长期处于不可运行状态**

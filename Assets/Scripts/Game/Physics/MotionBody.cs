@@ -26,7 +26,7 @@ namespace KiHan.Logic
     /// <summary>
     /// 角色确定性运动体 (纯定点数)
     /// 坐标约定：x 横向，y 决斗场纵深，z 离地高度
-    /// 表现层映射：World = (x, z, y)
+    /// 表现层映射见 BattleViewSpace (逻辑层不感知相机)
     ///
     /// 运动规则：
     /// 1. 水平面 (x, y)：由曲线位移驱动 (RootMotion 曲线 / ForceMove / 摇杆输入)，只受地图边界墙约束

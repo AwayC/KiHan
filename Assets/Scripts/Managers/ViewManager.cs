@@ -1,80 +1,42 @@
-using UnityEngine;
 using System.Collections.Generic;
-using KiHan.Logic;
-using View;
+using KiHan.View.Render;
 
 namespace Managers
 {
     /// <summary>
-    /// 表现层实体管理器
-    /// 维护逻辑实体与表现层根节点（ViewRoot）的映射关系
-    /// 用于特效挂载和视觉同步
+    /// 表现层实体管理器：逻辑实体 EntityId -> 角色视图
     /// </summary>
     public class ViewManager : UnitySingleton<ViewManager>
     {
-        private Dictionary<LogicEntity, Transform> _entityToViewMap = new Dictionary<LogicEntity, Transform>();
-        private Dictionary<LogicEntity, EntityView> _entityToEntityViewMap = new Dictionary<LogicEntity, EntityView>();
+        private readonly Dictionary<int, ActorView> _views = new Dictionary<int, ActorView>();
 
-        /// <summary>
-        /// 注册一个逻辑实体对应的表现层根节点
-        /// （表现层根节点负责随逻辑平滑移动和翻转）
-        /// </summary>
-        public void RegisterView(LogicEntity entity, Transform displayRoot, EntityView entityView = null)
+        public Dictionary<int, ActorView>.ValueCollection Views => _views.Values;
+
+        public void Register(ActorView view)
         {
-            if (entity != null && displayRoot != null)
+            if (view != null && view.Character != null)
             {
-                _entityToViewMap[entity] = displayRoot;
-                if (entityView != null)
-                {
-                    _entityToEntityViewMap[entity] = entityView;
-                }
+                _views[view.Character.EntityId] = view;
             }
         }
 
-        public void UnregisterView(LogicEntity entity)
+        public ActorView GetView(int entityId)
         {
-            if (entity != null)
-            {
-                _entityToViewMap.Remove(entity);
-                _entityToEntityViewMap.Remove(entity);
-            }
+            return _views.TryGetValue(entityId, out ActorView view) ? view : null;
         }
 
         /// <summary>
-        /// 获取实体的表现层根节点
+        /// 归还视图占用的池化资源并销毁全部视图
         /// </summary>
-        public Transform GetViewRoot(LogicEntity entity)
-        {
-            if (entity != null && _entityToViewMap.TryGetValue(entity, out Transform root))
-            {
-                return root;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// 获取实体的表现层脚本
-        /// </summary>
-        public EntityView GetEntityView(LogicEntity entity)
-        {
-            if (entity != null && _entityToEntityViewMap.TryGetValue(entity, out EntityView view))
-            {
-                return view;
-            }
-            return null;
-        }
-
         public void ClearAll()
         {
-            foreach (var view in _entityToEntityViewMap.Values)
+            foreach (ActorView view in _views.Values)
             {
-                if (view != null && view.gameObject != null)
-                {
-                    Destroy(view.gameObject);
-                }
+                if (view == null) continue;
+                view.Release();
+                Destroy(view.gameObject);
             }
-            _entityToViewMap.Clear();
-            _entityToEntityViewMap.Clear();
+            _views.Clear();
         }
     }
 }

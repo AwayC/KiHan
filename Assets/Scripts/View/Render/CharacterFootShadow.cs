@@ -21,8 +21,8 @@ namespace KiHan.View.Render
         [Header("阴影开关")]
         [SerializeField] private bool enableShadow = true;
 
-        [Header("地表微小偏移 (防止 Z-Fighting)")]
-        [SerializeField] private Vector3 surfaceOffset = new Vector3(0f, 0.01f, 0f);
+        [Header("本地偏移 (+Z 远离相机，保证阴影位于本角色身后)")]
+        [SerializeField] private Vector3 surfaceOffset = new Vector3(0f, 0f, 0.02f);
 
         [Header("资源配置")]
         [SerializeField] private string shadowPathFormat = "UI/Shadow/shadow_{0}";
@@ -65,7 +65,8 @@ namespace KiHan.View.Render
         }
 
         /// <summary>
-        /// 初始化并生成对应 Owner (1P/2P) 的脚下阴影圆盘
+        /// 初始化并生成对应阵营 (1P/2P) 的脚下阴影圆盘
+        /// 本组件挂在角色地面锚点节点上：阴影停留在地面锚点，不随跳跃升高
         /// </summary>
         public void InitShadow(int ownerId)
         {
@@ -109,7 +110,7 @@ namespace KiHan.View.Render
             {
                 _isSpawned = true;
                 _shadowInstance.transform.localPosition = surfaceOffset;
-
+                _shadowInstance.transform.localRotation = Quaternion.identity;
                 // 挂载原版旋转特效
                 var effect = _shadowInstance.GetComponent<ShadowEffect>() ?? _shadowInstance.AddComponent<ShadowEffect>();
                 if (_currentOwner == 1)
@@ -155,34 +156,18 @@ namespace KiHan.View.Render
         }
 
         /// <summary>
-        /// 每帧更新阴影坐标与贴地 (保持在角色水平根节点下方)
-        /// </summary>
-        public void UpdatePosition()
-        {
-            if (_shadowInstance != null && _shadowInstance.activeSelf)
-            {
-                _shadowInstance.transform.localPosition = surfaceOffset;
-            }
-        }
-
-        /// <summary>
-        /// 回收归还阴影对象
+        /// 回收归还阴影对象 (对象池已销毁时，如退出 Play / 应用退出，阴影作为子节点随本节点一起销毁)
         /// </summary>
         public void RecycleShadow()
         {
-            if (_shadowInstance != null)
+            if (_shadowInstance == null) return;
+
+            if (ObjectPoolManager.Instance != null)
             {
-                if (ObjectPoolManager.Instance != null)
-                {
-                    ObjectPoolManager.Instance.Recycle(_shadowInstance);
-                }
-                else
-                {
-                    Managers.ResManager.Instance.Recycle(_shadowInstance);
-                }
-                _shadowInstance = null;
-                _isSpawned = false;
+                ObjectPoolManager.Instance.Recycle(_shadowInstance);
             }
+            _shadowInstance = null;
+            _isSpawned = false;
         }
     }
 }

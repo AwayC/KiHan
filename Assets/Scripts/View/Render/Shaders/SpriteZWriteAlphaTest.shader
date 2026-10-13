@@ -14,9 +14,11 @@ Shader "KiHan/Render/SpriteZWriteAlphaTest"
 
     SubShader
     {
+        // 透明队列：与地图背景、阴影、特效同队列按 sortingOrder + 与相机的距离排序，边缘半透明像素混合到已绘制的背景上 (不会出现黑边)；
+        // 同时写深度，后绘制的 3D 粒子/网格与角色由深度缓冲裁决前后
         Tags
         {
-            "Queue"="AlphaTest"
+            "Queue"="Transparent"
             "IgnoreProjector"="True"
             "RenderType"="TransparentCutout"
             "PreviewType"="Plane"

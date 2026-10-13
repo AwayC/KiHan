@@ -27,7 +27,7 @@
    - 以逻辑帧数表示的默认值必须由 `LOGIC_FPS` 推导（如 `GameConfig.LOGIC_FPS * 3` 表示 3 秒），禁止写死帧数。
 3. **表现层/渲染层时钟独立**：
    - 表现层（View/插值/动画）可运行于 30/60/120 FPS（`GameConfig.RENDER_FPS = 30`）。
-   - 仅在表现层（`EntityView`、`ActorView`、UI）允许使用 Unity 的浮点数 `Time.deltaTime` 进行平滑 Lerp 插值。
+   - 仅在表现层（`ActorView`、`EffectView`、相机、UI）允许使用 Unity 的浮点数 `Time.deltaTime` 进行平滑 Lerp 插值。
    - **逻辑内核与物理结算严禁调用任何 `Time.deltaTime`**。
 
 ---
@@ -97,8 +97,9 @@
 
 ## 六、 老旧系统过渡策略 (Legacy Entity Deprecation)
 
-1. **老旧模块逐步废弃**：
-   - 老版本 `LogicEntity` 与老状态机体系后续将逐步废弃，全面交由 `CharacterObj` + `ActionController` 驱动。
+1. **旧内核已下线**：
+   - `LogicEntity`、旧状态机与 `EntityView` / `EffectNode` 表现链路已删除，战斗统一由 `BattleWorld` + `CharacterObj` + `ActionController` 驱动，表现层由 `ActorView` 只读绑定。
+   - 逻辑 -> 表现坐标映射只允许通过 `KiHan.View.Render.BattleViewSpace`。
 2. **保证主干双端编译通过**：
    - 重构过程中所有中间改动必须维持 `Assembly-CSharp` 和 `Assembly-CSharp-Editor` 双端编译通过（0 警告、0 错误）。
 

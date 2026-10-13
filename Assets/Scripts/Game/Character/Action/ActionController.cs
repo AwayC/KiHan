@@ -34,16 +34,12 @@ namespace KiHan.Logic
         /// <summary>
         /// 角色朝向 (权威逻辑状态)：是否面朝左
         /// 判定盒、RootMotion、平推、吸附与抓取锚点均按此水平镜像；进入 inverse 动作时翻转 (随动作切换在 FlushPreorders 生效)
-        /// 同步给动画播放器用于表现层翻转；输入只记录绝对左右，指令中的前/后在匹配时按此朝向换算
+        /// 表现层直接读取此朝向翻转精灵；输入只记录绝对左右，指令中的前/后在匹配时按此朝向换算
         /// </summary>
         public bool FacingLeft
         {
             get => _facingLeft;
-            set
-            {
-                _facingLeft = value;
-                if (anim != null) anim.IsFacingLeft = value;
-            }
+            set => _facingLeft = value;
         }
 
         /// <summary>

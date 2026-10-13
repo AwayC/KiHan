@@ -12,7 +12,7 @@
     <Compile Include="$(Scripts)3rd/FixedMath/*.cs" />
     <Compile Include="$(Scripts)Game/Math/FPMathFacade.cs" />
     <Compile Include="$(Scripts)Game/Character/**/*.cs" />
-    <Compile Include="$(Scripts)Game/Core/BattleWorld.cs;$(Scripts)Game/Core/LogicEntity.cs" />
+    <Compile Include="$(Scripts)Game/Core/BattleWorld.cs" />
     <Compile Include="$(Scripts)Game/Physics/*.cs;$(Scripts)Game/Method/*.cs" />
     <Compile Include="$(Scripts)Game/LogicCommon.cs;$(Scripts)Game/GameConfig.cs;$(Scripts)Game/MapLogic.cs" />
     <Compile Include="$(Scripts)Anim/*.cs;$(Scripts)Managers/Network/Protocol.cs" />

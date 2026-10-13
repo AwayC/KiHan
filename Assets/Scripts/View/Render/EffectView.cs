@@ -1,19 +1,16 @@
-using System;
 using System.Collections;
 using KiHan.Asset;
-using KiHan.Logic;
 using UnityEngine;
 using UnityEngine.Playables;
 
 namespace KiHan.View.Render
 {
     /// <summary>
-    /// 全新 3D 纵深特效表现组件
+    /// 3D 纵深特效表现组件
     /// 核心职责：
-    /// 1. 真实 3D 空间坐标映射：世界坐标 (X -> X, Height -> Y, Y(纵深) -> Z)
-    /// 2. 挂点附着联动：自动依附至 ActorView.Sockets 挂点，随角色面向自适应镜像
-    /// 3. 全类型动画播放：无缝支持 3D ParticleSystem、2D 序列帧 Animator、Timeline PlayableDirector
-    /// 4. 生命周期与对象池契约 (IPoolable)：播放结束全自动回收至 ObjectPoolManager，0 GC
+    /// 1. 空间定位：独立特效放在 EffectData.WorldPos (已由 BattleViewSpace 映射)；跟随特效挂到 ActorView.Body
+    /// 2. 全类型动画播放：无缝支持 3D ParticleSystem、2D 序列帧 Animator、Timeline PlayableDirector
+    /// 3. 生命周期与对象池契约 (IPoolable)：播放结束全自动回收至 ObjectPoolManager，0 GC
     /// </summary>
     public class EffectView : MonoBehaviour, IPoolable
     {
@@ -28,8 +25,6 @@ namespace KiHan.View.Render
         private ParticleSystem[] _particles;
         private SpriteRenderer[] _spriteRenderers;
 
-        private LogicEntity _bindEntity;
-        private EffectData _data;
         private bool _isRecycled = false;
         private Coroutine _autoRecycleCoroutine;
 
@@ -93,9 +88,6 @@ namespace KiHan.View.Render
                     }
                 }
             }
-
-            _bindEntity = null;
-            _data = default;
         }
 
         #endregion
@@ -106,49 +98,28 @@ namespace KiHan.View.Render
         public void Init(int id, EffectData data)
         {
             EffectId = id;
-            _data = data;
-            _bindEntity = data.BindEntity;
-            float p2u = 0.01f;
 
-            // 1. 处理面向翻转
+            // 1. 面向翻转
             Vector3 scale = transform.localScale;
             scale.x = data.IsFacingLeft ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
             transform.localScale = scale;
 
-            float offX = (data.IsFacingLeft ? -data.Offset.x : data.Offset.x) * p2u;
-            float offY = data.Offset.y * p2u;
+            Vector3 offset = new Vector3(
+                (data.IsFacingLeft ? -data.Offset.x : data.Offset.x) * BattleViewSpace.PixelToWorld,
+                data.Offset.y * BattleViewSpace.PixelToWorld,
+                0f);
 
-            // 2. 空间定位：挂点附着 vs 真实 3D 世界坐标
-            if (_bindEntity != null)
+            // 2. 空间定位：跟随角色 vs 独立世界坐标 (均不旋转)
+            if (data.BindView != null)
             {
-                var entityView = Managers.ViewManager.Instance?.GetEntityView(_bindEntity);
-                var actorView = entityView != null ? entityView.GetComponent<ActorView>() : null;
-                if (actorView != null && actorView.Sockets != null)
-                {
-                    // 挂接到角色指定锚点 (如胸口)
-                    actorView.AttachEffect(this.gameObject, SocketType.Chest, followFacing: true);
-                    transform.localPosition = new Vector3(offX, offY, 0f);
-                }
-                else
-                {
-                    // 若无挂点组件，则直接跟随角色并在 3D 空间定位
-                    transform.SetParent(null);
-                    Update3DWorldPosition(
-                        _bindEntity.pos.x + offX, 
-                        (_bindEntity.height * p2u) + offY, 
-                        _bindEntity.pos.y
-                    );
-                }
+                transform.SetParent(data.BindView.Body, false);
+                transform.localPosition = offset;
+                transform.localRotation = Quaternion.identity;
             }
             else
             {
-                // 独立世界特效 (如受击爆炸、地面烟尘): X -> X, Height -> Y, Y(纵深) -> Z
                 transform.SetParent(null);
-                Update3DWorldPosition(
-                    data.WorldPos.x + offX, 
-                    (data.Height * p2u) + offY, 
-                    data.WorldPos.y
-                );
+                transform.SetPositionAndRotation(data.WorldPos + offset, Quaternion.identity);
             }
 
             // 3. 触发全类型动画播放
@@ -160,11 +131,6 @@ namespace KiHan.View.Render
                 if (_autoRecycleCoroutine != null) StopCoroutine(_autoRecycleCoroutine);
                 _autoRecycleCoroutine = StartCoroutine(AutoRecycleRoutine());
             }
-        }
-
-        private void Update3DWorldPosition(float worldX, float worldHeightY, float depthZ)
-        {
-            transform.position = new Vector3(worldX, worldHeightY, depthZ);
         }
 
         private void PlayAllAnimationDrivers()
@@ -268,22 +234,6 @@ namespace KiHan.View.Render
             else
             {
                 Destroy(this.gameObject);
-            }
-        }
-
-        private void LateUpdate()
-        {
-            // 如果跟随实体且实体在位移，且未挂接在骨骼节点下，保持跟随
-            if (_bindEntity != null && transform.parent == null)
-            {
-                float p2u = 0.01f;
-                float offX = (_data.IsFacingLeft ? -_data.Offset.x : _data.Offset.x) * p2u;
-                float offY = _data.Offset.y * p2u;
-                Update3DWorldPosition(
-                    _bindEntity.pos.x + offX, 
-                    (_bindEntity.height * p2u) + offY, 
-                    _bindEntity.pos.y
-                );
             }
         }
     }

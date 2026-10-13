@@ -457,7 +457,6 @@ namespace KiHan.View.UI.Login
             if (GameApp.Instance != null)
             {
                 // 如果在战斗中，可以复用部分 ExitGame 的逻辑，或者确保管理器都清空
-                SceneManager.Instance.InitWorld();
                 MapManager.Instance.ClearMap();
                 VirtualNetworkManager.Instance.Stop();
             }

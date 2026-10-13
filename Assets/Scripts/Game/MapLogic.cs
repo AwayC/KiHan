@@ -10,8 +10,10 @@ public class MapLogic
 {
     public FP MinX = FP.Parse("-7");
     public FP MaxX = FP.Parse("7");
-    public FP MinY = FP.Parse("-0.9");
-    public FP MaxY = FP.Parse("0.9");
+    // 纵深上下限：画面可走地面带为屏幕纵向 ±0.9，表现层按 BattleViewSpace.DepthToScreenY (0.35) 压缩纵深，
+    // 逻辑纵深 = 0.9 / 0.35 ≈ 2.57 (修改该比例时需同步此处)
+    public FP MinY = FP.Parse("-2.4");
+    public FP MaxY = FP.Parse("2.4");
 
     /// <summary>
     /// 将逻辑坐标的水平面 (x 横向, y 纵深) 夹取到地图边界内，返回撞墙事件

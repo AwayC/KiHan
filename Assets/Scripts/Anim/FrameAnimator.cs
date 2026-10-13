@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace KiHan.Logic
 {
+    /// <summary>
+    /// 整数帧动画播放器 (纯逻辑)：推进动画帧、提供判定盒与锚点查询
+    /// 不涉及任何渲染，表现层 (ActorView) 读取 CurrentAnimData / CurrentStepIndex 自行绘制
+    /// </summary>
     public class FrameAnimator : MonoBehaviour
     {
-        [Header("渲染节点绑定 (可选)")]
-        [SerializeField] private SpriteRenderer mainRenderer;
-        [SerializeField] private Transform displayRoot;
-
         // 动画资源字典: animKey -> AnimationFrameData
         private readonly Dictionary<string, AnimationFrameData> _animDict = new(StringComparer.OrdinalIgnoreCase);
 
@@ -61,17 +61,6 @@ namespace KiHan.Logic
         /// </summary>
         public int TickFromFrame { get; private set; } = 0;
         public int TickToFrame { get; private set; } = 0;
-
-        /// <summary>
-        /// 朝向：是否朝左 (影响切片 SpriteRenderer.flipX 与帧偏移)
-        /// </summary>
-        public bool IsFacingLeft { get; set; } = false;
-
-        private void Awake()
-        {
-            if (mainRenderer == null) mainRenderer = GetComponentInChildren<SpriteRenderer>();
-            if (displayRoot == null) displayRoot = transform;
-        }
 
         #region 动画资源注册与管理
 
@@ -126,7 +115,6 @@ namespace KiHan.Logic
             TickToFrame = startFromFrame;
 
             LocateStepByElapsedFrames(startFromFrame);
-            ApplyCurrentVisualFrame();
         }
 
         /// <summary>
@@ -176,7 +164,6 @@ namespace KiHan.Logic
                     {
                         CurrentStepIndex++;
                     }
-                    ApplyCurrentVisualFrame();
                 }
             }
         }
@@ -214,32 +201,6 @@ namespace KiHan.Logic
                 total += Mathf.Max(1, animData.Steps[i].Duration);
             }
             return total;
-        }
-
-        #endregion
-
-        #region 表现层切帧与图层应用
-
-        private void ApplyCurrentVisualFrame()
-        {
-            if (CurrentAnimData == null || mainRenderer == null) return;
-
-            var frameData = CurrentAnimData.GetCurrentFrameData(CurrentStepIndex);
-            if (frameData == null || frameData.Sprite == null) return;
-
-            float p2u = 0.01f;
-
-            // 1. 设置主切片 Sprite 与翻转
-            mainRenderer.sprite = frameData.Sprite;
-            mainRenderer.flipX = IsFacingLeft;
-
-            // 2. 应用对齐脚底中心偏移 (根据朝向做水平镜像)
-            if (displayRoot != null)
-            {
-                float offX = (IsFacingLeft ? -frameData.Offset.x : frameData.Offset.x) * p2u;
-                float offY = frameData.Offset.y * p2u;
-                displayRoot.localPosition = new Vector3(offX, offY, 0f);
-            }
         }
 
         #endregion

@@ -7,7 +7,7 @@ namespace KiHan.Math
 {
     /// <summary>
     /// 项目统一二维定点数向量门面
-    /// 包含面向 3D 纵深渲染的坐标投影辅助方法 (.ToRenderWorldPos())
+    /// 表现层坐标映射统一由 KiHan.View.Render.BattleViewSpace 负责，逻辑层不感知相机
     /// </summary>
     [Serializable]
     public struct FPVector2 : IEquatable<FPVector2>
@@ -98,24 +98,6 @@ namespace KiHan.Math
         public Vector2 ToVector2()
         {
             return new Vector2(x.AsFloat(), y.AsFloat());
-        }
-
-        /// <summary>
-        /// 转换为 3D 渲染世界坐标: X -> World.X, Height -> World.Y, Y(纵深) -> World.Z
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector3 ToRenderWorldPos(float heightMeters = 0f)
-        {
-            return new Vector3(x.AsFloat(), heightMeters, y.AsFloat());
-        }
-
-        /// <summary>
-        /// 转换为 3D 渲染世界坐标 (使用定点数高度)
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector3 ToRenderWorldPos(FP heightMeters)
-        {
-            return new Vector3(x.AsFloat(), heightMeters.AsFloat(), y.AsFloat());
         }
 
         #endregion

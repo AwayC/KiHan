@@ -1,5 +1,6 @@
 using UnityEngine;
 using Managers;
+using KiHan.View.Render;
 
 /// <summary>
 /// 地图管理器，负责加载地图和提供边界信息
@@ -16,11 +17,16 @@ public class MapManager : UnitySingleton<MapManager>
             Destroy(_mapInstance);
         }
 
-        // 简单实例化地图
-        _mapInstance = ResManager.Instance.Spawn(mapPath, Vector3.zero, Quaternion.identity);
-        
-        // 移除之前的“拍扁”逻辑，保留预制体原有的层级关系
-        // 只要预制体里最高的层级小于玩家的 10 即可正常显示
+        // 地图为 2D 背景板：放到所有角色之后 (世界 Z = BackdropDistance)，屏幕布局与原 2D 版本一致
+        _mapInstance = ResManager.Instance.Spawn(mapPath,
+            new Vector3(0f, 0f, BattleViewSpace.BackdropDistance),
+            Quaternion.identity);
+
+        // 背景板不写深度，必须在透明队列中最先绘制，否则会盖住同样不写深度的特效与阴影
+        foreach (SpriteRenderer sr in _mapInstance.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            sr.sortingOrder += BattleViewSpace.BackdropSortingOffset;
+        }
 
         // 初始化地图边界逻辑
         CurrentMapLogic = new MapLogic();

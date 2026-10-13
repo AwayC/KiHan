@@ -1,3 +1,4 @@
+using KiHan.View.Render;
 using UnityEngine;
 
 /// <summary>
@@ -15,9 +16,9 @@ public class ShadowEffect : MonoBehaviour
 
     private void Start()
     {
-        // 1. 实现 2.5D 视角下的 Y 轴透视压缩 (0.4 倍)
-        // 注意：父物体压缩后，子物体绕 Z 轴旋转会产生椭圆转动的视觉感，完美贴合地面
-        transform.localScale = new Vector3(1f, 0.35f, 1f);
+        // 1. 地面透视压缩：纵向缩放与纵深位移共用 BattleViewSpace.DepthToScreenY
+        // 注意：父物体压缩后，子物体绕 Z 轴旋转会产生椭圆转动的视觉感，贴合地面
+        transform.localScale = new Vector3(1f, BattleViewSpace.DepthToScreenY, 1f);
 
         // 2. 获取预制体子物体 (根据 shadow_1 结构)
         if (transform.childCount > 0)

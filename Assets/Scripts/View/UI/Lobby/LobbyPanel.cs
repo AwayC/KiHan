@@ -674,7 +674,6 @@ namespace KiHan.View.UI.Lobby
             KiHan.Network.GatewayManager.Instance?.Disconnect();
             HttpClient.Instance.ClearToken();
             
-            SceneManager.Instance.InitWorld();
             MapManager.Instance.ClearMap();
             if (VirtualNetworkManager.Instance != null) VirtualNetworkManager.Instance.Stop();
             Managers.ViewManager.Instance.ClearAll();

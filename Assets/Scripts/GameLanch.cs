@@ -14,8 +14,12 @@ public class GameLanch : UnitySingleton<GameLanch>
     void Start()
     {
         Debug.Log("[GameLanch] 启动并挂载逻辑模块...");
-        // 关闭锁帧
-        Application.targetFrameRate = 30;
+        // 渲染锁 30 帧 (LockstepManager 每个 Update 上报一次输入，与逻辑帧率对齐)
+#if UNITY_EDITOR
+        EditorFramePacer.Install(KiHan.Logic.GameConfig.LOGIC_FPS);
+#else
+        Application.targetFrameRate = KiHan.Logic.GameConfig.LOGIC_FPS;
+#endif
         QualitySettings.vSyncCount = 0;
 
         // 初始化游戏框架代码

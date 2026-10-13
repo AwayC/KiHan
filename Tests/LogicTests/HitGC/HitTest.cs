@@ -39,7 +39,7 @@ static class Program
         var ac = new ActionController { anim = anim };
         var cha = new CharacterObj { action = ac, EntityId = id, TeamId = team };
         ac.Set((a, b) => cha.HitRecords.Clear());
-        anim.IsFacingLeft = facingLeft;
+        ac.FacingLeft = facingLeft;
         ac.SetAllActions(new List<ActionInfo> { attack, hurt, idle }, id == 1 ? "attack" : "idle");
         cha.motion.Reset(pos);
         return cha;

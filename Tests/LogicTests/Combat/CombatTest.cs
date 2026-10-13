@@ -391,7 +391,7 @@ static class Program
             // 无输入组件、面朝左：攻击盒向左镜像，打到左侧目标，打不到右侧目标
             var a = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
             a.FacingLeft = true;
-            Check(a.input == null && a.FacingLeft && a.action.anim.IsFacingLeft, "无输入组件设置朝左生效，并同步到动画");
+            Check(a.input == null && a.FacingLeft, "无输入组件设置朝左生效");
             var left = Make(2, 2, "-0.9", "idle");
             var right = Make(3, 2, "0.9", "idle");
             var w = World(a, left, right); Step(w);
@@ -402,7 +402,7 @@ static class Program
             var c = Make(4, 1, "0", "idle", turn);
             Check(!c.FacingLeft, "初始朝右");
             c.action.SetAllActions(c.action.AllActions, "turn");
-            Check(c.FacingLeft && c.action.anim.IsFacingLeft, "进入 inverse 动作后朝左");
+            Check(c.FacingLeft, "进入 inverse 动作后朝左");
 
             // 有输入组件：输入只记录绝对方向；指令中的前/后在匹配时按朝向换算
             InputToCommand PushRight(bool facingLeft)

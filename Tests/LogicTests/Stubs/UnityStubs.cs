@@ -12,7 +12,6 @@ namespace UnityEngine {
   public class Transform : Component { public Vector3 position; public Vector3 localPosition; }
   public class Sprite : Object {}
   public class TextAsset : Object { public string text; }
-  public class SpriteRenderer : Component { public Sprite sprite; public bool flipX; public Color color; }
   public struct Color { public float r,g,b,a; public Color(float r,float g,float b,float a=1){this.r=r;this.g=g;this.b=b;this.a=a;} public static Color white => new Color(1,1,1,1); }
   public struct Quaternion { public static Quaternion identity => default; }
   public struct Vector2 { public float x,y; public Vector2(float x,float y){this.x=x;this.y=y;} public static Vector2 zero=>default;
@@ -32,6 +31,3 @@ namespace UnityEngine {
   public class SerializeField : Attribute {}
   public class CreateAssetMenuAttribute : Attribute { public string fileName, menuName; }
 }
-// 旧内核依赖桩
-public class UnitySingleton<T> : UnityEngine.MonoBehaviour { public static T Instance; }
-public class MapManager : UnitySingleton<MapManager> { public MapLogic CurrentMapLogic; }

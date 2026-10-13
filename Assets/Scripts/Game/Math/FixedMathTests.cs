@@ -102,19 +102,13 @@ namespace KiHan.Tests
                 AssertTrue(Mathf.Abs(angle180.ToFloat() - 180.0f) < 0.5f, $"Atan2(0,-1) 应为 ~180°，实际: {angle180.ToFloat()}");
             }, ref passCount, ref totalCount);
 
-            Test("6. FPVector2 二维向量与 3D 纵深投影", () =>
+            Test("6. FPVector2 二维向量模长与归一化", () =>
             {
                 FPVector2 v = new FPVector2(3, 4);
                 AssertTrue(Mathf.Abs(v.magnitude.ToFloat() - 5.0f) < 0.0001f, "Vector2(3,4) 模长应为 5");
 
                 FPVector2 norm = v.normalized;
                 AssertTrue(Mathf.Abs(norm.magnitude.ToFloat() - 1.0f) < 0.0001f, "归一化后模长应为 1");
-
-                // 测试 3D 纵深渲染投影 (X -> X, Height -> Y, Y(纵深) -> Z)
-                Vector3 worldPos = v.ToRenderWorldPos(heightMeters: 1.5f);
-                AssertTrue(Mathf.Abs(worldPos.x - 3.0f) < 0.0001f, "WorldPos.x 应为 3.0");
-                AssertTrue(Mathf.Abs(worldPos.y - 1.5f) < 0.0001f, "WorldPos.y (高度) 应为 1.5");
-                AssertTrue(Mathf.Abs(worldPos.z - 4.0f) < 0.0001f, "WorldPos.z (纵深) 应为 4.0");
             }, ref passCount, ref totalCount);
 
             Test("7. FPVector3 三维向量叉乘与点乘", () =>

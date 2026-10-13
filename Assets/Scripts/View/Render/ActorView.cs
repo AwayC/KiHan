@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using KiHan.Asset;
 using KiHan.Logic;
 using KiHan.Math;
 using UnityEngine;
@@ -7,286 +7,222 @@ using UnityEngine;
 namespace KiHan.View.Render
 {
     /// <summary>
-    /// 动作角色 3D 纵深表现层视图 (ActorView)
-    /// 核心职责：
-    /// 1. 3D 空间映射：Logic.pos.x -> World.X, Logic.height -> World.Y, Logic.pos.y(纵深) -> World.Z
-    /// 2. 2D 序列帧驱动：负责 Sprite 帧切换与平滑插值
-    /// 3. 硬件深度遮挡：依托 Alpha-Test ZWrite Shader 让 2D 角色天然与 3D 粒子网格产生 Z-Buffer 穿插
-    /// 4. 骨骼挂点管理与脚下圆盘阴影联动
+    /// 角色表现层视图：只读绑定的 CharacterObj，不回写任何逻辑数据
+    ///
+    /// 节点结构 (代码构建，全部不旋转)：
+    /// ActorView (地面锚点，BattleViewSpace.GroundToWorld)
+    ///   ├ 脚下阴影 (CharacterFootShadow，略微后移，不随跳跃升高)
+    ///   └ Body (本地 Y = 逻辑高度 z；挂接特效的父节点)
+    ///       └ Sprite (帧偏移 + 主精灵) └ ExtraLayer_n (额外图层)
+    ///
+    /// 时序：位置在相邻两个逻辑帧快照之间插值 (滞后一帧，任意渲染帧率平滑)；
+    /// 精灵帧与朝向直接读取逻辑当前状态 (素材帧率与逻辑帧率一致，逐帧精确)
     /// </summary>
     public class ActorView : MonoBehaviour
     {
-        [Header("逻辑实体绑定")]
-        public LogicEntity BindEntity;
+        private const string SpriteMaterialPath = "Render/SpriteZWriteAlphaTest";
 
-        [Header("核心渲染节点")]
-        [SerializeField] protected SpriteRenderer mainRenderer;
-        [SerializeField] protected Transform displayRoot;
-        [SerializeField] protected CharacterSockets sockets;
-        [Header("独立脚下圆盘阴影组件 (可开关/可换皮)")]
-        [SerializeField] protected CharacterFootShadow footShadow;
+        /// <summary>
+        /// 额外图层每级 OrderOffset 朝相机 (-Z) 前移的距离
+        /// </summary>
+        private const float LayerDepthStep = 0.001f;
 
-        [Header("多图层渲染 (额外图层，如武器特效、光效贴花)")]
-        [SerializeField] protected List<SpriteRenderer> extraRenderers = new();
+        private static Material _spriteMaterial;
 
-        // 平滑插值相关状态
-        protected Vector3 _targetWorldPos;
-        protected float _interpolateTime = 0f;
-        protected float _stepDuration = LogicEntity.LOGIC_TICK_TIME;
+        public CharacterObj Character { get; private set; }
 
-        // 动画序列帧播放状态
-        protected AnimationFrameData _lastAnim;
-        protected int _lastAnimVersion = -1;
-        protected float _visualTimer = 0f;
-        protected int _visualFrameIndex = 0;
+        /// <summary>
+        /// 随角色位移与离地高度移动的节点，跟随型特效挂在此节点下
+        /// </summary>
+        public Transform Body { get; private set; }
 
-        public CharacterSockets Sockets => sockets;
-        public CharacterFootShadow FootShadow => footShadow;
+        private SpriteRenderer _mainRenderer;
+        private readonly List<SpriteRenderer> _extraRenderers = new List<SpriteRenderer>();
+        private CharacterFootShadow _footShadow;
 
-        protected virtual void Awake()
+        // 逻辑帧快照 (x 横向, y 纵深, z 高度)
+        private Vector3 _prevLogicPos;
+        private Vector3 _currLogicPos;
+        private float _lastTickTime;
+
+        private static Material SpriteMaterial
         {
-            if (displayRoot == null) displayRoot = transform;
-            if (mainRenderer == null) mainRenderer = GetComponentInChildren<SpriteRenderer>();
-            if (sockets == null) sockets = GetComponentInChildren<CharacterSockets>();
-            if (footShadow == null) footShadow = GetComponentInChildren<CharacterFootShadow>();
-
-            // 确保材质使用支持写深度的 Alpha-Test Shader
-            EnsureZWriteMaterial();
-        }
-
-        private void EnsureZWriteMaterial()
-        {
-            if (mainRenderer != null && mainRenderer.sharedMaterial != null)
+            get
             {
-                if (!mainRenderer.sharedMaterial.shader.name.Contains("ZWrite"))
-                {
-                    Shader zwriteShader = Shader.Find("KiHan/Render/SpriteZWriteAlphaTest");
-                    if (zwriteShader != null)
-                    {
-                        mainRenderer.material = new Material(zwriteShader);
-                    }
-                }
+                if (_spriteMaterial == null) _spriteMaterial = AssetManager.Instance.Load<Material>(SpriteMaterialPath);
+                return _spriteMaterial;
             }
         }
 
         /// <summary>
-        /// 瞬间同步至实体逻辑位置并重置表现状态 (如对象池唤醒时调用)
+        /// 为逻辑角色创建视图
         /// </summary>
-        public void SnapToEntity()
+        public static ActorView Create(CharacterObj character)
         {
-            if (BindEntity == null) return;
-
-            // X -> X, Height -> Y, Y(纵深) -> Z
-            _targetWorldPos = new Vector3(
-                BindEntity.pos.x,
-                0f, // 根节点始终锚定在地面
-                BindEntity.pos.y
-            );
-            transform.position = _targetWorldPos;
-            _interpolateTime = 0f;
-            _visualTimer = 0f;
-            _visualFrameIndex = 0;
-            _lastAnim = null;
-            _lastAnimVersion = -1;
+            var go = new GameObject($"{character.name}_View");
+            var view = go.AddComponent<ActorView>();
+            view.Build();
+            view.Bind(character);
+            return view;
         }
 
-        protected virtual void LateUpdate()
+        private void Build()
         {
-            if (BindEntity == null) return;
+            _footShadow = gameObject.AddComponent<CharacterFootShadow>();
 
-            // 1. 计算 3D 目标世界坐标
-            // 1. 根节点世界坐标始终在地面 (X -> X, 0 -> 地面, Y -> 纵深 Z)
-            Vector3 logicWorldPos = new Vector3(
-                BindEntity.pos.x,
-                0f,
-                BindEntity.pos.y
-            );
+            Body = new GameObject("Body").transform;
+            Body.SetParent(transform, false);
 
-            if (logicWorldPos != _targetWorldPos)
-            {
-                _interpolateTime = 0f;
-                _targetWorldPos = logicWorldPos;
-            }
-
-            // 2. 在渲染帧平滑插值位移
-            _interpolateTime += Time.deltaTime;
-            float t = Mathf.Clamp01(_interpolateTime / _stepDuration);
-            transform.position = Vector3.Lerp(transform.position, _targetWorldPos, t);
-
-            // 3. 推进 2D 序列帧动画索引
-            UpdateVisualFrameIndex();
-
-            // 4. 渲染当前精灵帧与多层贴花
-            RenderCurrentFrame();
-
-            // 5. 同步面向翻转与挂点镜像
-            if (sockets != null)
-            {
-                sockets.SetFacing(BindEntity.IsFacingLeft);
-            }
-
-            // 6. 驱动独立脚下圆盘阴影
-            if (footShadow != null && BindEntity != null)
-            {
-                footShadow.InitShadow(BindEntity.owner);
-                footShadow.UpdatePosition();
-            }
+            var spriteGo = new GameObject("Sprite");
+            spriteGo.transform.SetParent(Body, false);
+            _mainRenderer = spriteGo.AddComponent<SpriteRenderer>();
+            _mainRenderer.sharedMaterial = SpriteMaterial;
         }
 
-        protected virtual void UpdateVisualFrameIndex()
+        private void Bind(CharacterObj character)
         {
-            var currentAnim = BindEntity.CurrAnim;
-            if (currentAnim == null || currentAnim.Steps.Count == 0) return;
-
-            // 动画重置检测
-            if (currentAnim != _lastAnim || BindEntity.AnimVersion != _lastAnimVersion)
-            {
-                _lastAnim = currentAnim;
-                _lastAnimVersion = BindEntity.AnimVersion;
-                _visualTimer = 0f;
-                _visualFrameIndex = 0;
-            }
-
-            var steps = currentAnim.Steps;
-            int safeIndex = Mathf.Clamp(_visualFrameIndex, 0, steps.Count - 1);
-            var currentStep = steps[safeIndex];
-
-            _visualTimer += Time.deltaTime;
-            float stepDurationSec = currentStep.Duration * GameConfig.RENDER_TICK_TIME;
-
-            if (_visualTimer >= stepDurationSec)
-            {
-                _visualTimer -= stepDurationSec;
-                int nextIndex = _visualFrameIndex + 1;
-
-                bool isLooping = BindEntity != null && BindEntity.ForceLoop && !BindEntity.ForceNotLoop;
-
-                if (nextIndex < steps.Count)
-                {
-                    _visualFrameIndex = nextIndex;
-                }
-                else if (isLooping)
-                {
-                    _visualFrameIndex = 0;
-                }
-                else
-                {
-                    _visualFrameIndex = steps.Count - 1;
-                }
-            }
+            Character = character;
+            _currLogicPos = ReadLogicPos();
+            _prevLogicPos = _currLogicPos;
+            _lastTickTime = Time.time;
+            _footShadow.InitShadow(character.TeamId);
+            ApplyTransform(_currLogicPos);
+            RenderFrame();
         }
 
-        protected virtual void RenderCurrentFrame()
+        /// <summary>
+        /// 每个逻辑帧结算后调用：推进插值快照
+        /// </summary>
+        public void OnLogicTick()
         {
-            if (mainRenderer == null || BindEntity.CurrAnim == null) return;
-
-            var frameData = BindEntity.CurrAnim.GetCurrentFrameData(_visualFrameIndex);
-            if (frameData == null) return;
-
-            float p2u = 0.01f;
-
-            // 设置 Sprite 与面向翻转
-            mainRenderer.sprite = frameData.Sprite;
-            mainRenderer.flipX = BindEntity.IsFacingLeft;
-
-            // 应用帧偏移量 (根据面向做水平镜像)
-            // 应用帧偏移量与离地高度 (DisplayRoot 负责离地高度)
-            float targetHeightMeters = BindEntity.height * 0.01f;
-            float offX = (mainRenderer.flipX ? -frameData.Offset.x : frameData.Offset.x) * p2u;
-            float offY = frameData.Offset.y * p2u + targetHeightMeters;
-            displayRoot.localPosition = new Vector3(offX, offY, 0f);
-
-            // 渲染额外附带图层
-            RenderExtraLayers(frameData, p2u);
+            _prevLogicPos = _currLogicPos;
+            _currLogicPos = ReadLogicPos();
+            _lastTickTime = Time.time;
         }
 
-        protected virtual void RenderExtraLayers(SpriteFrameData frameData, float p2u)
+        /// <summary>
+        /// 销毁前归还对象池资源
+        /// </summary>
+        public void Release()
         {
-            int layerCount = frameData.ExtraLayers.Count;
-            while (extraRenderers.Count < layerCount)
+            _footShadow.RecycleShadow();
+            Character = null;
+        }
+
+        private Vector3 ReadLogicPos()
+        {
+            FPVector3 p = Character.motion.Position;
+            return new Vector3(p.x.AsFloat(), p.y.AsFloat(), p.z.AsFloat());
+        }
+
+        private void LateUpdate()
+        {
+            if (Character == null) return;
+
+            float alpha = Mathf.Clamp01((Time.time - _lastTickTime) / GameConfig.LOGIC_TICK_TIME);
+            ApplyTransform(Vector3.Lerp(_prevLogicPos, _currLogicPos, alpha));
+            RenderFrame();
+        }
+
+        private void ApplyTransform(Vector3 logicPos)
+        {
+            transform.position = BattleViewSpace.GroundToWorld(logicPos.x, logicPos.y);
+            Body.localPosition = new Vector3(0f, logicPos.z, 0f);
+        }
+
+        private void RenderFrame()
+        {
+            FrameAnimator anim = Character.action != null ? Character.action.anim : null;
+            SpriteFrameData frame = anim != null && anim.CurrentAnimData != null
+                ? anim.CurrentAnimData.GetCurrentFrameData(anim.CurrentStepIndex)
+                : null;
+
+            if (frame == null || frame.Sprite == null)
             {
-                GameObject layerGo = new GameObject($"ExtraLayer_{extraRenderers.Count}");
-                layerGo.transform.SetParent(displayRoot);
+                _mainRenderer.enabled = false;
+                HideExtraLayers(0);
+                return;
+            }
+
+            bool flip = Character.FacingLeft;
+            _mainRenderer.enabled = true;
+            _mainRenderer.sprite = frame.Sprite;
+            _mainRenderer.flipX = flip;
+            _mainRenderer.transform.localPosition = new Vector3(
+                (flip ? -frame.Offset.x : frame.Offset.x) * BattleViewSpace.PixelToWorld,
+                frame.Offset.y * BattleViewSpace.PixelToWorld,
+                0f);
+
+            RenderExtraLayers(frame, flip);
+        }
+
+        private void RenderExtraLayers(SpriteFrameData frame, bool flip)
+        {
+            List<EffectLayerInfo> layers = frame.ExtraLayers;
+            int count = layers != null ? layers.Count : 0;
+
+            while (_extraRenderers.Count < count)
+            {
+                var layerGo = new GameObject($"ExtraLayer_{_extraRenderers.Count}");
+                layerGo.transform.SetParent(_mainRenderer.transform, false);
                 var sr = layerGo.AddComponent<SpriteRenderer>();
-                sr.material = mainRenderer.sharedMaterial; // 共享 ZWrite 材质
-                extraRenderers.Add(sr);
+                sr.sharedMaterial = SpriteMaterial;
+                _extraRenderers.Add(sr);
             }
 
-            for (int i = 0; i < extraRenderers.Count; i++)
+            for (int i = 0; i < count; i++)
             {
-                var sr = extraRenderers[i];
-                if (i < layerCount)
-                {
-                    var layer = frameData.ExtraLayers[i];
-                    sr.gameObject.SetActive(true);
-                    sr.sprite = layer.Sprite;
-                    sr.color = layer.TintColor;
-                    sr.flipX = mainRenderer.flipX;
-                    float lx = (sr.flipX ? -layer.Offset.x : layer.Offset.x) * p2u;
-                    float ly = layer.Offset.y * p2u;
-                    // 在 Z 轴上增加微小的深度偏移量代替传统的 sortingOrder
-                    sr.transform.localPosition = new Vector3(lx, ly, -layer.OrderOffset * 0.001f);
-                }
-                else
-                {
-                    sr.gameObject.SetActive(false);
-                }
+                EffectLayerInfo layer = layers[i];
+                SpriteRenderer sr = _extraRenderers[i];
+                sr.enabled = true;
+                sr.sprite = layer.Sprite;
+                sr.color = layer.TintColor;
+                sr.flipX = flip;
+                // 本地 -Z 朝向相机：用微小深度偏移代替 sortingOrder
+                sr.transform.localPosition = new Vector3(
+                    (flip ? -layer.Offset.x : layer.Offset.x) * BattleViewSpace.PixelToWorld,
+                    layer.Offset.y * BattleViewSpace.PixelToWorld,
+                    -layer.OrderOffset * LayerDepthStep);
             }
+
+            HideExtraLayers(count);
         }
 
-        /// <summary>
-        /// 将 3D 特效 (如螺旋丸网格) 或 2D 贴花直接挂接到角色指定挂点
-        /// </summary>
-        public void AttachEffect(GameObject fxInstance, SocketType socketType, bool followFacing = true)
+        private void HideExtraLayers(int from)
         {
-            if (sockets != null)
+            for (int i = from; i < _extraRenderers.Count; i++)
             {
-                sockets.AttachEffect(fxInstance, socketType, followFacing);
-            }
-            else
-            {
-                fxInstance.transform.SetParent(this.transform, false);
-                fxInstance.transform.localPosition = Vector3.zero;
+                _extraRenderers[i].enabled = false;
             }
         }
 
-        #region Gizmos 调试 3D 判定盒
+        #region Gizmos：按逻辑判定盒 (定点数 AABB) 绘制
 
         private void OnDrawGizmos()
         {
-            if (BindEntity == null || BindEntity.CurrAnim == null) return;
+            if (Character == null || Character.action == null || Character.action.anim == null) return;
 
-            // 受击盒 (蓝色)
-            var hurtBoxes = BindEntity.CurrAnim.GetHurtBoxes(_visualFrameIndex);
-            if (hurtBoxes != null)
-            {
-                Gizmos.color = new Color(0f, 0.4f, 1f, 0.5f);
-                foreach (var box in hurtBoxes) Draw3DLogicBox(box);
-            }
+            FrameAnimator anim = Character.action.anim;
+            Gizmos.matrix = BattleViewSpace.LogicToWorldMatrix;
 
-            // 攻击盒 (红色)
-            var hitBoxes = BindEntity.CurrAnim.GetHitBoxes(_visualFrameIndex);
-            if (hitBoxes != null)
-            {
-                Gizmos.color = new Color(1f, 0f, 0f, 0.6f);
-                foreach (var box in hitBoxes) Draw3DLogicBox(box);
-            }
+            Gizmos.color = new Color(0f, 0.4f, 1f, 0.8f);
+            DrawBoxes(anim.GetCurrentHurtBoxes());
+
+            Gizmos.color = new Color(1f, 0f, 0f, 0.9f);
+            DrawBoxes(anim.GetCurrentHitBoxes());
+
+            Gizmos.matrix = Matrix4x4.identity;
         }
 
-        private void Draw3DLogicBox(LogicBox box)
+        private void DrawBoxes(List<LogicBox> boxes)
         {
-            float p2u = 0.01f;
-            float w = box.Size.x * p2u;
-            float h = box.Size.y * p2u;
-            float d = box.Side * p2u;
-            if (d <= 0.01f) d = 0.5f;
-
-            float dir = BindEntity.IsFacingLeft ? -1f : 1f;
-            float cx = transform.position.x + (box.Center.x * p2u * dir);
-            float cy = transform.position.y + (box.Center.y * p2u);
-            float cz = transform.position.z;
-
-            Gizmos.DrawWireCube(new Vector3(cx, cy, cz), new Vector3(w, h, d));
+            if (boxes == null) return;
+            foreach (LogicBox box in boxes)
+            {
+                if (!box.IsValid) continue;
+                FPBox world = box.ToWorld(Character.motion.Position, Character.FacingLeft);
+                Gizmos.DrawWireCube(world.Center.ToVector3(), (world.Max - world.Min).ToVector3());
+            }
         }
 
         #endregion

@@ -42,7 +42,7 @@ namespace KiHan.Asset
             {
                 GameObject rootGo = new GameObject("[ObjectPoolRoot]");
                 _poolGlobalRoot = rootGo.transform;
-                DontDestroyOnLoad(rootGo);
+                if (Application.isPlaying) DontDestroyOnLoad(rootGo);
 
                 foreach (PoolCategory cat in System.Enum.GetValues(typeof(PoolCategory)))
                 {

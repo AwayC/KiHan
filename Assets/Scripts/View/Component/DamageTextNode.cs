@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using KiHan.View.Render;
 
 namespace View.Component
 {
@@ -17,9 +18,9 @@ namespace View.Component
         /// </summary>
         /// <param name="damage">伤害数值</param>
         /// <param name="isPlayerHit">是否是玩家自己造成的伤害（控制颜色，玩家白字，敌人红字）</param>
-        /// <param name="visualPos">初始生成的屏幕视觉坐标</param>
+        /// <param name="worldPos">初始世界坐标 (已由 BattleViewSpace 映射)</param>
         /// <param name="hitDirectionX">受击方向（控制抛物线方向，-1或1）</param>
-        public void Init(int damage, bool isPlayerHit, Vector3 visualPos, int hitDirectionX)
+        public void Init(int damage, bool isPlayerHit, Vector3 worldPos, int hitDirectionX)
         {
             string damageStr = Mathf.Abs(damage).ToString();
             _digitRenderers = new SpriteRenderer[damageStr.Length];
@@ -63,11 +64,11 @@ namespace View.Component
                 child.localPosition -= new Vector3(totalWidth / 2f, 0, 0);
             }
 
-            // 赋值初始位置
-            transform.position = visualPos;
+            // 抛物线在屏幕平面 (世界 XY) 内运动
+            transform.SetPositionAndRotation(worldPos, Quaternion.identity);
 
             // 开始抛物线动画
-            StartCoroutine(AnimateText(visualPos, hitDirectionX));
+            StartCoroutine(AnimateText(worldPos, hitDirectionX));
         }
 
         private IEnumerator AnimateText(Vector3 startPos, int hitDirection)
@@ -89,10 +90,9 @@ namespace View.Component
                 timer += Time.deltaTime;
                 float progress = timer / _duration;
 
-                // 物理抛物线计算
-                currentPos.x += velocityX * Time.deltaTime;
+                // 物理抛物线计算 (屏幕右方向 = 世界 X，屏幕上方向 = 世界 Y)
+                currentPos += new Vector3(velocityX, velocityY, 0f) * Time.deltaTime;
                 velocityY -= gravity * Time.deltaTime;
-                currentPos.y += velocityY * Time.deltaTime;
                 transform.position = currentPos;
 
                 // 透明度淡出 (后半段开始淡出)

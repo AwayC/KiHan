@@ -1,16 +1,20 @@
 using UnityEngine;
-using KiHan.Logic;
+using KiHan.View.Render;
 
 /// <summary>
-/// 相机控制器，负责追踪逻辑目标、边界限制以及打击感反馈
+/// 相机控制器：不旋转的正交相机 (沿 +Z 观察)，追踪角色视图、边界限制以及打击感反馈
 /// </summary>
 public class CameraControllor : UnitySingleton<CameraControllor>
 {
     [Header("Tracking")]
-    public LogicEntity TargetLogic; 
-    public float smoothSpeed = 2.5f; 
+    public ActorView Target;
+    public float smoothSpeed = 2.5f;
+
+    /// <summary>
+    /// 画面中心的屏幕纵坐标 (世界 Y，见 BattleViewSpace.ToWorld)
+    /// </summary>
     public float yOffset = 1.47f;
-    public float lookAheadDistance = 3.0f; 
+    public float lookAheadDistance = 3.0f;
 
     [Header("Boundaries")]
     public float minX = -4.5f;
@@ -30,33 +34,42 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         base.Awake();
         _cam = GetComponent<Camera>();
         if (_cam == null) _cam = gameObject.AddComponent<Camera>();
-        
+
         gameObject.tag = "MainCamera";
-        
+
         _cam.orthographic = true;
         _cam.orthographicSize = 2.8f;
         _originalSize = _cam.orthographicSize;
         _cam.backgroundColor = Color.black;
-        _cam.farClipPlane = 1000f; 
+        _cam.nearClipPlane = 0.1f;
+        _cam.farClipPlane = BattleViewSpace.CameraDistance + BattleViewSpace.BackdropDistance + 20f;
 
-        transform.position = new Vector3(0, yOffset, -10f);
+        transform.rotation = Quaternion.identity;
+        transform.position = BattleViewSpace.CameraPosition(0f, yOffset);
     }
 
-    public void SetTarget(LogicEntity logic, bool immediate = false)
+    public void SetTarget(ActorView target, bool immediate = false)
     {
-        TargetLogic = logic;
-        if (immediate && TargetLogic != null)
+        Target = target;
+        if (immediate && Target != null)
         {
-            float offset = TargetLogic.IsFacingLeft ? -lookAheadDistance : lookAheadDistance;
-            
-            // 尝试获取表现层位置
-            float startX = TargetLogic.pos.x;
-            var view = Managers.ViewManager.Instance.GetEntityView(TargetLogic);
-            if (view != null) startX = view.transform.position.x;
-
-            float targetX = Mathf.Clamp(startX + offset, minX, maxX);
-            transform.position = new Vector3(targetX, yOffset, -10f);
+            transform.position = BattleViewSpace.CameraPosition(DesiredX(), yOffset);
         }
+    }
+
+    /// <summary>
+    /// 回到初始机位 (退出战斗时)
+    /// </summary>
+    public void ResetView()
+    {
+        Target = null;
+        transform.position = BattleViewSpace.CameraPosition(0f, yOffset);
+    }
+
+    private float DesiredX()
+    {
+        float offset = Target.Character != null && Target.Character.FacingLeft ? -lookAheadDistance : lookAheadDistance;
+        return Mathf.Clamp(Target.transform.position.x + offset, minX, maxX);
     }
 
     public void SetBoundaries(float min, float max)
@@ -87,26 +100,13 @@ public class CameraControllor : UnitySingleton<CameraControllor>
 
     private void LateUpdate()
     {
-        if (TargetLogic == null) return;
+        if (Target == null) return;
 
-        // 1. 获取表现层位置（避免摄像机追踪突变的逻辑位置导致画面相对抖动）
-        float baseX = TargetLogic.pos.x;
-        var view = Managers.ViewManager.Instance.GetEntityView(TargetLogic);
-        if (view != null)
-        {
-            baseX = view.transform.position.x;
-        }
+        // 1. 追踪角色视图位置 (表现层插值后的位置，避免追踪逻辑位置导致画面相对抖动)，缓动跟随
+        float x = Mathf.Lerp(transform.position.x, DesiredX(), Time.deltaTime * smoothSpeed);
+        transform.position = BattleViewSpace.CameraPosition(x, yOffset);
 
-        // 2. 计算目标位置
-        float offset = TargetLogic.IsFacingLeft ? -lookAheadDistance : lookAheadDistance;
-        float desiredX = baseX + offset;
-        float targetX = Mathf.Clamp(desiredX, minX, maxX);
-        Vector3 targetPos = new Vector3(targetX, yOffset, -10f);
-
-        // 3. 缓动跟随
-        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * smoothSpeed);
-
-        // 4. 处理时间驱动的打击感震屏
+        // 2. 处理时间驱动的打击感震屏
         if (_impactState == 1)
         {
             _impactHoldTimer -= Time.deltaTime;
