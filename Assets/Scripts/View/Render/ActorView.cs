@@ -84,12 +84,33 @@ namespace KiHan.View.Render
         private void Bind(CharacterObj character)
         {
             Character = character;
+            EnsureExtraRenderers(MaxExtraLayers(character));
             _currLogicPos = ReadLogicPos();
             _prevLogicPos = _currLogicPos;
             _lastTickTime = Time.time;
             _footShadow.InitShadow(character.TeamId);
             ApplyTransform(_currLogicPos);
             RenderFrame();
+        }
+
+        /// <summary>
+        /// 角色全部动画帧中额外图层的最大数量 (绑定时一次性预建渲染节点，局内不再新建)
+        /// </summary>
+        private static int MaxExtraLayers(CharacterObj character)
+        {
+            FrameAnimator anim = character.action != null ? character.action.anim : null;
+            if (anim == null) return 0;
+
+            int max = 0;
+            foreach (AnimationFrameData data in anim.Anims)
+            {
+                for (int i = 0; i < data.Steps.Count; i++)
+                {
+                    SpriteFrameData frame = data.GetCurrentFrameData(i);
+                    if (frame != null && frame.ExtraLayers != null && frame.ExtraLayers.Count > max) max = frame.ExtraLayers.Count;
+                }
+            }
+            return max;
         }
 
         /// <summary>
@@ -163,14 +184,7 @@ namespace KiHan.View.Render
             List<EffectLayerInfo> layers = frame.ExtraLayers;
             int count = layers != null ? layers.Count : 0;
 
-            while (_extraRenderers.Count < count)
-            {
-                var layerGo = new GameObject($"ExtraLayer_{_extraRenderers.Count}");
-                layerGo.transform.SetParent(_mainRenderer.transform, false);
-                var sr = layerGo.AddComponent<SpriteRenderer>();
-                sr.sharedMaterial = SpriteMaterial;
-                _extraRenderers.Add(sr);
-            }
+            EnsureExtraRenderers(count);
 
             for (int i = 0; i < count; i++)
             {
@@ -188,6 +202,19 @@ namespace KiHan.View.Render
             }
 
             HideExtraLayers(count);
+        }
+
+        private void EnsureExtraRenderers(int count)
+        {
+            while (_extraRenderers.Count < count)
+            {
+                var layerGo = new GameObject($"ExtraLayer_{_extraRenderers.Count}");
+                layerGo.transform.SetParent(_mainRenderer.transform, false);
+                var sr = layerGo.AddComponent<SpriteRenderer>();
+                sr.sharedMaterial = SpriteMaterial;
+                sr.enabled = false;
+                _extraRenderers.Add(sr);
+            }
         }
 
         private void HideExtraLayers(int from)

@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using KiHan.Asset;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -10,12 +10,33 @@ namespace KiHan.View.Render
     /// 核心职责：
     /// 1. 空间定位：独立特效放在 EffectData.WorldPos (已由 BattleViewSpace 映射)；跟随特效挂到 ActorView.Body
     /// 2. 全类型动画播放：无缝支持 3D ParticleSystem、2D 序列帧 Animator、Timeline PlayableDirector
-    /// 3. 生命周期与对象池契约 (IPoolable)：播放结束全自动回收至 ObjectPoolManager，0 GC
+    /// 3. 生命周期与对象池契约 (IPoolable)：播放结束全自动回收至 ObjectPoolManager；
+    ///    播放检测在 Update 中按固定间隔轮询 (不使用协程与 WaitForSeconds，0 GC)
     /// </summary>
     public class EffectView : MonoBehaviour, IPoolable
     {
+        /// <summary>
+        /// 播放状态检测间隔 (秒)
+        /// </summary>
+        private const float CheckInterval = 0.1f;
+
+        /// <summary>
+        /// 自动检测模式下的防泄漏超时 (秒)
+        /// </summary>
+        private const float MaxLifetime = 5f;
+
+        /// <summary>
+        /// 开始播放后至少保留的时间 (秒)，避免首次检测时动画状态尚未刷新被误判为结束
+        /// </summary>
+        private const float MinLifetime = 0.15f;
+
         public int EffectId { get; private set; }
         public string PoolKey { get; set; }
+
+        /// <summary>
+        /// 回收时回调 (由 EffectManager 设置一次，用于移除活跃句柄)
+        /// </summary>
+        public Action<EffectView> Recycled { get; set; }
 
         [Header("自动回收时间保底 (<=0 则自动检测粒子/动画长度)")]
         [SerializeField] private float fallbackDuration = 0f;
@@ -25,8 +46,10 @@ namespace KiHan.View.Render
         private ParticleSystem[] _particles;
         private SpriteRenderer[] _spriteRenderers;
 
-        private bool _isRecycled = false;
-        private Coroutine _autoRecycleCoroutine;
+        private bool _isRecycled = true;
+        private bool _loop;
+        private float _elapsed;
+        private float _nextCheck;
 
         private void Awake()
         {
@@ -72,11 +95,6 @@ namespace KiHan.View.Render
         public void OnRecycle()
         {
             _isRecycled = true;
-            if (_autoRecycleCoroutine != null)
-            {
-                StopCoroutine(_autoRecycleCoroutine);
-                _autoRecycleCoroutine = null;
-            }
 
             if (_particles != null)
             {
@@ -88,6 +106,8 @@ namespace KiHan.View.Render
                     }
                 }
             }
+
+            Recycled?.Invoke(this);
         }
 
         #endregion
@@ -95,9 +115,14 @@ namespace KiHan.View.Render
         /// <summary>
         /// 初始化并触发特效播放
         /// </summary>
-        public void Init(int id, EffectData data)
+        /// <param name="loop">循环播放：不做自动回收，必须由外部 (EffectManager.StopEffect) 停止</param>
+        public void Init(int id, EffectData data, bool loop = false)
         {
             EffectId = id;
+            _isRecycled = false;
+            _loop = loop;
+            _elapsed = 0f;
+            _nextCheck = CheckInterval;
 
             // 1. 面向翻转
             Vector3 scale = transform.localScale;
@@ -124,13 +149,6 @@ namespace KiHan.View.Render
 
             // 3. 触发全类型动画播放
             PlayAllAnimationDrivers();
-
-            // 4. 启动自动回收检测
-            if (gameObject.activeInHierarchy)
-            {
-                if (_autoRecycleCoroutine != null) StopCoroutine(_autoRecycleCoroutine);
-                _autoRecycleCoroutine = StartCoroutine(AutoRecycleRoutine());
-            }
         }
 
         private void PlayAllAnimationDrivers()
@@ -157,66 +175,51 @@ namespace KiHan.View.Render
             }
         }
 
-        private IEnumerator AutoRecycleRoutine()
+        private void Update()
         {
+            if (_isRecycled || _loop) return;
+
+            _elapsed += Time.deltaTime;
+
             // 优先根据配置的保底时间
             if (fallbackDuration > 0f)
             {
-                yield return new WaitForSeconds(fallbackDuration);
-                RecycleSelf();
-                yield break;
+                if (_elapsed >= fallbackDuration) RecycleSelf();
+                return;
             }
 
-            // 自动检测各组件的播放状态
-            float elapsedTime = 0f;
-            const float MAX_TIMEOUT = 5.0f; // 5 秒防泄漏超时
+            if (_elapsed < _nextCheck) return;
+            _nextCheck += CheckInterval;
 
-            while (elapsedTime < MAX_TIMEOUT)
+            if (_elapsed >= MaxLifetime || (_elapsed > MinLifetime && !IsStillPlaying()))
             {
-                yield return new WaitForSeconds(0.1f);
-                elapsedTime += 0.1f;
+                RecycleSelf();
+            }
+        }
 
-                bool isStillPlaying = false;
-
-                // 检测 3D 粒子系统
-                if (_particles != null && _particles.Length > 0)
+        /// <summary>
+        /// 自动检测各组件的播放状态
+        /// </summary>
+        private bool IsStillPlaying()
+        {
+            // 3D 粒子系统
+            if (_particles != null)
+            {
+                for (int i = 0; i < _particles.Length; i++)
                 {
-                    for (int i = 0; i < _particles.Length; i++)
-                    {
-                        if (_particles[i] != null && _particles[i].IsAlive(true))
-                        {
-                            isStillPlaying = true;
-                            break;
-                        }
-                    }
-                }
-
-                // 检测 Animator 动画完成度
-                if (!isStillPlaying && _animator != null && _animator.runtimeAnimatorController != null)
-                {
-                    var stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
-                    if (stateInfo.normalizedTime < 1.0f)
-                    {
-                        isStillPlaying = true;
-                    }
-                }
-
-                // 检测 PlayableDirector Timeline
-                if (!isStillPlaying && _director != null && _director.playableAsset != null)
-                {
-                    if (_director.time < _director.duration)
-                    {
-                        isStillPlaying = true;
-                    }
-                }
-
-                if (!isStillPlaying && elapsedTime > 0.15f)
-                {
-                    break;
+                    if (_particles[i] != null && _particles[i].IsAlive(true)) return true;
                 }
             }
 
-            RecycleSelf();
+            // Animator 动画完成度
+            if (_animator != null && _animator.runtimeAnimatorController != null &&
+                _animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+            {
+                return true;
+            }
+
+            // PlayableDirector Timeline
+            return _director != null && _director.playableAsset != null && _director.time < _director.duration;
         }
 
         /// <summary>
@@ -225,15 +228,17 @@ namespace KiHan.View.Render
         public void RecycleSelf()
         {
             if (_isRecycled) return;
-            _isRecycled = true;
 
             if (ObjectPoolManager.Instance != null)
             {
-                ObjectPoolManager.Instance.Recycle(this.gameObject);
+                ObjectPoolManager.Instance.Recycle(gameObject);
             }
-            else
+
+            // 未经对象池登记 (Recycle 直接销毁、不回调 OnRecycle) 时补发回收回调
+            if (!_isRecycled)
             {
-                Destroy(this.gameObject);
+                _isRecycled = true;
+                Recycled?.Invoke(this);
             }
         }
     }

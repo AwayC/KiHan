@@ -13,7 +13,8 @@ namespace KiHan.Asset
 
     /// <summary>
     /// 挂载在池化 GameObject 上的元数据追踪器
-    /// 使对象在调用 Recycle(gameObject) 时无需传回 address 即可自动识别所属池子
+    /// 使对象在调用 Recycle(gameObject) 时无需传回 address 即可自动识别所属池子；
+    /// 首次登记时缓存子节点上的 IPoolable，之后每次取出/归还不再查询组件 (0 GC)
     /// </summary>
     [DisallowMultipleComponent]
     public class PoolItemTracker : MonoBehaviour
@@ -21,5 +22,14 @@ namespace KiHan.Asset
         public string PoolAddress { get; set; }
         public PoolCategory Category { get; set; } = PoolCategory.Default;
         public bool IsPooled { get; set; } = false;
+
+        private IPoolable[] _poolables;
+
+        public IPoolable[] Poolables => _poolables ??= GetComponentsInChildren<IPoolable>(true);
+
+        /// <summary>
+        /// 运行时补挂了 IPoolable 组件后调用，下次访问时重新收集
+        /// </summary>
+        public void RefreshPoolables() => _poolables = null;
     }
 }

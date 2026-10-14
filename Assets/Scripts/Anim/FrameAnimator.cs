@@ -87,6 +87,11 @@ namespace KiHan.Logic
 
         public bool HasAnim(string animKey) => _animDict.ContainsKey(animKey);
 
+        /// <summary>
+        /// 已注册的全部动画资源 (表现层加载阶段用于预建渲染节点)
+        /// </summary>
+        public Dictionary<string, AnimationFrameData>.ValueCollection Anims => _animDict.Values;
+
         #endregion
 
         #region 动作播放与切换控制 (整数帧控制)

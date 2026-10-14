@@ -70,7 +70,8 @@ namespace KiHan.Asset
         /// <summary>
         /// 预热对象池：在加载阶段批量实例化灌入池中，消除战斗运行时卡顿
         /// </summary>
-        public void Prewarm(string address, int count, PoolCategory category = PoolCategory.Default)
+        /// <param name="onCreated">每个新实例创建后调用 (如补挂运行时组件)，在加载阶段执行</param>
+        public void Prewarm(string address, int count, PoolCategory category = PoolCategory.Default, System.Action<GameObject> onCreated = null)
         {
             if (string.IsNullOrEmpty(address) || count <= 0) return;
 
@@ -87,10 +88,9 @@ namespace KiHan.Asset
                 GameObject instance = Instantiate(prefab, bucket.Root);
                 instance.SetActive(false);
 
-                var tracker = instance.GetComponent<PoolItemTracker>() ?? instance.AddComponent<PoolItemTracker>();
-                tracker.PoolAddress = address;
-                tracker.Category = category;
+                PoolItemTracker tracker = GetTracker(instance, address, category);
                 tracker.IsPooled = true;
+                onCreated?.Invoke(instance);
 
                 bucket.Available.Push(instance);
             }
@@ -129,21 +129,27 @@ namespace KiHan.Asset
 
             instance.transform.SetPositionAndRotation(position, rotation);
 
-            var tracker = instance.GetComponent<PoolItemTracker>() ?? instance.AddComponent<PoolItemTracker>();
-            tracker.PoolAddress = address;
-            tracker.Category = category;
+            PoolItemTracker tracker = GetTracker(instance, address, category);
             tracker.IsPooled = false;
 
             instance.SetActive(true);
 
             // 触发 IPoolable 唤醒生命周期
-            var poolables = instance.GetComponentsInChildren<IPoolable>(true);
+            IPoolable[] poolables = tracker.Poolables;
             for (int i = 0; i < poolables.Length; i++)
             {
                 poolables[i].OnSpawn();
             }
 
             return instance;
+        }
+
+        private static PoolItemTracker GetTracker(GameObject instance, string address, PoolCategory category)
+        {
+            if (!instance.TryGetComponent(out PoolItemTracker tracker)) tracker = instance.AddComponent<PoolItemTracker>();
+            tracker.PoolAddress = address;
+            tracker.Category = category;
+            return tracker;
         }
 
         /// <summary>
@@ -162,8 +168,7 @@ namespace KiHan.Asset
         {
             if (instance == null) return;
 
-            var tracker = instance.GetComponent<PoolItemTracker>();
-            if (tracker == null || string.IsNullOrEmpty(tracker.PoolAddress))
+            if (!instance.TryGetComponent(out PoolItemTracker tracker) || string.IsNullOrEmpty(tracker.PoolAddress))
             {
                 // 未登记的对象直接销毁
                 Destroy(instance);
@@ -177,7 +182,7 @@ namespace KiHan.Asset
             }
 
             // 触发 IPoolable 回收生命周期
-            var poolables = instance.GetComponentsInChildren<IPoolable>(true);
+            IPoolable[] poolables = tracker.Poolables;
             for (int i = 0; i < poolables.Length; i++)
             {
                 poolables[i].OnRecycle();
