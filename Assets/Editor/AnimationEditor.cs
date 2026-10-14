@@ -38,6 +38,16 @@ public class AnimationFrameDataEditor : Editor
         return sum;
     }
 
+    /// <summary>
+    /// 指定步骤的起始逻辑帧 (从 0 计，= 之前所有步骤 Duration 之和)
+    /// </summary>
+    private int StepStartFrame(int stepIndex)
+    {
+        int sum = 0;
+        for (int i = 0; i < stepIndex && i < _data.Steps.Count; i++) sum += Mathf.Max(1, _data.Steps[i].Duration);
+        return sum;
+    }
+
 
     private void OnDisable()
     {
@@ -157,7 +167,11 @@ public class AnimationFrameDataEditor : Editor
             {
                 _previewIndex = Mathf.Clamp(_previewIndex, 0, _data.Steps.Count - 1);
                 var currentStep = _data.Steps[_previewIndex];
-                string info = $"Step: {_previewIndex + 1}/{_data.Steps.Count} | SFF:[{currentStep.FrameIndex}] | 持续:{currentStep.Duration} Ticks";
+                int startFrame = StepStartFrame(_previewIndex);
+                int endFrame = startFrame + Mathf.Max(1, currentStep.Duration) - 1;
+                string frameText = endFrame > startFrame ? $"{startFrame}~{endFrame}" : startFrame.ToString();
+                // 帧号从 0 计，与动作配置 (frameRange / attackPhase 等) 及 FrameAnimator.ElapsedFrames 一致
+                string info = $"帧: {frameText} / 共 {GetTotalTicks()} 帧 | Step: {_previewIndex + 1}/{_data.Steps.Count} | SFF:[{currentStep.FrameIndex}] | 持续:{currentStep.Duration} Ticks";
                 var frameData = _data.GetCurrentFrameData(_previewIndex);
                 if (frameData != null) info += $" | {frameData.Name}";
 
@@ -327,6 +341,7 @@ public class AnimationFrameDataEditor : Editor
 
         int deleteIndex = -1;
 
+        int frameCursor = 0;
         for (int i = 0; i < _stepsProp.arraySize; i++)
         {
             SerializedProperty stepProp = _stepsProp.GetArrayElementAtIndex(i);
@@ -343,6 +358,12 @@ public class AnimationFrameDataEditor : Editor
                 {
                     // 步骤序号
                     EditorGUILayout.LabelField($"#{i + 1}", EditorStyles.boldLabel, GUILayout.Width(28));
+
+                    // 本步骤覆盖的逻辑帧区间 (从 0 计)
+                    int duration = Mathf.Max(1, stepProp.FindPropertyRelative("Duration").intValue);
+                    int lastFrame = frameCursor + duration - 1;
+                    EditorGUILayout.LabelField(lastFrame > frameCursor ? $"帧 {frameCursor}~{lastFrame}" : $"帧 {frameCursor}", EditorStyles.miniLabel, GUILayout.Width(62));
+                    frameCursor += duration;
 
                     // 切片帧按钮 (支持弹出搜索选择)
                     int fIdx = stepProp.FindPropertyRelative("FrameIndex").intValue;

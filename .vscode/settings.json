@@ -1,0 +1,13 @@
+{
+  // 动作配置等 JSON 采用手工紧凑排版 (单行对象)，禁止自动格式化改写
+  "[json]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false
+  }
+}

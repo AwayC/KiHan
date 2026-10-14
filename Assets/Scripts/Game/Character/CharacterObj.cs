@@ -87,6 +87,11 @@ namespace KiHan.Logic
         public FP maxHp = FP.Parse("1000");
 
         /// <summary>
+        /// 调试无限血：受击照常扣血与结算，但生命值不低于 1 (不会因死亡而无法再被命中)
+        /// </summary>
+        public bool infiniteHp = false;
+
+        /// <summary>
         /// 击飞触地弹起的速度衰减系数：弹起速度 = 落地瞬间下落速度 × 该系数
         /// </summary>
         public FP bounceRestitution = FP.Parse("0.5");
@@ -445,7 +450,8 @@ namespace KiHan.Logic
         public void TakeDamage(FP damage)
         {
             if (damage <= FP.Zero) return;
-            Hp = FPMath.Max(FP.Zero, Hp - damage);
+            FP floor = infiniteHp ? FP.One : FP.Zero;
+            Hp = FPMath.Max(floor, Hp - damage);
         }
 
         /// <summary>

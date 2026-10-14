@@ -28,6 +28,10 @@ public class SpriteLibraryEditor : Editor
     private int _activePresetIndex = 0;
     private int _activeAnchorIndex = -1;
 
+    // 一次拖拽 (按下 -> 拖动 -> 松开) 合并为一个撤销步骤
+    private int _dragUndoGroup = -1;
+    private string _dragUndoName;
+
     private void OnEnable()
     {
         _lib = (CharacterSpriteLibrary)target;
@@ -35,6 +39,48 @@ public class SpriteLibraryEditor : Editor
         _defHurtProp = serializedObject.FindProperty("DefaultHurtBox");
         _defHitProp = serializedObject.FindProperty("DefaultHitBox");
         _presetsProp = serializedObject.FindProperty("SidePresets");
+        Undo.undoRedoPerformed += OnUndoRedo;
+    }
+
+    private void OnDisable()
+    {
+        Undo.undoRedoPerformed -= OnUndoRedo;
+    }
+
+    private void OnUndoRedo()
+    {
+        // 撤销 / 重做后结束进行中的拖拽，索引可能已越界
+        _editMode = 0;
+        _dragUndoGroup = -1;
+        _activeBoxIndex = -1;
+        _activeAnchorIndex = -1;
+        serializedObject.Update();
+        Repaint();
+    }
+
+    /// <summary>
+    /// 拖拽开始：新开撤销组并记录修改前状态。Undo.RecordObject 只捕获当次事件内的修改，
+    /// 因此拖动过程中每次修改前都要再调用一次 RecordDragEdit，松开时合并为一步
+    /// </summary>
+    private void BeginDragUndo(string name)
+    {
+        Undo.IncrementCurrentGroup();
+        _dragUndoGroup = Undo.GetCurrentGroup();
+        _dragUndoName = name;
+        Undo.SetCurrentGroupName(name);
+        Undo.RecordObject(_lib, name);
+    }
+
+    private void RecordDragEdit()
+    {
+        Undo.RecordObject(_lib, _dragUndoName);
+    }
+
+    private void EndDragUndo()
+    {
+        if (_dragUndoGroup < 0) return;
+        Undo.CollapseUndoOperations(_dragUndoGroup);
+        _dragUndoGroup = -1;
     }
 
     public override void OnInspectorGUI()
@@ -256,11 +302,13 @@ public class SpriteLibraryEditor : Editor
 
         if (e.type == EventType.MouseDown && screenRect.Contains(e.mousePosition))
         {
+            // 点击画布时释放文本框键盘焦点，否则 Ctrl+Z 会被搜索框 / 数值框的文本撤销吞掉
+            GUIUtility.keyboardControl = 0;
             if (e.shift)
             {
                 // Shift + 鼠标绘制碰撞盒 (左键 HurtBox 蓝框, 右键 HitBox 红框)
                 _editMode = (e.button == 0) ? 1 : 2;
-                Undo.RecordObject(_lib, "Draw Box");
+                BeginDragUndo("Draw Box");
                 _dragStartPos = mouseLogicPos;
                 int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80;
                 var nb = new LogicBox(Vector2Int.RoundToInt(mouseLogicPos), new Vector2Int(4, 4), side);
@@ -281,7 +329,7 @@ public class SpriteLibraryEditor : Editor
             {
                 // Ctrl + 左键拖动立绘 Offset
                 _editMode = 3;
-                Undo.RecordObject(_lib, "Move Sprite Offset");
+                BeginDragUndo("Move Sprite Offset");
             }
             else if (e.alt && e.button == 0)
             {
@@ -303,7 +351,7 @@ public class SpriteLibraryEditor : Editor
                 if (_activeAnchorIndex != -1)
                 {
                     _editMode = 5;
-                    Undo.RecordObject(_lib, "Move Effect Anchor");
+                    BeginDragUndo("Move Effect Anchor");
                 }
             }
             else if (e.button == 1 || e.button == 2)
@@ -331,17 +379,20 @@ public class SpriteLibraryEditor : Editor
             }
             else if (_editMode == 3)
             {
+                RecordDragEdit();
                 frame.Offset = mouseLogicPos;
                 EditorUtility.SetDirty(_lib);
             }
             else if (_editMode == 5 && _activeAnchorIndex >= 0 && _activeAnchorIndex < frame.EffectAnchors.Count)
             {
+                RecordDragEdit();
                 // 锚点同样参与逻辑 (抓取)，统一吸附到整数像素
                 frame.EffectAnchors[_activeAnchorIndex].Position = Vector2Int.RoundToInt(mouseLogicPos);
                 EditorUtility.SetDirty(_lib);
             }
             else if (_editMode == 1 || _editMode == 2)
             {
+                RecordDragEdit();
                 // 判定盒统一吸附到整数像素，保证逻辑层 0 浮点
                 Vector2Int min = Vector2Int.RoundToInt(Vector2.Min(_dragStartPos, mouseLogicPos));
                 Vector2Int max = Vector2Int.RoundToInt(Vector2.Max(_dragStartPos, mouseLogicPos));
@@ -370,6 +421,7 @@ public class SpriteLibraryEditor : Editor
         else if (e.type == EventType.MouseUp && _editMode != 0)
         {
             _editMode = 0;
+            EndDragUndo();
             EditorUtility.SetDirty(_lib);
             e.Use();
         }
@@ -504,18 +556,24 @@ public class SpriteLibraryEditor : Editor
                     EditorGUILayout.LabelField("Tag:", GUILayout.Width(28));
                     EditorGUILayout.PropertyField(boxProp.FindPropertyRelative("Tag"), GUIContent.none, GUILayout.Width(60));
 
-                    int currentSide = boxProp.FindPropertyRelative("Side").intValue;
-                    if (EditorGUILayout.DropdownButton(new GUIContent($"厚:{currentSide}"), FocusType.Passive, GUILayout.Width(55)))
+                    // 厚度：可直接输入 (最小 0)，右侧 ▼ 快速套用预设
+                    SerializedProperty sideProp = boxProp.FindPropertyRelative("Side");
+                    EditorGUILayout.LabelField("厚:", GUILayout.Width(20));
+                    EditorGUI.BeginChangeCheck();
+                    int side = EditorGUILayout.DelayedIntField(sideProp.intValue, GUILayout.Width(40));
+                    if (EditorGUI.EndChangeCheck()) sideProp.intValue = Mathf.Max(0, side);
+
+                    if (EditorGUILayout.DropdownButton(GUIContent.none, FocusType.Passive, GUILayout.Width(16)))
                     {
+                        int currentSide = sideProp.intValue;
                         GenericMenu menu = new GenericMenu();
                         foreach (int preset in _lib.SidePresets)
                         {
                             int val = preset;
                             menu.AddItem(new GUIContent(val.ToString()), val == currentSide, () =>
                             {
-                                boxProp.FindPropertyRelative("Side").intValue = val;
+                                sideProp.intValue = val;
                                 serializedObject.ApplyModifiedProperties();
-                                EditorUtility.SetDirty(_lib);
                             });
                         }
                         menu.ShowAsContext();

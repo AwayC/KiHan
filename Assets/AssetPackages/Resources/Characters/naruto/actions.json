@@ -49,7 +49,10 @@
         { "keySequence": ["Attack"], "validInSec": "0.2" }
       ],
       "attackPhase": [
-        { "frameRanges": [{ "x": 0, "y": 4 }], "tag": [], "attackPhase": 0, "priority": 10 }
+        { "frameRanges": [{ "x": 0, "y": 7 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "rootMotion" :[
+        { "frameRange": { "x": 4, "y": 6 }, "moveX": "0.2" }
       ],
       "attacks": [
         {

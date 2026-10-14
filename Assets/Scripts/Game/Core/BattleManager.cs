@@ -72,6 +72,7 @@ public class BattleManager : UnitySingleton<BattleManager>
     private GameObject _combatUIGo;
     private int _p1CharacterId = DefaultCharacterId;
     private int _p2CharacterId = DefaultCharacterId;
+    private bool _infiniteHp;
 
     public void EnterBattle(bool isOnline, uint targetRoomId = 1)
     {
@@ -80,13 +81,19 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         _p1CharacterId = DefaultCharacterId;
         _p2CharacterId = DefaultCharacterId;
+        _infiniteHp = false;
         if (!isOnline)
         {
             DebugConfig dbgConfig = Resources.Load<DebugConfig>(DebugConfig.DefaultPath);
-            if (dbgConfig != null && dbgConfig.isBattleDebug)
+            if (dbgConfig != null)
             {
-                _p1CharacterId = dbgConfig.debugPlayer1CharId;
-                _p2CharacterId = dbgConfig.debugPlayer2CharId;
+                // 无限血只用于单机：联机双方配置不同会导致不同步
+                _infiniteHp = dbgConfig.infiniteHp;
+                if (dbgConfig.isBattleDebug)
+                {
+                    _p1CharacterId = dbgConfig.debugPlayer1CharId;
+                    _p2CharacterId = dbgConfig.debugPlayer2CharId;
+                }
             }
         }
 
@@ -136,6 +143,7 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         CharacterObj character = CharacterFactory.Create(characterId, slot, slot, slot, position, facingLeft);
         if (character == null) return null;
+        character.infiniteHp = _infiniteHp;
 
         World.AddCharacter(character);
         _characters.Add(character);

@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: LocalDebugConfig
   m_EditorClassIdentifier: 
   isBattleDebug: 1
+  infiniteHp: 1
   debugPlayer1CharId: 90001
   debugPlayer2CharId: 90001
