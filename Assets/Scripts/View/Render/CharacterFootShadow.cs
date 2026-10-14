@@ -111,6 +111,9 @@ namespace KiHan.View.Render
                 _isSpawned = true;
                 _shadowInstance.transform.localPosition = surfaceOffset;
                 _shadowInstance.transform.localRotation = Quaternion.identity;
+                // 随角色表现缩放；纵向再按地面透视压缩 (与纵深位移共用 DepthToScreenY)
+                float s = BattleViewSpace.CharacterScale;
+                _shadowInstance.transform.localScale = new Vector3(s, s * BattleViewSpace.DepthToScreenY, 1f);
                 // 挂载原版旋转特效
                 var effect = _shadowInstance.GetComponent<ShadowEffect>() ?? _shadowInstance.AddComponent<ShadowEffect>();
                 if (_currentOwner == 1)

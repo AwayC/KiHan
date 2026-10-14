@@ -1,9 +1,8 @@
-using KiHan.View.Render;
 using UnityEngine;
 
 /// <summary>
 /// 脚下光环动画脚本
-/// 负责 2.5D 透视压缩以及内外圈差异化旋转
+/// 负责内外圈差异化旋转 (地面透视压缩与角色缩放由 CharacterFootShadow 设置在本节点的 localScale 上)
 /// </summary>
 public class ShadowEffect : MonoBehaviour
 {
@@ -16,11 +15,7 @@ public class ShadowEffect : MonoBehaviour
 
     private void Start()
     {
-        // 1. 地面透视压缩：纵向缩放与纵深位移共用 BattleViewSpace.DepthToScreenY
-        // 注意：父物体压缩后，子物体绕 Z 轴旋转会产生椭圆转动的视觉感，贴合地面
-        transform.localScale = new Vector3(1f, BattleViewSpace.DepthToScreenY, 1f);
-
-        // 2. 获取预制体子物体 (根据 shadow_1 结构)
+        // 获取预制体子物体 (根据 shadow_1 结构)；父节点纵向压缩后，子物体绕 Z 轴旋转呈现贴合地面的椭圆转动
         if (transform.childCount > 0)
         {
             _part1 = transform.GetChild(0);

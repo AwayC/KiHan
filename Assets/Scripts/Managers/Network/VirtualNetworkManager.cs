@@ -72,7 +72,7 @@ public class VirtualNetworkManager : UnitySingleton<VirtualNetworkManager>, INet
             //    {
             //        InputFrame input = new InputFrame();
             //        input.FrameId = (uint)((data[2] << 24) | (data[3] << 16) | (data[4] << 8) | data[5]);
-            //        input.JoyStickAngle = data[6];
+            //        input.JoyStickDir = data[6];
             //        input.Buttons = (ButtonMask)data[7];
 
             //        // 存入队列并备份到缓存
@@ -86,7 +86,7 @@ public class VirtualNetworkManager : UnitySingleton<VirtualNetworkManager>, INet
             {
                 InputFrame input = new InputFrame();
                 input.FrameId = (uint)((data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]);
-                input.JoyStickAngle = data[4];
+                input.JoyStickDir = data[4];
                 input.Buttons = (ButtonMask)data[5];
 
                 // 存入队列并备份到缓存
@@ -138,13 +138,13 @@ public class VirtualNetworkManager : UnitySingleton<VirtualNetworkManager>, INet
                     // 核心修复：如果没有新包，则沿用上一帧输入包
                     if (!_lastInputs.TryGetValue(1, out input1))
                     {
-                        input1 = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
+                        input1 = new InputFrame { FrameId = _frameId, JoyStickDir = JoystickDir.None, Buttons = ButtonMask.None };
                     }
                 }
                 frame.InputFrames[1] = input1;
 
                 // --- 玩家 2 (静止) ---
-                InputFrame input2 = new InputFrame { FrameId = _frameId, JoyStickAngle = 255, Buttons = ButtonMask.None };
+                InputFrame input2 = new InputFrame { FrameId = _frameId, JoyStickDir = JoystickDir.None, Buttons = ButtonMask.None };
                 frame.InputFrames[2] = input2;
 
                 RoomFrameUpdate update = new RoomFrameUpdate { frame = frame };

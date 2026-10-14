@@ -413,7 +413,7 @@ static class Program
                 p.FacingLeft = facingLeft;
                 var pw = World(p);
                 var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickAngle = 0 };
+                rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = 0 };
                 pw.Tick(rf);
                 return p.input;
             }
@@ -423,6 +423,26 @@ static class Program
             var back = new ActionCommand(CommandKey.Backward, "0.2");
             Check(ir.ActionOccur(fwd, false) && !ir.ActionOccur(back, false), "朝右时推右匹配 [Forward]");
             Check(il.ActionOccur(back, true) && !il.ActionOccur(fwd, true), "朝左时推右匹配 [Backward]");
+
+            // 8 方向：斜向推右上，相对方向 [ForwardUp] / [BackwardUp] 按朝向换算；正右 / 正上不被斜向满足
+            InputToCommand PushUpRight(bool facingLeft)
+            {
+                var p = Make(6, 1, "0", "idle");
+                p.input = new InputToCommand();
+                p.InputSlot = 0;
+                p.FacingLeft = facingLeft;
+                var pw = World(p);
+                var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
+                rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = JoystickDir.FromAxes(1, 1) };
+                pw.Tick(rf);
+                return p.input;
+            }
+            var dr = PushUpRight(false); var dl = PushUpRight(true);
+            Check(dr.CurrentDirection == CommandKey.UpRight && dr.DirX == 1 && dr.DirY == 1, $"推右上记录为 UpRight, 分量 ({dr.DirX},{dr.DirY})");
+            var fwdUp = new ActionCommand(CommandKey.ForwardUp, "0.2");
+            var backUp = new ActionCommand(CommandKey.BackwardUp, "0.2");
+            Check(dr.ActionOccur(fwdUp, false) && !dr.ActionOccur(backUp, false) && dl.ActionOccur(backUp, true) && !dl.ActionOccur(fwdUp, true), "右上：朝右匹配 [ForwardUp]，朝左匹配 [BackwardUp]");
+            Check(!dr.IsHeld(CommandKey.Up) && !dr.IsHeld(CommandKey.Forward) && dr.IsHeld(CommandKey.Move), "斜向不满足正上 / 正前，满足 Move");
         }
 
         Console.WriteLine("== 12. move：按住摇杆持续移动、随摇杆转向、松开回 idle (配置走 ActionData DTO) ==");
@@ -447,13 +467,13 @@ static class Program
             p.input = new InputToCommand(); p.InputSlot = 0;
             var w = World(p);
             int flips = 0; bool lastFacing = p.FacingLeft;
-            string Run(byte angle, int n)
+            string Run(byte dir, int n)
             {
                 string ids = "";
                 for (int i = 0; i < n; i++)
                 {
                     var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickAngle = angle };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = dir };
                     w.Tick(rf);
                     if (p.FacingLeft != lastFacing) { flips++; lastFacing = p.FacingLeft; }
                     ids += p.action.CurrentAction.id[0];
@@ -466,12 +486,24 @@ static class Program
             string s1 = Run(0, 10);
             float x1 = F(p.motion.Position.x);
             Check(s1.EndsWith("mmmmmmmm") && !p.FacingLeft && x1 > x0 + 0.8f, $"推右进入 move 并持续右移: {s1}, x {x0:F3}->{x1:F3}");
-            string s2 = Run(90, 10);
+            string s2 = Run(4, 10);
             float x2 = F(p.motion.Position.x);
             Check(s2 == "mmmmmmmmmm" && p.FacingLeft && flips == 1 && x2 < x1 - 0.8f, $"推左立即转向且不闪烁: {s2}, 翻转 {flips} 次, x {x1:F3}->{x2:F3}");
             float y2 = F(p.motion.Position.y);
-            string s3 = Run(45, 5);
+            string s3 = Run(2, 5);
             Check(s3 == "mmmmm" && p.FacingLeft && F(p.motion.Position.y) > y2 + 0.3f, $"推正上纵深移动、朝向不变: {s3}, 朝左={p.FacingLeft}");
+            // 斜向两轴各自全速 (不归一化)：右下 6 帧的横向位移 = 正右 6 帧，纵深位移 = 正下 6 帧 (纵深保持在边界内)
+            float xa = F(p.motion.Position.x);
+            Run(0, 6);
+            float dxAxis = F(p.motion.Position.x) - xa;
+            float yb = F(p.motion.Position.y);
+            Run(6, 6);
+            float dyAxis = F(p.motion.Position.y) - yb;
+            float xc = F(p.motion.Position.x), yc = F(p.motion.Position.y);
+            Run(7, 6);
+            float dxDiag = F(p.motion.Position.x) - xc, dyDiag = F(p.motion.Position.y) - yc;
+            Check(dxAxis > 0.5f && dyAxis < -0.5f && System.Math.Abs(dxDiag - dxAxis) < 1e-4f && System.Math.Abs(dyDiag - dyAxis) < 1e-4f,
+                $"斜向两轴独立全速: 轴向 ({dxAxis:F3},{dyAxis:F3}) 斜向 ({dxDiag:F3},{dyDiag:F3})");
             string s4 = Run(255, 5);
             float x4 = F(p.motion.Position.x);
             string s5 = Run(255, 3);
@@ -556,16 +588,16 @@ static class Program
             var launcher = normal; launcher.launchVelocity = "10";
             var a = Make(1, 1, "0", "idle", Attack("atk", launcher, 8));
             var w = World(a, p);
-            void Feed(byte angle, int n)
+            void Feed(byte dir, int n)
             {
                 for (int i = 0; i < n; i++)
                 {
                     var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickAngle = angle };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = dir };
                     w.Tick(rf);
                 }
             }
-            Feed(90, 6);
+            Feed(4, 6);
             Check(p.action.CurrentAction.id == "move" && p.FacingLeft && F(p.motion.Position.x) < 0.9f, $"推左：move、朝左、左移 x={F(p.motion.Position.x):F3}");
             Feed(255, 3);
             Check(p.action.CurrentAction.id == "idle", $"松开回 idle: {p.action.CurrentAction.id}");
@@ -610,7 +642,7 @@ static class Program
                 for (int i = 0; i < n; i++)
                 {
                     var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickAngle = 255, Buttons = buttons };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = JoystickDir.None, Buttons = buttons };
                     w.Tick(rf);
                     string id = p.action.CurrentAction.id;
                     if (ids.Length == 0 || !ids.EndsWith(id)) ids += (ids.Length > 0 ? ">" : "") + id;
@@ -683,7 +715,7 @@ static class Program
                 for (int i = 0; i < n; i++)
                 {
                     var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickAngle = 255, Buttons = buttons };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = JoystickDir.None, Buttons = buttons };
                     w.Tick(rf);
                     string id = c.action.CurrentAction.id;
                     if (ids.Length == 0 || !ids.EndsWith(id)) ids += (ids.Length > 0 ? ">" : "") + id;

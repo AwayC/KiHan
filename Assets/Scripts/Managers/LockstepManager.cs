@@ -114,8 +114,8 @@ public class LockstepManager : UnitySingleton<LockstepManager>
     {
         InputFrame input = new InputFrame { FrameId = frameId };
         
-        // 使用统筹后的 InputManager 获取角度和按键掩码
-        input.JoyStickAngle = InputManager.Instance.GetJoystickAngle();
+        // 使用统筹后的 InputManager 获取 8 方向编码和按键掩码
+        input.JoyStickDir = InputManager.Instance.GetJoystickDir();
         input.Buttons = InputManager.Instance.GetCombinedButtons();
         
         return input;
@@ -129,7 +129,7 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         raw[1] = (byte)((input.FrameId >> 16) & 0xFF);
         raw[2] = (byte)((input.FrameId >> 8) & 0xFF);
         raw[3] = (byte)(input.FrameId & 0xFF);
-        raw[4] = input.JoyStickAngle;
+        raw[4] = input.JoyStickDir;
         raw[5] = (byte)input.Buttons;
 
         // 封装为 protobuf 的 PlayerFrameInput 对象

@@ -15,10 +15,15 @@ namespace KiHan.View.Render
     public static class BattleViewSpace
     {
         /// <summary>
-        /// 纵深 y 投到屏幕纵坐标上的比例：纵深每走 1 单位，画面上移 k 单位 (高度 z 为 1:1)。
-        /// 与脚下阴影圆盘的纵向压缩 (ShadowEffect) 共用：地面上的圆与地面上的位移按同一比例压缩
+        /// 纵深 y 投到屏幕纵坐标上的比例 (原版实测值，勿随意修改)：纵深每走 1 单位，画面上移 k 单位 (高度 z 为 1:1)。
+        /// 与脚下阴影圆盘的纵向压缩 (CharacterFootShadow) 共用：地面上的圆与地面上的位移按同一比例压缩
         /// </summary>
-        public const float DepthToScreenY = 0.37f;
+        public const float DepthToScreenY = 0.368f;
+
+        /// <summary>
+        /// 角色表现缩放 (精灵、额外图层、跟随特效、脚下阴影)；只影响画面，不影响逻辑判定盒与位移
+        /// </summary>
+        public const float CharacterScale = 1f;
 
         /// <summary>
         /// 相机与纵深原点平面的距离 (正交相机只影响裁剪，不影响画面大小)

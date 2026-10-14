@@ -69,7 +69,7 @@ public class InputFrame // 6 bytes total
     public const int DataLength = 6;
     
     public uint FrameId; // 4 bytes
-    public byte JoyStickAngle; // 0-255
+    public byte JoyStickDir; // 摇杆 8 方向编码 0~7，255 为无移动
 
     public ButtonMask Buttons;
     

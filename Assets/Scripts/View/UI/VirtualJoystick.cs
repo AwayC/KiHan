@@ -73,17 +73,16 @@ namespace View.UI
 
                 Knob.anchoredPosition = localPos;
 
-                // 核心修复：物理死区 (Dead Zone) 过滤
-                // 解决经过摇杆中心时，极小的坐标导致的 Atan2 浮点数角度剧烈抖动（引发角色疯狂左右转身）
-                if (dist > 15f) 
+                // 物理死区 (Dead Zone) 过滤：经过摇杆中心时极小的坐标会让方向剧烈抖动
+                if (dist > 15f)
                 {
-                    float angle = Mathf.Atan2(localPos.y, localPos.x) * Mathf.Rad2Deg;
-                    if (angle < 0) angle += 360;
-                    InputManager.Instance.SetVirtualJoystick((byte)(angle / 2));
+                    // 量化为 8 方向：以正右为 0 逆时针每 45° 一档 (Atan2 为负时 & 7 取模)
+                    int sector = Mathf.RoundToInt(Mathf.Atan2(localPos.y, localPos.x) * Mathf.Rad2Deg / 45f) & 7;
+                    InputManager.Instance.SetVirtualJoystick((byte)sector);
                 }
                 else
                 {
-                    InputManager.Instance.SetVirtualJoystick(255); // 在死区内视为无输入
+                    InputManager.Instance.SetVirtualJoystick(JoystickDir.None); // 在死区内视为无输入
                 }
             }
         }
@@ -102,7 +101,7 @@ namespace View.UI
                 Knob.anchoredPosition = _startKnobPos;
             }
 
-            InputManager.Instance.SetVirtualJoystick(255);
+            InputManager.Instance.SetVirtualJoystick(JoystickDir.None);
         }
     }
 }

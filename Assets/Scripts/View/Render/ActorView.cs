@@ -72,6 +72,8 @@ namespace KiHan.View.Render
 
             Body = new GameObject("Body").transform;
             Body.SetParent(transform, false);
+            // 只缩放 Body 自身：其 localPosition (离地高度) 不受影响，子节点 (精灵/图层/跟随特效) 整体缩放
+            Body.localScale = Vector3.one * BattleViewSpace.CharacterScale;
 
             var spriteGo = new GameObject("Sprite");
             spriteGo.transform.SetParent(Body, false);

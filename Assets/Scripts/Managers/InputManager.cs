@@ -25,31 +25,23 @@ namespace Managers
     public class InputManager : UnitySingleton<InputManager>
     {
         // 虚拟 UI 输入状态
-        private byte _uiJoyStickAngle = 255;
+        private byte _uiJoyStickDir = JoystickDir.None;
         private ButtonMask _uiPressedButtons = ButtonMask.None;
 
-        // 对外暴露最终合并后的状态
-        public byte GetJoystickAngle()
+        /// <summary>
+        /// 合并后的摇杆 8 方向编码 (JoystickDir)：虚拟摇杆优先，其次键盘 WASD
+        /// </summary>
+        public byte GetJoystickDir()
         {
-            // 1. 优先检查虚拟摇杆
-            if (_uiJoyStickAngle != 255) return _uiJoyStickAngle;
+            if (_uiJoyStickDir != JoystickDir.None) return _uiJoyStickDir;
 
-            // 2. 备选检查键盘 WASD
-            float h = 0;
-            float v = 0;
+            int h = 0;
+            int v = 0;
             if (Input.GetKey(KeyCode.W)) v += 1;
             if (Input.GetKey(KeyCode.S)) v -= 1;
             if (Input.GetKey(KeyCode.A)) h -= 1;
             if (Input.GetKey(KeyCode.D)) h += 1;
-
-            if (h != 0 || v != 0)
-            {
-                float angle = Mathf.Atan2(v, h) * Mathf.Rad2Deg;
-                if (angle < 0) angle += 360;
-                return (byte)(angle / 2);
-            }
-
-            return 255;
+            return JoystickDir.FromAxes(h, v);
         }
 
         public ButtonMask GetCombinedButtons()
@@ -75,9 +67,12 @@ namespace Managers
 
         // --- 供 UI 组件调用的接口 ---
 
-        public void SetVirtualJoystick(byte angle)
+        /// <summary>
+        /// 虚拟摇杆方向 (JoystickDir 编码，JoystickDir.None 为松开或死区)
+        /// </summary>
+        public void SetVirtualJoystick(byte dir)
         {
-            _uiJoyStickAngle = angle;
+            _uiJoyStickDir = dir;
         }
 
         public void SetVirtualButton(ButtonMask action, bool isPressed)

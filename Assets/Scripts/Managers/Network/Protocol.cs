@@ -10,7 +10,7 @@ namespace KiHan.Logic
         public const int DataLength = 6;
 
         public uint FrameId; // 4 bytes
-        public byte JoyStickAngle; // 0-180 , 255 为无移动
+        public byte JoyStickDir; // 摇杆 8 方向编码 0~7 (JoystickDir)，255 为无移动
         public ButtonMask Buttons;
 
         public void Serialize(byte[] buffer, int offset)
@@ -21,7 +21,7 @@ namespace KiHan.Logic
                 Array.Reverse(frameIdBytes);
             
             Array.Copy(frameIdBytes, 0, buffer, offset, 4);
-            buffer[offset + 4] = JoyStickAngle;
+            buffer[offset + 4] = JoyStickDir;
             buffer[offset + 5] = (byte)Buttons;
         }
 
@@ -33,7 +33,7 @@ namespace KiHan.Logic
                 Array.Reverse(frameIdBytes);
             
             FrameId = BitConverter.ToUInt32(frameIdBytes, 0);
-            JoyStickAngle = buffer[offset + 4];
+            JoyStickDir = buffer[offset + 4];
             Buttons = (ButtonMask)buffer[offset + 5];
         }
     }

@@ -99,7 +99,7 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 
 ### 2. 真实 3D 纵深渲染与 2D/3D 混合深度穿插 (M3 已完成)
 - **唯一映射入口 `View/Render/BattleViewSpace.cs`**：不旋转的正交相机 (沿 +Z 观察)，角色、特效、地图等 2D 素材同样不旋转，正立显示。
-  $$\text{World}(x, y, z) = (x,\; k\,y + z,\; y),\quad k = \texttt{DepthToScreenY}\ (\text{默认 } 0.35，与脚下阴影圆盘纵向压缩共用)$$
+  $$\text{World}(x, y, z) = (x,\; k\,y + z,\; y),\quad k = \texttt{DepthToScreenY}\ (\text{原版实测 } 0.368，与脚下阴影圆盘纵向压缩共用)$$
   - 逻辑坐标：$x$ 横向、$y$ 纵深、$z$ 离地高度 (与 `MotionBody` 一致)。
   - 屏幕横坐标 $= x$，屏幕纵坐标 $= k\,y + z$：纵深按比例 $k$ 压缩到屏幕纵向，高度 1:1；地图美术无需改动。
   - 世界 Z $= y$，只取决于纵深：跳跃不改变前后关系；同一像素上前后由深度缓冲裁决，角色之间不再计算 sortingOrder。

@@ -35,7 +35,7 @@
 ## 三、 定点数体系与字符串规范 (Fixed-Point & String-First)
 
 1. **逻辑内核变量全量定点数化**：
-   - **位移与速度**：`FPVector3`、`FPVector2`、`FP moveSpeed`、`MoveInputAcceptance.rate`（移动速度接受率）。
+   - **位移与速度**：`FPVector3`、`FPVector2`、`FP moveSpeedX` / `FP moveSpeedY` (横向与纵深各自独立，摇杆只有 8 方向，斜向不归一化)、`MoveInputAcceptance.rate`（移动速度接受率）。
    - **重力与动力学**：`FP weight`、`_curWeight`、`MoveInfo.moveDistance`、`MoveInfo.inSec`。
    - **战斗与命中时钟**：`AttackInfo.attack`（伤害）、`AttackInfo.hitStun`（硬直）、`AttackInfo.freeze`（卡帧）、`AttackInfo.hitSameTargetDelay`、`HitRecord.Cooldown`。
    - **动作打断与预约**：`ActionCommand.validInSec`、`ActionChangeInfo.freezingAfterChange`、`PreorderActionInfo.FreezingAfterChangeAction`。
@@ -45,7 +45,7 @@
    - **代码编写规范示例**：
      ```csharp
      public FP weight = FP.Parse("4.5");
-     public FP moveSpeed = FP.Parse("3.0");
+     public FP moveSpeedX = FP.Parse("5.0");
      public ActionCommand command = new ActionCommand(key, "0.15");
      public FPVector3 offset = new FPVector3("0.5", "0.0", "0.0");
      ```

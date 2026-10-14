@@ -1,32 +1,29 @@
 using System;
 using System.Collections.Generic;
 using KiHan.Logic;
-using KiHan.Math;
 using TrueSync;
 using UnityEngine;
 
 namespace KiHan.Logic
 {
     /// <summary>
-    /// 统一格斗指令键枚举 (包含 4 向离散方位与功能按键)
+    /// 统一格斗指令键枚举 (8 向方位与功能按键)
     /// </summary>
     [Serializable]
     public enum CommandKey
     {
         None = 0,
 
-        // 前/后：相对朝向，只出现在指令配置中，匹配时按角色当前朝向换算为左/右 (输入历史只记录绝对方向)
-        Forward = 1,  // 前
-        Backward = 2, // 后
-        Up = 3,       // 上
-        Down = 4,     // 下
+        // 相对方向：只出现在指令配置中，匹配时按角色当前朝向换算为绝对方向 (输入历史只记录绝对方向)
+        Forward = 1,      // 前
+        Backward = 2,     // 后
+        ForwardUp = 3,    // 前上
+        ForwardDown = 4,  // 前下
+        BackwardUp = 5,   // 后上
+        BackwardDown = 6, // 后下
 
         // 状态键：摇杆当前有任意方向输入 (只看当前状态，不记入输入历史)
-        Move = 5,
-
-        // 绝对水平方向 (输入历史与 CurrentDirection 记录的方向)
-        Left = 6,
-        Right = 7,
+        Move = 7,
 
         // 战斗功能键 (与 ButtonMask 对应)
         Attack = 10,       // 普攻
@@ -45,6 +42,16 @@ namespace KiHan.Logic
         SubstitutionRelease = 24,
         SecretRelease = 25,
         SummonRelease = 26,
+
+        // 绝对 8 方向 (输入历史与 CurrentDirection 记录的方向)：Right + JoystickDir 编码
+        Right = 30,
+        UpRight = 31,
+        Up = 32,
+        UpLeft = 33,
+        Left = 34,
+        DownLeft = 35,
+        Down = 36,
+        DownRight = 37,
     }
 
     /// <summary>
@@ -64,11 +71,52 @@ namespace KiHan.Logic
     }
 
     /// <summary>
+    /// 摇杆 8 方向编码 (网络输入字节 InputFrame.JoyStickDir)：从正右开始逆时针每 45° 一档
+    /// 0 右, 1 右上, 2 上, 3 左上, 4 左, 5 左下, 6 下, 7 右下；None (255) 为无输入，其余值同样视为无输入
+    /// 横向与纵深各自只有 -1 / 0 / 1 三档，移动时两轴分别乘各自速度 (斜向不做归一化)
+    /// </summary>
+    public static class JoystickDir
+    {
+        public const byte None = 255;
+
+        private static readonly int[] AxisX = { 1, 1, 0, -1, -1, -1, 0, 1 };
+        private static readonly int[] AxisY = { 0, 1, 1, 1, 0, -1, -1, -1 };
+
+        // 下标 (x + 1) * 3 + (y + 1) -> 编码
+        private static readonly byte[] FromAxesTable = { 5, 4, 3, 6, None, 2, 7, 0, 1 };
+
+        /// <summary>
+        /// 横向 / 纵深分量 (只取符号) -> 方向编码
+        /// </summary>
+        public static byte FromAxes(int x, int y)
+        {
+            int sx = x > 0 ? 1 : x < 0 ? -1 : 0;
+            int sy = y > 0 ? 1 : y < 0 ? -1 : 0;
+            return FromAxesTable[(sx + 1) * 3 + (sy + 1)];
+        }
+
+        /// <summary>
+        /// 方向编码 -> 横向 / 纵深分量；无输入或非法编码返回 false (分量为 0)
+        /// </summary>
+        public static bool TryGetAxes(byte dir, out int x, out int y)
+        {
+            if (dir >= AxisX.Length)
+            {
+                x = 0;
+                y = 0;
+                return false;
+            }
+            x = AxisX[dir];
+            y = AxisY[dir];
+            return true;
+        }
+    }
+
+    /// <summary>
     /// 角色专属格斗指令解析器 (InputToCommand)
     /// 100% 确定性：无 Unity Update()，完全由外部房间逻辑帧 (RoomFrame.FrameId) 显式驱动
-    /// 双轨制模型：
-    /// 轨道 A (连续物理向)：保留 360° 真实角度与移动向量，供人物自由走位与技能转向
-    /// 轨道 B (离散语义向)：摇杆扇区边缘跳变检测 (记录前/后/上/下) + 按键按下，记录离散帧历史供搓招判定
+    /// - 摇杆只有 8 个方向 (JoystickDir)：当前方向分量 DirX / DirY 供移动与转向
+    /// - 方向切换与按键按下 / 松开作为离散事件记入帧历史，供搓招判定
     /// </summary>
     public class InputToCommand : MonoBehaviour
     {
@@ -80,54 +128,40 @@ namespace KiHan.Logic
         /// </summary>
         private const int DefaultValidTicks = GameConfig.LOGIC_FPS * 2 / 5;
 
-        // ------------------ 轨道 A: 连续物理方向 (保留真实角度) ------------------
+        // ------------------ 当前摇杆状态 (8 方向) ------------------
         /// <summary>
-        /// 原始网络摇杆角度字节 (0~180 对应 0°~360°, 255 为无输入死区)
+        /// 网络摇杆方向字节 (JoystickDir 编码 0~7，JoystickDir.None 为无输入)
         /// </summary>
-        public byte JoyStickAngle { get; private set; } = 255;
+        public byte JoyStickDir { get; private set; } = JoystickDir.None;
 
         /// <summary>
-        /// 换算后的 360 度角度 (0° ~ 360°)
+        /// 摇杆横向分量：-1 左，0 无，1 右
         /// </summary>
-        public float AngleDegrees { get; private set; } = 0f;
+        public int DirX { get; private set; }
+
+        /// <summary>
+        /// 摇杆纵深分量：-1 下 (纵深减小)，0 无，1 上 (纵深增大)
+        /// </summary>
+        public int DirY { get; private set; }
 
         /// <summary>
         /// 摇杆当前是否有有效方向输入
         /// </summary>
-        public bool HasDirectionInput => JoyStickAngle != 255;
+        public bool HasDirectionInput => JoyStickDir != JoystickDir.None;
 
         /// <summary>
-        /// 摇杆水平方向 (按整数角度判定，确定性)：-1 偏左，1 偏右，0 无输入或正上/正下
+        /// 摇杆水平方向 (供转向)：-1 偏左，1 偏右，0 无输入或正上/正下
         /// </summary>
-        public int HorizontalSign
-        {
-            get
-            {
-                if (JoyStickAngle == 255) return 0;
-                int deg = JoyStickAngle * 2;
-                if (deg == 90 || deg == 270) return 0;
-                return deg > 90 && deg < 270 ? -1 : 1;
-            }
-        }
+        public int HorizontalSign => DirX;
 
-        /// <summary>
-        /// 360° 连续移动单位向量 (供表现层与常规移动)
-        /// </summary>
-        public Vector2 MoveDirection { get; private set; } = Vector2.zero;
-
-        /// <summary>
-        /// 360° 连续移动单位向量 (确定性定点数，供逻辑层物理)
-        /// </summary>
-        public FPVector2 MoveDirectionFP { get; private set; } = FPVector2.zero;
-
-        // ------------------ 轨道 B: 离散时序历史与当前帧状态 ------------------
+        // ------------------ 离散时序历史 ------------------
         /// <summary>
         /// 当前所属的房间逻辑帧编号 (由外部驱动灌入)
         /// </summary>
         public uint CurrentFrameId { get; private set; } = 0;
 
         /// <summary>
-        /// 当前摇杆所在的绝对方位 (None, Left, Right, Up, Down)，与角色朝向无关
+        /// 当前摇杆所在的绝对方向 (None 或 8 个绝对方向之一)，与角色朝向无关
         /// </summary>
         public CommandKey CurrentDirection { get; private set; } = CommandKey.None;
 
@@ -157,13 +191,13 @@ namespace KiHan.Logic
             CurrentFrameId = currentFrameId;
             if (input == null) return;
 
-            // 1. 轨道 A：解析 360° 连续角度与向量
-            UpdateContinuousAngle(input.JoyStickAngle);
+            // 1. 解析 8 方向
+            UpdateDirection(input.JoyStickDir);
 
-            // 2. 轨道 B：摇杆扇区边缘跳变检测 (将推方向作为离散事件记录到历史队列)
+            // 2. 方向切换边缘检测 (将新方向作为离散事件记录到历史队列)
             UpdateDirectionEdgeDetection(currentFrameId);
 
-            // 3. 轨道 B：按键按下边缘检测 (Down)
+            // 3. 按键按下 / 松开边缘检测
             UpdateButtonPressEvents(input.Buttons, currentFrameId);
 
             // 4. 统计按键按住持续帧数 (Hold Ticks)
@@ -173,59 +207,27 @@ namespace KiHan.Logic
             PruneHistory(currentFrameId);
         }
 
-        private void UpdateContinuousAngle(byte angleByte)
+        private void UpdateDirection(byte dir)
         {
-            JoyStickAngle = angleByte;
-
-            if (angleByte == 255)
+            if (JoystickDir.TryGetAxes(dir, out int x, out int y))
             {
-                AngleDegrees = 0f;
-                MoveDirection = Vector2.zero;
-                MoveDirectionFP = FPVector2.zero;
-                CurrentDirection = CommandKey.None;
-                return;
-            }
-
-            // 0~180 对应 0°~360° (纯整型度数换算)
-            int degInt = angleByte * 2;
-            AngleDegrees = degInt;
-
-            // 纯定点数确定性方向计算 (0 浮点误差与跨平台 FPU 尾数偏差)
-            FP degFP = degInt;
-            FP radFP = degFP * TSMath.Deg2Rad;
-            MoveDirectionFP = new FPVector2(TSMath.Cos(radFP), TSMath.Sin(radFP));
-
-            // 表现层视图平滑向量 (单向由定点数映射)
-            MoveDirection = MoveDirectionFP.ToVector2();
-
-            // 计算当前所在的离散扇区 (纯整型比较)
-            CurrentDirection = CalculateDirectionSector(degInt);
-        }
-
-        private CommandKey CalculateDirectionSector(int deg)
-        {
-            // 4 扇区划分 (纯整数角度):
-            // 上: 45° ~ 135°
-            // 下: 225° ~ 315°
-            // 右: 315° ~ 45°
-            // 左: 135° ~ 225°
-            if (deg >= 45 && deg < 135) return CommandKey.Up;
-            if (deg >= 225 && deg < 315) return CommandKey.Down;
-
-            bool isRight = (deg >= 315 || deg < 45);
-            if (isRight)
-            {
-                return CommandKey.Right;
+                JoyStickDir = dir;
+                DirX = x;
+                DirY = y;
+                CurrentDirection = CommandKey.Right + dir;
             }
             else
             {
-                return CommandKey.Left;
+                JoyStickDir = JoystickDir.None;
+                DirX = 0;
+                DirY = 0;
+                CurrentDirection = CommandKey.None;
             }
         }
 
         /// <summary>
-        /// 摇杆方位边缘检测：仅在方向由无变有、或跨扇区切换瞬间，才推入历史队列
-        /// 从而精确支持双击前冲刺 [Forward, Forward] 与 236 搓招
+        /// 摇杆方向边缘检测：仅在方向由无变有、或切换到另一个方向的瞬间，才推入历史队列
+        /// 从而支持双击前冲刺 [Forward, Forward] 与 [Down, ForwardDown, Forward] 等搓招
         /// </summary>
         private void UpdateDirectionEdgeDetection(uint frameId)
         {
@@ -341,7 +343,7 @@ namespace KiHan.Logic
 
         #region 指令判定 API (时序与搓招匹配)
         /// <summary>
-        /// 指令键 -> 输入历史中的绝对键：前/后按朝向换算为左/右，其余不变
+        /// 指令键 -> 输入历史中的绝对键：相对方向 (前/后/前上/前下/后上/后下) 按朝向换算，其余不变
         /// </summary>
         public static CommandKey Resolve(CommandKey key, bool facingLeft)
         {
@@ -349,9 +351,18 @@ namespace KiHan.Logic
             {
                 case CommandKey.Forward: return facingLeft ? CommandKey.Left : CommandKey.Right;
                 case CommandKey.Backward: return facingLeft ? CommandKey.Right : CommandKey.Left;
+                case CommandKey.ForwardUp: return facingLeft ? CommandKey.UpLeft : CommandKey.UpRight;
+                case CommandKey.ForwardDown: return facingLeft ? CommandKey.DownLeft : CommandKey.DownRight;
+                case CommandKey.BackwardUp: return facingLeft ? CommandKey.UpRight : CommandKey.UpLeft;
+                case CommandKey.BackwardDown: return facingLeft ? CommandKey.DownRight : CommandKey.DownLeft;
                 default: return key;
             }
         }
+
+        /// <summary>
+        /// 是否为绝对 8 方向键
+        /// </summary>
+        public static bool IsDirectionKey(CommandKey key) => key >= CommandKey.Right && key <= CommandKey.DownRight;
 
         /// <summary>
         /// 判定招式指令序列 (ActionCommand) 是否在有效时间窗口内触发
@@ -459,26 +470,6 @@ namespace KiHan.Logic
         #region 瞬时状态与蓄力查询
 
         /// <summary>
-        /// 摇杆当前是否推向上方 (45° ~ 135°)
-        /// </summary>
-        public bool IsUp => CurrentDirection == CommandKey.Up;
-
-        /// <summary>
-        /// 摇杆当前是否推向下方 (225° ~ 315°)
-        /// </summary>
-        public bool IsDown => CurrentDirection == CommandKey.Down;
-
-        /// <summary>
-        /// 摇杆当前是否推向左方 (135° ~ 225°)
-        /// </summary>
-        public bool IsLeft => CurrentDirection == CommandKey.Left;
-
-        /// <summary>
-        /// 摇杆当前是否推向右方 (315° ~ 45°)
-        /// </summary>
-        public bool IsRight => CurrentDirection == CommandKey.Right;
-
-        /// <summary>
         /// 查询按键当前是否处于按住状态
         /// </summary>
         public bool IsKeyHolding(CommandKey key)
@@ -487,23 +478,14 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 当前是否按住：Move 为摇杆有任意方向，方向键为当前摇杆方位 (前/后按朝向换算)，其余为功能键按住
+        /// 当前是否按住：Move 为摇杆有任意方向，方向键为当前摇杆方向 (相对方向按朝向换算，8 方向精确匹配)，其余为功能键按住
         /// </summary>
         public bool IsHeld(CommandKey key, bool facingLeft = false)
         {
             key = Resolve(key, facingLeft);
-            switch (key)
-            {
-                case CommandKey.Move:
-                    return HasDirectionInput;
-                case CommandKey.Left:
-                case CommandKey.Right:
-                case CommandKey.Up:
-                case CommandKey.Down:
-                    return CurrentDirection == key;
-                default:
-                    return IsKeyHolding(key);
-            }
+            if (key == CommandKey.Move) return HasDirectionInput;
+            if (IsDirectionKey(key)) return CurrentDirection == key;
+            return IsKeyHolding(key);
         }
 
         public int GetKeyHoldTicks(CommandKey key)
@@ -526,16 +508,7 @@ namespace KiHan.Logic
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
             // 1. 摇杆与方向状态
-            string dirStr = CurrentDirection switch
-            {
-                CommandKey.Left => "【← 左】",
-                CommandKey.Right => "【→ 右】",
-                CommandKey.Up => "【↑ 上】",
-                CommandKey.Down => "【↓ 下】",
-                _ => "【居中】"
-            };
-
-            sb.AppendLine($"摇杆: {(HasDirectionInput ? $"{AngleDegrees:F0}°" : "无输入")} | 方位: {dirStr}");
+            sb.AppendLine($"摇杆: {(HasDirectionInput ? CommandKeyToDisplayName(CurrentDirection) : "【居中】")} | 分量: ({DirX}, {DirY})");
 
             // 2. 近期输入指令序列 (展示最近输入的 8 个操作)
             sb.Append("指令流: ");
@@ -563,10 +536,18 @@ namespace KiHan.Logic
             {
                 CommandKey.Forward => "【前】",
                 CommandKey.Backward => "【后】",
-                CommandKey.Left => "【左】",
-                CommandKey.Right => "【右】",
-                CommandKey.Up => "【上】",
-                CommandKey.Down => "【下】",
+                CommandKey.ForwardUp => "【前上】",
+                CommandKey.ForwardDown => "【前下】",
+                CommandKey.BackwardUp => "【后上】",
+                CommandKey.BackwardDown => "【后下】",
+                CommandKey.Right => "【→ 右】",
+                CommandKey.UpRight => "【↗ 右上】",
+                CommandKey.Up => "【↑ 上】",
+                CommandKey.UpLeft => "【↖ 左上】",
+                CommandKey.Left => "【← 左】",
+                CommandKey.DownLeft => "【↙ 左下】",
+                CommandKey.Down => "【↓ 下】",
+                CommandKey.DownRight => "【↘ 右下】",
                 CommandKey.Attack => "【普攻】",
                 CommandKey.Skill1 => "【技能1】",
                 CommandKey.Skill2 => "【技能2】",
@@ -610,10 +591,9 @@ namespace KiHan.Logic
         {
             _inputHistory.Clear();
             _keyHoldTicks.Clear();
-            JoyStickAngle = 255;
-            AngleDegrees = 0f;
-            MoveDirection = Vector2.zero;
-            MoveDirectionFP = FPVector2.zero;
+            JoyStickDir = JoystickDir.None;
+            DirX = 0;
+            DirY = 0;
             CurrentDirection = CommandKey.None;
             _lastButtons = ButtonMask.None;
             _lastDirection = CommandKey.None;

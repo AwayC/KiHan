@@ -52,7 +52,7 @@ Tests/LogicTests/
 
 ### 3. 用例写法
 
-1. **按真实主循环驱动**：通过 `BattleWorld.Tick(RoomFrame)` 推进，输入经 `RoomFrame.InputFrames[槽位]` 注入 (摇杆角度字节 + `ButtonMask`)。只有在**搭建场景**时才直接调用内部方法 (如设置位置、`EnterLaunch`、`EnterLying`)，断言阶段不绕开主循环。
+1. **按真实主循环驱动**：通过 `BattleWorld.Tick(RoomFrame)` 推进，输入经 `RoomFrame.InputFrames[槽位]` 注入 (摇杆 8 方向编码 `JoyStickDir` (`JoystickDir`，255 无输入) + `ButtonMask`)。只有在**搭建场景**时才直接调用内部方法 (如设置位置、`EnterLaunch`、`EnterLying`)，断言阶段不绕开主循环。
 2. **场景相互独立**：每个场景新建角色与 `BattleWorld`。`AddCharacter` 会调用 `ResetCombatState`，需要预设的受击状态必须在加入之后设置。
 3. **数据在代码里构造**：动画用 `AnimationFrameData` / `SpriteFrameData` 按需构造 (帧数、受击盒、攻击盒、锚点显式给出)，不读取 `.asset`。需要读取仓库文件 (如 `action_template.json`) 时，用基于源文件位置的 `RepoRoot()` 拼路径，禁止写死绝对路径。
 4. **配置优先走 DTO**：新增或修改配置字段时，至少有一个用例通过 `ActionData` 等 DTO 的 `ToRuntime()` 构造动作，验证 String-First 解析链路。

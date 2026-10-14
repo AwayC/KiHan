@@ -67,9 +67,14 @@ namespace KiHan.Logic
         public readonly MotionBody motion = new MotionBody();
 
         /// <summary>
-        /// 移动速度 (定点数，单位/秒)
+        /// 横向移动速度 (定点数，单位/秒)
         /// </summary>
-        public FP moveSpeed = FP.Parse("3.0");
+        public FP moveSpeedX = FP.Parse("5.0");
+
+        /// <summary>
+        /// 纵深移动速度 (定点数，单位/秒)：与横向各自独立，斜向两轴同时全速
+        /// </summary>
+        public FP moveSpeedY = FP.Parse("5.0");
 
         /// <summary>
         /// 重力加速度 (定点数，单位/秒²)
@@ -288,18 +293,24 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 自然水平位移：摇杆输入 × 动作移动接受率 + RootMotion (x 随朝向镜像)
+        /// 自然水平位移：摇杆 8 方向分量 × 各轴速度 × 动作移动接受率 + RootMotion (x 随朝向镜像)
+        /// 横向与纵深各自独立计算后相加，斜向不归一化 (与原版一致)
         /// </summary>
         public FPVector3 NatureMove(FP deltaFP)
         {
             FPVector3 rootMotion = action.RootMotionMove;
-            FPVector2 dir = input != null && !action.ControlLocked ? input.MoveDirectionFP : FPVector2.zero;
-            FP step = moveSpeed * action.MoveInputAcceptance * deltaFP;
+            int dirX = 0, dirY = 0;
+            if (input != null && !action.ControlLocked)
+            {
+                dirX = input.DirX;
+                dirY = input.DirY;
+            }
+            FP rate = action.MoveInputAcceptance * deltaFP;
             FP facing = FacingLeft ? -FP.One : FP.One;
 
             return new FPVector3(
-                dir.x * step + rootMotion.x * facing,
-                dir.y * step + rootMotion.y,
+                moveSpeedX * rate * dirX + rootMotion.x * facing,
+                moveSpeedY * rate * dirY + rootMotion.y,
                 FP.Zero
             );
         }

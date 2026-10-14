@@ -160,7 +160,7 @@ namespace KiHan.Network
                         InputFrame input = new InputFrame();
                         // 2 bytes raw_input format: [Joystick(1)][Buttons(1)]
                         input.FrameId = frame.FrameId;
-                        input.JoyStickAngle = val[0];
+                        input.JoyStickDir = val[0];
                         input.Buttons = (ButtonMask)val[1];
                         frame.InputFrames[(byte)key] = input;
                     }
