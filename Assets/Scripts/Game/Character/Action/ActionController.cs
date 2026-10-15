@@ -179,7 +179,7 @@ namespace KiHan.Logic
 
             // 3. 计算攻击盒与受击盒开启状态、霸体等级
             CalculateBoxInfo(_wasFrame, _curFrame);
-            CalculateArmor(_wasFrame, _curFrame);
+            CalculateArmor(_curFrame);
 
             // 4. 计算移动输入接受倍率与转向许可，并随摇杆转向 (先于物理与命中检测，本帧即按新朝向镜像)
             CalculateInputAcceptance(_wasFrame, _curFrame);
@@ -196,7 +196,7 @@ namespace KiHan.Logic
             {
                 foreach (ActionInfo action in AllActions)
                 {
-                    if (CanActionCancelCurrent(action, _curFrame, true, out BeCancelledTag bcTag, out CancelTag cancelTag))
+                    if (CanActionCancelCurrent(action, true, out BeCancelledTag bcTag, out CancelTag cancelTag))
                     {
                         _preorderActions.Add(new PreorderActionInfo(
                             action.id,
@@ -339,14 +339,14 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 霸体等级取本逻辑帧最新处理的动画帧 (未推进时取当前帧) 上开启的最高等级
+        /// 霸体等级取本逻辑帧最近处理的动画帧 (curFrame - 1，停在末帧时即末帧) 上开启的最高等级
         /// </summary>
-        private void CalculateArmor(int wasFrame, int curFrame)
+        private void CalculateArmor(int curFrame)
         {
             CurrentArmor = ArmorLevel.None;
             if (CurrentAction.armorPhase == null) return;
 
-            int frame = curFrame > wasFrame ? curFrame - 1 : curFrame;
+            int frame = curFrame - 1;
             foreach (ArmorPhaseInfo phase in CurrentAction.armorPhase)
             {
                 if (frame >= phase.range.x && frame <= phase.range.y && phase.level > CurrentArmor)
@@ -418,7 +418,7 @@ namespace KiHan.Logic
             bool any = false;
             foreach (MoveInputAcceptance acceptance in CurrentAction.inputAcceptance)
             {
-                if (wasFrame <= acceptance.range.y && curFrame > acceptance.range.x)
+                if (InFrames(wasFrame, curFrame, acceptance.range.x, acceptance.range.y))
                 {
                     // 多段重叠时各轴分别取最小 (0 也参与比较)
                     if (!any || acceptance.rateX < MoveRateX) MoveRateX = acceptance.rateX;
@@ -440,6 +440,16 @@ namespace KiHan.Logic
             else if (sign > 0 && _facingLeft) FacingLeft = false;
         }
 
+        /// <summary>
+        /// 帧区间统一为闭区间 [x, y] (动画帧号，从 0 开始)：本逻辑帧处理的动画帧 [wasFrame, curFrame) 中有任意一帧落在区间内即生效；
+        /// 本帧未推进动画 (停在末帧) 时按最近处理的一帧 (curFrame - 1) 判断
+        /// </summary>
+        private static bool InFrames(int wasFrame, int curFrame, int x, int y)
+        {
+            if (curFrame <= wasFrame) wasFrame = curFrame - 1;
+            return wasFrame <= y && curFrame > x;
+        }
+
         private void CalculateBoxInfo(int wasFrame, int curFrame)
         {
             ActiveAttackBoxInfo.Clear();
@@ -453,8 +463,7 @@ namespace KiHan.Logic
                     {
                         foreach (FrameRange range in aBox.frameRanges)
                         {
-                            // 本逻辑帧处理过的动画帧 [wasFrame, curFrame) 与 [x, y] 有交集即开启
-                            if (wasFrame <= range.y && curFrame > range.x)
+                            if (InFrames(wasFrame, curFrame, range.x, range.y))
                             {
                                 open = true;
                                 break;
@@ -476,6 +485,8 @@ namespace KiHan.Logic
                 }
             }
 
+            // 受击盒阶段按当前姿态帧 (受击判定所用受击盒所在的帧，播完后停在末帧) 判断闭区间 [x, y]
+            int poseFrame = anim != null && anim.TotalFrames > 0 ? Mathf.Min(curFrame, anim.TotalFrames - 1) : curFrame;
             ActiveBeHitBoxInfo.Clear();
             ActiveBeHitBoxTag.Clear();
             if (CurrentAction.defensePhase != null)
@@ -487,7 +498,7 @@ namespace KiHan.Logic
                     {
                         foreach (FrameRange range in bHitBox.frameRanges)
                         {
-                            if (curFrame >= range.x && curFrame <= range.y)
+                            if (poseFrame >= range.x && poseFrame <= range.y)
                             {
                                 open = true;
                                 break;
@@ -510,7 +521,7 @@ namespace KiHan.Logic
             }
         }
 
-        private bool CanActionCancelCurrent(ActionInfo action, int curFrame, bool checkCommand, out BeCancelledTag beCancelledTag, out CancelTag foundTag)
+        private bool CanActionCancelCurrent(ActionInfo action, bool checkCommand, out BeCancelledTag beCancelledTag, out CancelTag foundTag)
         {
             foundTag = new CancelTag();
             beCancelledTag = new BeCancelledTag();
@@ -519,8 +530,8 @@ namespace KiHan.Logic
 
             foreach (BeCancelledTag bcTag in CurrentBeCancelledTag)
             {
-                // 整数帧区间重叠检验 [range.x, range.y]
-                if (!(bcTag.range.y >= curFrame && bcTag.range.x <= curFrame)) continue;
+                // 本逻辑帧处理的动画帧落在闭区间 [range.x, range.y] 内：处理完该帧后即可切换
+                if (!InFrames(_wasFrame, _curFrame, bcTag.range.x, bcTag.range.y)) continue;
 
                 // 判断 CancelTag 是否有交集
                 bool tagFit = false;

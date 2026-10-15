@@ -304,14 +304,6 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 判定当前流逝的帧数是否落在指定区间内 [startFrame, endFrame]
-        /// </summary>
-        public bool IsInFrameRange(int startFrame, int endFrame)
-        {
-            return ElapsedFrames >= startFrame && ElapsedFrames <= endFrame;
-        }
-
-        /// <summary>
         /// 重置动画状态
         /// </summary>
         public void Reset()

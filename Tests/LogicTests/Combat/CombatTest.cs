@@ -1045,6 +1045,55 @@ static class Program
                 $"a1 期间不转向 ({rightDuringA1})，进入 a2 随摇杆朝左且不移动: {c.action.CurrentAction.id} 朝左={c.FacingLeft} x={F(c.motion.Position.x):F3}");
         }
 
+        Console.WriteLine("== 21. 帧区间统一为闭区间 [x, y]：处理到第 x 帧起、第 y 帧止生效 (取消窗口 / 临时窗口 / 受击盒阶段) ==");
+        {
+            // a1 动画 8 帧，取消窗口 [3, 5] 放行 a2 (按住普攻)；第 k 个逻辑帧处理第 k-1 帧
+            var a1 = new ActionData
+            {
+                id = "a1", animKey = "a1", autoNextActionId = "a1",
+                beCancelledTag = new[] { new BeCancelledTagData { frameRange = new FrameRange(3, 5), cancelTag = new[] { "a2" } } },
+                tempBeCancelledTag = new[] { new TempBeCancelledTag { id = "t", startFrames = 2, cancelTag = new[] { "a2" } } }
+            }.ToRuntime();
+            var a2 = new ActionData { id = "a2", animKey = "a2", cancelTag = new[] { new CancelTag { tag = "a2" } }, commands = new[] { new ActionCommandData { hold = new[] { "Attack" } } } }.ToRuntime();
+            // 从第 holdFrom 个逻辑帧起按住普攻，返回切到 a2 的逻辑帧序号 (-1 为未切换)；openTempAfter > 0 时在该逻辑帧后开启临时窗口
+            int SwitchTick(int holdFrom, int openTempAfter = 0, bool withWindow = true)
+            {
+                var a1Cfg = a1;
+                if (!withWindow) a1Cfg.beCancelledTag = Array.Empty<BeCancelledTag>();
+                var c = Make(1, 1, "0", "a1", a1Cfg, a2);
+                c.input = new InputToCommand(); c.InputSlot = 0;
+                var w = World(c);
+                for (int tick = 1; tick <= 8; tick++)
+                {
+                    var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = JoystickDir.None, Buttons = tick >= holdFrom ? ButtonMask.Attack : ButtonMask.None };
+                    w.Tick(rf);
+                    if (c.action.CurrentAction.id == "a2") return tick;
+                    if (tick == openTempAfter) c.action.AddTempBeCancelledTag("t");
+                }
+                return -1;
+            }
+            int early = SwitchTick(1), last = SwitchTick(6), after = SwitchTick(7);
+            Check(early == 4 && last == 6 && after == -1, $"窗口 [3,5]：处理第 3 帧 (第 4 个逻辑帧) 起可切换，第 5 帧 (第 6 个) 仍可，第 6 帧不可: {early} / {last} / {after}");
+            // 第 1 个逻辑帧 (处理第 0 帧) 后开启 2 帧临时窗口 -> [1, 2]
+            int tFirst = SwitchTick(1, 1, false), tLast = SwitchTick(3, 1, false), tAfter = SwitchTick(4, 1, false);
+            Check(tFirst == 2 && tLast == 3 && tAfter == -1, $"临时窗口 startFrames=2 覆盖开启后处理的 2 帧: {tFirst} / {tLast} / {tAfter}");
+
+            // 受击盒阶段按当前姿态帧：动画 4 帧、defensePhase [2, 3]，播完停在末帧 (无 autoNext) 时仍开启
+            var guard = new ActionData
+            {
+                id = "guard", animKey = "guard",
+                defensePhase = new[] { new BeHitBoxTurnOnInfo { frameRanges = new[] { new FrameRange(2, 3) } } }
+            }.ToRuntime();
+            var g = Make(1, 1, "0", "guard", guard);
+            g.action.anim.RegisterAnim("guard", Anim(4, false));
+            g.action.SetAllActions(g.action.AllActions, "guard");
+            var gw = World(g);
+            string open = "";
+            for (int i = 0; i < 6; i++) { Step(gw); open += g.action.ActiveBeHitBoxInfo.Count > 0 ? "1" : "0"; }
+            Check(open == "011111", $"姿态帧 1/2/3/3(停)/3/3 -> 只在 [2,3] 开启，停在末帧时保持: {open}");
+        }
+
         Console.WriteLine(_fail == 0 ? "\n全部通过" : $"\n失败 {_fail} 项");
         return _fail == 0 ? 0 : 1;
     }

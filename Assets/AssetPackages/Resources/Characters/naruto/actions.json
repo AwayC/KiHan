@@ -55,6 +55,9 @@
       "rootMotion" :[
         { "frameRange": { "x": 4, "y": 6 }, "moveX": "0.2" }
       ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 1 }, "rateX": "1", "rateY": "1", "turn": true }
+      ],
       "attacks": [
         {
           "phase": 0,
