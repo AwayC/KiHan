@@ -30,6 +30,9 @@ namespace KiHan.Logic
             attacker.AddHitRecord(target, hit.AttackPhase);
             target.TakeDamage(atk.attack);
 
+            // 技能 (含技能生成物) 命中为主人获得查克拉 (每次技能刷新只获得一次)
+            attacker.OnHitDealt();
+
             HitReaction reaction;
             if (target.Hurt == HurtState.Grabbed)
             {
@@ -53,6 +56,7 @@ namespace KiHan.Logic
             {
                 FrameId = frameId,
                 AttackerId = attacker.EntityId,
+                OwnerId = attacker.RootOwner.EntityId,
                 TargetId = target.EntityId,
                 AttackPhase = hit.AttackPhase,
                 Damage = atk.attack,
@@ -82,6 +86,8 @@ namespace KiHan.Logic
                 {
                     if (velocity > FP.Zero) target.motion.Launch(velocity);
                     target.EnterLaunch();
+                    // 击飞水平惯性 (攻击者本地方向 -> 世界)，覆盖目标当前惯性
+                    target.motion.SetPlanarVelocity(attacker.FacingLeft ? -atk.launchVelocityX : atk.launchVelocityX, atk.launchVelocityY);
                     // 地面被击飞先播上升段，空中受击直接播空中受击段
                     targetChange = atk.launchActionChange.changeType != ActionChangeType.Keep
                         ? atk.launchActionChange

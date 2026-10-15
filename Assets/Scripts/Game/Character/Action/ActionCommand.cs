@@ -1,43 +1,23 @@
 using System;
-using TrueSync;
-using UnityEngine;
 
 namespace KiHan.Logic
 {
     /// <summary>
-    /// 招式输入指令定义 (基于定点数有效时间窗口)
+    /// 动作触发指令：press / hold / release 三组条件全部满足才成立 (同一动作的多条指令满足任意一条即可)
+    /// - press：按钮在最近 validTicks 帧内按下过，且这次按下还没被动作切换用掉；多个键即同时按 (不分先后)
+    /// - hold：按钮当前按住，或摇杆当前处于该状态
+    /// - release：按钮在最近 validTicks 帧内松开过 (同一个键再次按下后作废)
     /// </summary>
     [Serializable]
     public struct ActionCommand
     {
-        [Tooltip("按键顺序序列 (使用 CommandKey: 如 [Attack], [Up, Attack], [Skill1, Attack])")]
-        public CommandKey[] keySequence;
+        public CommandKey[] press;
+        public CommandKey[] hold;
+        public CommandKey[] release;
 
-        [Tooltip("整套搓招序列在多少秒内有效 (定点数秒，如 0.15s)")]
-        public FP validInSec;
-
-        public ActionCommand(CommandKey key, FP validInSec)
-        {
-            this.keySequence = new[] { key };
-            this.validInSec = validInSec;
-        }
-
-        public ActionCommand(CommandKey[] sequence, FP validInSec)
-        {
-            this.keySequence = sequence;
-            this.validInSec = validInSec;
-        }
-        public ActionCommand(CommandKey key, string validInSec = "0.15")
-        {
-            this.keySequence = new[] { key };
-            this.validInSec = FP.Parse(validInSec);
-        }
-
-        public ActionCommand(CommandKey[] sequence, string validInSec = "0.2")
-        {
-            this.keySequence = sequence;
-            this.validInSec = FP.Parse(validInSec);
-        }
-
+        /// <summary>
+        /// press / release 的预输入逻辑帧数；<= 0 使用 InputToCommand.DefaultValidTicks
+        /// </summary>
+        public int validTicks;
     }
 }

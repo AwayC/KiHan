@@ -10,7 +10,7 @@ out=$(dotnet build Compile/Compile.csproj -nologo -v q 2>&1); code=$?
 echo "$out" | grep -E " error | warning |Warning\(s\)|Error\(s\)" || true
 [ $code -ne 0 ] && { echo "  [FAIL] 编译失败"; fail=1; }
 
-for t in Combat Jump HitGC Hurt Stride; do
+for t in Combat Skill Jump HitGC Hurt Stride; do
   echo "## $t"
   out=$(dotnet run --project "$t/$t.csproj" -nologo -v q 2>&1); code=$?
   echo "$out" | grep -E "\[FAIL\]|全部通过|失败 [0-9]+ 项|same=|托管分配|Exception" || true

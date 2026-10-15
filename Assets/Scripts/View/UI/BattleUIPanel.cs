@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using KiHan.Logic;
-using System.Linq;
 using System.Collections.Generic;
 using Managers;
 
@@ -20,8 +19,26 @@ namespace View.UI
         public VirtualButton BtnSkill1 { get; private set; }
         public VirtualButton BtnSkill2 { get; private set; }
         public VirtualButton BtnUltimate { get; private set; }
+        public VirtualButton BtnSubstitution { get; private set; }
+
+        /// <summary>
+        /// 替身键位置 (相对 Buttons 节点)：预制体中没有替身键时复制技能 1 键放在其左侧
+        /// </summary>
+        private static readonly Vector2 SubstitutionPosition = new Vector2(-180f, -60f);
+
+        /// <summary>
+        /// 查克拉显示位置 (相对 Buttons 节点，奥义键上方)
+        /// </summary>
+        private static readonly Vector2 ChakraPosition = new Vector2(30f, 185f);
 
         private GameObject _backPanel;
+        private readonly List<SkillButtonView> _skillViews = new List<SkillButtonView>(4);
+        private ChakraView _chakraView;
+
+        /// <summary>
+        /// 本机角色的技能图标 (面板创建时按 skills.json 预载)
+        /// </summary>
+        private readonly SkillIconCache _icons = new SkillIconCache();
 
         private void Awake()
         {
@@ -103,6 +120,16 @@ namespace View.UI
                 BtnSkill1 = BindAction(buttonsRoot, "Button1", ButtonMask.Skill1);
                 BtnSkill2 = BindAction(buttonsRoot, "Button2", ButtonMask.Skill2);
                 BtnUltimate = BindAction(buttonsRoot, "Button3", ButtonMask.Ultimate);
+                BtnSubstitution = BindAction(buttonsRoot, "Substitution", ButtonMask.Substitution) ?? CreateSubstitutionButton(buttonsRoot);
+
+                CharacterObj local = BattleManager.Instance.LocalCharacter;
+                if (local != null && local.Skills != null) _icons.Preload(local.Skills);
+
+                AddSkillView(BtnSkill1, CommandKey.Skill1, string.Empty);
+                AddSkillView(BtnSkill2, CommandKey.Skill2, string.Empty);
+                AddSkillView(BtnUltimate, CommandKey.Ultimate, string.Empty);
+                AddSkillView(BtnSubstitution, CommandKey.Substitution, "替身");
+                _chakraView = ChakraView.Create(buttonsRoot, ChakraPosition);
             }
 
             // 3. 寻找返回主按钮 (通常在根部或 Buttons 容器内)
@@ -150,6 +177,41 @@ namespace View.UI
             return btn;
         }
 
+        /// <summary>
+        /// 预制体中没有替身键时，复制技能 1 键作为替身键 (位置见 SubstitutionPosition，可在预制体中加入名为 Substitution 的按键替代)
+        /// </summary>
+        private VirtualButton CreateSubstitutionButton(Transform root)
+        {
+            if (BtnSkill1 == null) return null;
+
+            GameObject go = Instantiate(BtnSkill1.gameObject, root);
+            go.name = "Substitution";
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchoredPosition = SubstitutionPosition;
+            return BindAction(root, "Substitution", ButtonMask.Substitution);
+        }
+
+        private void AddSkillView(VirtualButton button, CommandKey key, string title)
+        {
+            if (button != null) _skillViews.Add(SkillButtonView.Attach(button, key, _icons, title));
+        }
+
+        /// <summary>
+        /// 只读本机角色的技能状态刷新按键 CD 与查克拉
+        /// </summary>
+        private void Update()
+        {
+            CharacterObj local = BattleManager.Instance.LocalCharacter;
+            SkillController skills = local != null ? local.Skills : null;
+            if (skills == null) return;
+
+            for (int i = 0; i < _skillViews.Count; i++)
+            {
+                _skillViews[i].Refresh(skills);
+            }
+            if (_chakraView != null) _chakraView.Refresh(skills);
+        }
+
         private Transform FindChildRecursive(Transform parent, string name)
         {
             if (parent.name == name) return parent;
@@ -159,17 +221,6 @@ namespace View.UI
                 if (found != null) return found;
             }
             return null;
-        }
-
-        public void SetupIcons(int characterId)
-        {
-            string path = $"UI/SkillButton/{characterId}_SkillIconAtlas";
-            Sprite[] allSprites = Resources.LoadAll<Sprite>(path);
-            if (allSprites == null || allSprites.Length == 0) return;
-
-            if (BtnSkill1 != null) BtnSkill1.SetIcon(allSprites.FirstOrDefault(s => s.name.EndsWith("_0")));
-            if (BtnSkill2 != null) BtnSkill2.SetIcon(allSprites.FirstOrDefault(s => s.name.EndsWith("_1")));
-            if (BtnUltimate != null) BtnUltimate.SetIcon(allSprites.FirstOrDefault(s => s.name.EndsWith("_2")));
         }
     }
 }

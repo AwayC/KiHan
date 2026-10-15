@@ -68,7 +68,13 @@ public class BattleManager : UnitySingleton<BattleManager>
 
     public BattleWorld World { get; private set; }
 
+    /// <summary>
+    /// 本机玩家控制的角色 (UI 读取技能 CD 与查克拉)
+    /// </summary>
+    public CharacterObj LocalCharacter { get; private set; }
+
     private readonly List<CharacterObj> _characters = new List<CharacterObj>();
+    private SpawnPool _spawnPool;
     private GameObject _combatUIGo;
     private int _p1CharacterId = DefaultCharacterId;
     private int _p2CharacterId = DefaultCharacterId;
@@ -116,6 +122,8 @@ public class BattleManager : UnitySingleton<BattleManager>
     {
         MapManager.Instance.LoadMap(MapPath);
         World = new BattleWorld(MapManager.Instance.CurrentMapLogic);
+        _spawnPool = new SpawnPool();
+        World.Spawner = _spawnPool;
 
         int localSlot = IsOnline ? LockstepManager.Instance.MyGameId : P1Slot;
         SceneManager.Instance.InitWorld(localSlot);
@@ -123,7 +131,11 @@ public class BattleManager : UnitySingleton<BattleManager>
         ActorView p1 = SpawnPlayer(_p1CharacterId, P1Slot, P1Spawn, facingLeft: false);
         ActorView p2 = SpawnPlayer(_p2CharacterId, P2Slot, P2Spawn, facingLeft: true);
         ActorView local = localSlot == P2Slot ? p2 : p1;
+        LocalCharacter = local != null ? local.Character : null;
         if (local != null) CameraControllor.Instance.SetTarget(local, true);
+
+        // 生成物实例与视图、动作事件特效全部在加载阶段预建 (局内不再 Load / 新建实例)
+        SceneManager.Instance.PrewarmSpawnViews(_spawnPool.Instances);
 
         InitCombatUI();
         UIManager.Instance.ClosePanel(UIConst.LobbyPanel);
@@ -147,6 +159,13 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         World.AddCharacter(character);
         _characters.Add(character);
+        // 同一角色的生成物实例、Buff 配置与动作 / Buff 特效只预建一次
+        if (_spawnPool.Prewarm(character.CharacterId))
+        {
+            CharacterTemplate template = CharacterFactory.GetTemplate(character.CharacterId);
+            foreach (BuffInfo buff in template.Buffs.Values) World.BuffTable[buff.id] = buff;
+            SceneManager.Instance.PreloadActionEffects(template.Actions, template.Buffs.Values);
+        }
         return SceneManager.Instance.SpawnView(character);
     }
 
@@ -190,6 +209,7 @@ public class BattleManager : UnitySingleton<BattleManager>
         }
 
         World = null;
+        LocalCharacter = null;
         CameraControllor.Instance.ResetView();
         SceneManager.Instance.Clear();
         foreach (CharacterObj character in _characters)
@@ -197,6 +217,9 @@ public class BattleManager : UnitySingleton<BattleManager>
             if (character != null) Destroy(character.gameObject);
         }
         _characters.Clear();
+        _spawnPool?.Dispose();
+        _spawnPool = null;
+        CharacterFactory.ClearTemplates();
 
         if (_combatUIGo != null)
         {

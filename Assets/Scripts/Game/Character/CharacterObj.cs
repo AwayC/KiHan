@@ -27,6 +27,66 @@ namespace KiHan.Logic
         /// </summary>
         public int InputSlot = -1;
 
+        /// <summary>
+        /// 角色配置 ID (如 90001 鸣人)：查找生成物配置与表现资源
+        /// </summary>
+        public int CharacterId;
+
+        /// <summary>
+        /// 所在的逻辑世界 (加入 BattleWorld 时设置)：动作事件与生成请求的接收者
+        /// </summary>
+        public BattleWorld World { get; internal set; }
+
+        /// <summary>
+        /// 技能资源控制器 (玩家角色持有；生成物为 null，命中的查克拉归属主人)
+        /// </summary>
+        public SkillController Skills { get; set; }
+
+        /// <summary>
+        /// 生成物配置 (玩家角色为 null)
+        /// </summary>
+        public SpawnInfo Spawn { get; set; }
+
+        /// <summary>
+        /// 生成物的主人 (最初的玩家角色，玩家角色为 null)
+        /// </summary>
+        public CharacterObj Owner { get; internal set; }
+
+        /// <summary>
+        /// 生成物来源技能 (主人 SkillController 中的下标，-1 表示不是技能生成的)
+        /// </summary>
+        public int SourceSkill { get; internal set; } = -1;
+
+        /// <summary>
+        /// 生成物剩余寿命 (逻辑帧)，-1 表示不限
+        /// </summary>
+        public int LifeTicks { get; internal set; } = -1;
+
+        /// <summary>
+        /// 生成物正在播放消失动作 (期间无敌，播完回收)
+        /// </summary>
+        public bool Despawning { get; private set; }
+
+        /// <summary>
+        /// 分身大脑 (Actor 生成物持有，在输入阶段生成本帧输入)
+        /// </summary>
+        public CloneBrain Brain { get; set; }
+
+        /// <summary>
+        /// 身上的 Buff (只计时与通知表现，不修改属性)
+        /// </summary>
+        public readonly BuffController Buffs = new BuffController();
+
+        /// <summary>
+        /// 战绩、查克拉归属的根角色
+        /// </summary>
+        public CharacterObj RootOwner => Owner != null ? Owner : this;
+
+        /// <summary>
+        /// 能否被命中 (简单生成物没有受击)
+        /// </summary>
+        public bool Hittable => Spawn == null || Spawn.Hittable;
+
         [SerializeField] private ActionController _action;
         [SerializeField] private InputToCommand _input;
 
@@ -58,7 +118,11 @@ namespace KiHan.Logic
 
         private void SyncInputToAction()
         {
-            if (_action != null) _action.command = _input;
+            if (_action != null)
+            {
+                _action.command = _input;
+                _action.Owner = this;
+            }
         }
 
         /// <summary>
@@ -160,6 +224,12 @@ namespace KiHan.Logic
         /// 吸附来源与配置 (值类型/引用原地复用，0 GC)
         /// </summary>
         private CharacterObj _suctionSource;
+
+        /// <summary>
+        /// 当前吸附来源 (来源移出战场时由 BattleWorld 解除)
+        /// </summary>
+        public CharacterObj SuctionSource => _suctionSource;
+
         private SuctionInfo _suction;
         private FP _suctionElapsed;
 
@@ -193,20 +263,81 @@ namespace KiHan.Logic
         /// <summary>
         /// 是否无敌 (起身期间与起身后的追加时间)：不产生任何命中，不受伤害与任何效果
         /// </summary>
-        public bool IsInvincible => Hurt == HurtState.Standup || InvincibleTicks > 0;
+        public bool IsInvincible => Hurt == HurtState.Standup || InvincibleTicks > 0 || Despawning;
 
         private void Awake()
         {
             SyncInputToAction();
-            if (action != null)
-            {
-                action.Set((wasAction, toAction) =>
-                {
-                    // 更换动作时清除所有命中记录
-                    HitRecords.Clear();
-                });
-            }
         }
+
+        #region 动作回调 (ActionController 调用)
+
+        /// <summary>
+        /// 动作切换：清除命中记录，技能段流转；进入受击强制动作 (替身) 时解除受击；
+        /// 切换到其他动画时清除水平惯性 (击飞流程中的受击动作切换、同一段动画的 keepFrame 变体除外)
+        /// </summary>
+        public void OnActionChanged(ActionInfo previous, ActionInfo current, bool keepFrame)
+        {
+            HitRecords.Clear();
+            Skills?.OnActionChanged(current.id);
+            if (current.breakHurt) BreakHurt();
+            if (!keepFrame && Hurt != HurtState.Launch) motion.ClearPlanarVelocity();
+        }
+
+        /// <summary>
+        /// 技能准入 (主动打断与受击强制进入时调用)
+        /// </summary>
+        public bool CanEnterAction(in ActionInfo info)
+        {
+            return Skills == null || Skills.CanEnter(info.id, Hurt);
+        }
+
+        /// <summary>
+        /// 动作事件：交给所在世界 (生成请求 / 表现事件)
+        /// </summary>
+        public void OnActionEvent(in ActionEventInfo evt)
+        {
+            World?.OnActionEvent(this, in evt);
+        }
+
+        /// <summary>
+        /// 当前行为归属的技能 (查克拉与生成物来源)：生成物取来源技能，玩家角色取当前动作所属技能
+        /// </summary>
+        public int AttributedSkill()
+        {
+            if (Owner != null) return SourceSkill;
+            return Skills != null && action != null ? Skills.SkillIndexOfAction(action.CurrentAction.id) : -1;
+        }
+
+        /// <summary>
+        /// 命中结算后调用：技能 (或技能生成物) 命中为主人获得查克拉
+        /// </summary>
+        public void OnHitDealt()
+        {
+            SkillController skills = RootOwner.Skills;
+            skills?.TryGainChakra(AttributedSkill());
+        }
+
+        /// <summary>
+        /// 事件点：本逻辑帧最后处理的动画帧上的锚点 (缺省或不存在时为脚底) 加像素偏移，转换为逻辑坐标 (x 随朝向镜像)
+        /// </summary>
+        public FPVector3 EventPoint(string anchor, Vector2Int offset)
+        {
+            Vector2Int px = offset;
+            FrameAnimator anim = action != null ? action.anim : null;
+            if (anim != null && !string.IsNullOrEmpty(anchor))
+            {
+                int frame = anim.TickToFrame > anim.TickFromFrame ? anim.TickToFrame - 1 : anim.TickToFrame;
+                if (anim.TryGetAnchorAtFrame(frame, anchor, out Vector2Int anchorPx)) px += anchorPx;
+            }
+
+            FP x = GameConfig.PixelToUnit(FacingLeft ? -px.x : px.x);
+            FPVector3 pos = motion.Position + new FPVector3(x, FP.Zero, GameConfig.PixelToUnit(px.y));
+            if (pos.z < FP.Zero) pos.z = FP.Zero;
+            return pos;
+        }
+
+        #endregion
 
         #region 逻辑帧驱动
 
@@ -218,6 +349,15 @@ namespace KiHan.Logic
         public void Tick(FP deltaFP)
         {
             if (InvincibleTicks > 0) InvincibleTicks--;
+
+            // 技能 CD 与接段时限
+            Skills?.Tick();
+
+            // 生成物寿命：到期播放消失动作 (没有消失动作时由 BattleWorld 直接回收)
+            TickLifetime();
+
+            // Buff 计时，到期移除
+            Buffs.Tick(this);
 
             // 僵直倒计时：命中帧之后再经过 StunTicks 帧解除，解除当帧回到默认动作
             if (Hurt == HurtState.Stun)
@@ -268,6 +408,13 @@ namespace KiHan.Logic
             // 竖直只走速度模型：起跳设置速度，动作附加加速度与重力合成积分 (曲线位移的 z 分量不参与)
             if (action.VelocityZTriggered) motion.Launch(action.VelocityZ);
 
+            // 水平惯性：动作在本帧设置的速度按朝向镜像为世界速度，之后与动画帧无关地持续移动
+            if (action.PlanarVelocityTriggered)
+            {
+                FPVector3 v = action.PlanarVelocity;
+                motion.SetPlanarVelocity(FacingLeft ? -v.x : v.x, v.y);
+            }
+
             LastPhysicsEvent = motion.Step(delta, action.ZAcceleration, gravity, deltaFP, map);
 
             // 落地兜底：空中动作或击飞状态在地面上 (从未真正离地，不会产生 Landed 事件) 时视同落地
@@ -293,12 +440,15 @@ namespace KiHan.Logic
                 }
             }
 
+            // 落地清除水平惯性 (击飞触地弹起不算落地，保留惯性；弹不起转倒地同样清除)
+            if ((LastPhysicsEvent & PhysicsEvent.Landed) != 0) motion.ClearPlanarVelocity();
+
             action.OnPhysicsEvent(LastPhysicsEvent);
             return LastPhysicsEvent;
         }
 
         /// <summary>
-        /// 自然水平位移：摇杆 8 方向分量 × 各轴速度 × 动作移动接受率 + RootMotion (x 随朝向镜像)
+        /// 自然水平位移：摇杆 8 方向分量 × 各轴速度 × 动作各轴移动接受率 + RootMotion (x 随朝向镜像)
         /// 横向与纵深各自独立计算后相加，斜向不归一化 (与原版一致)
         /// </summary>
         public FPVector3 NatureMove(FP deltaFP)
@@ -310,12 +460,13 @@ namespace KiHan.Logic
                 dirX = input.DirX;
                 dirY = input.DirY;
             }
-            FP rate = action.MoveInputAcceptance * deltaFP;
+            FP rateX = action.MoveRateX * deltaFP;
+            FP rateY = action.MoveRateY * deltaFP;
             FP facing = FacingLeft ? -FP.One : FP.One;
 
             return new FPVector3(
-                moveSpeedX * rate * dirX + rootMotion.x * facing,
-                moveSpeedY * rate * dirY + rootMotion.y,
+                moveSpeedX * rateX * dirX + rootMotion.x * facing,
+                moveSpeedY * rateY * dirY + rootMotion.y,
                 FP.Zero
             );
         }
@@ -369,6 +520,7 @@ namespace KiHan.Logic
             StunTicks = 0;
             GrabbedBy = grabber;
             motion.Launch(FP.Zero);
+            motion.ClearPlanarVelocity();
             ClearForceMove();
             StopSuction();
             action?.Lock(true);
@@ -429,13 +581,81 @@ namespace KiHan.Logic
                     if (current == HurtActionIds.Lie) EnterStandup();
                     break;
                 case HurtState.Standup:
-                    if (current == HurtActionIds.Standup)
+                    // 起身动作或替身动作 (breakHurt) 播完：回到默认动作并追加起身后无敌
+                    if (current == HurtActionIds.Standup || action.CurrentAction.breakHurt)
                     {
                         ExitHurt();
                         InvincibleTicks = GameConfig.SecondsToTicks(standupInvincibleSec);
                     }
                     break;
             }
+        }
+
+        /// <summary>
+        /// 替身：进入 breakHurt 动作时解除当前受击 (被抓则脱离抓取者，清除僵直 / 击飞 / 倒地、外力与吸附)，
+        /// 以起身状态播放该动作 (期间无敌)，播完与倒地起身一样追加起身后无敌
+        /// </summary>
+        private void BreakHurt()
+        {
+            // 抓取者在下一次 UpdateGrab 发现目标已不处于被抓状态，自动松手
+            GrabbedBy = null;
+            StunTicks = 0;
+            ClearForceMove();
+            StopSuction();
+            Hurt = HurtState.Standup;
+            action?.Lock(false);
+        }
+
+        /// <summary>
+        /// 寿命到期时进入消失动作的预约优先级 (高于一切受击与强制动作)
+        /// </summary>
+        public const int DespawnPriority = 300;
+
+        private void TickLifetime()
+        {
+            if (Spawn == null || LifeTicks <= 0 || --LifeTicks > 0) return;
+            if (action == null || string.IsNullOrEmpty(Spawn.despawnActionId)) return;
+
+            // 消失动作：解除受击，期间无敌，播完由 BattleWorld 回收
+            Despawning = true;
+            Hurt = HurtState.None;
+            StunTicks = 0;
+            ClearForceMove();
+            StopSuction();
+            GrabbedBy = null;
+            ReleaseGrab();
+            action.Unlock();
+            action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(Spawn.despawnActionId, DespawnPriority), ForceDirection.Forward);
+        }
+
+        /// <summary>
+        /// 生成物是否应在本帧回收 (BattleWorld 第 7 步检查)：
+        /// - 寿命到期且没有消失动作；消失动作播完 (或未配置该动作)
+        /// - Actor 生命值归零
+        /// - Simple 动作链走完：当前动作播完、没有 autoNext、也不在等待落地
+        /// </summary>
+        public bool ShouldDespawn()
+        {
+            if (Spawn == null || action == null) return false;
+            if (Despawning) return action.CurrentAction.id != Spawn.despawnActionId || action.anim == null || action.anim.IsFinished;
+            if (LifeTicks == 0) return true;
+            if (Spawn.type == SpawnType.Actor) return IsDead;
+
+            ActionInfo cur = action.CurrentAction;
+            return action.anim != null && action.anim.IsFinished && !cur.keepPlayingAnim &&
+                   string.IsNullOrEmpty(cur.autoNextActionId) && cur.onLand.changeType == ActionChangeType.Keep;
+        }
+
+        /// <summary>
+        /// 生成物复用前的身份设置 (BattleWorld 生成时调用，随后 AddCharacter 重置战斗状态)
+        /// </summary>
+        internal void SetupSpawned(CharacterObj owner, int sourceSkill, int lifeTicks)
+        {
+            Owner = owner;
+            SourceSkill = sourceSkill;
+            LifeTicks = lifeTicks > 0 ? lifeTicks : -1;
+            Despawning = false;
+            if (Spawn != null && Spawn.hp > FP.Zero) maxHp = Spawn.hp;
         }
 
         private void PreorderHurtFlow(string actionId, int priority = HurtActionIds.FlowPriority)
@@ -468,6 +688,8 @@ namespace KiHan.Logic
             ClearForceMove();
             StopSuction();
             HitRecords.Clear();
+            Skills?.Reset();
+            Buffs.Clear();
         }
 
         #endregion
@@ -702,8 +924,8 @@ namespace KiHan.Logic
             if (action.anim == null || target.action.anim == null) return false;
             if (action.ActiveAttackBoxInfo.Count == 0) return false;
 
-            // 无敌不产生命中；已死亡不再受击
-            if (target.IsDead || target.IsInvincible || target.action.CurrentArmor == ArmorLevel.Invincible) return false;
+            // 无敌不产生命中；已死亡不再受击；简单生成物 (投射物) 没有受击
+            if (!target.Hittable || target.IsDead || target.IsInvincible || target.action.CurrentArmor == ArmorLevel.Invincible) return false;
 
             List<LogicBox> hurtBoxes = target.action.anim.GetCurrentHurtBoxes();
             if (hurtBoxes == null || hurtBoxes.Count == 0) return false;

@@ -74,7 +74,6 @@ static class Program
         }
         var ac = new ActionController { anim = anim };
         var cha = new CharacterObj { action = ac, EntityId = id, TeamId = team };
-        ac.Set((p, q) => cha.HitRecords.Clear());
         ac.SetAllActions(actions, start);
         cha.motion.Reset(new FPVector3(FP.Parse(x), FP.Zero, FP.Zero));
         return cha;
@@ -426,8 +425,8 @@ static class Program
             c.action.SetAllActions(c.action.AllActions, "turn");
             Check(c.FacingLeft, "进入 inverse 动作后朝左");
 
-            // 有输入组件：输入只记录绝对方向；指令中的前/后在匹配时按朝向换算
-            InputToCommand PushRight(bool facingLeft)
+            // 有输入组件：摇杆状态键 Forward / Backward 按朝向换算，Up / Down / Forward / Backward 都包含斜向
+            InputToCommand Push(byte dir, bool facingLeft)
             {
                 var p = Make(5, 1, "0", "idle");
                 p.input = new InputToCommand();
@@ -435,36 +434,27 @@ static class Program
                 p.FacingLeft = facingLeft;
                 var pw = World(p);
                 var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = 0 };
+                rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = dir };
                 pw.Tick(rf);
                 return p.input;
             }
-            var ir = PushRight(false); var il = PushRight(true);
-            Check(ir.CurrentDirection == CommandKey.Right && il.CurrentDirection == CommandKey.Right, $"推右与朝向无关，均记录为 Right: {ir.CurrentDirection}, {il.CurrentDirection}");
-            var fwd = new ActionCommand(CommandKey.Forward, "0.2");
-            var back = new ActionCommand(CommandKey.Backward, "0.2");
-            Check(ir.ActionOccur(fwd, false) && !ir.ActionOccur(back, false), "朝右时推右匹配 [Forward]");
-            Check(il.ActionOccur(back, true) && !il.ActionOccur(fwd, true), "朝左时推右匹配 [Backward]");
+            ActionCommand Hold(CommandKey key) => new ActionCommand { hold = new[] { key } };
+            var ir = Push(0, false); var il = Push(0, true);
+            Check(ir.ActionOccur(Hold(CommandKey.Forward), false) && !ir.ActionOccur(Hold(CommandKey.Backward), false), "朝右时推右满足 Forward、不满足 Backward");
+            Check(il.ActionOccur(Hold(CommandKey.Backward), true) && !il.ActionOccur(Hold(CommandKey.Forward), true), "朝左时推右满足 Backward、不满足 Forward");
+            var ur = Push(JoystickDir.FromAxes(1, 1), false);
+            Check(ur.DirX == 1 && ur.DirY == 1, $"推右上分量 ({ur.DirX},{ur.DirY})");
+            Check(ur.IsHeld(CommandKey.Up) && ur.IsHeld(CommandKey.Forward) && ur.IsHeld(CommandKey.Move) && !ur.IsHeld(CommandKey.Down) && !ur.IsHeld(CommandKey.Backward),
+                "右上同时满足 Up / Forward / Move，不满足 Down / Backward");
+            var none = Push(JoystickDir.None, false);
+            Check(!none.IsHeld(CommandKey.Move) && !none.IsHeld(CommandKey.Up) && !none.IsHeld(CommandKey.Forward), "摇杆居中不满足任何摇杆状态键");
+            Check(!ur.ActionOccur(new ActionCommand(), false), "没有任何条件的指令不满足");
 
-            // 8 方向：斜向推右上，相对方向 [ForwardUp] / [BackwardUp] 按朝向换算；正右 / 正上不被斜向满足
-            InputToCommand PushUpRight(bool facingLeft)
-            {
-                var p = Make(6, 1, "0", "idle");
-                p.input = new InputToCommand();
-                p.InputSlot = 0;
-                p.FacingLeft = facingLeft;
-                var pw = World(p);
-                var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
-                rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = JoystickDir.FromAxes(1, 1) };
-                pw.Tick(rf);
-                return p.input;
-            }
-            var dr = PushUpRight(false); var dl = PushUpRight(true);
-            Check(dr.CurrentDirection == CommandKey.UpRight && dr.DirX == 1 && dr.DirY == 1, $"推右上记录为 UpRight, 分量 ({dr.DirX},{dr.DirY})");
-            var fwdUp = new ActionCommand(CommandKey.ForwardUp, "0.2");
-            var backUp = new ActionCommand(CommandKey.BackwardUp, "0.2");
-            Check(dr.ActionOccur(fwdUp, false) && !dr.ActionOccur(backUp, false) && dl.ActionOccur(backUp, true) && !dl.ActionOccur(fwdUp, true), "右上：朝右匹配 [ForwardUp]，朝左匹配 [BackwardUp]");
-            Check(!dr.IsHeld(CommandKey.Up) && !dr.IsHeld(CommandKey.Forward) && dr.IsHeld(CommandKey.Move), "斜向不满足正上 / 正前，满足 Move");
+            // 配置校验：摇杆键写在 press 中、未知按键名 -> 报错并记为 None，指令永远不满足
+            int errorsBefore = Debug.ErrorCount;
+            var bad = new ActionCommandData { press = new[] { "Up" }, hold = new[] { "Jump" } }.ToRuntime();
+            Check(Debug.ErrorCount == errorsBefore + 2 && bad.press[0] == CommandKey.None && bad.hold[0] == CommandKey.None && !ur.ActionOccur(bad, false),
+                $"非法按键报错 {Debug.ErrorCount - errorsBefore} 次、记为 None 且不触发: press={bad.press[0]} hold={bad.hold[0]}");
         }
 
         Console.WriteLine("== 12. move：按住摇杆持续移动、随摇杆转向、松开回 idle (配置走 ActionData DTO) ==");
@@ -474,15 +464,15 @@ static class Program
             {
                 id = "idle", animKey = "idle", autoNextActionId = "idle", keepPlayingAnim = true,
                 beCancelledTag = new[] { new BeCancelledTagData { frameRange = all, cancelTag = new[] { "move" } } },
-                inputAcceptance = new[] { new MoveInputAcceptanceData { range = all, rate = "0", turn = true } }
+                inputAcceptance = new[] { new MoveInputAcceptanceData { range = all, rateX = "0", rateY = "0", turn = true } }
             }.ToRuntime();
             var moveCfg = new ActionData
             {
                 id = "move", animKey = "move", autoNextActionId = "idle", keepPlayingAnim = true, autoTerminate = true,
                 cancelTag = new[] { new CancelTag { tag = "move" } },
                 beCancelledTag = new[] { new BeCancelledTagData { frameRange = all, cancelTag = new[] { "move" } } },
-                commands = new[] { new ActionCommandData { keySequence = new[] { "Move" } } },
-                inputAcceptance = new[] { new MoveInputAcceptanceData { range = all, rate = "1", turn = true } }
+                commands = new[] { new ActionCommandData { hold = new[] { "Move" } } },
+                inputAcceptance = new[] { new MoveInputAcceptanceData { range = all, rateX = "1", rateY = "1", turn = true } }
             }.ToRuntime();
             var p = Make(1, 1, "0", "idle", moveCfg);
             var acts = new List<ActionInfo>(p.action.AllActions); acts[0] = idleCfg; p.action.SetAllActions(acts, "idle");
@@ -600,7 +590,6 @@ static class Program
             foreach (var act in acts) anim.RegisterAnim(act.animKey, Anim(act.id == "lie" ? 20 : act.id == "standup" ? 6 : act.id.StartsWith("hurt") ? 3 : 8, false));
             var ac = new ActionController { anim = anim };
             var p = new CharacterObj { action = ac, EntityId = 2, TeamId = 2, InputSlot = 0 };
-            ac.Set((x, y) => p.HitRecords.Clear());
             int errors = Debug.ErrorCount;
             ac.SetAllActions(acts, "idle");
             Check(Debug.ErrorCount == errors, $"无加载报错 ({Debug.LastError})");
@@ -638,22 +627,24 @@ static class Program
             Check(flow == "hurt_toair > hurt_inair > hurt_fall > hurt_inair > hurt_fall > lie > standup > idle", $"受击流程: {flow}");
         }
 
-        Console.WriteLine("== 15. 按键事件：按住不连发、松开触发、点按 [Attack, AttackRelease] ==");
+        Console.WriteLine("== 15. 按键事件：只配 press 的键按住不连发、release 触发、press + release 点按 ==");
         {
             var all = new FrameRange(0, 999);
-            ActionInfo Cfg(string id, string cmd, string tag, string next, string[] cancelBy, bool loop = false) => new ActionData
+            ActionInfo Cfg(string id, ActionCommandData? cmd, string tag, string next, string[] cancelBy, bool loop = false) => new ActionData
             {
                 id = id, animKey = id, autoNextActionId = next, keepPlayingAnim = loop,
                 cancelTag = tag == null ? null : new[] { new CancelTag { tag = tag } },
                 beCancelledTag = cancelBy == null ? null : new[] { new BeCancelledTagData { frameRange = all, cancelTag = cancelBy } },
-                commands = cmd == null ? null : new[] { new ActionCommandData { keySequence = cmd.Split(','), validInSec = "0.2" } }
+                commands = cmd == null ? null : new[] { cmd.Value }
             }.ToRuntime();
+            ActionCommandData Press(string key) => new ActionCommandData { press = new[] { key }, validInSec = "0.2" };
+            ActionCommandData Release(string key) => new ActionCommandData { release = new[] { key }, validInSec = "0.2" };
             var idle = Cfg("idle", null, null, "idle", new[] { "atk1", "charge", "tap" }, true);
-            var atk1 = Cfg("attack1", "Attack", "atk1", "idle", new[] { "atk2" });
-            var atk2 = Cfg("attack2", "Attack", "atk2", "idle", null);
-            var charge = Cfg("charge", "Skill1", "charge", "charge", new[] { "shot" }, true);
-            var shot = Cfg("shot", "Skill1Release", "shot", "idle", null);
-            var tap = Cfg("tap", "Skill2,Skill2Release", "tap", "idle", null);
+            var atk1 = Cfg("attack1", Press("Ultimate"), "atk1", "idle", new[] { "atk2" });
+            var atk2 = Cfg("attack2", Press("Ultimate"), "atk2", "idle", null);
+            var charge = Cfg("charge", Press("Skill1"), "charge", "charge", new[] { "shot" }, true);
+            var shot = Cfg("shot", Release("Skill1"), "shot", "idle", null);
+            var tap = Cfg("tap", new ActionCommandData { press = new[] { "Skill2" }, release = new[] { "Skill2" }, validInSec = "0.2" }, "tap", "idle", null);
             var p = Make(1, 1, "0", "idle", atk1, atk2, charge, shot, tap);
             var acts = new List<ActionInfo>(p.action.AllActions); acts[0] = idle; p.action.SetAllActions(acts, "idle");
             p.input = new InputToCommand(); p.InputSlot = 0;
@@ -671,19 +662,19 @@ static class Program
                 }
                 return ids;
             }
-            string s1 = Feed(ButtonMask.Attack, 20);
-            Check(!s1.Contains("attack2"), $"按住普攻 20 帧不连发: {s1}");
+            string s1 = Feed(ButtonMask.Ultimate, 20);
+            Check(!s1.Contains("attack2"), $"按住奥义键 20 帧不连发: {s1}");
             Feed(ButtonMask.None, 3);
-            string s2 = Feed(ButtonMask.Attack, 2) + "|" + Feed(ButtonMask.None, 1) + "|" + Feed(ButtonMask.Attack, 2);
+            string s2 = Feed(ButtonMask.Ultimate, 2) + "|" + Feed(ButtonMask.None, 1) + "|" + Feed(ButtonMask.Ultimate, 2);
             Check(s2.Contains("attack2"), $"松开再按接 attack2: {s2}");
             Feed(ButtonMask.None, 12);
             string s3 = Feed(ButtonMask.Skill1, 10);
             Check(s3 == "charge", $"按住技能1 蓄力: {s3}");
             string s4 = Feed(ButtonMask.None, 2);
-            Check(s4.StartsWith("shot"), $"松开技能1 触发 shot (Skill1Release): {s4}");
+            Check(s4.StartsWith("shot"), $"松开技能1 触发 shot (release Skill1): {s4}");
             Feed(ButtonMask.None, 10);
             string s5 = Feed(ButtonMask.Skill2, 1) + "|" + Feed(ButtonMask.None, 1);
-            Check(s5.EndsWith("tap"), $"点按技能2 触发 [Skill2, Skill2Release]: {s5}");
+            Check(s5.EndsWith("tap"), $"点按技能2 触发 (press + release Skill2): {s5}");
             Feed(ButtonMask.None, 10);
             string s6 = Feed(ButtonMask.Skill2, 10) + "|" + Feed(ButtonMask.None, 1);
             Check(!s6.Contains("tap"), $"按住超过 0.2 秒再松开不算点按: {s6}");
@@ -701,7 +692,7 @@ static class Program
             {
                 id = "skill1_charge", animKey = "skill1_charge", autoNextActionId = "skill1_release_lv2",
                 cancelTag = new[] { new CancelTag { tag = "skill1_charge" } },
-                commands = new[] { new ActionCommandData { keySequence = new[] { "Skill1" }, validInSec = "0.2" } },
+                commands = new[] { new ActionCommandData { press = new[] { "Skill1" }, validInSec = "0.2" } },
                 beCancelledTag = new[]
                 {
                     new BeCancelledTagData { frameRange = new FrameRange(0, 14), cancelTag = new[] { "skill1_release_lv1" } },
@@ -712,7 +703,7 @@ static class Program
             {
                 id = id, animKey = id, autoNextActionId = "idle",
                 cancelTag = new[] { new CancelTag { tag = id } },
-                commands = new[] { new ActionCommandData { keySequence = new[] { "Skill1Release" }, validInSec = "0.1" } }
+                commands = new[] { new ActionCommandData { release = new[] { "Skill1" }, validInSec = "0.1" } }
             }.ToRuntime();
             var lv1 = Release("skill1_release_lv1"); var lv2 = Release("skill1_release_lv2");
             // 前一个动作：第 5~7 帧才开放取消到蓄力
@@ -769,6 +760,289 @@ static class Program
             bool stillCharging = p6.action.CurrentAction.id == "skill1_charge";
             string g6 = Feed(p6, w6, ButtonMask.None, 2);
             Check(stillCharging && g6.StartsWith("skill1_release"), $"连按后按住：保持蓄力直到第二次松开: {f6} | 松开后 {g6}");
+        }
+
+        Console.WriteLine("== 17. 水平惯性：起跳时设置的水平速度与动画帧无关地持续到落地；切换动画清除；击飞惯性在弹起时保留、倒地清除 ==");
+        {
+            ActionInfo Jump(string id, int takeoff, string next, string velocityX = "3") => new ActionData
+            {
+                id = id, animKey = id, autoNextActionId = next,
+                rootMotion = new[] { new RootMotionSegmentData { frameRange = new FrameRange(takeoff, takeoff), velocityZ = "6", velocityX = velocityX } },
+                onLand = new ActionChangeData { changeType = 1, param = "idle", priority = 10 }
+            }.ToRuntime();
+            CharacterObj Jumper(bool facingLeft, ActionInfo jump, int frames)
+            {
+                var c = Make(1, 1, "0", "idle", jump);
+                c.action.anim.RegisterAnim(jump.animKey, Anim(frames, false));
+                c.FacingLeft = facingLeft;
+                c.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = jump.id, priority = 200 }, ForceDirection.Forward);
+                return c;
+            }
+
+            // 起跳速度 6、重力 40：滞空 2×6/40=0.3 秒 = 9 帧，水平 3 单位/秒 -> 落地时前移 3×9/30=0.9
+            var j = Jumper(false, Jump("jump", 2, ""), 30);
+            var w = World(j);
+            int air = 0;
+            bool landed = false;
+            for (int i = 0; i < 30 && !landed; i++)
+            {
+                Step(w);
+                if (j.motion.IsAirborne) air++;
+                landed = air > 0 && j.action.CurrentAction.id == "idle";
+            }
+            Check(landed && F(j.motion.Position.x) > 0.899f && F(j.motion.Position.x) < 0.901f && j.motion.VelocityX == FP.Zero,
+                $"落地前移 0.9 后惯性清零: x={F(j.motion.Position.x):F4}, 滞空 {air} 帧, vx={F(j.motion.VelocityX)}");
+
+            var jl = Jumper(true, Jump("jump", 2, ""), 30);
+            var wl = World(jl);
+            Step(wl, 12);
+            Check(F(jl.motion.Position.x) < -0.899f && F(jl.motion.Position.x) > -0.901f, $"面朝左时惯性镜像: x={F(jl.motion.Position.x):F4}");
+
+            // 动画只有 5 帧：第 2 帧起跳，空中播完切回 idle -> 惯性清除，只剩竖直下落
+            var js = Jumper(false, Jump("jumpshort", 2, "idle"), 5);
+            var ws = World(js);
+            Step(ws, 6);
+            float xAtSwitch = F(js.motion.Position.x);
+            bool airborneAtSwitch = js.motion.IsAirborne && js.action.CurrentAction.id == "idle";
+            Step(ws, 2);
+            Check(airborneAtSwitch && js.motion.VelocityX == FP.Zero && F(js.motion.Position.x) == xAtSwitch,
+                $"空中切换到其他动画后惯性消失: 空中切 idle={airborneAtSwitch}, x 保持 {xAtSwitch:F3} -> {F(js.motion.Position.x):F3}");
+
+            // 击飞惯性：速度 8 -> 触地 8×0.5=4 >= 3 弹起 (保留惯性) -> 触地 2 < 3 倒地 (清除)
+            var launch = new AttackData { attack = "10", launchVelocity = "8", launchVelocityX = "2", canHitSameTarget = 1 };
+            var a = Make(1, 1, "0", "atk", Attack("atk", launch, 8));
+            var t = Make(2, 2, "0.9", "idle");
+            var wt = World(a, t);
+            Step(wt);
+            Check(t.Hurt == HurtState.Launch && F(t.motion.VelocityX) == 2f, $"击飞时目标获得攻击者前方的水平惯性 2: {t.Hurt}, vx={F(t.motion.VelocityX)}");
+            bool bouncedWithInertia = false, lyingCleared = false;
+            for (int i = 0; i < 60 && !lyingCleared; i++)
+            {
+                Step(wt);
+                if ((t.LastPhysicsEvent & PhysicsEvent.Bounced) != 0) bouncedWithInertia = F(t.motion.VelocityX) == 2f;
+                if (t.Hurt == HurtState.Lying) lyingCleared = t.motion.VelocityX == FP.Zero;
+            }
+            Check(bouncedWithInertia, "击飞流程中受击动作切换与触地弹起都保留惯性");
+            Check(lyingCleared, "弹不起转倒地时清除惯性");
+            float xLying = F(t.motion.Position.x);
+            Step(wt, 5);
+            Check(F(t.motion.Position.x) == xLying, $"倒地后不再水平移动: {xLying:F3} -> {F(t.motion.Position.x):F3}");
+        }
+
+        Console.WriteLine("== 18. 普攻：配置 press + hold 两条 -> 长按在取消窗口打开时自动接下一段；点按只出一段；窗口前点按仍有预输入；只配 press 时长按不连段 ==");
+        {
+            ActionCommandData[] PressOrHold = { new ActionCommandData { press = new[] { "Attack" }, validInSec = "0.2" }, new ActionCommandData { hold = new[] { "Attack" } } };
+            ActionCommandData[] PressOnly = { new ActionCommandData { press = new[] { "Attack" }, validInSec = "0.2" } };
+            ActionInfo Seg(string id, string tag, string next, ActionCommandData[] cmds) => new ActionData
+            {
+                id = id, animKey = id, autoNextActionId = "idle",
+                cancelTag = new[] { new CancelTag { tag = tag } },
+                beCancelledTag = next != null ? new[] { new BeCancelledTagData { frameRange = new FrameRange(5, 7), cancelTag = new[] { next } } } : null,
+                commands = cmds
+            }.ToRuntime();
+            var idleA = new ActionData
+            {
+                id = "idle", animKey = "idle", autoNextActionId = "idle", keepPlayingAnim = true,
+                beCancelledTag = new[] { new BeCancelledTagData { frameRange = new FrameRange(0, 999), cancelTag = new[] { "a1" } } }
+            }.ToRuntime();
+
+            string Run(Func<int, bool> pressed, ActionCommandData[] cmds)
+            {
+                var c = Make(1, 1, "0", "idle", Seg("a1", "a1", "a2", cmds), Seg("a2", "a2", null, cmds));
+                var acts = new List<ActionInfo>(c.action.AllActions); acts[0] = idleA; c.action.SetAllActions(acts, "idle");
+                c.input = new InputToCommand(); c.InputSlot = 0;
+                var w = World(c);
+                string ids = "";
+                for (int i = 0; i < 24; i++)
+                {
+                    var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = JoystickDir.None, Buttons = pressed(i) ? ButtonMask.Attack : ButtonMask.None };
+                    w.Tick(rf);
+                    string id = c.action.CurrentAction.id;
+                    if (ids.Length == 0 || !ids.EndsWith(id)) ids += (ids.Length > 0 ? ">" : "") + id;
+                }
+                return ids;
+            }
+
+            string held = Run(i => true, PressOrHold);
+            Check(held.StartsWith("a1>a2"), $"一直按住：a1 的取消窗口 (第 5 帧) 打开即接 a2: {held}");
+            string tap = Run(i => i == 0, PressOrHold);
+            Check(tap == "a1>idle", $"点按一次：只出 a1: {tap}");
+            // 第 0 帧按下出 a1，第 3 帧再点按一下 (窗口前就已松开)，按下在 0.2 秒预输入内，窗口打开时接 a2
+            string buffered = Run(i => i == 0 || i == 3, PressOrHold);
+            Check(buffered.StartsWith("a1>a2"), $"窗口打开前点按：靠预输入接 a2: {buffered}");
+
+            // 预输入边界 (validTicks = 6)：按下 / 松开后第 6 帧仍满足、第 7 帧过期；动作切换用掉按下、保留松开；再次按下作废之前的松开
+            var inp = new InputToCommand();
+            var pressAtk = new ActionCommand { press = new[] { CommandKey.Attack }, validTicks = 6 };
+            var releaseAtk = new ActionCommand { release = new[] { CommandKey.Attack }, validTicks = 6 };
+            void FeedAt(uint frame, ButtonMask b) => inp.FeedInput(new InputFrame { FrameId = frame, JoyStickDir = JoystickDir.None, Buttons = b }, frame);
+            FeedAt(100, ButtonMask.Attack);
+            FeedAt(106, ButtonMask.None);
+            bool pressAt6 = inp.ActionOccur(pressAtk);
+            FeedAt(107, ButtonMask.None);
+            bool pressAt7 = inp.ActionOccur(pressAtk);
+            Check(pressAt6 && !pressAt7, $"按下后第 6 帧满足、第 7 帧过期: {pressAt6} / {pressAt7}");
+            FeedAt(110, ButtonMask.Attack);
+            FeedAt(111, ButtonMask.None);
+            inp.ConsumePresses();
+            Check(!inp.ActionOccur(pressAtk) && inp.ActionOccur(releaseAtk), "动作切换用掉按下、保留松开");
+            FeedAt(112, ButtonMask.Attack);
+            Check(!inp.ActionOccur(releaseAtk) && inp.ActionOccur(pressAtk), "再次按下作废之前的松开");
+            FeedAt(113, ButtonMask.None);
+            FeedAt(119, ButtonMask.None);
+            bool releaseAt6 = inp.ActionOccur(releaseAtk);
+            FeedAt(120, ButtonMask.None);
+            Check(releaseAt6 && !inp.ActionOccur(releaseAtk), $"松开后第 6 帧满足、第 7 帧过期: {releaseAt6}");
+
+            string held2 = Run(i => true, PressOnly);
+            Check(held2 == "a1>idle", $"只配 press：按住不连段 (按下在进入 a1 时已用掉): {held2}");
+        }
+
+        Console.WriteLine("== 19. 平 A 方向派生 (hold 摇杆 + 普攻，优先级压过普通段) 与同时按 ==");
+        {
+            ActionCommandData[] Cmds(string stick)
+            {
+                if (stick == null) return new[] { new ActionCommandData { press = new[] { "Attack" } }, new ActionCommandData { hold = new[] { "Attack" } } };
+                return new[] { new ActionCommandData { hold = new[] { stick }, press = new[] { "Attack" } }, new ActionCommandData { hold = new[] { stick, "Attack" } } };
+            }
+            ActionInfo Seg(string id, string tag, string next, int priority, ActionCommandData[] cmds) => new ActionData
+            {
+                id = id, animKey = id, autoNextActionId = "idle", priority = priority,
+                cancelTag = new[] { new CancelTag { tag = tag } },
+                beCancelledTag = next != null ? new[] { new BeCancelledTagData { frameRange = new FrameRange(5, 7), cancelTag = new[] { next } } } : null,
+                commands = cmds
+            }.ToRuntime();
+            var idleA = new ActionData
+            {
+                id = "idle", animKey = "idle", autoNextActionId = "idle", keepPlayingAnim = true,
+                beCancelledTag = new[] { new BeCancelledTagData { frameRange = new FrameRange(0, 999), cancelTag = new[] { "a1", "s1", "combo" } } }
+            }.ToRuntime();
+            var s1 = new ActionData
+            {
+                id = "s1", animKey = "s1", autoNextActionId = "idle", priority = 20,
+                cancelTag = new[] { new CancelTag { tag = "s1" } },
+                beCancelledTag = new[] { new BeCancelledTagData { frameRange = new FrameRange(0, 3), cancelTag = new[] { "combo" } } },
+                commands = new[] { new ActionCommandData { press = new[] { "Skill1" } } }
+            }.ToRuntime();
+            var combo = new ActionData
+            {
+                id = "combo", animKey = "combo", autoNextActionId = "idle", priority = 30,
+                cancelTag = new[] { new CancelTag { tag = "combo" } },
+                commands = new[]
+                {
+                    new ActionCommandData { press = new[] { "Skill1", "Attack" } },                // 同帧 (或先按的键自己不出招时) 同时按
+                    new ActionCommandData { hold = new[] { "Skill1" }, press = new[] { "Attack" } } // 按着技能1 再按普攻：s1 开头窗口内接管
+                }
+            }.ToRuntime();
+
+            string Run(Func<int, ButtonMask> buttons, Func<int, byte> stick)
+            {
+                var c = Make(1, 1, "0", "idle", Seg("a1", "a1", "a2", 10, Cmds(null)), Seg("a2", "a2", null, 10, Cmds(null)),
+                    Seg("a2_up", "a2", null, 20, Cmds("Up")), Seg("a2_down", "a2", null, 20, Cmds("Down")), s1, combo);
+                var acts = new List<ActionInfo>(c.action.AllActions); acts[0] = idleA; c.action.SetAllActions(acts, "idle");
+                c.input = new InputToCommand(); c.InputSlot = 0;
+                var w = World(c);
+                string ids = "";
+                for (int i = 0; i < 16; i++)
+                {
+                    var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = stick(i), Buttons = buttons(i) };
+                    w.Tick(rf);
+                    string id = c.action.CurrentAction.id;
+                    if (ids.Length == 0 || !ids.EndsWith(id)) ids += (ids.Length > 0 ? ">" : "") + id;
+                }
+                return ids;
+            }
+            byte up = JoystickDir.FromAxes(0, 1), upLeft = JoystickDir.FromAxes(-1, 1), down = JoystickDir.FromAxes(0, -1);
+            ButtonMask HoldAtk(int i) => ButtonMask.Attack;
+
+            string plain = Run(HoldAtk, i => JoystickDir.None);
+            Check(plain.StartsWith("a1>a2>"), $"不推摇杆：普通 a2: {plain}");
+            string upHeld = Run(HoldAtk, i => up);
+            Check(upHeld.StartsWith("a1>a2_up"), $"长按普攻 + 推上：a2_up 与 a2 都满足，优先级取 a2_up: {upHeld}");
+            string diag = Run(HoldAtk, i => upLeft);
+            Check(diag.StartsWith("a1>a2_up"), $"推左上同样算上: {diag}");
+            string downHeld = Run(HoldAtk, i => down);
+            Check(downHeld.StartsWith("a1>a2_down"), $"推下：a2_down: {downHeld}");
+            // 点按：第 0 帧出 a1，第 2 帧再点 (摇杆居中)，第 4 帧起推上 -> 判断的是窗口打开 (第 5 帧) 时的摇杆状态
+            string tapUp = Run(i => i == 0 || i == 2 ? ButtonMask.Attack : ButtonMask.None, i => i >= 4 ? up : JoystickDir.None);
+            Check(tapUp.StartsWith("a1>a2_up"), $"点按后窗口打开时推着上：a2_up: {tapUp}");
+
+            string same = Run(i => i == 0 ? ButtonMask.Skill1 | ButtonMask.Attack : ButtonMask.None, i => JoystickDir.None);
+            Check(same.StartsWith("combo"), $"同帧按技能1 + 普攻：combo 优先级高于 s1 / a1: {same}");
+            string holdThen = Run(i => i < 3 ? ButtonMask.Skill1 : ButtonMask.Skill1 | ButtonMask.Attack, i => JoystickDir.None);
+            Check(holdThen.StartsWith("s1>combo"), $"先按技能1 出 s1，按着技能1 再按普攻：s1 开头窗口内接 combo: {holdThen}");
+            string tapThen = Run(i => i == 0 ? ButtonMask.Skill1 : i == 2 ? ButtonMask.Attack : ButtonMask.None, i => JoystickDir.None);
+            Check(tapThen == "s1>idle", $"技能1 点按松开后再按普攻：技能1 的按下已在进入 s1 时用掉，不出 combo: {tapThen}");
+        }
+
+        Console.WriteLine("== 20. inputAcceptance：rateX / rateY 分轴限制、重叠区间各轴取最小；攻击段配置 turn 时进入即随摇杆转向 ==");
+        {
+            var all = new FrameRange(0, 999);
+            ActionInfo Loop(string id, params MoveInputAcceptanceData[] acc) => new ActionData
+            {
+                id = id, animKey = id, autoNextActionId = id, keepPlayingAnim = true, inputAcceptance = acc
+            }.ToRuntime();
+            CharacterObj Mover(ActionInfo act)
+            {
+                var c = Make(1, 1, "0", act.id, act);
+                c.input = new InputToCommand(); c.InputSlot = 0;
+                return c;
+            }
+            void Feed(BattleWorld w, byte dir, ButtonMask buttons, int n)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    var rf = new RoomFrame { FrameId = ++_f, InputFrames = new Dictionary<byte, InputFrame>() };
+                    rf.InputFrames[0] = new InputFrame { FrameId = rf.FrameId, JoyStickDir = dir, Buttons = buttons };
+                    w.Tick(rf);
+                }
+            }
+            byte upRight = JoystickDir.FromAxes(1, 1);
+
+            var onlyY = Mover(Loop("onlyY", new MoveInputAcceptanceData { range = all, rateX = "0", rateY = "1" }));
+            Feed(World(onlyY), upRight, ButtonMask.None, 6);
+            Check(F(onlyY.motion.Position.x) == 0f && F(onlyY.motion.Position.y) > 0.1f, $"rateX=0 rateY=1：推右上只纵深移动: ({F(onlyY.motion.Position.x):F3},{F(onlyY.motion.Position.y):F3})");
+            var onlyX = Mover(Loop("onlyX", new MoveInputAcceptanceData { range = all, rateX = "1", rateY = "0" }));
+            Feed(World(onlyX), upRight, ButtonMask.None, 6);
+            Check(F(onlyX.motion.Position.x) > 0.1f && F(onlyX.motion.Position.y) == 0f, $"rateX=1 rateY=0：推右上只横向移动: ({F(onlyX.motion.Position.x):F3},{F(onlyX.motion.Position.y):F3})");
+
+            var overlap = Mover(Loop("overlap",
+                new MoveInputAcceptanceData { range = all, rateX = "1", rateY = "1" },
+                new MoveInputAcceptanceData { range = all, rateX = "0.5", rateY = "0", turn = true }));
+            Feed(World(overlap), upRight, ButtonMask.None, 1);
+            Check(overlap.action.MoveRateX == FP.Parse("0.5") && overlap.action.MoveRateY == FP.Zero && overlap.action.TurnAllowed,
+                $"重叠区间各轴取最小 (0 也参与)、任一段允许即可转向: x={F(overlap.action.MoveRateX)} y={F(overlap.action.MoveRateY)} turn={overlap.action.TurnAllowed}");
+
+            // a1 不配 turn，a2 第 0~1 帧配 turn (不移动)：推左时 a1 期间保持朝右，取消进 a2 当帧转为朝左且不移动
+            ActionInfo Seg(string id, string next, MoveInputAcceptanceData[] acc) => new ActionData
+            {
+                id = id, animKey = id, autoNextActionId = "idle",
+                cancelTag = new[] { new CancelTag { tag = id } },
+                beCancelledTag = next != null ? new[] { new BeCancelledTagData { frameRange = new FrameRange(5, 7), cancelTag = new[] { next } } } : null,
+                commands = new[] { new ActionCommandData { press = new[] { "Attack" } }, new ActionCommandData { hold = new[] { "Attack" } } },
+                inputAcceptance = acc
+            }.ToRuntime();
+            var idleA = new ActionData
+            {
+                id = "idle", animKey = "idle", autoNextActionId = "idle", keepPlayingAnim = true,
+                beCancelledTag = new[] { new BeCancelledTagData { frameRange = all, cancelTag = new[] { "a1" } } }
+            }.ToRuntime();
+            var c = Make(1, 1, "0", "idle", Seg("a1", "a2", null),
+                Seg("a2", null, new[] { new MoveInputAcceptanceData { range = new FrameRange(0, 1), rateX = "0", rateY = "0", turn = true } }));
+            var acts = new List<ActionInfo>(c.action.AllActions); acts[0] = idleA; c.action.SetAllActions(acts, "idle");
+            c.input = new InputToCommand(); c.InputSlot = 0;
+            var wa = World(c);
+            byte left = JoystickDir.FromAxes(-1, 0);
+            Feed(wa, JoystickDir.None, ButtonMask.Attack, 1);
+            Feed(wa, left, ButtonMask.Attack, 3);
+            bool rightDuringA1 = c.action.CurrentAction.id == "a1" && !c.FacingLeft;
+            int guard = 0;
+            while (c.action.CurrentAction.id != "a2" && guard++ < 10) Feed(wa, left, ButtonMask.Attack, 1);
+            Feed(wa, left, ButtonMask.Attack, 1);
+            Check(rightDuringA1 && c.action.CurrentAction.id == "a2" && c.FacingLeft && F(c.motion.Position.x) == 0f,
+                $"a1 期间不转向 ({rightDuringA1})，进入 a2 随摇杆朝左且不移动: {c.action.CurrentAction.id} 朝左={c.FacingLeft} x={F(c.motion.Position.x):F3}");
         }
 
         Console.WriteLine(_fail == 0 ? "\n全部通过" : $"\n失败 {_fail} 项");

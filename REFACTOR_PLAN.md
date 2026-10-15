@@ -29,7 +29,7 @@
    - 所有物理位移、判定盒、技能 CD、动作流转完全基于定点数（`FP`）与固定逻辑帧（Fixed Tick）。
 2. **数据驱动动作系统 (Data-Driven ACT Engine)**：
    - 废弃针对每个角色手写 C# State 类的传统状态机模式。
-   - 动作、连招打断（`CancelTag` / `BeCancelledTag`）、搓招指令（`ActionCommand`）、攻击盒（`AttackInfo`）、受击动作改变（`ActionChangeInfo`）全部由配置文件驱动。
+   - 动作、连招打断（`CancelTag` / `BeCancelledTag`）、触发指令（`ActionCommand`）、攻击盒（`AttackInfo`）、受击动作改变（`ActionChangeInfo`）全部由配置文件驱动。
 3. **彻底解决 2.5D 与 3D 素材穿插问题**：
    - 摒弃脆弱的手算 `sortingOrder` 机制，直接将纵深映射为 Unity 世界坐标的真实 Z 轴，依托 GPU 硬件级深度缓冲（Z-Buffer）实现 2D 贴花、3D 粒子、3D 角色网格的自然遮挡。
 4. **战斗中“0 IO，0 动态分配 (Zero-Alloc & Zero-IO)”**：
@@ -64,7 +64,7 @@
 【目标 To-Be】
 网络输入流 -> InputFrame (6 Bytes)
                     ↓
-       DeterministicCommandSource (离散帧按键队列与搓招识别)
+       InputToCommand (按下 / 按住 / 松开 与摇杆状态)
                     ↓
        ActionController (ACT 动作控制器: CancelTag 决策 / 逻辑 Tick 推进)
                     │
@@ -147,14 +147,16 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - `autoTerminate` (bool)：未持续接收到输入时是否提前终止。
   - `cancelTag` (CancelTag[])：该动作拥有的打断标签。
   - `beCancelledTag` (BeCancelledTag[])：可被其他打断标签中断的逻辑帧窗口及优先级。
-  - `inputAcceptance` (MoveInputAcceptance[])：各帧段移动摇杆速度继承比率。
+  - `inputAcceptance` (MoveInputAcceptance[])：各帧段摇杆移动接受率，横向 `rateX` 与纵深 `rateY` 分开配置 (多段重叠时各轴取最小)；`turn` 为该帧段允许随摇杆左右转向。
   - `attacks` (AttackInfo[])：包含的攻击段落数值与 5 维反馈。
-- **确定性指令缓冲源 (`IActionCommandSource`)**：
-  - 帧同步收到的 `InputFrame` 经由此层转化为离散的 `KeyMap` 序列（Punch, Kick, Skill1, Skill2, 方向 1~9 宫格）。
-  - 维护固定容量的滑动逻辑帧队列，支持按键有效帧窗口校验（`validInTicks`）与经典格斗搓招识别。
+- **确定性指令解析 (`InputToCommand`)**：
+  - 帧同步收到的 `InputFrame` 每帧灌入：摇杆 8 方向分量 (`DirX` / `DirY`)，以及每个按钮的按住状态、最近一次按下 (动作切换时用掉)、最近一次松开 (同一个键再次按下时作废)；定长数组，0 GC。
+  - 动作的 `commands` 满足任意一条即可；每条由 `press` (预输入时长内按下过)、`hold` (当前按住 / 摇杆状态 `Move` `Up` `Down` `Forward` `Backward`)、`release` (预输入时长内松开过) 三组条件组成，全部满足才成立。`press` 写多个键即同时按。手游不使用搓招，不保留按键顺序序列。
+  - 按键的触发方式全部显式配置：普攻 / 技能配 `press` + `hold` 两条 (点按与长按都触发)，秘卷 / 通灵只配 `press` (按住不连发)，蓄力释放用 `release`，平 A 方向派生用 `hold` 摇杆 + `press` 普攻并以优先级压过普通段。
 - **位移计算模型 (`ForceMove`)**：
-  - 动作位移分为常规移动（`NatureMove` = 摇杆输入 $\times$ `MoveInputAcceptance` + `RootMotion`）与强制外力位移（`ForceMove`）。
+  - 动作位移分为常规移动（`NatureMove` = 摇杆各轴分量 $\times$ 各轴速度 $\times$ `rateX` / `rateY` + `RootMotion`）与强制外力位移（`ForceMove`）。
   - `rootMotion` 为分段列表，每段带 `frameRange`：水平 `moveX/moveY` 按 `tweenMethod` (与 ForceMove 共用缓动表) 分配到区间内，多段同帧相加；竖直 `velocityZ` 在区间起始帧设置竖直速度 (起跳/二段跳)，`accelerationZ` 在区间内附加加速度。动作按状态切分 (循环、输入入口、落地转换、受击)，同一段连续动画上的位移变化用多段描述，不拆动作。
+  - **水平惯性**：`rootMotion` 段的 `velocityX/velocityY` 在区间起始帧设置水平惯性速度 (面朝方向前方为正)，由 `MotionBody` 与动画帧无关地积分；切换到其他动画 (`keepFrame` 变体除外)、落地、被抓时清除，撞墙/纵深边界时对应分量清零。攻击的 `launchVelocityX/launchVelocityY` 在击飞时覆盖目标惯性，击飞流程 (受击动作切换、触地弹起) 中保留，弹不起倒地时清除。
   - 处于受击推移、技能突进时，`ForceMove` 接管角色位移，采用确定性定点数插值曲线（Linear, QuadOut 等）。
 
 ### 5. 5 维打击反馈、受击状态与霸体
@@ -185,20 +187,29 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - 攻击 `armorBreak` >= 受击者当前霸体等级时完整受击，否则只结算伤害、不打断当前动作；`Invincible` 不产生命中。
 - **结算流程 (`BattleWorld` + `HitResolver`)**：输入 → 动作推进 (收集预约) → 物理 → 抓取/吸附 → 命中收集 → 统一结算 (扣血、霸体裁决、受击反应) → 动作预约按优先级当帧裁决。
 
-### 6. 技能资源系统、查克拉与分身生成体系
-- **技能资源控制器 (`SkillController`)**：
-  - 管理技能 CD（逻辑帧单位倒计时）、技能段落流转（多段技能分支与超时还原）。
-  - 查克拉（奥义点）体系：最大 4 颗奥义点，命中敌人增加奥义点，释放奥义消耗 4 点，释放替身术消耗 1 点并触发无敌替身木头。
-- **分身与投射物生成规范 (严格遵从 `EntityController.md`)**：
-  - 生成类型严格划分为两类：
-    - `SpawnObjectType.SimpleEntity`：火球、手里剑、风魔手里剑、地刺陷阱。使用轻量级生命周期，不挂载动作状态机。
-    - `SpawnObjectType.Actor`：鸣人影分身、木叶丸、佐助雷分身、通灵召唤兽。复用 `CharacterEntity` + `ActionController`，由 `CloneBrain` 注入输入指令，具备完整的动作打断与受击能力。
-  - 分身生命周期组件 (`SpawnedActorLifecycle`)：追踪主人归属、存活逻辑帧倒计时、消失动作调用与对象池回收。
+### 6. 技能资源系统、查克拉与分身生成体系 (M6 框架已完成)
+- **动作事件 (`ActionInfo.events`)**：按动画帧触发，规则与判定盒一致 (本逻辑帧处理过的帧区间覆盖即触发一次，中途切入不补发)。
+  - `Spawn` / `Buff` 影响逻辑：生成请求在 `BattleWorld` 第 7 步统一执行；Buff 立即加到自己身上。
+  - `Effect` / `Camera` 只写入 `BattleWorld.ViewEvents`：特效可跟随锚点 (`bind` + `anchor`，`ActorView` 逐帧对齐)，`stopOnActionEnd` 按动作序号 `ActionSerial` 在动作结束时回收。
+- **技能资源控制器 (`SkillController`，`{dir}/skills.json`)**：
+  - 准入：`ActionController` 主动打断时调用 `CharacterObj.CanEnterAction`，入口动作需 CD 结束、轮到该段、查克拉足够、满足受击条件。
+  - 多段：每段由入口动作发起，`followActions` 列出同段的后续动作 (落地、命中派生、收招)；段放完后 `stageDuration` 内可接下一段。
+  - 图标：技能 `icon` 与各段 `stages[].icon` (Resources 路径，多图切片贴图用 `路径#子图名`)；按键显示轮到的那一段的图标，该段未配置时沿用技能图标；图标在战斗 UI 创建时预载。
+  - CD：释放完最后一段 (离开该技能全部动作) 后开始计算；接段超时开始计算并返还 `cdReturn`。
+  - 查克拉：上限 `chakraMax` (默认 4)；技能刷新 (CD 结束) 后，该技能任一段或其生成物命中获得 1 颗，之后要等下次刷新。
+  - 替身：技能配置 `requireHurt`，动作配置 `breakHurt`。只能在僵直/击飞/被抓/倒地时使用，受控锁定期间同样检测指令；进入后解除受击并以起身无敌播放替身动作，播完与倒地起身一样追加无敌。
+- **生成物 (`{dir}/spawns.json`)**：两类都复用 `CharacterObj` + `ActionController` (动作库与主人角色共用)：
+  - `Simple` (投射物)：不可受击，没有输入，动作链走完或寿命到期回收。
+  - `Actor` (分身/召唤物)：可受击、独立生命值，由 `CloneBrain` (`None` / `Script`) 注入输入；寿命到期播放消失动作 (无敌) 后回收，生命值归零立即回收。
+  - 继承主人阵营与朝向，`Owner` / `SourceSkill` 记录归属 (`HitEvent.OwnerId`、查克拉、跳字颜色)；编号从 1000 递增；加载阶段由 `SpawnPool` 按 `prewarm` 预建实例与视图，局内只做取出/归还。
+- **Buff (`{dir}/buffs.json`)**：只有持续时间与循环特效，不限层数、不改属性；添加/到期通过 `ViewEvents` 通知表现层播放/停止特效。
+- **配置示例 (带注释)**：仓库根目录 `skills_example.json`、`spawns_example.json`，动作事件写法见 `example.json`；`UnityTestRunner` 会去掉注释后用 `JsonUtility` 解析校验。
+- **命中链路**：动作事件、技能准入、生成与回收、Buff 计时全部 0 GC (Skill 测试工程预热后 300 帧生成回收循环 0 分配)。
 
 ### 7. 动画表现驱动解耦与骨骼挂点系统
 - **逻辑与渲染分离 (M3 已完成)**：`FrameAnimator` 为纯逻辑整数帧播放器 (推进帧、判定盒、锚点)，不再持有 SpriteRenderer；`ActorView` 读取 `CurrentAnimData` / `CurrentStepIndex` 与 `CharacterObj.FacingLeft` 绘制。
 - **3D 角色驱动 (未开始)**：`Animator3DDriver` 根据 ActionId 执行 `CrossFadeInFixedTime`，届时与 `ActorView` 的 2D 精灵绘制并列。
-- **挂点 (未开始)**：帧库 `EffectAnchors` 已提供逐帧整数锚点 (逻辑抓取在用)；表现层挂点需按当前帧锚点定位特效，当前跟随型特效统一挂在 `ActorView.Body` 上加像素偏移。
+- **挂点 (部分完成)**：动作事件 / Buff 的跟随特效由 `ActorView` 按当前帧 `EffectAnchors` 逐帧定位并随朝向镜像；逻辑抓取同样读取锚点。
 
 ### 8. ACT 可视化动作时间轴编辑器 (Action Timeline Editor)
 - **编辑器界面核心布局**：
@@ -241,9 +252,9 @@ gantt
 | **M1: 定点数数学库与物理改造** | `Math/FP.cs`<br>`Math/FPVector2.cs`<br>`Physics/MotionBody.cs`<br>`LogicCommon.cs` | 1. 建立纯定点数数学运算库<br>2. 实体坐标、速度、高度、重力定点数化<br>3. 判定盒 `LogicBox` 切换为定点数碰撞 | 编写纯单元测试：跨平台运行 10000 次复杂物理模拟运算，哈希值绝对一致。 |
 | **M2: 资源管理与对象池** | `Managers/Asset/IAssetProvider.cs`<br>`Managers/Asset/ObjectPoolManager.cs`<br>`View/Component/AutoRecycleFX.cs` | 1. 抽象资源提供器接口<br>2. 实现按类型隔离的分级对象池<br>3. 改造战斗前加载预热流程 | 连续对战 5 分钟，战斗运行时无任何 `Resources.Load` 与新实例分配产生的 GC Spike。 |
 | **M3: 3D 纵深渲染与穿插 (已完成)** | `View/Render/BattleViewSpace.cs`<br>`View/Render/ActorView.cs`<br>`View/Render/Shaders/SpriteZWriteAlphaTest.shader`<br>`Game/Core/BattleManager.cs`<br>`Game/Core/CharacterFactory.cs`<br>`Game/SceneManager.cs` | 1. `BattleViewSpace` 统一映射 `World = (x, k·y + z, y)` (`DepthToScreenY`)：纵深为真实 Z 深度并按比例投到屏幕纵向<br>2. 相机与素材均不旋转 (正交，沿 +Z 观察)，地图为放在最远处的背景板<br>3. 角色材质 Alpha-Test ZWrite (透明队列)<br>4. `ActorView` 只读绑定 `CharacterObj`，`BattleManager` 驱动 `BattleWorld`，`HitEvents` 转火花/跳字/震屏<br>5. 删除旧表现链路 `LogicEntity` / `EntityView` / `EffectNode` / `HitData` | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
-| **M4: ACT 动作核心与输入** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`DeterministicCommandSource.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 搓招按键队列与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
+| **M4: ACT 动作核心与输入** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`InputToCommand.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 按下 / 按住 / 松开指令 (含预输入) 与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
 | **M5: 5 维打击与受击状态** | `Game/Core/BattleWorld.cs`<br>`Game/Physics/MotionBody.cs`<br>`Character/Fight/HitResolver.cs`<br>`Character/Fight/CombatTypes.cs`<br>`Character/Fight/HurtState.cs`<br>`Character/Fight/HiRecord.cs` | 1. 平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 僵直/击飞/被抓/倒地受击状态<br>3. 霸体等级判定 | 僵直期间不能行动且循环受击动画；击飞落地转倒地；霸体只扣血不打断；抓取逐帧跟随帧锚点、锚点消失即释放；整条命中链路 0 GC。（停帧与保护机制已移出计划） |
-| **M6: 技能/查克拉/分身系统** | `Characters/Combat/SkillController.cs`<br>`SpawnFactory.cs`<br>`SpawnedActorLifecycle.cs`<br>`CloneBrain.cs` | 1. 多段技能 CD 与查克拉奥义点管理<br>2. 区分 SimpleEntity 与 Actor 分身生成<br>3. 分身通过 `CloneBrain` 驱动动作控制器 | 鸣人可释放多段技能；分身生成后独立执行攻击动作并按存活时限回收。 |
+| **M6: 技能/查克拉/分身系统 (框架已完成)** | `Character/Skill/SkillController.cs`<br>`Character/Spawn/SpawnInfo.cs` / `CloneBrain.cs`<br>`Character/Buff/BuffController.cs`<br>`Character/Action/ActionEventInfo.cs`<br>`Game/Core/CharacterFactory.cs` (`SpawnPool`) | 1. 动作事件 (特效 / 生成 / 镜头 / Buff) 与锚点跟随特效<br>2. 多段技能 CD、查克拉、替身 (`breakHurt`)<br>3. Simple / Actor 生成物复用 `CharacterObj`，预建实例池，`CloneBrain` 脚本输入<br>4. Buff 持续时间 + 循环特效 | L1 `Skill` 工程全部通过 (CD / 多段 / 查克拉 / 替身 / 生成回收确定性与 0 GC / 分身 / Buff)；鸣人技能 1、技能 2 (投射物 + 命中派生)、替身已配表。CD 数值与查克拉获得规则以原版实测为准再调。 |
 | **M7: 可视化时间轴编辑器** | `Editor/ActionTimeline/ActionEditorWindow.cs`<br>`TimelineTracks.cs`<br>`BoxGizmoDrawer.cs` | 1. 实现时间轴多轨道可视化（帧/盒/打断/事件/位移）<br>2. Scene 视口鼠标直观拖拽编辑判定盒<br>3. 动作数据完整性校验与导出 | 策划或开发者无需手写 JSON，在编辑器内 10 分钟内完成一个全新动作的完整配表。 |
 | **M8: 鸣人迁移与联机验收** | `ArtAssets/Characters/90001_Naruto/`<br>`naruto_actions.json`<br>`NarutoEntity.cs` | 1. 迁移鸣人全部动作至新框架<br>2. 彻底移除旧版状态机代码<br>3. 双端联机帧同步对战压力测试 | 双端 KCP 联机对战，连续执行 1000 帧复杂连招对抗，状态校验和一致，0 脱同步。 |
 
@@ -255,15 +266,16 @@ gantt
 
 | 动作 ID (`id`) | 动作类型 (`catalog`) | 自身打断标签 (`cancelTag`) | 允许被取消窗口 (`beCancelledTag`) | 自然流向 (`autoNextActionId`) | 核心特性 / 事件说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`idle`** | `Base` | - | `move`, `attack1`, `skill1`, `skill2` | `idle` | 呼吸待机，允许全招式打断，`keepPlayingAnim=true` |
-| **`move`** | `Base` | `move` | `move`, `attack1`, `skill1`, `skill2` | `idle` | 跑步，继承摇杆移动速度 (`inputAcceptance=1.0`) |
-| **`attack1`** | `Attack` | `attack1`, `attack` | 50%~100% 允许 `attack2`, `skill1`, `skill2` | `idle` | 平推受击判定，造成轻微地面推移 |
-| **`attack2`** | `Attack` | `attack2`, `attack` | 45%~100% 允许 `attack3`, `skill1`, `skill2` | `idle` | 平推受击判定，带前冲 RootMotion |
-| **`attack3`** | `Attack` | `attack3`, `attack` | 50%~100% 允许 `attack4`, `skill1`, `skill2` | `idle` | 击退判定，使目标进入较大受击硬直 |
-| **`attack4`** | `Attack` | `attack4`, `attack` | 60%~100% 允许 `skill1`, `skill2` | `idle` | 击飞判定（`launchVelocity`），目标升空进入击飞状态 |
-| **`skill1`** | `Skill` | `skill`, `skill1` | 后摇阶段允许 `beCancelTag` | `idle` | 突进分身踢击，霸体等级为 `Skill` |
-| **`skill2_1`** | `Skill` | `skill`, `skill2_1` | 允许派生 `skill2_2` | `skill2_2` | 第 10 帧触发事件 `spawnEntity: CharClone` 召唤分身协同 |
-| **`skill2_2`** | `Skill` | `skill`, `skill2_2` | 后摇阶段允许取消 | `idle` | 螺旋丸本体突进多段判定，最后一击重度击飞 |
+| **`idle`** | `Base` | - | `move`, `attack1`, `skill` | `idle` | 呼吸待机，允许全招式打断，`keepPlayingAnim=true` |
+| **`move`** | `Base` | `move` | `move`, `attack1`, `skill` | `idle` | 跑步，继承摇杆移动速度 (`inputAcceptance=1.0`) |
+| **`attack1`** | `Attack` | `attack1` | 第 9~12 帧允许 `move`, `attack2`, `skill` | `idle` | 平推受击判定，造成轻微地面推移 |
+| **`attack2`** | `Attack` | `attack2` | 第 7~11 帧允许 `move`, `attack3`, `skill` | `idle` | 平推受击判定，带前冲 RootMotion |
+| **`attack3`** | `Attack` | `attack3` | 第 5~10 帧允许 `move`, `attack4`, `skill` | `idle` | 击退判定，目标进入 `hurt_2` 较大硬直 |
+| **`attack4`** | `Attack` | `attack4` | 第 20~26 帧允许 `move`, `skill` | `idle` | 第 2 帧轻击，第 12~16 帧击飞 (`launchVelocity`) |
+| **`skill1`** | `Skill` | `skill` | 后摇第 30~33 帧允许 `move`, `attack1` | `idle` | 螺旋丸 (`Skill_A_1`)：技能体；第 0 帧挂锚点 `lxw` 的球特效 (动作结束即收回) 与风特效；第 14~25 帧多段命中，第 26~27 帧击飞 |
+| **`skill2_1`** | `Skill` | `skill` | 无 | `skill2_land` | `Skill_B_1`：技能体；第 4 帧生成投射物 `naruto_skill2_fx` (`Skill_B_fx`，三段攻击) 并冒烟；本体第 19~26 帧命中后 `keepFrame` 切到 `skill2_1_hit` |
+| **`skill2_1_hit`** → **`skill2_land_hit`** → **`skill2_2`** | `Skill` | - | `skill2_2` 后摇允许 `move`, `attack1` | `idle` | 命中派生：播完落地 (`Skill_B_land`) 后接 `Skill_B_2` 击飞收尾；未命中走 `skill2_land` 回 idle |
+| **`substitution`** | `Hurt` | - | 无 | (框架) | 替身 (`breakHurt`)：受击中按替身键进入，起身动画 + 无敌，播完追加起身后无敌 |
 | **`hurt_1`** | `Hurt` | - | 无 | (框架) | 地面轻受击僵直，循环播放，僵直结束回默认动作 |
 | **`hurt_2`** | `Hurt` | - | 无 | (框架) | 地面重受击僵直 / 被抓循环 |
 | **`hurt_toair`**| `Hurt` | - | 无 | (框架) | 地面被击飞的上升段，播完转 `hurt_inair` |

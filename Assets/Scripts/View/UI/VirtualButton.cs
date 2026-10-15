@@ -29,12 +29,6 @@ namespace View.UI
             _isScaleInit = true;
         }
 
-        public void SetIcon(Sprite sp)
-        {
-            var img = GetComponent<Image>();
-            if (img != null) img.sprite = sp;
-        }
-
         public void OnPointerDown(PointerEventData eventData)
         {
             EnsureScaleInit();

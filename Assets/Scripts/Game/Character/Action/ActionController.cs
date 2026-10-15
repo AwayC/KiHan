@@ -25,6 +25,21 @@ namespace KiHan.Logic
         public InputToCommand command { get; internal set; }
 
         /// <summary>
+        /// 所属角色 (由 CharacterObj.action 设置)：接收动作切换与动作事件，并提供技能准入裁决
+        /// </summary>
+        public CharacterObj Owner { get; internal set; }
+
+        /// <summary>
+        /// 动作序号：每次切换动作加 1 (同动作重入同样加 1，循环重播不变)，表现层据此判断事件所属的动作是否已结束
+        /// </summary>
+        public int ActionSerial { get; private set; }
+
+        /// <summary>
+        /// 受击中强制进入 (breakHurt) 动作的预约优先级基数：高于命中切换受击动作 (HurtActionIds.Priority)
+        /// </summary>
+        public const int BreakHurtPriority = 200;
+
+        /// <summary>
         /// 当前正在执行的动作数据
         /// </summary>
         public ActionInfo CurrentAction { get; private set; }
@@ -74,9 +89,14 @@ namespace KiHan.Logic
         public List<AttackBoxTurnOnInfo> ActiveAttackBoxInfo { get; private set; } = new List<AttackBoxTurnOnInfo>();
 
         /// <summary>
-        /// 当前帧的移动速度接受比率 [0.0 ~ 1.0] (定点数)
+        /// 本帧横向 (x) 移动速度接受率 (inputAcceptance 中生效区间的 rateX，多段重叠取最小)
         /// </summary>
-        public FP MoveInputAcceptance { get; private set; } = FP.Zero;
+        public FP MoveRateX { get; private set; } = FP.Zero;
+
+        /// <summary>
+        /// 本帧纵深 (y) 移动速度接受率 (inputAcceptance 中生效区间的 rateY，多段重叠取最小)
+        /// </summary>
+        public FP MoveRateY { get; private set; } = FP.Zero;
 
         /// <summary>
         /// 本帧是否允许随摇杆转向 (inputAcceptance 中 turn 为 true 的区间)
@@ -110,9 +130,14 @@ namespace KiHan.Logic
         public FP ZAcceleration { get; private set; } = FP.Zero;
 
         /// <summary>
-        /// 动作切换回调 (上一个动作, 切换后的动作)
+        /// 本帧是否触发水平惯性速度设置，为 true 时物理层把水平惯性设为 PlanarVelocity (按朝向镜像)
         /// </summary>
-        private Action<ActionInfo, ActionInfo> _onChangeAction = null;
+        public bool PlanarVelocityTriggered { get; private set; }
+
+        /// <summary>
+        /// 本帧设置的水平惯性速度 (x 面朝方向前方, y 纵深；同一逻辑帧触发多段时取列表中靠后的一段)
+        /// </summary>
+        public FPVector3 PlanarVelocity { get; private set; } = FPVector3.zero;
 
         /// <summary>
         /// 受控锁定 (受击状态)：为 true 时屏蔽一切主动打断、摇杆移动与 autoNext，动作流转只接受命中/落地/受击流程的预约
@@ -163,7 +188,10 @@ namespace KiHan.Logic
             // 5. RootMotion 分段：水平缓动位移、竖直速度设置、竖直附加加速度
             CalculateRootMotion(_wasFrame, _curFrame);
 
-            // 6. 遍历动作库检测主动打断 (受控锁定时不能主动行动)
+            // 6. 动作时间轴事件
+            FireEvents(_wasFrame, _curFrame);
+
+            // 7. 遍历动作库检测主动打断 (受控锁定时不能主动行动，只检测受击中强制进入的动作)
             if (!ControlLocked)
             {
                 foreach (ActionInfo action in AllActions)
@@ -178,8 +206,12 @@ namespace KiHan.Logic
                     }
                 }
             }
+            else
+            {
+                PreorderBreakHurtActions();
+            }
 
-            // 7. 自然播放结束或输入中断 (autoTerminate) 时预约 autoNext；受控锁定时不走 autoNext (循环或由受击流程驱动)
+            // 8. 自然播放结束或输入中断 (autoTerminate) 时预约 autoNext；受控锁定时不走 autoNext (循环或由受击流程驱动)
             if (!ControlLocked && _preorderActions.Count <= 0 && (anim.IsFinished || CurrentAction.autoTerminate))
             {
                 if (!string.IsNullOrEmpty(CurrentAction.autoNextActionId))
@@ -188,7 +220,7 @@ namespace KiHan.Logic
                 }
             }
 
-            // 8. 动作切换不在此处执行：统一延迟到 FlushPreorders 裁决
+            // 9. 动作切换不在此处执行：统一延迟到 FlushPreorders 裁决
             //    保证本逻辑帧的物理与命中检测使用的仍是实际推进了 [TickFromFrame, TickToFrame) 这些动画帧的动作
             _wasFrame = _curFrame;
         }
@@ -237,7 +269,7 @@ namespace KiHan.Logic
                 }
                 else
                 {
-                    ChangeAction(winner.ActionId, winner.FromFrame);
+                    ChangeAction(winner.ActionId, winner.FromFrame, winner.KeepFrame);
                 }
             }
 
@@ -263,9 +295,47 @@ namespace KiHan.Logic
             _loopWhileLocked = false;
         }
 
-        public void Set(Action<ActionInfo, ActionInfo> onActionChanged)
+        /// <summary>
+        /// 触发本逻辑帧处理过的动画帧 [wasFrame, curFrame) 上的动作事件 (本帧未推进动画帧时不触发)
+        /// </summary>
+        private void FireEvents(int wasFrame, int curFrame)
         {
-            _onChangeAction = onActionChanged;
+            ActionEventInfo[] events = CurrentAction.events;
+            if (events == null || Owner == null || curFrame <= wasFrame) return;
+
+            for (int i = 0; i < events.Length; i++)
+            {
+                if (events[i].frame >= wasFrame && events[i].frame < curFrame)
+                {
+                    Owner.OnActionEvent(in events[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 受控锁定 (受击) 期间：只检测可强制进入的 breakHurt 动作 (替身术)，忽略被取消窗口，需指令匹配且通过技能准入
+        /// </summary>
+        private void PreorderBreakHurtActions()
+        {
+            if (command == null) return;
+
+            foreach (ActionInfo action in AllActions)
+            {
+                if (!action.breakHurt || !MatchCommand(action)) continue;
+                if (Owner != null && !Owner.CanEnterAction(action)) continue;
+
+                _preorderActions.Add(new PreorderActionInfo(action.id, BreakHurtPriority + action.priority, 0));
+            }
+        }
+
+        private bool MatchCommand(ActionInfo action)
+        {
+            if (command == null || action.commands == null) return false;
+            foreach (ActionCommand ac in action.commands)
+            {
+                if (command.ActionOccur(ac, _facingLeft)) return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -299,6 +369,8 @@ namespace KiHan.Logic
             VelocityZTriggered = false;
             VelocityZ = FP.Zero;
             ZAcceleration = FP.Zero;
+            PlanarVelocityTriggered = false;
+            PlanarVelocity = FPVector3.zero;
 
             int stride = curFrame - wasFrame;
             if (stride > 0 && _rootMotion != null)
@@ -320,6 +392,12 @@ namespace KiHan.Logic
                         VelocityZ = seg.velocityZ;
                     }
 
+                    if (seg.hasPlanarVelocity && wasFrame <= seg.frameRange.x && seg.frameRange.x < curFrame)
+                    {
+                        PlanarVelocityTriggered = true;
+                        PlanarVelocity = new FPVector3(seg.velocityX, seg.velocityY, FP.Zero);
+                    }
+
                     if (seg.accelerationZ != FP.Zero)
                     {
                         int overlap = System.Math.Min(curFrame, seg.frameRange.y + 1) - System.Math.Max(wasFrame, seg.frameRange.x);
@@ -333,17 +411,19 @@ namespace KiHan.Logic
 
         public void CalculateInputAcceptance(int wasFrame, int curFrame)
         {
-            MoveInputAcceptance = FP.Zero;
+            MoveRateX = FP.Zero;
+            MoveRateY = FP.Zero;
             TurnAllowed = false;
             if (CurrentAction.inputAcceptance == null) return;
+            bool any = false;
             foreach (MoveInputAcceptance acceptance in CurrentAction.inputAcceptance)
             {
                 if (wasFrame <= acceptance.range.y && curFrame > acceptance.range.x)
                 {
-                    if (MoveInputAcceptance <= FP.Zero || acceptance.rate < MoveInputAcceptance)
-                    {
-                        MoveInputAcceptance = acceptance.rate;
-                    }
+                    // 多段重叠时各轴分别取最小 (0 也参与比较)
+                    if (!any || acceptance.rateX < MoveRateX) MoveRateX = acceptance.rateX;
+                    if (!any || acceptance.rateY < MoveRateY) MoveRateY = acceptance.rateY;
+                    any = true;
                     if (acceptance.turn) TurnAllowed = true;
                 }
             }
@@ -461,6 +541,9 @@ namespace KiHan.Logic
 
                 if (!tagFit) continue;
 
+                // 技能准入 (CD / 多段 / 查克拉 / 受击条件)：与取消窗口无关，不通过时直接放弃
+                if (Owner != null && !Owner.CanEnterAction(action)) return false;
+
                 // 检查按键指令匹配：配置了指令的动作必须由输入触发 (无输入组件的角色不会误触发)
                 if (checkCommand && action.commands != null && action.commands.Length > 0)
                 {
@@ -476,16 +559,17 @@ namespace KiHan.Logic
             return false;
         }
 
-        private void ChangeAction(string actionId, int fromFrame)
+        private void ChangeAction(string actionId, int fromFrame, bool keepFrame = false)
         {
             ActionInfo aInfo = GetActionById(actionId, out bool foundAction);
             if (foundAction)
             {
-                command?.CleanNonDirectionInputs();
+                command?.ConsumePresses();
 
-                _onChangeAction?.Invoke(CurrentAction, aInfo);
+                ActionInfo previous = CurrentAction;
                 anim?.CrossFade(aInfo.animKey, 0, fromFrame);
                 CurrentAction = aInfo;
+                ActionSerial++;
 
                 CurrentBeCancelledTag.Clear();
                 if (aInfo.beCancelledTag != null)
@@ -502,13 +586,27 @@ namespace KiHan.Logic
                 VelocityZTriggered = false;
                 VelocityZ = FP.Zero;
                 ZAcceleration = FP.Zero;
+                PlanarVelocityTriggered = false;
+                PlanarVelocity = FPVector3.zero;
                 RootMotionMove = FPVector3.zero;
                 _curFrame = fromFrame;
                 _wasFrame = fromFrame;
 
                 // 面向翻转处理 (与是否挂有输入组件无关)
                 FacingLeft = aInfo.inverse ? !_facingLeft : _facingLeft;
+
+                Owner?.OnActionChanged(previous, aInfo, keepFrame);
             }
+        }
+
+        /// <summary>
+        /// 复用实例时重置到指定动作 (清除预约与受控锁定，不重新校验动作库)
+        /// </summary>
+        public void ResetTo(string actionId)
+        {
+            _preorderActions.Clear();
+            Unlock();
+            ChangeAction(actionId, 0);
         }
 
         private void KeepAction(int currentFrame)
@@ -634,7 +732,8 @@ namespace KiHan.Logic
                         _preorderActions.Add(new PreorderActionInfo(
                             picked.id,
                             acInfo.priority + picked.priority,
-                            acInfo.fromFrame
+                            acInfo.keepFrame ? _curFrame : acInfo.fromFrame,
+                            acInfo.keepFrame
                         ));
                     }
                     break;
@@ -646,7 +745,8 @@ namespace KiHan.Logic
                         _preorderActions.Add(new PreorderActionInfo(
                             aInfo.id,
                             acInfo.priority + aInfo.priority,
-                            acInfo.fromFrame
+                            acInfo.keepFrame ? _curFrame : acInfo.fromFrame,
+                            acInfo.keepFrame
                         ));
                     }
                     break;

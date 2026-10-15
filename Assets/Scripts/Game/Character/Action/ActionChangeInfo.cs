@@ -32,6 +32,11 @@ namespace KiHan.Logic
 
         [Tooltip("从第几帧开始这个动作")]
         public int fromFrame;
+
+        /// <summary>
+        /// 从当前动作的当前帧继续播放 (忽略 fromFrame)：用于切换到同一段动画的变体动作 (如命中后改变后续流向)
+        /// </summary>
+        public bool keepFrame;
     }
 
     [Serializable]

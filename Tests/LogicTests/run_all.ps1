@@ -2,7 +2,7 @@
 .SYNOPSIS
     KiHan 逻辑层全量测试运行脚本 (PowerShell 版)
 .DESCRIPTION
-    编译检查 netstandard2.1 并依次执行各测试工程 (Combat, Jump, HitGC, Hurt, Stride)。
+    编译检查 netstandard2.1 并依次执行各测试工程 (Combat, Skill, Jump, HitGC, Hurt, Stride)。
     适用于 Windows PowerShell / PowerShell Core，不需要 Unity。
 .PARAMETER Project
     可选。指定仅运行单个工程，例如: -Project Combat
@@ -33,7 +33,7 @@ if (-not $dotnetCmd) {
 }
 
 $fail = 0
-$targets = @("Combat", "Jump", "HitGC", "Hurt", "Stride")
+$targets = @("Combat", "Skill", "Jump", "HitGC", "Hurt", "Stride")
 if ($Project) {
     if ($targets -contains $Project -or $Project -eq "Compile") {
         if ($Project -eq "Compile") {
@@ -42,7 +42,7 @@ if ($Project) {
             $targets = @($Project)
         }
     } else {
-        Write-Host "[ERROR] 未知工程: $Project。可选值: Compile, Combat, Jump, HitGC, Hurt, Stride" -ForegroundColor Red
+        Write-Host "[ERROR] 未知工程: $Project。可选值: Compile, Combat, Skill, Jump, HitGC, Hurt, Stride" -ForegroundColor Red
         exit 1
     }
 }

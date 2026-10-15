@@ -1,0 +1,79 @@
+// 技能配置示例 (带注释，仅供查阅；实际配置放在 Resources/Characters/<角色>/skills.json，去掉注释)
+// 对应 DTO：SkillDataContainer / SkillData / SkillStageData (Assets/Scripts/Game/Character/Skill/SkillInfo.cs)
+// 时间一律写字符串秒数 (String-First，运行时换算为逻辑帧，不足一帧按一帧计)
+{
+  "chakraMax": 4,                                        // 查克拉上限 (颗)，<= 0 或省略时取默认 4
+  "data": [
+    // ==================== 单段技能 ====================
+    {
+      "id": "skill1",                                    // 技能唯一 id
+      "button": "Skill1",                                // UI 显示所在的按键：Skill1 / Skill2 / Ultimate / Substitution / Secret / Summon
+                                                         // 只决定 CD / 图标显示在哪个键上，出招指令仍由入口动作 (actions.json) 的 commands 决定
+      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_0",   // 按键图标：Resources 路径；多图切片贴图写 "路径#子图名"
+      "cooldown": "8",                                   // CD 秒数：释放完最后一段 (离开本技能的全部动作) 后开始计算
+      "chakraCost": 0,                                   // 释放第一段时消耗的查克拉颗数 (奥义等)，不足时无法释放
+      "stages": [                                        // 技能段，至少一段
+        {
+          "actionId": "skill1",                          // 入口动作：由输入发起，受技能准入裁决 (CD / 段号 / 查克拉 / 受击条件)
+          "followActions": ["skill1_follow"]             // 技能派生 (技能划平 A)：skill1 开放 skill1_follow 标签的取消窗口，派生动作指令为 press Attack (见 example.json)
+                                                         // 列进 followActions 后派生期间仍算释放本段，离开派生才开始 CD
+        }
+      ]
+    },
+
+    // ==================== 带命中派生的单段技能 ====================
+    {
+      "id": "skill2",
+      "button": "Skill2",
+      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_1",
+      "cooldown": "10",
+      "stages": [
+        {
+          "actionId": "skill2_1",
+          "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"]   // 同一段的后续动作 (autoNext / 落地 / 命中派生进入，不受准入裁决)
+                                                                                         // 必须列全：处于这些动作期间都算"正在释放本段"，离开后才结算 CD，
+                                                                                         // 这些动作及其生成物命中时也按本技能获得查克拉
+        }
+      ]
+    },
+
+    // ==================== 多段技能 ====================
+    {
+      "id": "multi",
+      "button": "Skill2",
+      "icon": "UI/SkillButton/xxx#xxx_0",                // 技能图标：各段未配置自己的图标时使用
+      "cooldown": "12",
+      "stages": [
+        {
+          "actionId": "multi_1",                         // 第 1 段入口 (各段的入口动作通常绑定同一个按键)
+          "stageDuration": "2",                          // 本段放完后 2 秒内可按键接下一段；超时开始计算 CD 并回到第 1 段
+          "cdReturn": "4"                                // 本段之后的段没有使用 (超时) 时返还的 CD 秒数：实际 CD = 12 - 4 = 8
+        },
+        {
+          "actionId": "multi_2",                         // 第 2 段入口：只有轮到第 2 段时才能进入 (第 1 段入口此时被准入拦截)
+          "icon": "UI/SkillButton/xxx#xxx_1",            // 轮到本段时按键显示的图标 (留空沿用技能图标，并在按键中央显示段号)
+          "stageDuration": "1.5",
+          "cdReturn": "2"
+        },
+        {
+          "actionId": "multi_3",                         // 最后一段：放完后开始计算完整 CD (12 秒)
+          "icon": "UI/SkillButton/xxx#xxx_2"
+        }
+      ]
+    },
+
+    // ==================== 替身术 ====================
+    {
+      "id": "substitution",
+      "button": "Substitution",
+      "cooldown": "10",
+      "requireHurt": true,                               // 只能在受击状态 (僵直 / 击飞 / 被抓 / 倒地) 下释放；起身中已无敌，不可使用
+      "stages": [
+        { "actionId": "substitution" }                   // 入口动作需在 actions.json 中配置 "breakHurt": true (受控锁定时也检测指令，进入后解除受击并起身无敌)
+      ]
+    }
+  ]
+}
+
+// 查克拉规则：技能刷新 (CD 结束) 后可获得一次。该技能任一段、后续动作或其生成物命中时 +1 (上限 chakraMax)，之后要等下次刷新才能再获得。
+// 开局所有技能就绪、可获得查克拉，查克拉为 0。普攻等不属于任何技能的动作命中不获得查克拉。

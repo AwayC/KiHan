@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using KiHan.Logic;
 using KiHan.View.Render;
@@ -5,7 +6,8 @@ using Managers;
 using View.Component;
 
 /// <summary>
-/// 战斗表现层协调器：为逻辑角色创建视图，每个逻辑帧后推进视图快照，并把逻辑打击事件转换为火花、跳字与震屏
+/// 战斗表现层协调器：为逻辑角色与生成物创建 / 复用视图，每个逻辑帧后推进视图快照，
+/// 并把逻辑事件转换为表现：动作事件 (特效 / 镜头)、打击事件 (火花 / 跳字 / 震屏)
 /// 只读逻辑数据，不回写
 /// </summary>
 public class SceneManager : UnitySingleton<SceneManager>
@@ -13,9 +15,10 @@ public class SceneManager : UnitySingleton<SceneManager>
     private const string HitSparkEffect = "Effect/Spark/Spark1/Spark";
 
     /// <summary>
-    /// 开局预热数量：同屏可能同时存在的命中火花与伤害跳字上限
+    /// 开局预热数量：同屏可能同时存在的命中火花、动作特效与伤害跳字上限
     /// </summary>
     private const int HitSparkPrewarm = 8;
+    private const int ActionEffectPrewarm = 2;
     private const int DamageTextCapacity = 16;
 
     /// <summary>
@@ -32,6 +35,11 @@ public class SceneManager : UnitySingleton<SceneManager>
     private DamageTextPool _damageTexts;
 
     /// <summary>
+    /// 生成物实例 -> 视图 (实例与视图一一对应，随实例池复用)
+    /// </summary>
+    private readonly Dictionary<CharacterObj, ActorView> _spawnViews = new Dictionary<CharacterObj, ActorView>();
+
+    /// <summary>
     /// 加载阶段调用：记录本机槽位，预热局内会用到的表现资源 (局内不再 Load / 新建实例)
     /// </summary>
     public void InitWorld(int localSlot)
@@ -42,6 +50,45 @@ public class SceneManager : UnitySingleton<SceneManager>
         _damageTexts = new DamageTextPool(DamageTextCapacity);
     }
 
+    /// <summary>
+    /// 预热角色动作事件与 Buff 引用的特效 (加载阶段，每个资源预建 ActionEffectPrewarm 个实例)
+    /// </summary>
+    public void PreloadActionEffects(List<ActionInfo> actions, ICollection<BuffInfo> buffs)
+    {
+        var assets = new HashSet<string>();
+        if (actions != null)
+        {
+            foreach (ActionInfo action in actions)
+            {
+                if (action.events == null) continue;
+                foreach (ActionEventInfo evt in action.events)
+                {
+                    if (evt.type == ActionEventType.Effect) Preload(evt.asset, assets);
+                }
+            }
+        }
+        if (buffs != null)
+        {
+            foreach (BuffInfo buff in buffs) Preload(buff.effect, assets);
+        }
+    }
+
+    private static void Preload(string asset, HashSet<string> loaded)
+    {
+        if (!string.IsNullOrEmpty(asset) && loaded.Add(asset)) EffectManager.Instance.Preload(asset, ActionEffectPrewarm);
+    }
+
+    /// <summary>
+    /// 为预建的生成物实例预建视图 (加载阶段，视图隐藏待用)
+    /// </summary>
+    public void PrewarmSpawnViews(IReadOnlyList<CharacterObj> instances)
+    {
+        for (int i = 0; i < instances.Count; i++)
+        {
+            GetOrCreateSpawnView(instances[i]).Hide();
+        }
+    }
+
     public ActorView SpawnView(CharacterObj character)
     {
         ActorView view = ActorView.Create(character);
@@ -50,31 +97,113 @@ public class SceneManager : UnitySingleton<SceneManager>
     }
 
     /// <summary>
-    /// 每个逻辑帧结算后调用 (HitEvents 只保留当前帧，必须逐帧消费)
+    /// 每个逻辑帧结算后调用 (逻辑事件只保留当前帧，必须逐帧消费)
+    /// 顺序：新生成物出现 -> 推进视图快照 -> 动作事件 -> 打击事件 -> 回收的生成物隐藏
     /// </summary>
     public void OnLogicTick(BattleWorld world)
     {
+        for (int i = 0; i < world.Spawned.Count; i++)
+        {
+            CharacterObj entity = world.Spawned[i];
+            ActorView view = GetOrCreateSpawnView(entity);
+            view.Rebind(entity);
+            ViewManager.Instance.Register(view);
+        }
+
         foreach (ActorView view in ViewManager.Instance.Views)
         {
             view.OnLogicTick();
+        }
+
+        for (int i = 0; i < world.ViewEvents.Count; i++)
+        {
+            PresentViewEvent(world.ViewEvents[i]);
         }
 
         for (int i = 0; i < world.HitEvents.Count; i++)
         {
             PresentHit(world.HitEvents[i]);
         }
+
+        for (int i = 0; i < world.Despawned.Count; i++)
+        {
+            ActorView view = ViewManager.Instance.Unregister(world.Despawned[i]);
+            if (view != null) view.Hide();
+        }
     }
 
     public void Clear()
     {
+        // 隐藏中的生成物视图不在 ViewManager 中，单独销毁 (登记中的由 ClearAll 处理)
+        foreach (ActorView view in _spawnViews.Values)
+        {
+            if (view == null || view.Character != null) continue;
+            view.Release();
+            Destroy(view.gameObject);
+        }
+        _spawnViews.Clear();
+
         ViewManager.Instance.ClearAll();
         _damageTexts?.Dispose();
         _damageTexts = null;
     }
 
+    private ActorView GetOrCreateSpawnView(CharacterObj entity)
+    {
+        if (_spawnViews.TryGetValue(entity, out ActorView view)) return view;
+        view = ActorView.Create(entity);
+        _spawnViews[entity] = view;
+        return view;
+    }
+
+    private void PresentViewEvent(in ViewEvent evt)
+    {
+        switch (evt.Type)
+        {
+            case ActionEventType.Effect:
+            case ActionEventType.Buff:
+                PlayActionEffect(evt);
+                break;
+            case ActionEventType.BuffRemoved:
+                ActorView view = ViewManager.Instance.GetView(evt.EntityId);
+                if (view != null) view.StopBuffEffect(evt.BuffSerial);
+                break;
+            case ActionEventType.Camera:
+                CameraControllor.Instance.ImpactEffect(evt.Asset == CameraEffects.ImpactHeavy);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 动作特效 / Buff 特效：跟随型挂到触发者 Body 下并逐帧对齐锚点；独立型放在触发时的锚点位置
+    /// 动作特效可在触发者的动作结束时提前停止 (stopOnActionEnd)，Buff 特效在 Buff 到期时停止
+    /// </summary>
+    private void PlayActionEffect(in ViewEvent evt)
+    {
+        ActorView owner = ViewManager.Instance.GetView(evt.EntityId);
+        bool follow = evt.Bind && owner != null;
+        bool buff = evt.Type == ActionEventType.Buff;
+
+        var data = new EffectData { EffectName = evt.Asset, IsFacingLeft = evt.FacingLeft };
+        if (follow)
+        {
+            data.BindView = owner;
+        }
+        else
+        {
+            data.WorldPos = BattleViewSpace.ToWorld(evt.Position) + Vector3.back * BattleViewSpace.ActionEffectOffset;
+        }
+
+        int id = EffectManager.Instance.PlayEffect(data, evt.Loop);
+        if (id < 0 || owner == null || (!follow && !evt.StopOnActionEnd && !buff)) return;
+
+        owner.AttachEffect(id, follow, evt.Anchor, evt.Offset, evt.ActionSerial, evt.StopOnActionEnd, buff ? evt.BuffSerial : 0);
+    }
+
     private void PresentHit(HitEvent evt)
     {
         ActorView attacker = ViewManager.Instance.GetView(evt.AttackerId);
+        ActorView owner = ViewManager.Instance.GetView(evt.OwnerId);
         bool attackerFacingLeft = attacker != null && attacker.Character.FacingLeft;
 
         // 前景表现朝相机 (-Z) 前移，保证位于参与命中的双方之前
@@ -91,7 +220,8 @@ public class SceneManager : UnitySingleton<SceneManager>
         int damage = Mathf.RoundToInt(evt.Damage.AsFloat());
         if (damage > 0 && _damageTexts != null)
         {
-            bool byLocalPlayer = attacker != null && attacker.Character.InputSlot == _localSlot;
+            // 生成物造成的伤害按其主人区分颜色
+            bool byLocalPlayer = owner != null && owner.Character.InputSlot == _localSlot;
             _damageTexts.Show(damage, byLocalPlayer, pos, attackerFacingLeft ? -1 : 1);
         }
 

@@ -46,6 +46,11 @@ namespace KiHan.View.Render
         public const float ForegroundOffset = 1.5f;
 
         /// <summary>
+        /// 动作事件特效 (跟随角色或放在角色锚点处) 朝相机 (-Z) 前移的距离，保证画在触发者身前而不与其精灵同深度
+        /// </summary>
+        public const float ActionEffectOffset = 0.05f;
+
+        /// <summary>
         /// 帧库像素 -> 世界单位
         /// </summary>
         public const float PixelToWorld = 1f / GameConfig.PIXELS_PER_UNIT;

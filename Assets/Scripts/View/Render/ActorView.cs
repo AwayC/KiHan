@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using KiHan.Asset;
 using KiHan.Logic;
 using KiHan.Math;
+using Managers;
 using UnityEngine;
 
 namespace KiHan.View.Render
@@ -44,6 +45,27 @@ namespace KiHan.View.Render
         private Vector3 _prevLogicPos;
         private Vector3 _currLogicPos;
         private float _lastTickTime;
+
+        /// <summary>
+        /// 本角色触发的需要跟踪的动作事件特效：跟随型按锚点逐帧定位，所属动作结束时可提前停止
+        /// </summary>
+        private struct BoundEffect
+        {
+            public int EffectId;
+            public bool Follow;
+            public string Anchor;
+            public Vector2Int Offset;
+            public Vector2Int LastAnchor;
+            public int ActionSerial;
+            public bool StopOnActionEnd;
+
+            /// <summary>
+            /// Buff 层编号 (0 表示不是 Buff 特效)：Buff 到期时按编号停止
+            /// </summary>
+            public int BuffSerial;
+        }
+
+        private readonly List<BoundEffect> _boundEffects = new List<BoundEffect>(4);
 
         private static Material SpriteMaterial
         {
@@ -88,9 +110,62 @@ namespace KiHan.View.Render
             _currLogicPos = ReadLogicPos();
             _prevLogicPos = _currLogicPos;
             _lastTickTime = Time.time;
+            // 简单生成物 (投射物) 没有脚下阴影
+            _footShadow.EnableShadow = character.Hittable;
             _footShadow.InitShadow(character.TeamId);
             ApplyTransform(_currLogicPos);
             RenderFrame();
+        }
+
+        /// <summary>
+        /// 复用视图：绑定到 (重新生成的) 逻辑实体并显示
+        /// </summary>
+        public void Rebind(CharacterObj character)
+        {
+            gameObject.SetActive(true);
+            Bind(character);
+        }
+
+        /// <summary>
+        /// 实体移出战场：停止跟随特效并隐藏，保留节点与阴影供下次复用
+        /// </summary>
+        public void Hide()
+        {
+            StopBoundEffects();
+            Character = null;
+            gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// 登记本角色触发的特效
+        /// </summary>
+        /// <param name="follow">跟随型 (特效已由 EffectManager 挂到 Body 下)：逐帧对齐锚点并随朝向镜像；否则只跟踪停止条件</param>
+        public void AttachEffect(int effectId, bool follow, string anchor, Vector2Int offset, int actionSerial, bool stopOnActionEnd, int buffSerial = 0)
+        {
+            _boundEffects.Add(new BoundEffect
+            {
+                EffectId = effectId,
+                Follow = follow,
+                Anchor = anchor,
+                Offset = offset,
+                ActionSerial = actionSerial,
+                StopOnActionEnd = stopOnActionEnd,
+                BuffSerial = buffSerial
+            });
+            UpdateBoundEffects();
+        }
+
+        /// <summary>
+        /// Buff 到期：停止该层的循环特效
+        /// </summary>
+        public void StopBuffEffect(int buffSerial)
+        {
+            for (int i = _boundEffects.Count - 1; i >= 0; i--)
+            {
+                if (_boundEffects[i].BuffSerial != buffSerial) continue;
+                EffectManager.Instance.StopEffect(_boundEffects[i].EffectId);
+                _boundEffects.RemoveAt(i);
+            }
         }
 
         /// <summary>
@@ -128,6 +203,7 @@ namespace KiHan.View.Render
         /// </summary>
         public void Release()
         {
+            StopBoundEffects();
             _footShadow.RecycleShadow();
             Character = null;
         }
@@ -145,6 +221,84 @@ namespace KiHan.View.Render
             float alpha = Mathf.Clamp01((Time.time - _lastTickTime) / GameConfig.LOGIC_TICK_TIME);
             ApplyTransform(Vector3.Lerp(_prevLogicPos, _currLogicPos, alpha));
             RenderFrame();
+            UpdateBoundEffects();
+        }
+
+        /// <summary>
+        /// 跟随特效逐帧定位到当前动画帧的锚点 (锚点本帧缺失时沿用上次位置) 并随朝向镜像；
+        /// 特效已自然结束则注销，所属动作已结束且要求停止时提前回收
+        /// </summary>
+        private void UpdateBoundEffects()
+        {
+            if (_boundEffects.Count == 0) return;
+
+            EffectManager effects = EffectManager.Instance;
+            int serial = Character.action != null ? Character.action.ActionSerial : 0;
+            FrameAnimator anim = Character.action != null ? Character.action.anim : null;
+            SpriteFrameData frame = anim != null && anim.CurrentAnimData != null ? anim.CurrentAnimData.GetCurrentFrameData(anim.CurrentStepIndex) : null;
+            bool flip = Character.FacingLeft;
+
+            for (int i = _boundEffects.Count - 1; i >= 0; i--)
+            {
+                BoundEffect bound = _boundEffects[i];
+                if (!effects.TryGetEffect(bound.EffectId, out EffectView view))
+                {
+                    _boundEffects.RemoveAt(i);
+                    continue;
+                }
+
+                if (bound.StopOnActionEnd && bound.ActionSerial != serial)
+                {
+                    effects.StopEffect(bound.EffectId);
+                    _boundEffects.RemoveAt(i);
+                    continue;
+                }
+
+                if (!bound.Follow) continue;
+
+                if (!string.IsNullOrEmpty(bound.Anchor) && TryGetAnchor(frame, bound.Anchor, out Vector2Int anchor))
+                {
+                    bound.LastAnchor = anchor;
+                    _boundEffects[i] = bound;
+                }
+
+                Vector2Int px = bound.LastAnchor + bound.Offset;
+                Transform t = view.transform;
+                t.localPosition = new Vector3(
+                    (flip ? -px.x : px.x) * BattleViewSpace.PixelToWorld,
+                    px.y * BattleViewSpace.PixelToWorld,
+                    -BattleViewSpace.ActionEffectOffset / BattleViewSpace.CharacterScale);
+
+                Vector3 scale = t.localScale;
+                scale.x = flip ? -Mathf.Abs(scale.x) : Mathf.Abs(scale.x);
+                t.localScale = scale;
+            }
+        }
+
+        private static bool TryGetAnchor(SpriteFrameData frame, string name, out Vector2Int position)
+        {
+            position = Vector2Int.zero;
+            if (frame == null || frame.EffectAnchors == null) return false;
+            for (int i = 0; i < frame.EffectAnchors.Count; i++)
+            {
+                EffectAnchorInfo a = frame.EffectAnchors[i];
+                if (a != null && a.Name == name)
+                {
+                    position = a.Position;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void StopBoundEffects()
+        {
+            EffectManager effects = EffectManager.Instance;
+            for (int i = 0; i < _boundEffects.Count; i++)
+            {
+                effects.StopEffect(_boundEffects[i].EffectId);
+            }
+            _boundEffects.Clear();
         }
 
         private void ApplyTransform(Vector3 logicPos)

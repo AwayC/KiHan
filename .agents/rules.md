@@ -35,7 +35,7 @@
 ## 三、 定点数体系与字符串规范 (Fixed-Point & String-First)
 
 1. **逻辑内核变量全量定点数化**：
-   - **位移与速度**：`FPVector3`、`FPVector2`、`FP moveSpeedX` / `FP moveSpeedY` (横向与纵深各自独立，摇杆只有 8 方向，斜向不归一化)、`MoveInputAcceptance.rate`（移动速度接受率）。
+   - **位移与速度**：`FPVector3`、`FPVector2`、`FP moveSpeedX` / `FP moveSpeedY` (横向与纵深各自独立，摇杆只有 8 方向，斜向不归一化)、`MoveInputAcceptance.rateX` / `rateY`（横向 / 纵深移动速度接受率）。
    - **重力与动力学**：`FP weight`、`_curWeight`、`MoveInfo.moveDistance`、`MoveInfo.inSec`。
    - **战斗与命中时钟**：`AttackInfo.attack`（伤害）、`AttackInfo.hitStun`（硬直）、`AttackInfo.freeze`（卡帧）、`AttackInfo.hitSameTargetDelay`、`HitRecord.Cooldown`。
    - **动作打断与预约**：`ActionCommand.validInSec`、`ActionChangeInfo.freezingAfterChange`、`PreorderActionInfo.FreezingAfterChangeAction`。
@@ -61,9 +61,10 @@
 2. **JSON 配置范例**：
    ```json
    {
-     "keySequence": ["Down", "Skill1"],
+     "hold": ["Down"],
+     "press": ["Skill1"],
      "validInSec": "0.05",
-     "rate": "1.0",
+     "rateX": "1.0",
      "hitStun": "0.12",
      "freeze": "0.05",
      "hitSameTargetDelay": "1.0",

@@ -44,6 +44,12 @@ namespace KiHan.Logic
 
         public ArmorPhaseData[] armorPhase;
 
+        [Tooltip("动作时间轴事件 (特效 / 生成物 / 镜头)")]
+        public ActionEventData[] events;
+
+        [Tooltip("受击中可以凭指令强制进入 (替身术)：忽略被取消窗口，进入后解除受击状态并进入起身无敌")]
+        public bool breakHurt;
+
         /// <summary>
         /// 全局通用确定性字符串 -> FP 解析器 (纯整型位移，0 浮点乘除法)
         /// </summary>
@@ -94,6 +100,20 @@ namespace KiHan.Logic
             }
             info.priority = priority;
             info.onLand = onLand != null ? onLand.ToRuntime() : default;
+            info.breakHurt = breakHurt;
+
+            if (events != null)
+            {
+                info.events = new ActionEventInfo[events.Length];
+                for (int i = 0; i < events.Length; i++)
+                {
+                    info.events[i] = events[i].ToRuntime();
+                }
+            }
+            else
+            {
+                info.events = Array.Empty<ActionEventInfo>();
+            }
 
             if (armorPhase != null)
             {
@@ -122,7 +142,7 @@ namespace KiHan.Logic
                 info.beCancelledTag = Array.Empty<BeCancelledTag>();
             }
 
-            // 2. 转换指令序列与字符串定点数有效时间窗口 (validInSec -> FP)
+            // 2. 转换触发指令 (按键名 -> CommandKey，预输入时长 validInSec -> 逻辑帧)
             if (commands != null)
             {
                 info.commands = new ActionCommand[commands.Length];
@@ -191,44 +211,63 @@ namespace KiHan.Logic
     }
 
     /// <summary>
-    /// 输入招式命令配置 DTO (按键采用 CommandKey 名称，如 ["Down", "Skill1"]；时间采用字符串秒数，如 "0.15")
+    /// 动作触发指令配置 DTO：press / hold / release 三组按键名 (CommandKey 名称，忽略大小写) 全部满足才成立
+    /// 摇杆状态键 (Move / Up / Down / Forward / Backward) 只能写在 hold 中
     /// </summary>
     [Serializable]
     public struct ActionCommandData
     {
-        [Tooltip("按键顺序序列 (CommandKey 名称，忽略大小写，如 [\"Down\", \"Skill1\"]、[\"Skill1Release\"]、[\"Move\"])")]
-        public string[] keySequence;
+        [Tooltip("在预输入时长内按下过的按钮 (多个即同时按)，如 [\"Attack\"]")]
+        public string[] press;
 
-        [Tooltip("招式有效时间窗口 (字符串秒数，如 \"0.15\")")]
+        [Tooltip("当前按住的按钮或摇杆状态，如 [\"Attack\"]、[\"Up\"]、[\"Move\"]")]
+        public string[] hold;
+
+        [Tooltip("在预输入时长内松开过的按钮，如 [\"Skill1\"]")]
+        public string[] release;
+
+        [Tooltip("press / release 的预输入时长 (字符串秒数，默认 \"0.2\")")]
         public string validInSec;
 
         public ActionCommand ToRuntime()
         {
-            CommandKey[] keys = null;
-            if (keySequence != null)
+            var cmd = new ActionCommand
             {
-                keys = new CommandKey[keySequence.Length];
-                for (int i = 0; i < keySequence.Length; i++)
-                {
-                    keys[i] = ParseKey(keySequence[i]);
-                }
+                press = ParseKeys(press, false),
+                hold = ParseKeys(hold, true),
+                release = ParseKeys(release, false),
+                validTicks = GameConfig.SecondsToTicks(ActionData.ParseFP(validInSec))
+            };
+            if (cmd.press.Length + cmd.hold.Length + cmd.release.Length == 0)
+            {
+                Debug.LogError("[ActionData] 指令没有配置任何按键 (press / hold / release 均为空)");
             }
-
-            return new ActionCommand(keys, ActionData.ParseFP(validInSec));
+            return cmd;
         }
 
         /// <summary>
-        /// 按键名称 -> CommandKey；无法识别时报错并返回 None (None 不会被录入输入记录，该招式不会误触发)
+        /// 按键名称 -> CommandKey；无法识别或摇杆键写在 press / release 中时报错并记为 None (None 永远不满足，该指令不会误触发)
         /// </summary>
-        private static CommandKey ParseKey(string name)
+        private static CommandKey[] ParseKeys(string[] names, bool allowStick)
         {
-            if (!string.IsNullOrEmpty(name) && Enum.TryParse(name.Trim(), true, out CommandKey key) && Enum.IsDefined(typeof(CommandKey), key))
+            if (names == null || names.Length == 0) return Array.Empty<CommandKey>();
+            var keys = new CommandKey[names.Length];
+            for (int i = 0; i < names.Length; i++)
             {
-                return key;
+                string name = names[i];
+                if (string.IsNullOrEmpty(name) || !Enum.TryParse(name.Trim(), true, out CommandKey key) || !Enum.IsDefined(typeof(CommandKey), key) || key == CommandKey.None)
+                {
+                    Debug.LogError($"[ActionData] 无法识别的按键名称: \"{name}\"，可选值: {string.Join(", ", Enum.GetNames(typeof(CommandKey)))}");
+                    key = CommandKey.None;
+                }
+                else if (!allowStick && InputToCommand.IsStickKey(key))
+                {
+                    Debug.LogError($"[ActionData] 摇杆键 {key} 只能写在 hold 中");
+                    key = CommandKey.None;
+                }
+                keys[i] = key;
             }
-
-            Debug.LogError($"[ActionData] 无法识别的按键名称: \"{name}\"，可选值: {string.Join(", ", Enum.GetNames(typeof(CommandKey)))}");
-            return CommandKey.None;
+            return keys;
         }
     }
 
@@ -240,8 +279,11 @@ namespace KiHan.Logic
     {
         public FrameRange range;
 
-        [Tooltip("速度接受倍率 (字符串，如 \"1.0\", \"0.5\")")]
-        public string rate;
+        [Tooltip("横向 (x) 移动速度接受率 (字符串，如 \"1\", \"0.5\")，留空为 0")]
+        public string rateX;
+
+        [Tooltip("纵深 (y) 移动速度接受率 (字符串，如 \"1\", \"0.5\")，留空为 0")]
+        public string rateY;
 
         [Tooltip("区间内是否允许随摇杆左右转向")]
         public bool turn;
@@ -251,7 +293,8 @@ namespace KiHan.Logic
             return new MoveInputAcceptance
             {
                 range = new Vector2Int(range.x, range.y),
-                rate = ActionData.ParseFP(rate),
+                rateX = ActionData.ParseFP(rateX),
+                rateY = ActionData.ParseFP(rateY),
                 turn = turn
             };
         }
@@ -279,6 +322,12 @@ namespace KiHan.Logic
 
         [Tooltip("命中空中目标时的竖直速度 (字符串，单位/秒)，留空沿用 launchVelocity")]
         public string airLaunchVelocity;
+
+        [Tooltip("击飞时给目标的水平惯性速度 x (字符串，单位/秒，攻击者面朝方向前方为正)，击飞流程中保持，落地倒地清除")]
+        public string launchVelocityX;
+
+        [Tooltip("击飞时给目标的水平惯性速度 y (字符串，单位/秒，纵深)")]
+        public string launchVelocityY;
 
         [Tooltip("破霸等级：None / Skill / Super / KingKong")]
         public string armorBreak;
@@ -313,6 +362,8 @@ namespace KiHan.Logic
                 hitStun = ActionData.ParseFP(hitStun),
                 launchVelocity = ActionData.ParseFP(launchVelocity),
                 airLaunchVelocity = ActionData.ParseFP(airLaunchVelocity),
+                launchVelocityX = ActionData.ParseFP(launchVelocityX),
+                launchVelocityY = ActionData.ParseFP(launchVelocityY),
                 armorBreak = ActionData.ParseEnum(armorBreak, ArmorLevel.None),
                 canHitLying = canHitLying,
                 grab = grab.ToRuntime(),
@@ -458,6 +509,12 @@ namespace KiHan.Logic
         [Tooltip("区间内附加的竖直加速度 (字符串，单位/秒²，向上为正)")]
         public string accelerationZ;
 
+        [Tooltip("在 frameRange.x 帧设置的水平惯性速度 x (字符串，单位/秒，面朝方向前方为正)，与 velocityY 都留空表示不设置")]
+        public string velocityX;
+
+        [Tooltip("在 frameRange.x 帧设置的水平惯性速度 y (字符串，单位/秒，纵深)")]
+        public string velocityY;
+
         public RootMotionSegment ToRuntime()
         {
             return new RootMotionSegment
@@ -468,7 +525,10 @@ namespace KiHan.Logic
                 tweenMethod = tweenMethod ?? string.Empty,
                 hasVelocityZ = !string.IsNullOrEmpty(velocityZ),
                 velocityZ = ActionData.ParseFP(velocityZ),
-                accelerationZ = ActionData.ParseFP(accelerationZ)
+                accelerationZ = ActionData.ParseFP(accelerationZ),
+                hasPlanarVelocity = !string.IsNullOrEmpty(velocityX) || !string.IsNullOrEmpty(velocityY),
+                velocityX = ActionData.ParseFP(velocityX),
+                velocityY = ActionData.ParseFP(velocityY)
             };
         }
     }
@@ -484,6 +544,9 @@ namespace KiHan.Logic
         public int priority;
         public int fromFrame;
 
+        [Tooltip("从当前动作的当前帧继续播放 (忽略 fromFrame)")]
+        public bool keepFrame;
+
         public ActionChangeInfo ToRuntime()
         {
             return new ActionChangeInfo
@@ -491,7 +554,8 @@ namespace KiHan.Logic
                 changeType = (ActionChangeType)changeType,
                 param = param ?? string.Empty,
                 priority = priority,
-                fromFrame = fromFrame
+                fromFrame = fromFrame,
+                keepFrame = keepFrame
             };
         }
     }

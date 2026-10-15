@@ -322,6 +322,17 @@ namespace KiHan.Logic
 
         public ArmorPhaseInfo[] armorPhase;
 
+        /// <summary>
+        /// 动作时间轴事件 (特效 / 生成物 / 镜头)，按动画帧触发
+        /// </summary>
+        public ActionEventInfo[] events;
+
+        /// <summary>
+        /// 受击中可以凭指令强制进入 (替身术)：受控锁定期间同样检测指令，忽略被取消窗口；
+        /// 进入后解除受击状态 (被抓、僵直、击飞、倒地)，以起身无敌状态播放本动作，播完追加起身后无敌
+        /// </summary>
+        public bool breakHurt;
+
     }
 
 
@@ -366,11 +377,19 @@ namespace KiHan.Logic
 
         /// <summary>
 
-        /// 允许百分比
+        /// 横向 (x) 移动速度接受率：摇杆横向分量 × moveSpeedX × rateX
 
         /// </summary>
 
-        public FP rate;
+        public FP rateX;
+
+        /// <summary>
+
+        /// 纵深 (y) 移动速度接受率：摇杆纵深分量 × moveSpeedY × rateY
+
+        /// </summary>
+
+        public FP rateY;
 
         /// <summary>
 

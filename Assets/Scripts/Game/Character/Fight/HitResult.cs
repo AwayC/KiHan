@@ -41,6 +41,12 @@ namespace KiHan.Logic
     {
         public uint FrameId;
         public int AttackerId;
+
+        /// <summary>
+        /// 攻击者的根角色 (生成物命中时为其主人；玩家直接命中时等于 AttackerId)
+        /// </summary>
+        public int OwnerId;
+
         public int TargetId;
         public int AttackPhase;
         public FP Damage;

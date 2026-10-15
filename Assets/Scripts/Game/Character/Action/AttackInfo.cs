@@ -47,6 +47,13 @@ namespace KiHan.Logic
         public FP airLaunchVelocity;
 
         /// <summary>
+        /// 击飞时给目标的水平惯性速度 (单位/秒；x 为攻击者面朝方向前方, y 纵深)
+        /// 每次击飞都会覆盖目标当前的水平惯性 (未配置即清零)；击飞流程中 (含触地弹起) 一直保持，落地倒地时清除
+        /// </summary>
+        public FP launchVelocityX;
+        public FP launchVelocityY;
+
+        /// <summary>
         /// 破霸等级：>= 受击者当前霸体等级时完整受击，否则只结算伤害
         /// </summary>
         public ArmorLevel armorBreak;

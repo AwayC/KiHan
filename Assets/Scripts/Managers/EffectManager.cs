@@ -107,6 +107,11 @@ namespace Managers
         public bool IsPlaying(int effectId) => _activeEffects.ContainsKey(effectId);
 
         /// <summary>
+        /// 获取仍在播放的特效 (用于跟随锚点逐帧定位)
+        /// </summary>
+        public bool TryGetEffect(int effectId, out EffectView view) => _activeEffects.TryGetValue(effectId, out view) && view != null;
+
+        /// <summary>
         /// 清理局内所有活跃特效
         /// </summary>
         public void Clear()

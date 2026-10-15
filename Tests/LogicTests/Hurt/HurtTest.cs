@@ -45,7 +45,6 @@ static class Program
 
         var ac = new ActionController { anim = anim };
         var cha = new CharacterObj { action = ac, EntityId = id, TeamId = team };
-        ac.Set((a, b) => cha.HitRecords.Clear());
         ac.SetAllActions(new List<ActionInfo> { attack, hurt1, hurtAir, hurtLand, idle }, startAction);
         cha.motion.Reset(new FPVector3(id == 1 ? FP.Zero : FP.Parse("0.9"), FP.Zero, FP.Zero));
         return cha;

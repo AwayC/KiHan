@@ -26,6 +26,16 @@ namespace Managers
         }
 
         /// <summary>
+        /// 注销视图 (实体移出战场，视图由调用方隐藏或复用)
+        /// </summary>
+        public ActorView Unregister(int entityId)
+        {
+            if (!_views.TryGetValue(entityId, out ActorView view)) return null;
+            _views.Remove(entityId);
+            return view;
+        }
+
+        /// <summary>
         /// 归还视图占用的池化资源并销毁全部视图
         /// </summary>
         public void ClearAll()

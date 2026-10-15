@@ -41,6 +41,7 @@ Tests/LogicTests/
   Stubs/               # Unity 替身 (UnityStubs.cs) 与 ButtonMask 副本
   Compile/             # 只做编译检查 (netstandard2.1)
   Combat/              # 主测试：带断言的场景用例
+  Skill/               # M6：技能 CD / 多段 / 查克拉 / 替身、动作事件、生成物、分身大脑、Buff
   Jump/                # 跳跃/滞空逐帧轨迹 + 确定性哈希
   HitGC/               # 连续命中 1000 帧的托管分配
   Hurt/ Stride/        # 历史逐帧打印用例 (人工核对，无断言)
@@ -67,7 +68,7 @@ Tests/LogicTests/
 | 每帧执行路径 (命中链路、抓取保持、RootMotion、移动、输入解析) | 预热后 `GC.GetAllocatedBytesForCurrentThread` 差值为 0 |
 | 帧区间 / 判定窗口 | 区间首帧、末帧、动作切换当帧、跳帧 (一个逻辑帧推进多个动画帧时) |
 | 同帧多个动作预约 | 优先级裁决：命中 (100) > 触地结果 (95) > 动画播完推进 (90) > 主动打断 / autoNext |
-| 输入 / 指令 | 按下、松开、按住 (`Move`) 三种语义；按住跨越动作切换不连发；缓冲窗口边界 |
+| 输入 / 指令 | `press` / `hold` / `release` 三类条件与摇杆状态键 (`Move` / `Up` / `Down` / `Forward` / `Backward`)；按下在动作切换时用掉 (只配 `press` 的键按住不连发，长按连段靠显式配置 `hold`)；松开跨越动作切换保留；同时按；预输入窗口边界 |
 | 受击流程 | 状态 (`HurtState`) 与动作 id 同时断言；无敌期间不产生命中 |
 | 配置格式 | 更新 `action_template.json` / `example.json`，`Combat` 中的模板加载用例 (场景 14) 必须通过 |
 | Bug 修复 | 先写能复现问题的失败用例，再修复，修复后该用例保留 |
@@ -110,7 +111,7 @@ Tests/LogicTests/
 ### 3. JSON 加载 (`JsonUtility`)
 L1 中的模板加载用的是 `System.Text.Json`，与游戏实际使用的 `JsonUtility` 行为不完全一致，必须在 Unity 中复核：
 - [ ] `JsonUtility.FromJson<ActionDataContainer>(action_template.json)` → 每个 `ToRuntime()`：动作数 9，`HurtActionIds.FindMissing` 为空，`SetAllActions` 无报错。
-- [ ] `example.json` 去掉 `//` 注释后同样加载：重点核对字符串定点数 (`"0.6"`)、帧区间 `{ "x": .., "y": .. }` (`frameRange` / `frameRanges` / `range`)、`keySequence` 按键名 (`"Move"`、`"Skill1Release"`)、嵌套结构 (`rootMotion` 分段、`grab`、`suction`、`pushPower`)。
+- [ ] `example.json` 去掉 `//` 注释后同样加载：重点核对字符串定点数 (`"0.6"`)、帧区间 `{ "x": .., "y": .. }` (`frameRange` / `frameRanges` / `range`)、`commands` 的 `press` / `hold` / `release` 按键名 (`"Move"`、`"Up"`、`"Skill1"`)、嵌套结构 (`rootMotion` 分段、`grab`、`suction`、`pushPower`)。
 - [ ] 缺省字段的默认值：未配置的 `ActionChangeData` (class) 在 `JsonUtility` 下会被实例化为默认对象，`changeType = 0 (Keep)`，确认不会产生意外的动作切换。
 
 ### 4. 战斗表现 (M3)
@@ -120,6 +121,14 @@ L1 中的模板加载用的是 `System.Text.Json`，与游戏实际使用的 `Js
 - [ ] 普攻命中：打击火花、伤害跳字 (1P 造成白字) 显示在双方之前，镜头震动；2P 进入 hurt_1 僵直。
 - [ ] 退出战斗 (BackPanel 确认) 后无残留角色、阴影、特效，回到大厅。
 - [ ] Device Simulator (手机机型) 下按住虚拟攻击键约 1 秒后松开：按钮缩放与角色动作在 1~2 帧内复原，无"按下后很久才释放"。编辑器锁帧由 `EditorFramePacer` 负责，不得改回 `Application.targetFrameRate`。
+
+### 5. 技能与生成物 (M6)
+- [ ] 进入编辑器后 Console 中 `UnityTestRunner` 第 5 项 (角色配置交叉引用) 通过。
+- [ ] 连按攻击键依次打出 attack1 → attack4，attack4 把对手击飞。
+- [ ] 技能 1 (U)：螺旋丸球特效跟随手部锚点，被打断时立即消失；多段命中后击飞；按键显示 CD 遮罩与秒数，CD 中再按无效；查克拉 +1。
+- [ ] 技能 2 (I)：第 4 帧冒烟并生成踢击投射物，投射物三段命中，结束时冒烟消失；本体命中时落地后接 `Skill_B_2` 收尾，未命中直接回 idle；本体与投射物多次命中只加 1 颗查克拉。
+- [ ] 替身 (空格 / 替身键)：只在受击中生效，进入起身动画并无敌，结束后追加无敌；替身键显示 CD。
+- [ ] 战斗中 Profiler 无 `Resources.Load` 与实例化 (技能特效、投射物与视图均在加载阶段预建)。
 
 ---
 

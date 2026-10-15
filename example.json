@@ -9,6 +9,15 @@
 //     受击流程由框架驱动 (toair -> inair -> fall -> 触地弹起或倒地 -> lie -> standup 无敌 -> 默认动作)，受击动作无需配置 autoNext
 //     攻击不配置 targetActionChange / launchActionChange 时：僵直默认 hurt_1，抓取默认 hurt_2，地面击飞默认 hurt_toair，空中受击默认 hurt_inair
 //   - 不配置姿态：进入条件由取消关系决定；配置 onLand 且不设置 velocityZ 的动作视为空中动作
+//   - commands：触发指令，满足任意一条即可；每条由 press / hold / release 三组按键组成，组内与组间全部满足才成立
+//     press   = 预输入时长 (validInSec，默认 "0.2") 内按下过，且这次按下还没被动作切换用掉 (切换动作时所有按下都会用掉：点一下只出一段，只配 press 的键按住不连发)
+//               写多个键即同时按 (不分先后)：同一帧按下，或先按的键自己不出招时成立；若先按的键已出招，它的按下随动作切换用掉，
+//               此时改配 { "hold": ["Skill1"], "press": ["Attack"] } 放在先出的动作开头取消窗口里，并让同时按的动作优先级更高
+//     hold    = 当前按住 (按钮) 或摇杆当前处于该状态
+//     release = 预输入时长内松开过 (动作切换不清除，同一个键再次按下才作废)
+//     按钮：Attack Skill1 Skill2 Ultimate Substitution Secret Summon
+//     摇杆 (只能写在 hold 中)：Move 任意方向 / Up 纵深向上 / Down 纵深向下 (均含斜向) / Forward / Backward (按当前朝向换算，含斜向)
+//     同时满足的多个动作按优先级 (窗口 + 标签 + 动作) 选出一个，配置时避免同优先级同时满足
 {
   "data": [
     // ==================== 基础：idle / move (按住摇杆持续移动，随摇杆转向) ====================
@@ -22,7 +31,7 @@
         { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill1", "skill2"], "priority": 0 }
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 999 }, "rate": "0", "turn": true }   // 站立不移动，但允许随摇杆转向
+        { "range": { "x": 0, "y": 999 }, "rateX": "0", "rateY": "0", "turn": true }   // 站立不移动，但允许随摇杆转向
       ]
     },
     {
@@ -39,10 +48,10 @@
         { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill1", "skill2"], "priority": 0 }   // 含 move 自身：按住时每帧自我维持
       ],
       "commands": [
-        { "keySequence": ["Move"] }                      // Move 是状态键：摇杆当前有任意方向即满足，不查输入历史
+        { "hold": ["Move"] }                             // 摇杆当前有任意方向即满足
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 999 }, "rate": "1", "turn": true }   // 全速跟随摇杆，朝向跟随摇杆左右
+        { "range": { "x": 0, "y": 999 }, "rateX": "1", "rateY": "1", "turn": true }   // 全速跟随摇杆，朝向跟随摇杆左右
       ]
     },
 
@@ -62,15 +71,18 @@
       "tempBeCancelledTag": [                            // 临时取消窗口模板 (由 tempBeCancelledTagTurnOn 按 id 开启)
         { "id": "atk4_hit", "startFrames": 6, "cancelTag": ["skill"], "priority": 5 }         // startFrames：从开启时刻起持续多少帧
       ],
-      "commands": [                                      // 触发本动作的按键序列
-        { "keySequence": ["Attack"], "validInSec": "0.2" }   // keySequence：CommandKey 名称 (按下 Attack / 松开 AttackRelease / 方向 Forward 等)；validInSec：整套序列有效秒数
+      "commands": [                                      // 触发指令 (任意一条满足即可)
+        { "press": ["Attack"], "validInSec": "0.2" },    // 点按：0.2 秒内按下过 (窗口打开前点的也算)
+        { "hold": ["Attack"] }                           // 按住：长按普攻时取消窗口一打开就接本段
       ],
-      "inputAcceptance": [                               // 摇杆移动速度接受比率
-        { "range": { "x": 0, "y": 3 }, "rate": "0.2" }    // 第 0~3 帧保留 20% 移动速度
+      "inputAcceptance": [                               // 摇杆移动接受：rateX 横向 / rateY 纵深分别乘各自移动速度 (留空为 0)；多段重叠时各轴取最小
+        { "range": { "x": 0, "y": 1 }, "rateX": "0", "rateY": "0", "turn": true },   // 第 0~1 帧：不移动，朝向跟随摇杆左右 (推左出招即朝左；正上 / 正下不改变朝向)
+        { "range": { "x": 2, "y": 5 }, "rateX": "0", "rateY": "0.5" }               // 第 2~5 帧：只允许纵深走位 (50%)，横向锁定
       ],
       "rootMotion": [                                    // 根运动分段：每段按自己的帧区间生效，水平走缓动位移，竖直只走速度模型
         { "frameRange": { "x": 2, "y": 8 }, "moveX": "0.6", "tweenMethod": "Linear" },   // 第 2~8 帧前进 0.6 (moveX 面朝方向为正, moveY 纵深；多段同帧相加)
-        { "frameRange": { "x": 6, "y": 6 }, "velocityZ": "6" },                          // 第 6 帧把竖直速度设为 6 (起跳；再写一段即二段跳)
+        { "frameRange": { "x": 6, "y": 6 }, "velocityZ": "6", "velocityX": "3" },      // 第 6 帧起跳：竖直速度 6；同时设置水平惯性 3 单位/秒 (面朝方向前方为正，velocityY 为纵深)
+                                                                                         // 惯性与动画帧无关地持续，直到切换到其他动画 / 落地 / 撞墙 ("0" 表示清零)
         { "frameRange": { "x": 10, "y": 13 }, "accelerationZ": "30" },                   // 第 10~13 帧附加 +30 (重力 40 时净 -10，形成滞空)
         { "frameRange": { "x": 16, "y": 20 }, "moveX": "-0.2", "tweenMethod": "Slowly" } // 第 16~20 帧后撤 0.2，先快后慢
       ],
@@ -93,6 +105,8 @@
           "hitStun": "0.4",                              // 僵直秒数 (仅在未击飞时生效)
           "launchVelocity": "9",                         // 击飞竖直初速度 (>0 即击飞)
           "airLaunchVelocity": "5",                      // 目标已在空中时改用的速度 (留空沿用 launchVelocity)
+          "launchVelocityX": "2",                        // 击飞时给目标的水平惯性 (攻击者面朝方向前方为正，launchVelocityY 为纵深)；
+                                                         // 击飞流程中 (含触地弹起) 保持，弹不起倒地时清除；每次击飞覆盖目标原有惯性
           "armorBreak": "None",                          // 破霸等级：None / Skill / Super / KingKong；>= 目标霸体才产生受击反应
           "canHitLying": true,                           // 能否命中倒地目标 (扫地)；带击飞速度时会把倒地目标挑起
           "canHitSameTarget": 1,                         // 同一目标最多命中次数
@@ -101,6 +115,83 @@
           "launchActionChange": { "changeType": 1, "param": "hurt_toair", "priority": 100 },    // 击飞时的受击动作 (可省略，默认 hurt_toair)
           "tempBeCancelledTagTurnOn": ["atk4_hit"]       // 命中后为自己开启的临时取消窗口 id
         }
+      ]
+    },
+
+    // ==================== 普攻派生：推上摇杆 + 普攻 ====================
+    {
+      "id": "attack2_up",
+      "animKey": "attack_2_up",
+      "catalog": "Attack",
+      "priority": 20,                                    // 高于普通 attack2 (10)：推着上时两者都满足，按优先级取本动作；不推则只有 attack2 满足
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "attack2", "startFormFrame": 0, "priority": 0 }   // 与 attack2 共用标签：上一段放行 attack2 的窗口同样放行本动作
+      ],
+      "commands": [
+        { "hold": ["Up"], "press": ["Attack"], "validInSec": "0.2" },   // 推着上 (含左上 / 右上) + 点普攻
+        { "hold": ["Up", "Attack"] }                                     // 推着上 + 按住普攻 (长按连段时同样走派生)
+      ]
+    },
+
+    // ==================== 技能派生 (技能划平 A)：技能释放中按普攻，接技能专属派生 ====================
+    {
+      "id": "skill1_follow",
+      "animKey": "skill_A_follow",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill1_follow", "startFormFrame": 0, "priority": 0 }   // 专属标签：只有 skill1 开放 { "cancelTag": ["skill1_follow"] } 的窗口能进入
+      ],
+      "commands": [
+        { "press": ["Attack"], "validInSec": "0.2" }
+      ]
+      // 在 skills.json 中列进 skill1 该段的 followActions：派生期间仍算释放技能，离开后才开始 CD，命中也计入该技能的查克拉
+    },
+
+    // ==================== 蓄力技能：按下进入蓄力，松开按蓄力时长释放 ====================
+    {
+      "id": "skill1_charge",
+      "animKey": "skill_A_charge",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "skill1_release_lv2",          // 蓄满 (播完) 自动重释放
+      "cancelTag": [
+        { "tag": "skill1", "startFormFrame": 0, "priority": 20 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 14 }, "cancelTag": ["skill1_release_lv1"], "priority": 0 },   // 前 15 帧松开：轻释放
+        { "frameRange": { "x": 15, "y": 999 }, "cancelTag": ["skill1_release_lv2"], "priority": 0 }  // 之后松开：重释放
+      ],
+      "commands": [
+        { "press": ["Skill1"], "validInSec": "0.2" }
+      ]
+    },
+    {
+      "id": "skill1_release_lv1",
+      "animKey": "skill_A_release",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill1_release_lv1", "startFormFrame": 0, "priority": 0 }
+      ],
+      "commands": [
+        { "release": ["Skill1"], "validInSec": "0.1" }   // 松开技能1 (进入蓄力前就已松开也算：松开记录不随动作切换清除)
+      ]
+    },
+    {
+      "id": "skill1_release_lv2",
+      "animKey": "skill_A_release_full",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill1_release_lv2", "startFormFrame": 0, "priority": 0 }
+      ],
+      "commands": [
+        { "release": ["Skill1"], "validInSec": "0.1" }
       ]
     },
 
@@ -118,7 +209,13 @@
         { "frameRange": { "x": 34, "y": 39 }, "cancelTag": ["move", "attack1"], "priority": 0 }   // 后摇可被移动/普攻取消
       ],
       "commands": [
-        { "keySequence": ["Down", "Skill2"], "validInSec": "0.2" }   // 下 + 技能2
+        { "hold": ["Down"], "press": ["Skill2"], "validInSec": "0.2" }   // 推着下 + 技能2
+      ],
+      "events": [                                        // 动作时间轴事件 (处理到该帧时触发一次，中途切入不补发)
+        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },   // 跟随锚点的特效，动作结束即回收
+        { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx", "anchor": "", "offset": { "x": 0, "y": 0 } },   // 生成物 (spawns.json)，位置 = 锚点 + 像素偏移
+        { "frame": 6, "type": "Camera", "asset": "impact_heavy" },   // 镜头效果：impact / impact_heavy
+        { "frame": 6, "type": "Buff", "asset": "rage" }              // 给自己添加一层 Buff (buffs.json)
       ],
       "armorPhase": [                                    // 霸体区间
         { "range": { "x": 0, "y": 30 }, "level": "Super" },   // 等级：None / Skill / Super / KingKong / Invincible

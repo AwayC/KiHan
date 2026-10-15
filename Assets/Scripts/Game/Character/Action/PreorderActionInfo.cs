@@ -24,11 +24,17 @@ namespace KiHan.Logic
         /// </summary>
         public int FromFrame;
 
-        public PreorderActionInfo(string actionId, int priority = 0, int fromFrame = 0)
+        /// <summary>
+        /// 从当前动作的当前帧继续 (同一段动画的变体动作)：视为同一段动画，不清除水平惯性
+        /// </summary>
+        public bool KeepFrame;
+
+        public PreorderActionInfo(string actionId, int priority = 0, int fromFrame = 0, bool keepFrame = false)
         {
             ActionId = actionId;
             Priority = priority;
             FromFrame = fromFrame;
+            KeepFrame = keepFrame;
         }
     }
 }

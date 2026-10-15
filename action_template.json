@@ -10,7 +10,7 @@
         { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move"], "priority": 0 }
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 999 }, "rate": "0", "turn": true }
+        { "range": { "x": 0, "y": 999 }, "rateX": "0", "rateY": "0", "turn": true }
       ]
     },
     {
@@ -27,10 +27,10 @@
         { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move"], "priority": 0 }
       ],
       "commands": [
-        { "keySequence": ["Move"] }
+        { "hold": ["Move"] }
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 999 }, "rate": "1", "turn": true }
+        { "range": { "x": 0, "y": 999 }, "rateX": "1", "rateY": "1", "turn": true }
       ]
     },
     { "id": "hurt_1",     "animKey": "Hurt_1",     "catalog": "Hurt" },

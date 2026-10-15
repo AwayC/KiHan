@@ -1,0 +1,39 @@
+// 生成物配置示例 (带注释，仅供查阅；实际配置放在 Resources/Characters/<角色>/spawns.json，去掉注释)
+// 对应 DTO：SpawnDataContainer / SpawnData / CloneScriptStepData (Assets/Scripts/Game/Character/Spawn/)
+// 生成物复用 CharacterObj + ActionController，动作库与主人角色共用 (动作写在同一个 actions.json 中)
+// 由动作事件触发：actions.json 中 { "frame": 4, "type": "Spawn", "spawnId": "xxx", "anchor": "锚点", "offset": { "x": 0, "y": 0 } }
+// 生成位置 = 触发者在该帧的锚点 (留空为脚底) + 像素偏移 (x 随朝向镜像)；继承主人的阵营与朝向
+{
+  "data": [
+    // ==================== 简单实体 (投射物 / 特效型攻击体) ====================
+    {
+      "id": "naruto_skill2_fx",                          // 生成物 id (动作事件 spawnId 引用)
+      "type": "Simple",                                  // Simple：不可受击、不接收输入；动作链走完 (当前动作播完且没有 autoNext、不在等待落地) 或寿命到期即回收
+      "initialActionId": "skill2_fx",                    // 生成后进入的动作 (攻击盒 / 事件 / RootMotion 都在该动作里配置)
+      "lifeTime": "3",                                   // 寿命秒数，留空表示不限；Simple 一般靠动作链结束回收，寿命作为兜底
+      "prewarm": 2                                       // 开局预建的实例数 (同屏可能同时存在的上限)；不足时局内补建并输出警告 (会产生分配)
+    },
+
+    // ==================== 角色实体 (分身 / 召唤物) ====================
+    {
+      "id": "naruto_clone",
+      "type": "Actor",                                   // Actor：可被命中、有独立生命值，由大脑注入输入，具备完整的取消 / 受击流程
+      "initialActionId": "idle",                         // 生成后进入的动作
+      "despawnActionId": "clone_vanish",                 // 寿命到期时播放的消失动作 (期间无敌，播完回收)；留空则到期直接回收
+      "lifeTime": "5",                                   // 寿命秒数
+      "hp": "300",                                       // 生命值 (留空沿用角色默认值)；归零当帧立即回收
+      "brain": "Script",                                 // 大脑：None (不注入输入，只走动作链) / Script (按脚本注入按键)
+      "script": [                                        // 脚本：从生成后第 frame 个逻辑帧起，按住 buttons 与方向 dir 共 hold 帧
+        { "frame": 2, "hold": 1, "buttons": ["Attack"] },                  // 第 2 帧按下普攻 (按下 / 松开事件与玩家输入语义一致)
+        { "frame": 12, "hold": 1, "buttons": ["Attack"] },                 // 再按一次，走普攻连段的取消窗口
+        { "frame": 30, "hold": 10, "buttons": [], "dir": ["Forward"] },    // 第 30~39 帧推摇杆向前 (Forward / Backward 按分身当前朝向换算；可与 Up / Down 组合成斜向)
+        { "frame": 40, "hold": 1, "buttons": ["Skill1"] }                  // 分身没有技能控制器：技能动作不受 CD 限制，只看取消窗口与指令
+      ],
+      "prewarm": 3
+    }
+  ]
+}
+
+// 归属：生成物的 Owner 为最初的玩家角色，命中事件 HitEvent.OwnerId 为主人 (伤害跳字颜色按主人区分)；
+//       由技能动作生成的，命中时按来源技能为主人获得查克拉 (与本体共享每轮一次的获得机会)。
+// 编号：生成物 EntityId 从 1000 起按生成顺序递增，双端一致；回收的实例在同一帧内不会被复用。

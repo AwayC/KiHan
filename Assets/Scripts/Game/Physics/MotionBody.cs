@@ -29,7 +29,9 @@ namespace KiHan.Logic
     /// 表现层映射见 BattleViewSpace (逻辑层不感知相机)
     ///
     /// 运动规则：
-    /// 1. 水平面 (x, y)：由曲线位移驱动 (RootMotion 曲线 / ForceMove / 摇杆输入)，只受地图边界墙约束
+    /// 1. 水平面 (x, y)：曲线位移 (RootMotion 曲线 / ForceMove / 摇杆输入) + 水平惯性速度 (VelocityX / VelocityY)，只受地图边界墙约束
+    ///    惯性由动作 (rootMotion 的 velocityX / velocityY) 或击飞 (launchVelocityX / launchVelocityY) 设置，撞墙 / 到达纵深边界时对应分量清零；
+    ///    何时清除由角色决定 (切换动画、落地、被抓，击飞流程中保留)
     /// 2. 竖直 (z)：不使用任何曲线，只有速度模型
     ///    - 起跳/击飞：直接设置竖直速度 (Launch)
     ///    - 动作附加加速度 (RootMotionSegment.accelerationZ) 与重力合成：a = 附加加速度 - 重力 × GravityScale
@@ -50,6 +52,14 @@ namespace KiHan.Logic
         /// 竖直速度 (单位/秒，向上为正)，供击飞等需要初速度的场景使用
         /// </summary>
         public FP VelocityZ = FP.Zero;
+
+        /// <summary>
+        /// 水平惯性速度 (世界空间，单位/秒；x 横向, y 纵深)
+        /// </summary>
+        public FP VelocityX = FP.Zero;
+        public FP VelocityY = FP.Zero;
+
+        public bool HasPlanarVelocity => VelocityX != FP.Zero || VelocityY != FP.Zero;
 
         /// <summary>
         /// 重力倍率 (保护机制加重下坠等)
@@ -82,8 +92,8 @@ namespace KiHan.Logic
             bool wasOnGround = Position.z <= FP.Zero;
             FPVector3 pos = Position;
 
-            pos.x += planarDelta.x;
-            pos.y += planarDelta.y;
+            pos.x += planarDelta.x + VelocityX * dt;
+            pos.y += planarDelta.y + VelocityY * dt;
 
             // 合加速度 = 动作附加加速度 - 重力；地面上只有合加速度向上时才会离地
             FP accel = extraAccelerationZ - gravity * GravityScale;
@@ -109,7 +119,14 @@ namespace KiHan.Logic
                 evt |= PhysicsEvent.LeftGround;
             }
 
-            if (map != null) evt |= map.ClampPlanar(ref pos);
+            if (map != null)
+            {
+                FP unclampedY = pos.y;
+                evt |= map.ClampPlanar(ref pos);
+                // 撞到边界：对应方向的惯性清零
+                if ((evt & (PhysicsEvent.HitWallLeft | PhysicsEvent.HitWallRight)) != 0) VelocityX = FP.Zero;
+                if (pos.y != unclampedY) VelocityY = FP.Zero;
+            }
 
             Position = pos;
             return evt;
@@ -123,10 +140,27 @@ namespace KiHan.Logic
             VelocityZ = velocityZ;
         }
 
+        /// <summary>
+        /// 设置水平惯性速度 (世界空间)
+        /// </summary>
+        public void SetPlanarVelocity(FP velocityX, FP velocityY)
+        {
+            VelocityX = velocityX;
+            VelocityY = velocityY;
+        }
+
+        public void ClearPlanarVelocity()
+        {
+            VelocityX = FP.Zero;
+            VelocityY = FP.Zero;
+        }
+
         public void Reset(FPVector3 position)
         {
             Position = position;
             VelocityZ = FP.Zero;
+            VelocityX = FP.Zero;
+            VelocityY = FP.Zero;
             GravityScale = FP.One;
             LastImpactSpeed = FP.Zero;
         }

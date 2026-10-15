@@ -11,6 +11,8 @@ namespace KiHan.Logic
     /// 竖直 (z 高度)：不使用曲线，只用速度模型
     ///   - velocityZ：在 frameRange.x 帧把竖直速度设置为该值 (起跳 / 二段跳 / 下砸；"0" 表示清零竖直速度)
     ///   - accelerationZ：在 frameRange 内附加竖直加速度，与重力合成后积分 (= 重力即抵消重力，顶点处即悬停；> 重力即向上推升)
+    /// 水平惯性：velocityX / velocityY 在 frameRange.x 帧设置水平惯性速度 (x 面朝方向前方, y 纵深；"0" 表示清零)，
+    ///   之后与动画帧无关地持续移动，直到切换到其他动画、落地或撞到边界 (击飞流程中保留，见 CharacterObj)
     /// </summary>
     [Serializable]
     public struct RootMotionSegment
@@ -46,6 +48,17 @@ namespace KiHan.Logic
         /// 附加竖直加速度 (单位/秒²，向上为正)，逻辑帧只覆盖区间一部分时按覆盖帧数折算
         /// </summary>
         public FP accelerationZ;
+
+        /// <summary>
+        /// 是否在 frameRange.x 帧设置水平惯性速度
+        /// </summary>
+        public bool hasPlanarVelocity;
+
+        /// <summary>
+        /// 设置的水平惯性速度 (单位/秒；x 面朝方向前方为正，随朝向镜像；y 纵深)
+        /// </summary>
+        public FP velocityX;
+        public FP velocityY;
 
         public bool HasMove => moveX != FP.Zero || moveY != FP.Zero;
 
