@@ -1,0 +1,1993 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95f210864e3ce8a479f06198085e388a, type: 3}
+  m_Name: frameLib
+  m_EditorClassIdentifier: 
+  DefaultHurtBox:
+    Center: {x: 0, y: 60}
+    Size: {x: 60, y: 140}
+    Side: 80
+    Tag: 
+  DefaultHitBox:
+    Center: {x: 40, y: 60}
+    Size: {x: 60, y: 60}
+    Side: 80
+    Tag: 
+  SidePresets: 32000000500000006400000096000000
+  AllFrames:
+  - Name: 3tob_aoyi2_3tob_aoyi2_0000@60
+    Sprite: {fileID: 21300000, guid: e0b29cd8a011b794699422a42a450af7, type: 3}
+    Offset: {x: -35.837006, y: 166.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0002@60
+    Sprite: {fileID: 21300000, guid: 3ee99d2179f7d1c4ab3a458f09495a6d, type: 3}
+    Offset: {x: -13.837006, y: 159.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0004@60
+    Sprite: {fileID: 21300000, guid: e5a3d340820155e469ff0169f198c7aa, type: 3}
+    Offset: {x: 20.162994, y: 153.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0006@60
+    Sprite: {fileID: 21300000, guid: 00219e7057289d241b4930d484071ac3, type: 3}
+    Offset: {x: 2.1629028, y: 170.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0008@60
+    Sprite: {fileID: 21300000, guid: e2f8245bdc921514b935af694a4cbe3d, type: 3}
+    Offset: {x: 15.162903, y: 162.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0010@60
+    Sprite: {fileID: 21300000, guid: 99eb3845d3d47dd44b6c9525e6109615, type: 3}
+    Offset: {x: -5.8370056, y: 155.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0012@60
+    Sprite: {fileID: 21300000, guid: 3b21da3acf6fa55479fac9e404a4e172, type: 3}
+    Offset: {x: 13.662994, y: 155.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0014@60
+    Sprite: {fileID: 21300000, guid: 678bb579daaba9b499b7a66786003535, type: 3}
+    Offset: {x: -5.8370056, y: 174.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0018@60
+    Sprite: {fileID: 21300000, guid: 70a1dbf6d7b29384c93d9d80742747c5, type: 3}
+    Offset: {x: -41.337006, y: 151.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0020@60
+    Sprite: {fileID: 21300000, guid: eef52afff1563e14dbc6f9d695020d9f, type: 3}
+    Offset: {x: -72.3371, y: 127.073}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0022@60
+    Sprite: {fileID: 21300000, guid: cc22ef21a7159014d8b09a6b96784ea3, type: 3}
+    Offset: {x: -59.337097, y: 161.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0024@60
+    Sprite: {fileID: 21300000, guid: 5a25e66f91e5b7c4da82a0f9c30f8979, type: 3}
+    Offset: {x: -96.8371, y: 146.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0026@60
+    Sprite: {fileID: 21300000, guid: 7fb9e23c945f4334aa954fcee1bd3b24, type: 3}
+    Offset: {x: -92.3371, y: 127.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0028@60
+    Sprite: {fileID: 21300000, guid: 781f5e5d3807483489833d542e2bb4c6, type: 3}
+    Offset: {x: -112.8371, y: 104.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0030@60
+    Sprite: {fileID: 21300000, guid: 2edf06e594710744aaed888594793446, type: 3}
+    Offset: {x: -107.837006, y: 130.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0032@60
+    Sprite: {fileID: 21300000, guid: 0451eafef2c468e41b8d936d1458a9bd, type: 3}
+    Offset: {x: -112.337006, y: 152.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0034@60
+    Sprite: {fileID: 21300000, guid: 391c5f141e2e2e94dadd55502f32e292, type: 3}
+    Offset: {x: -100.837006, y: 130.57309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0036@60
+    Sprite: {fileID: 21300000, guid: 2ddfea94682e6b846abf2e1ba8c86515, type: 3}
+    Offset: {x: -110.8371, y: 105.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0038@60
+    Sprite: {fileID: 21300000, guid: 74599442089ae7146906fc01a570d1dd, type: 3}
+    Offset: {x: -125.337006, y: 112.073}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi2_3tob_aoyi2_0040@60
+    Sprite: {fileID: 21300000, guid: 789cfdbbaa2780e41a917bc4be165dcf, type: 3}
+    Offset: {x: -116.837006, y: 119.07309}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0005@80
+    Sprite: {fileID: 21300000, guid: 91699fc3c37b0b14193cf13cfc11666b, type: 3}
+    Offset: {x: 1.0424004, y: 115.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0007@80
+    Sprite: {fileID: 21300000, guid: 88bf9cd9eb8062942ac9b4f33f6f3bf0, type: 3}
+    Offset: {x: 0.04240036, y: 116.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0009@80
+    Sprite: {fileID: 21300000, guid: 9a9766aafeb7f914bb256d3bc1a684d8, type: 3}
+    Offset: {x: 2.0424004, y: 116.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0011@80
+    Sprite: {fileID: 21300000, guid: c30a1e8a12f74dc49a9af127fbd3904d, type: 3}
+    Offset: {x: 1.5424004, y: 115.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0013@80
+    Sprite: {fileID: 21300000, guid: a3b3f83e20b340a46869f008d92473ad, type: 3}
+    Offset: {x: 13.148201, y: 66.43829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0014@80
+    Sprite: {fileID: 21300000, guid: 2388ea2d3f940094787b2896ea8e029d, type: 3}
+    Offset: {x: 9.148102, y: 64.93829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0015@80
+    Sprite: {fileID: 21300000, guid: aa311545e642db84daebae6a48b07122, type: 3}
+    Offset: {x: 10.148201, y: 66.43829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0016@80
+    Sprite: {fileID: 21300000, guid: 0c60a0cddb17b4645b4d0e45154a2a60, type: 3}
+    Offset: {x: 15.148102, y: 67.43829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0017@80
+    Sprite: {fileID: 21300000, guid: c07221c00dccdbc4eaf4343b36348097, type: 3}
+    Offset: {x: 8.648102, y: 68.93829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0018@80
+    Sprite: {fileID: 21300000, guid: 46a0fd8cacb8aee49954e99085040115, type: 3}
+    Offset: {x: 6.648201, y: 67.43829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0019@80
+    Sprite: {fileID: 21300000, guid: cf3c8a5209b4d6641b5cb9cb8bca40f3, type: 3}
+    Offset: {x: 11.148201, y: 66.43829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0020@80
+    Sprite: {fileID: 21300000, guid: 590c7e1afb733074883a1c4d55de24b9, type: 3}
+    Offset: {x: 9.648102, y: 64.43829}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_aoyi_3tob_aoyi_0021@80
+    Sprite: {fileID: 21300000, guid: 60e3c7aca029f3c41be8716a574f6760, type: 3}
+    Offset: {x: 14.648102, y: 63.438293}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0002
+    Sprite: {fileID: 21300000, guid: 9bbf6aed287266a4f81297484c7e72b7, type: 3}
+    Offset: {x: -2.6731033, y: 147.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0003
+    Sprite: {fileID: 21300000, guid: 8544177d6c819d04ea4c628334e79f0b, type: 3}
+    Offset: {x: -4.1731033, y: 146.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0005
+    Sprite: {fileID: 21300000, guid: cd2cf3a504b9ce244aaf5716c4d3cec7, type: 3}
+    Offset: {x: -12.173103, y: 137.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0007
+    Sprite: {fileID: 21300000, guid: cdc68dcd118277347a189c37a47fdf5b, type: 3}
+    Offset: {x: 32.3269, y: 141.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0010
+    Sprite: {fileID: 21300000, guid: a2e5f78d32756b04c9ffe1d68a4c1dfb, type: 3}
+    Offset: {x: 19.326897, y: 143.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0011
+    Sprite: {fileID: 21300000, guid: a898ac83ee65d1b4095415c2581e8ebf, type: 3}
+    Offset: {x: 28.8269, y: 144.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0015
+    Sprite: {fileID: 21300000, guid: 51f99d947ca80bf48aa194313b1302e4, type: 3}
+    Offset: {x: 31.826897, y: 145.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0018
+    Sprite: {fileID: 21300000, guid: 0276c5ed48f4764429bfbd50c632c76f, type: 3}
+    Offset: {x: 14.326897, y: 148.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0021
+    Sprite: {fileID: 21300000, guid: 42612ef71048216419be8c46f37de8a2, type: 3}
+    Offset: {x: 2.8268967, y: 151.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack1_3tob_attack1_0024
+    Sprite: {fileID: 21300000, guid: 4d20ac69f5c5d6145828f425f67fb980, type: 3}
+    Offset: {x: -1.1731033, y: 148.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0001
+    Sprite: {fileID: 21300000, guid: 152cdde8f6d4ee341afdcc2e514eee77, type: 3}
+    Offset: {x: 23.848, y: 144.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0003
+    Sprite: {fileID: 21300000, guid: e4fe36e908f3c0d42bfe7332d70ff8ce, type: 3}
+    Offset: {x: 16.0429, y: 140.11569}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0005
+    Sprite: {fileID: 21300000, guid: ef21b8bad5c1e3c409e7b7986c00464e, type: 3}
+    Offset: {x: 15.326897, y: 99.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0006
+    Sprite: {fileID: 21300000, guid: 493a9d995a2c86b4193afcaf623efe57, type: 3}
+    Offset: {x: 17.326897, y: 98.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0008
+    Sprite: {fileID: 21300000, guid: cfbe94e6faed1a2469556cedcf95e2f2, type: 3}
+    Offset: {x: -10.673096, y: 106.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0009
+    Sprite: {fileID: 21300000, guid: 9c7e6afc4711a3045878004d64dc1821, type: 3}
+    Offset: {x: -8.673096, y: 100.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0010
+    Sprite: {fileID: 21300000, guid: a52bb354bbe52ad43a98ff855dc13082, type: 3}
+    Offset: {x: -4.1731033, y: 111.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0012
+    Sprite: {fileID: 21300000, guid: 804ce660b762aa44f87484edeb60ce32, type: 3}
+    Offset: {x: 34.826897, y: 105.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0015
+    Sprite: {fileID: 21300000, guid: 77b8665cd2ddb30498d9ba34720e3c69, type: 3}
+    Offset: {x: 34.326897, y: 108.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0018
+    Sprite: {fileID: 21300000, guid: 7c9b71fdadbfdec40b26c9f5a39f75c3, type: 3}
+    Offset: {x: 32.826897, y: 110.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0021
+    Sprite: {fileID: 21300000, guid: 8e4ca07405c99204fac1db4d2d49d7f9, type: 3}
+    Offset: {x: 36.326897, y: 109.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0022
+    Sprite: {fileID: 21300000, guid: f0b436e74b37f3a45a3fd5d099905ca8, type: 3}
+    Offset: {x: 31.326897, y: 113.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0024
+    Sprite: {fileID: 21300000, guid: 0f510ba63f61754458ea254c8d9cad93, type: 3}
+    Offset: {x: 18.826897, y: 125.202515}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0026
+    Sprite: {fileID: 21300000, guid: baae097409d4aac48964163f831dcb1f, type: 3}
+    Offset: {x: 5.3268967, y: 137.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0028
+    Sprite: {fileID: 21300000, guid: 29c18b3bb378f3c48a596e03b1dda2a5, type: 3}
+    Offset: {x: -11.173103, y: 148.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack2_3tob_attack2_0032
+    Sprite: {fileID: 21300000, guid: f25b52168370a7749a0499a506b0da0b, type: 3}
+    Offset: {x: 2.3268967, y: 151.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_0_3tob_attack3_0_0002
+    Sprite: {fileID: 21300000, guid: ae70876f525c0154f863d6eca35cfb67, type: 3}
+    Offset: {x: 44.982597, y: 120.0612}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_0_3tob_attack3_0_0003
+    Sprite: {fileID: 21300000, guid: 3ebf0b93f20c7aa4d8c18be73a3925af, type: 3}
+    Offset: {x: 31.482498, y: 134.56119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_0_3tob_attack3_0_0007
+    Sprite: {fileID: 21300000, guid: da8d185fd55af214fa22a64c5e93c294, type: 3}
+    Offset: {x: 62.4826, y: 157.06131}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_0_3tob_attack3_0_0008
+    Sprite: {fileID: 21300000, guid: 2d13c35379ceb6b45befc35310603429, type: 3}
+    Offset: {x: 43.482597, y: 150.56119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0004
+    Sprite: {fileID: 21300000, guid: 947a6da1aa57a6942974fde3fd3e1bd7, type: 3}
+    Offset: {x: -27.017502, y: 130.06119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0006
+    Sprite: {fileID: 21300000, guid: ad96589d6922ae44cbe50dbf8e4582e0, type: 3}
+    Offset: {x: 71.9825, y: 95.0612}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0008
+    Sprite: {fileID: 21300000, guid: dac3a30e7739dad469892288b0f9f2aa, type: 3}
+    Offset: {x: 0.48249817, y: 150.06119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0011
+    Sprite: {fileID: 21300000, guid: 38d5f25eec8609940856900067500a48, type: 3}
+    Offset: {x: -22.017502, y: 159.56119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0013
+    Sprite: {fileID: 21300000, guid: 7b3194e250d204b4cba6e68c344723fd, type: 3}
+    Offset: {x: -18.017395, y: 152.06131}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0016
+    Sprite: {fileID: 21300000, guid: 2dd80275effc380459a4280884e7fb44, type: 3}
+    Offset: {x: -9.517502, y: 144.06119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0018
+    Sprite: {fileID: 21300000, guid: c8ed626cdc99f8947a5ecec9dc4e2522, type: 3}
+    Offset: {x: -5.517502, y: 143.06119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0022
+    Sprite: {fileID: 21300000, guid: b5de9f47c266d42479bbf5f0d414ce2c, type: 3}
+    Offset: {x: -50.5175, y: 145.06119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0024
+    Sprite: {fileID: 21300000, guid: c3399a80874f03e448988b72d5b4c1e9, type: 3}
+    Offset: {x: -14.017395, y: 114.5612}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0026
+    Sprite: {fileID: 21300000, guid: 3b1e4661a726b6240b07afe6a1c53985, type: 3}
+    Offset: {x: 2.9825974, y: 105.5612}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0030
+    Sprite: {fileID: 21300000, guid: 94b0a8a24c03be64aa6c60228b860cc6, type: 3}
+    Offset: {x: 24.482498, y: 168.56119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0031
+    Sprite: {fileID: 21300000, guid: 7a2bfcde2703ca8408a553615f6d0bef, type: 3}
+    Offset: {x: -4.517502, y: 141.56131}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0035
+    Sprite: {fileID: 21300000, guid: 12955eb657b940f4bbac561a484177f4, type: 3}
+    Offset: {x: 21.482498, y: 139.56119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack3_3tob_attack3_0039
+    Sprite: {fileID: 21300000, guid: b0a5d706344475845a8c0618334d4583, type: 3}
+    Offset: {x: 16.982601, y: 142.06119}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0003
+    Sprite: {fileID: 21300000, guid: 3280ed1d8f517484f8d3f0a10fbcd438, type: 3}
+    Offset: {x: -4.6731033, y: 140.95999}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0006
+    Sprite: {fileID: 21300000, guid: f1121cd4982af6846bd2afe189417a98, type: 3}
+    Offset: {x: 0.82689667, y: 151.95999}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0008
+    Sprite: {fileID: 21300000, guid: 7651733fc49c7e94f852508aeab9ee2d, type: 3}
+    Offset: {x: -12.173103, y: 152.95999}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0011
+    Sprite: {fileID: 21300000, guid: 8fd56b4502e7ebb478a9ce8a3596b7b9, type: 3}
+    Offset: {x: 21.326897, y: 123.96001}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0014
+    Sprite: {fileID: 21300000, guid: ebbc1623d582cc54196dfb6484704947, type: 3}
+    Offset: {x: 9.326897, y: 135.95999}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0017
+    Sprite: {fileID: 21300000, guid: c2db479e040038549b0ae0632ac727d6, type: 3}
+    Offset: {x: 8.826897, y: 137.45999}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0020
+    Sprite: {fileID: 21300000, guid: 8d6072709a38d954bb4448d058620f67, type: 3}
+    Offset: {x: -3.6730957, y: 136.44}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0023
+    Sprite: {fileID: 21300000, guid: d73c8f92888e31842a4fda10aab04e1c, type: 3}
+    Offset: {x: -0.67310333, y: 153.88}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0027
+    Sprite: {fileID: 21300000, guid: 4756bba4e8694d049b9b618d13b31a0d, type: 3}
+    Offset: {x: -30.173096, y: 110.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0030
+    Sprite: {fileID: 21300000, guid: 84b928b7382b7bb4c94d5216f46c5f15, type: 3}
+    Offset: {x: -30.673103, y: 123.70261}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0033
+    Sprite: {fileID: 21300000, guid: a4b8f3a9a1d509d4484d691374bccc49, type: 3}
+    Offset: {x: -15.173103, y: 137.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack4_3tob_attack4_0036
+    Sprite: {fileID: 21300000, guid: c986afeeeffab5b4cb924c488b2c7f02, type: 3}
+    Offset: {x: -7.1731033, y: 142.2026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0000@89
+    Sprite: {fileID: 21300000, guid: 52840215b2ed5c74ca65decbbc8d4543, type: 3}
+    Offset: {x: 34.188004, y: 75.496}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0004@89
+    Sprite: {fileID: 21300000, guid: 03b17f3ad245a8b46b7d841de639f30f, type: 3}
+    Offset: {x: 34.688004, y: 75.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0007@89
+    Sprite: {fileID: 21300000, guid: 3f9871ff52e9e3946a856fabb5290085, type: 3}
+    Offset: {x: 77.688, y: 90.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0010@89
+    Sprite: {fileID: 21300000, guid: 2fb067cad9b34074c8982bc53fbc3f65, type: 3}
+    Offset: {x: 71.188, y: 103.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0013@89
+    Sprite: {fileID: 21300000, guid: 3ed19f490ba61ac409a2eab6ab1e043c, type: 3}
+    Offset: {x: -48.311996, y: 101.496}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0019@89
+    Sprite: {fileID: 21300000, guid: fdecf61bf7a1e574c9636607a024977b, type: 3}
+    Offset: {x: 145.188, y: 99.496}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0022@89
+    Sprite: {fileID: 21300000, guid: da901797ead1c0a4a976029fb5c71460, type: 3}
+    Offset: {x: 240.68811, y: 104.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0025@89
+    Sprite: {fileID: 21300000, guid: d6b8d28e90f35494fa8a13de77e7ec76, type: 3}
+    Offset: {x: 135.188, y: 87.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0028@89
+    Sprite: {fileID: 21300000, guid: 1ea87b98bdc9052468c0a61e92b7951c, type: 3}
+    Offset: {x: 28.688004, y: 88.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0034@89
+    Sprite: {fileID: 21300000, guid: 588fb8012dc573540b227a6c37eaa66c, type: 3}
+    Offset: {x: 6.6880035, y: 87.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0040@89
+    Sprite: {fileID: 21300000, guid: 19d041ae529feb74cb22da9a8c89bca3, type: 3}
+    Offset: {x: 3.1880035, y: 93.496}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0043@89
+    Sprite: {fileID: 21300000, guid: 2b1ee4de3b1748944a1b1cc0b46ba96e, type: 3}
+    Offset: {x: 73.188, y: 122.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0046@89
+    Sprite: {fileID: 21300000, guid: e1e3da4f4e35f344186d902590beb4e6, type: 3}
+    Offset: {x: -14.311996, y: 132.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0049@89
+    Sprite: {fileID: 21300000, guid: a2382f128152ea4429f4ce835726a1a8, type: 3}
+    Offset: {x: 5.1880035, y: 132.996}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_attack5_3tob_attack5_0052@89
+    Sprite: {fileID: 21300000, guid: cccf2f533233737449efc204693f8eb2, type: 3}
+    Offset: {x: -0.81199646, y: 132.496}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0004
+    Sprite: {fileID: 21300000, guid: bb4593334283cba4f92002feea4926f8, type: 3}
+    Offset: {x: 6.8269005, y: 145.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0007
+    Sprite: {fileID: 21300000, guid: 49f0905aa02b51e4387b368260f78c5d, type: 3}
+    Offset: {x: 7.3269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0010
+    Sprite: {fileID: 21300000, guid: 2c0e90135c3b75643be1335b1b557cd8, type: 3}
+    Offset: {x: 6.8269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0013
+    Sprite: {fileID: 21300000, guid: 51a219e600bf7a24ca20967be897ccd8, type: 3}
+    Offset: {x: 6.3269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0035
+    Sprite: {fileID: 21300000, guid: 9c04f624c635e8d4a859253b9e35f071, type: 3}
+    Offset: {x: 7.3269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0039
+    Sprite: {fileID: 21300000, guid: da74584f9a02f9e40833d80b773a9ddc, type: 3}
+    Offset: {x: 8.3269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0043
+    Sprite: {fileID: 21300000, guid: 9277f8c4db4e90747ab247e428c186ec, type: 3}
+    Offset: {x: 7.3269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0047
+    Sprite: {fileID: 21300000, guid: 2dbc69f04bbd2994d9dc9ea4121ce20e, type: 3}
+    Offset: {x: 5.8269005, y: 144.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0051
+    Sprite: {fileID: 21300000, guid: 909866ed7e73ccf4e81b2ec988e79c62, type: 3}
+    Offset: {x: 5.3269005, y: 145.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0055
+    Sprite: {fileID: 21300000, guid: 40e6ac5e24c100348976ba8f199f9a61, type: 3}
+    Offset: {x: 5.8269005, y: 145.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0059
+    Sprite: {fileID: 21300000, guid: c38ca0fed5c119042824aa67df0cdaec, type: 3}
+    Offset: {x: 5.8269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0063
+    Sprite: {fileID: 21300000, guid: 05c700a95b9588e40a9b807da1a52e22, type: 3}
+    Offset: {x: 5.8269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA1_3tob_skA1_0067
+    Sprite: {fileID: 21300000, guid: 0c77e2f52529d5a418d7efe740150c57, type: 3}
+    Offset: {x: 6.3269005, y: 144.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0017
+    Sprite: {fileID: 21300000, guid: ff75ff729c40da34ba6e6c880a2214dc, type: 3}
+    Offset: {x: 8.326897, y: 137.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0020
+    Sprite: {fileID: 21300000, guid: d406090144113484e8d9d4dc8799bb34, type: 3}
+    Offset: {x: 4.3268967, y: 98.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0021
+    Sprite: {fileID: 21300000, guid: 005d9f8d9f846464eb8dc0c6ba8b36b3, type: 3}
+    Offset: {x: 19.326897, y: 90.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0022
+    Sprite: {fileID: 21300000, guid: 816bee3aea0c6e9459527f895cd1346c, type: 3}
+    Offset: {x: 20.326897, y: 109.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0025
+    Sprite: {fileID: 21300000, guid: b106394c5711a98408b2da5a9f4ee41b, type: 3}
+    Offset: {x: 16.826897, y: 107.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0027
+    Sprite: {fileID: 21300000, guid: c239111c5d6c59a4fbd009b71f641d23, type: 3}
+    Offset: {x: 4.8268967, y: 95.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0029
+    Sprite: {fileID: 21300000, guid: e687f9cd2169eaa46a41513620f0e373, type: 3}
+    Offset: {x: 14.826897, y: 100.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0032
+    Sprite: {fileID: 21300000, guid: b4ec0cb57749f2549ad498b21a5a236b, type: 3}
+    Offset: {x: 27.826897, y: 101.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0034
+    Sprite: {fileID: 21300000, guid: 11e3eda9cf61eda4f93d6278b32e2aa3, type: 3}
+    Offset: {x: 20.826897, y: 101.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0035
+    Sprite: {fileID: 21300000, guid: 7483bb46701c5534b94d09fc8fd70fdf, type: 3}
+    Offset: {x: 20.326897, y: 100.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0036
+    Sprite: {fileID: 21300000, guid: 9cc38040df6de9545aace3b72115302d, type: 3}
+    Offset: {x: 16.826897, y: 114.20261}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA2_3tob_skA2_0039
+    Sprite: {fileID: 21300000, guid: 799d3da66c44070459273225f176f911, type: 3}
+    Offset: {x: 7.3268967, y: 143.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0001
+    Sprite: {fileID: 21300000, guid: b347c79f4c95db54c997d8071b770bd3, type: 3}
+    Offset: {x: 11.326897, y: 114.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0002
+    Sprite: {fileID: 21300000, guid: 687b8d141ef18484e8ae4ca93f82b61d, type: 3}
+    Offset: {x: -6.6731033, y: 117.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0003
+    Sprite: {fileID: 21300000, guid: fc3bb97a572c6514b977f180993d83d7, type: 3}
+    Offset: {x: -1.1731033, y: 129.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0004
+    Sprite: {fileID: 21300000, guid: a42a19e3d53a17241917282c1f141449, type: 3}
+    Offset: {x: -17.673103, y: 138.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0009
+    Sprite: {fileID: 21300000, guid: af02e009feeaafb42b6fa8b2a5e9216a, type: 3}
+    Offset: {x: -15.673103, y: 140.70001}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0011
+    Sprite: {fileID: 21300000, guid: 94f20c7b0059b2b45808f701f986a9bb, type: 3}
+    Offset: {x: -21.673103, y: 143.20001}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0015
+    Sprite: {fileID: 21300000, guid: f4097b5ea986bef4f89e47424e77d367, type: 3}
+    Offset: {x: -13.673103, y: 139.4}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0017
+    Sprite: {fileID: 21300000, guid: f0a57042f50ea84449bbfbea85c4b5fa, type: 3}
+    Offset: {x: -16.173103, y: 144.68}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0021
+    Sprite: {fileID: 21300000, guid: 95d6aa2ddeffdae49bfcfd94b36cbeb8, type: 3}
+    Offset: {x: -0.17310333, y: 159.18}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0028
+    Sprite: {fileID: 21300000, guid: 1ad2eaac96bf3c4418c2c4c241de5671, type: 3}
+    Offset: {x: -9.8797, y: 172.04999}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0028@89
+    Sprite: {fileID: 21300000, guid: c45e2c5ca2c965d4499f3c2a2706e6ae, type: 3}
+    Offset: {x: -8.6185, y: 154.62311}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0034@89
+    Sprite: {fileID: 21300000, guid: 53bbebefeb8bf8c4d992481eb6ddfcd0, type: 3}
+    Offset: {x: -8.331299, y: 104.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0040@89
+    Sprite: {fileID: 21300000, guid: f3e380817eab68d40a94bc8def73b014, type: 3}
+    Offset: {x: -20.831299, y: 112.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0043@89
+    Sprite: {fileID: 21300000, guid: 803e35973c4e1f7479caca38bcb68b89, type: 3}
+    Offset: {x: 1.1687012, y: 120.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0046@89
+    Sprite: {fileID: 21300000, guid: 731ca0e93c54a5349a7b65ba4073b949, type: 3}
+    Offset: {x: 2.6687012, y: 126.92029}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3_0024 _1
+    Sprite: {fileID: 21300000, guid: 8824f571577457b48bbc8528018c2118, type: 3}
+    Offset: {x: -0.17310333, y: 164.18}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3zn0013
+    Sprite: {fileID: 21300000, guid: 233832657a2bbc541b1f91e3f7c9d389, type: 3}
+    Offset: {x: 41.8269, y: 213.68}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3zn0015
+    Sprite: {fileID: 21300000, guid: c9573e90f5fe64e49bc3115a52090b48, type: 3}
+    Offset: {x: 47.8269, y: 223.68}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3zn0017
+    Sprite: {fileID: 21300000, guid: e2bd9c335162d0a4eb9c06ddad7aa973, type: 3}
+    Offset: {x: 29.3269, y: 252.18}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA3_3tob_skA3zn0019
+    Sprite: {fileID: 21300000, guid: e29e5ba4b3d9e994f8cc8578a95097c2, type: 3}
+    Offset: {x: 10.8269005, y: 274.18}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0000@89
+    Sprite: {fileID: 21300000, guid: 7d9a111efc65f374a91293cb032ae92b, type: 3}
+    Offset: {x: -10.831299, y: 107.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0002@89
+    Sprite: {fileID: 21300000, guid: ec47fcf6c3fcdc2499574dd9d2a8baf1, type: 3}
+    Offset: {x: 7.668701, y: 123.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0004@89
+    Sprite: {fileID: 21300000, guid: bc2dcb5520e662d41b2a00a0952d0ed9, type: 3}
+    Offset: {x: 9.668701, y: 128.42029}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0006@89
+    Sprite: {fileID: 21300000, guid: b2e6152bea5513846b2d66cdb6920dde, type: 3}
+    Offset: {x: -3.8312988, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0007@89
+    Sprite: {fileID: 21300000, guid: e34c2a3b972794247ac07463d0cd5467, type: 3}
+    Offset: {x: -2.8312988, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0008@89
+    Sprite: {fileID: 21300000, guid: bd5aee4ad60ed1e4e8bb4ad4f7ca57c7, type: 3}
+    Offset: {x: -1.3312988, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0009@89
+    Sprite: {fileID: 21300000, guid: 2c8ae74ec8a0d8b41932efd193dd2abf, type: 3}
+    Offset: {x: -2.3312988, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0010@89
+    Sprite: {fileID: 21300000, guid: 0c488350d4ad6c64fb2d2cbeaa89d22b, type: 3}
+    Offset: {x: -0.33129883, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0011@89
+    Sprite: {fileID: 21300000, guid: a420a20034de8c549ad81b64caf45b8d, type: 3}
+    Offset: {x: -7.331299, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0012@89
+    Sprite: {fileID: 21300000, guid: 1e52f2ab592f63248ace28e3a34071f1, type: 3}
+    Offset: {x: -9.331299, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0013@89
+    Sprite: {fileID: 21300000, guid: b2aad593b22d44f4ebc8fb18fe2b7770, type: 3}
+    Offset: {x: -4.831299, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0014@89
+    Sprite: {fileID: 21300000, guid: d0db0d02760e33b4180e0f308d8614f2, type: 3}
+    Offset: {x: -2.8312988, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0015@89
+    Sprite: {fileID: 21300000, guid: 6cce09a33207cbb48b1e97bb6b0c31a5, type: 3}
+    Offset: {x: 0.6687012, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0016@89
+    Sprite: {fileID: 21300000, guid: bf6124fc5f769ca4ca15e2b470577e5b, type: 3}
+    Offset: {x: -3.8312988, y: 127.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0019@89
+    Sprite: {fileID: 21300000, guid: 2e4eeb1d89015fb4ebc4b9df650d8dda, type: 3}
+    Offset: {x: 3.1687012, y: 130.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA4_3tob_skA4_0020@89
+    Sprite: {fileID: 21300000, guid: ad6df1220b55ca2408d09f20abc3fa38, type: 3}
+    Offset: {x: 3.6687012, y: 131.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA5_3tob_skA5_0033
+    Sprite: {fileID: 21300000, guid: ddcca6f15b08ad249be9a53d0fbd5553, type: 3}
+    Offset: {x: 5.8268967, y: 145.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skA5_3tob_skA5_0034
+    Sprite: {fileID: 21300000, guid: 7d0ca552140b18d4caaaba34b8d4c5d2, type: 3}
+    Offset: {x: 8.326897, y: 146.20251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0003@89
+    Sprite: {fileID: 21300000, guid: ddc07cf52aea8d44f9db4ec08fcb444b, type: 3}
+    Offset: {x: -1.8312988, y: 124.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0005@89
+    Sprite: {fileID: 21300000, guid: 4524b70059f95234a8465b42059cba9a, type: 3}
+    Offset: {x: -1.8312988, y: 120.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0007@89
+    Sprite: {fileID: 21300000, guid: 895be7a893dd6134e853cf0b616d61f7, type: 3}
+    Offset: {x: -4.331299, y: 119.4203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0011@89
+    Sprite: {fileID: 21300000, guid: c0e17f0859626aa47908b4ef7d58f4cc, type: 3}
+    Offset: {x: 12.168701, y: 120.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0015@89
+    Sprite: {fileID: 21300000, guid: 74862a3c650ceaa44a49853621cf7bf7, type: 3}
+    Offset: {x: -20.831299, y: 140.92029}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0017@89
+    Sprite: {fileID: 21300000, guid: f5e7fcdc185ac754d9ae21a8aca808a4, type: 3}
+    Offset: {x: -44.3313, y: 118.100006}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0020@89
+    Sprite: {fileID: 21300000, guid: a4c76fa811893364795c6b8405ff5c82, type: 3}
+    Offset: {x: 58.6687, y: 143.6}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0022@89
+    Sprite: {fileID: 21300000, guid: 567b5289004be0444936b556a35b6aa5, type: 3}
+    Offset: {x: 22.668701, y: 186.6}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0027@89
+    Sprite: {fileID: 21300000, guid: cfcbf4340bf8e234ba5918ab893d1e7b, type: 3}
+    Offset: {x: -12.831299, y: 190.6}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0030@89
+    Sprite: {fileID: 21300000, guid: 6fab4b70e28d96f419f15dcca5cdac7e, type: 3}
+    Offset: {x: -24.831299, y: 175}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0033@89
+    Sprite: {fileID: 21300000, guid: 5209de5a9372d1845998b3666f77c5ab, type: 3}
+    Offset: {x: -34.3313, y: 139.9}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0036@89
+    Sprite: {fileID: 21300000, guid: aa043c3f84a4c5c4a9fe46d950c80efb, type: 3}
+    Offset: {x: -18.831299, y: 94.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0039@89
+    Sprite: {fileID: 21300000, guid: 4dffd92a1f38a654cbf6c33ab6b06994, type: 3}
+    Offset: {x: 26.668701, y: 82.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0042@89
+    Sprite: {fileID: 21300000, guid: 275e4aa0ab7edcf4998dcfdb7a94b57c, type: 3}
+    Offset: {x: 32.1687, y: 83.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0045@89
+    Sprite: {fileID: 21300000, guid: 979bb39bdd58fec46aeadfdc4e816686, type: 3}
+    Offset: {x: 23.668701, y: 101.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0048@89
+    Sprite: {fileID: 21300000, guid: f62cc061c84278049b77d5e4fd8a8cda, type: 3}
+    Offset: {x: 12.668701, y: 118.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0050@89
+    Sprite: {fileID: 21300000, guid: 5e8f9f65a8a2ead478b648041aa1b2e2, type: 3}
+    Offset: {x: 13.168701, y: 130.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0055@89
+    Sprite: {fileID: 21300000, guid: faa38db7af41e474db6a7ea99e8abad9, type: 3}
+    Offset: {x: -14.331299, y: 130.42029}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillA_3tob_skillA_0058@89
+    Sprite: {fileID: 21300000, guid: 953e884da0963544a9fbbb924db1fb6d, type: 3}
+    Offset: {x: -4.331299, y: 130.42029}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0004@89
+    Sprite: {fileID: 21300000, guid: 456dd0514831bb54ebe075238791a1c0, type: 3}
+    Offset: {x: 4.9729996, y: 131.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0007@89
+    Sprite: {fileID: 21300000, guid: b62fd91b2019c6746bcf3d1a0507fcaa, type: 3}
+    Offset: {x: 25.473, y: 126.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0010@89
+    Sprite: {fileID: 21300000, guid: f85e251de15a2a94eaf7f696f30949b0, type: 3}
+    Offset: {x: 10.973, y: 149.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0014@89
+    Sprite: {fileID: 21300000, guid: 207988dea042a3740946de0a147739da, type: 3}
+    Offset: {x: -14.527, y: 125.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0016@89
+    Sprite: {fileID: 21300000, guid: cd66e8cb87b635a4f8aa2fc1cd4a7e61, type: 3}
+    Offset: {x: 111.973, y: 83.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0019@89
+    Sprite: {fileID: 21300000, guid: 335c59b1cf8f3c84ab2a807101eecd2d, type: 3}
+    Offset: {x: 54.473, y: 99.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0023@89
+    Sprite: {fileID: 21300000, guid: 729488270204cd74ab2099ccfa5a50b9, type: 3}
+    Offset: {x: 67.973, y: 96.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0026@89
+    Sprite: {fileID: 21300000, guid: f29de8905ba376548ada32e8b5baa8af, type: 3}
+    Offset: {x: 49.973, y: 96.1315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB1_3tob_skillB1_0028@89
+    Sprite: {fileID: 21300000, guid: 47edbf2269257804490b478040ce60b9, type: 3}
+    Offset: {x: 31.973, y: 95.6315}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0006@89
+    Sprite: {fileID: 21300000, guid: 388e59f40a0d9164a8b8e8fec3bd53ef, type: 3}
+    Offset: {x: 31.168701, y: 105.4203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0010@89
+    Sprite: {fileID: 21300000, guid: 380c0e3672f345047bfe01680cd85c6a, type: 3}
+    Offset: {x: 24.668701, y: 114.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0013@89
+    Sprite: {fileID: 21300000, guid: b69b54822a30e894e9a1b971fb7d4014, type: 3}
+    Offset: {x: 17.168701, y: 104.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0016@89
+    Sprite: {fileID: 21300000, guid: 382460ed7b9bc7e43aec27256de077d5, type: 3}
+    Offset: {x: 18.168701, y: 98.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0027@89
+    Sprite: {fileID: 21300000, guid: 72e92d9d1ee04414c849410055d05d37, type: 3}
+    Offset: {x: -4.831299, y: 110.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0030@89
+    Sprite: {fileID: 21300000, guid: a1e9d97382b52fe42a3226c5dce96f36, type: 3}
+    Offset: {x: -1.8312988, y: 105.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0032@89
+    Sprite: {fileID: 21300000, guid: 35fc9fc5160f26a4381f4587450c1d71, type: 3}
+    Offset: {x: -5.331299, y: 98.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0035@89
+    Sprite: {fileID: 21300000, guid: 4ea32d24605437045a5fd5313aada8c7, type: 3}
+    Offset: {x: -3.8312988, y: 99.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0044@89
+    Sprite: {fileID: 21300000, guid: b13fda6a397363048bcce1634d0e1693, type: 3}
+    Offset: {x: 10.668701, y: 99.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0045@89
+    Sprite: {fileID: 21300000, guid: 2ce8f100cb9af5e48acefa267674eae6, type: 3}
+    Offset: {x: 11.668701, y: 99.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0047@89
+    Sprite: {fileID: 21300000, guid: 38ec5b689023a3f468a38547978247d9, type: 3}
+    Offset: {x: 12.168701, y: 99.4203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0053@89
+    Sprite: {fileID: 21300000, guid: 0bb9bfd4ca298ca4d99b8f5a4cd75bbc, type: 3}
+    Offset: {x: 15.668701, y: 102.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0056@89
+    Sprite: {fileID: 21300000, guid: c921100fbc07ff54c9624b2bbc2ed5e0, type: 3}
+    Offset: {x: 17.668701, y: 123.4202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillB2_3tob_skillB2_0059@89
+    Sprite: {fileID: 21300000, guid: 40ef4e73859a303439ea2b53a4d62c2b, type: 3}
+    Offset: {x: 13.668701, y: 128.9202}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC2_3tob_skillC2_0020@80
+    Sprite: {fileID: 21300000, guid: 05048113cdc574a43afb7af855d905cd, type: 3}
+    Offset: {x: 8.042397, y: 117.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC2_3tob_skillC2_0021@80
+    Sprite: {fileID: 21300000, guid: e5eb9b8058bea524d876e9a10bdc407a, type: 3}
+    Offset: {x: 0.042396545, y: 117.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC2_3tob_skillC2_0022@80
+    Sprite: {fileID: 21300000, guid: 89681fb17e45f7b49b32356d0420b0b3, type: 3}
+    Offset: {x: -2.4575996, y: 115.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC2_3tob_skillC2_0023@80
+    Sprite: {fileID: 21300000, guid: a6cb7adc634b8184096cdc009910e425, type: 3}
+    Offset: {x: -9.457603, y: 115.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC2_3tob_skillC2_0024@80
+    Sprite: {fileID: 21300000, guid: 01bfef7c7ee947d46ac77c7a762826a2, type: 3}
+    Offset: {x: -8.957603, y: 115.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC3_3tob_skillC3_0016@80
+    Sprite: {fileID: 21300000, guid: 3619012ea1bdb3540b9bb1cca44a0e95, type: 3}
+    Offset: {x: 16.0424, y: 116.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC3_3tob_skillC3_0017@80
+    Sprite: {fileID: 21300000, guid: ee1340103ee9f8643847757f15628622, type: 3}
+    Offset: {x: 14.542397, y: 115.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC3_3tob_skillC3_0019@80
+    Sprite: {fileID: 21300000, guid: 00720a12b7c83d840ae22d972c6f1c1d, type: 3}
+    Offset: {x: 15.042397, y: 116.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC3_3tob_skillC3_0020@80
+    Sprite: {fileID: 21300000, guid: 4dfa4aa78247ba9429639399c6f72330, type: 3}
+    Offset: {x: 16.0424, y: 116.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0002@80
+    Sprite: {fileID: 21300000, guid: c0ed580488fb779409beb70e99b79d66, type: 3}
+    Offset: {x: -1.9575996, y: 119.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0003@80
+    Sprite: {fileID: 21300000, guid: 1dbe81a61e57703429c540871ad0a91e, type: 3}
+    Offset: {x: 14.0424, y: 120.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0019@80
+    Sprite: {fileID: 21300000, guid: bdceb60753eceed4eafe0e87286f148f, type: 3}
+    Offset: {x: 15.5424, y: 117.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0021@80
+    Sprite: {fileID: 21300000, guid: b8cefea9cd93bce4ba320ae33e870eb7, type: 3}
+    Offset: {x: -8.457603, y: 98.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0023@80
+    Sprite: {fileID: 21300000, guid: ed25a6e44e986804e8422a8c07f71d0c, type: 3}
+    Offset: {x: 107.3147, y: 85.1055}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0025@80
+    Sprite: {fileID: 21300000, guid: 69380c4a6ba93314b87ea40ce34fbb7d, type: 3}
+    Offset: {x: -3.9576035, y: 129.40302}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0027@80
+    Sprite: {fileID: 21300000, guid: a6dff56913171004fbc8d880c3a352d7, type: 3}
+    Offset: {x: 27.5424, y: 123.403015}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0030@80
+    Sprite: {fileID: 21300000, guid: 44934ca737b0f9a4f9f640224093b382, type: 3}
+    Offset: {x: 23.5424, y: 117.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0033@80
+    Sprite: {fileID: 21300000, guid: 0efeffd9e23a0d14781b110b525cc240, type: 3}
+    Offset: {x: 20.5424, y: 125.903015}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0034@80
+    Sprite: {fileID: 21300000, guid: 0c6ff6aa71950f941a659ab2509f8050, type: 3}
+    Offset: {x: 45.0424, y: 104.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0035@80
+    Sprite: {fileID: 21300000, guid: af808a04ea7cf484cb2f5078ff9c0fdb, type: 3}
+    Offset: {x: 19.5424, y: 109.903}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tob_skillC_3tob_skillC_0037@80
+    Sprite: {fileID: 21300000, guid: 03bce7da051bc0a49a50156580a5805e, type: 3}
+    Offset: {x: 4.0424004, y: 114.403}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0000@89
+    Sprite: {fileID: 21300000, guid: a3138a3a51ea86d4a98a73a3991d8292, type: 3}
+    Offset: {x: -2.148697, y: 123.78169}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0001@89
+    Sprite: {fileID: 21300000, guid: d6d13905a6d967144bd08d5743a4fada, type: 3}
+    Offset: {x: -6.6789017, y: 114.56889}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0002@89
+    Sprite: {fileID: 21300000, guid: ef67079b962c25f479aff23ad592b13c, type: 3}
+    Offset: {x: 2.1623993, y: 96.4946}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0003@89
+    Sprite: {fileID: 21300000, guid: 33b96f6c3497d7642ae6d2ca4f855792, type: 3}
+    Offset: {x: 12.8853, y: 121.4203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0004
+    Sprite: {fileID: 21300000, guid: e804f66aec847924494d9f466a82de7d, type: 3}
+    Offset: {x: -21.673103, y: 170.70251}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0005@89
+    Sprite: {fileID: 21300000, guid: bd0acefc8441368459f7858a2c5987a8, type: 3}
+    Offset: {x: 4.3752975, y: 48.920303}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0006@89
+    Sprite: {fileID: 21300000, guid: d04b8a520e5d67c4eb68e1a5d19eb003, type: 3}
+    Offset: {x: 5.0439987, y: 77.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0007@89
+    Sprite: {fileID: 21300000, guid: fff423092c1bcc640a93c49fbe0b85f8, type: 3}
+    Offset: {x: 14.168701, y: 139.42029}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0008@89
+    Sprite: {fileID: 21300000, guid: 56751273b6d6d394491ba5e790eccbb8, type: 3}
+    Offset: {x: 12.172501, y: 108.56889}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0009@89
+    Sprite: {fileID: 21300000, guid: f841cd409e2066b4cbb748ab5f96c928, type: 3}
+    Offset: {x: -33.8313, y: 67.9203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0010@89
+    Sprite: {fileID: 21300000, guid: 9ebf1dc416a823946b60b632306bb188, type: 3}
+    Offset: {x: -11.554199, y: 52.207397}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0011@89
+    Sprite: {fileID: 21300000, guid: f8b836915b7a56e438dc0331b2df881d, type: 3}
+    Offset: {x: -4.831299, y: 37.920303}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0022@89
+    Sprite: {fileID: 21300000, guid: 9c5cf7570bbb3f040b27e198a52686a4, type: 3}
+    Offset: {x: -7.831299, y: 105.4203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnormal_3tobnormal_0026@89
+    Sprite: {fileID: 21300000, guid: 2f31730c5e70cc543aa569b78664655c, type: 3}
+    Offset: {x: -13.331299, y: 57.420197}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0000
+    Sprite: {fileID: 21300000, guid: 36c22c06435491544b0904ff17d874e8, type: 3}
+    Offset: {x: 5.3269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0003
+    Sprite: {fileID: 21300000, guid: 21c47d4cb8cf182449bcadf32624cab7, type: 3}
+    Offset: {x: 5.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0006
+    Sprite: {fileID: 21300000, guid: e0a530c09f616e34a8966012d2d6fd28, type: 3}
+    Offset: {x: 5.3269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0009
+    Sprite: {fileID: 21300000, guid: f46cf8e9ce571924eb0032f619245f06, type: 3}
+    Offset: {x: 4.3269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0012
+    Sprite: {fileID: 21300000, guid: da8874d7a380aba4dba1e060063cdcf0, type: 3}
+    Offset: {x: 3.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0015
+    Sprite: {fileID: 21300000, guid: 566bccbdfef53c94495cd7ed71222b4a, type: 3}
+    Offset: {x: 3.3269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0018
+    Sprite: {fileID: 21300000, guid: f2d62a09247717d44aec43a70732f949, type: 3}
+    Offset: {x: 3.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0021
+    Sprite: {fileID: 21300000, guid: 750f4d8d74f025a488fface10a3bfe53, type: 3}
+    Offset: {x: 3.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0024
+    Sprite: {fileID: 21300000, guid: b0598666137539a49803b50bbb504300, type: 3}
+    Offset: {x: 3.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0027
+    Sprite: {fileID: 21300000, guid: d91fc3260f301d04ab61b4963f76d915, type: 3}
+    Offset: {x: 3.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0030
+    Sprite: {fileID: 21300000, guid: 8ec909ebcdad9e04b908c5ed46f7aedd, type: 3}
+    Offset: {x: 3.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobnut0_3tobnut0_0033
+    Sprite: {fileID: 21300000, guid: 4f9bef3d49439d940ae575322f511c8b, type: 3}
+    Offset: {x: 4.8269005, y: 145.7026}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0000
+    Sprite: {fileID: 21300000, guid: 1bc2547da0ae82b4d90cb3826b818d95, type: 3}
+    Offset: {x: -1.1731033, y: 102.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0001
+    Sprite: {fileID: 21300000, guid: fe9e89e7ec7541c4595d949ebfe36af0, type: 3}
+    Offset: {x: -4.6731033, y: 101.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0003
+    Sprite: {fileID: 21300000, guid: c6ad166ec92dd254fa0585e2771f3bf1, type: 3}
+    Offset: {x: -11.673096, y: 108.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0003@89
+    Sprite: {fileID: 21300000, guid: fb11735ef77d724419f57d5b91d5b891, type: 3}
+    Offset: {x: -4.831299, y: 93.4203}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0005
+    Sprite: {fileID: 21300000, guid: 845f8cd20645210459998d95e10aad98, type: 3}
+    Offset: {x: -11.673096, y: 109.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0007
+    Sprite: {fileID: 21300000, guid: fb102d32f0c961747bdc9f27c00b67ef, type: 3}
+    Offset: {x: -7.1731033, y: 96.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0008
+    Sprite: {fileID: 21300000, guid: 39b1bd8b0af22c64791eef56f3ea2583, type: 3}
+    Offset: {x: -5.1731033, y: 95.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0010
+    Sprite: {fileID: 21300000, guid: 2597ede5b7a4fac40a19a2d3ed006cee, type: 3}
+    Offset: {x: -1.6731033, y: 106.2025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: 3tobrun_3tobrun_0012
+    Sprite: {fileID: 21300000, guid: f891bdea73e301e49be44fa578e36bb2, type: 3}
+    Offset: {x: -6.6730957, y: 106.7025}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0000
+    Sprite: {fileID: 21300000, guid: 66455ccf6d575634daa47ffa320bdf59, type: 3}
+    Offset: {x: 28.990196, y: 141.66461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0004
+    Sprite: {fileID: 21300000, guid: a5473db58c8f95f419919459cf023f07, type: 3}
+    Offset: {x: 27.490196, y: 141.66461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0008
+    Sprite: {fileID: 21300000, guid: ed5abb50ba4d1a5468009ceba6e9951c, type: 3}
+    Offset: {x: 26.490196, y: 141.66461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0012
+    Sprite: {fileID: 21300000, guid: 04775ad8d66f00e4b9352199ec514690, type: 3}
+    Offset: {x: 26.490196, y: 142.16461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0016
+    Sprite: {fileID: 21300000, guid: d797c48d419acfe44a024cb6a100c92b, type: 3}
+    Offset: {x: 25.990196, y: 142.16461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0020
+    Sprite: {fileID: 21300000, guid: 324076e2c1df9244481060a532a31b40, type: 3}
+    Offset: {x: 26.490196, y: 142.16461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0024
+    Sprite: {fileID: 21300000, guid: 51a0abae340781f4880610707ffe845c, type: 3}
+    Offset: {x: 26.990196, y: 142.16461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0028
+    Sprite: {fileID: 21300000, guid: 6113a9b101bf5d44c9f0022f188099af, type: 3}
+    Offset: {x: 27.990196, y: 142.16461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0032
+    Sprite: {fileID: 21300000, guid: f666fa19d97f0694aa43f5fbf053da81, type: 3}
+    Offset: {x: 27.990196, y: 141.66461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle01_3tob_zhanjie0036
+    Sprite: {fileID: 21300000, guid: da032c7b7d8d4bf4784ca05de6b31e97, type: 3}
+    Offset: {x: 28.490196, y: 141.66461}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle02_3tob_zhanjie0043@89
+    Sprite: {fileID: 21300000, guid: c5ac7cb026613e94a8935d2b40ece061, type: 3}
+    Offset: {x: 29.4315, y: 127.34509}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle02_3tob_zhanjie0048@89
+    Sprite: {fileID: 21300000, guid: b95f2a79ecbad434f9cd5e4e544a0d79, type: 3}
+    Offset: {x: 29.9315, y: 127.34509}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle02_3tob_zhanjie0052@89
+    Sprite: {fileID: 21300000, guid: 34feeadfb124efe409627935de7bac23, type: 3}
+    Offset: {x: 29.9315, y: 127.34509}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle02_3tob_zhanjie0064@89
+    Sprite: {fileID: 21300000, guid: 89f2a58c8b6eaf34d95389d928f52394, type: 3}
+    Offset: {x: 28.9315, y: 127.34509}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle02_3tob_zhanjie0066@89
+    Sprite: {fileID: 21300000, guid: 3a8523a0a84eba149b545a4e1902d0c3, type: 3}
+    Offset: {x: 28.9315, y: 127.34509}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle02_3tob_zhanjie0068@89
+    Sprite: {fileID: 21300000, guid: 9068d722fa3971d4199e0aa796895ce6, type: 3}
+    Offset: {x: 28.4315, y: 127.34509}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []

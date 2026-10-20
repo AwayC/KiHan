@@ -104,7 +104,7 @@ static class Program
 
     static int Main()
     {
-        // 不配置 targetActionChange：僵直默认进入 hurt_1
+        // 不配置 hurtAction：僵直默认进入 hurt_1
         var normal = new AttackData { attack = "50", canHitSameTarget = 1, hitStun = "0.3" };
 
         Console.WriteLine("== 1. 霸体：目标 Super 霸体，普通攻击只扣血；破霸 Super 的攻击完整受击 ==");
@@ -169,16 +169,16 @@ static class Program
             Check(w2.HitEvents.Count == 1 && w2.HitEvents[0].Reaction == HitReaction.Lying, $"扫地命中, 反应={(w2.HitEvents.Count > 0 ? w2.HitEvents[0].Reaction.ToString() : "无")}");
             Check(t2.action.CurrentAction.id == "lie" && t2.Hurt == HurtState.Lying && F(t2.Hp) == 950f, $"保持倒地并扣血: {t2.action.CurrentAction.id}, Hp={F(t2.Hp)}");
 
-            var otgLaunch = otg; otgLaunch.launchVelocity = "6"; // 不配置 launchActionChange：默认 hurt_toair
+            var otgLaunch = otg; otgLaunch.launch = new LaunchData { z = "6" }; // 不配置 hurtAction：默认 hurt_toair
             var a3 = Make(1, 1, "0", "atk", Attack("atk", otgLaunch, 8));
             var t3 = Make(2, 2, "0.9", "idle");
             var w3 = WorldLying(a3, t3); Step(w3, 2);
             Check(t3.Hurt == HurtState.Launch && t3.action.CurrentAction.id == "hurt_toair" && F(t3.motion.Position.z) > 0, $"扫地挑起: {t3.Hurt}, {t3.action.CurrentAction.id}, z={F(t3.motion.Position.z):F3}");
         }
 
-        Console.WriteLine("== 4. 空中追击上挑：空中目标被 airLaunchVelocity=4 的攻击命中，竖直速度重置为 4 ==");
+        Console.WriteLine("== 4. 空中追击：空中目标被 air z=4 的攻击命中，竖直速度重置为 4；未配置 air 时使用全局默认 ==");
         {
-            var juggle = normal; juggle.airLaunchVelocity = "4"; juggle.canHitSameTarget = 1; 
+            var juggle = normal; juggle.air = new LaunchData { z = "4" }; juggle.canHitSameTarget = 1;
             var a = Make(1, 1, "0", "idle", Attack("atk", juggle, 8));
             var t = Make(2, 2, "0.9", "hurt_fall");
             var w = World(a, t);
@@ -190,6 +190,25 @@ static class Program
             Check(w.HitEvents.Count == 1 && w.HitEvents[0].Reaction == HitReaction.Launch, "空中命中 -> 击飞反应");
             Check(F(t.motion.VelocityZ) == 4f, $"竖直速度被重置为 4: vz={F(t.motion.VelocityZ):F3}");
             Check(t.action.CurrentAction.id == "hurt_inair", $"空中受击默认 hurt_inair: {t.action.CurrentAction.id}");
+
+            // 未配置 air 的普通攻击 (带 push) 命中浮空目标：按全局默认 z 5、向前 1 重设速度，push 不生效
+            var plain = normal; plain.push = new PushData { x = "2", inSec = "0.2" };
+            var a2 = Make(1, 1, "0", "idle", Attack("atk", plain, 8));
+            var t2 = Make(2, 2, "0.9", "hurt_fall");
+            var w2 = World(a2, t2);
+            t2.motion.Position = new FPVector3(FP.Parse("0.9"), FP.Zero, FP.Parse("0.5"));
+            t2.motion.Launch(FP.Parse("-3"));
+            t2.EnterLaunch();
+            a2.action.SetAllActions(a2.action.AllActions, "atk");
+            Step(w2);
+            float vz = F(t2.motion.VelocityZ), vx = F(t2.motion.VelocityX);
+            bool defaultAir = t2.Hurt == HurtState.Launch && t2.motion.VelocityZ == GameConfig.DefaultAirLaunch.z && t2.motion.VelocityX == GameConfig.DefaultAirLaunch.x;
+            float x0 = F(t2.motion.Position.x);
+            Step(w2, 3);
+            float dx = F(t2.motion.Position.x) - x0;
+            Check(defaultAir && dx > 0.09f && dx < 0.11f, $"未配置 air 用全局默认: vz={vz} vx={vx} (预期 5 / 1)，3 帧前移 {dx:F3} (预期 0.1，push 不生效)");
+            float expectVz = 5f - 3f * F(t2.gravity * t2.launchGravityScale) / 30f;
+            Check(System.Math.Abs(F(t2.motion.VelocityZ) - expectVz) < 1e-3f, $"击飞期间重力 ×0.7：3 帧后 vz={F(t2.motion.VelocityZ):F3} (预期 5-3×40×0.7/30={expectVz:F3})");
         }
 
         Console.WriteLine("== 5. 抓取 (锚点即抓取)：目标逐帧跟随帧锚点；跨动作保持；锚点消失即释放 ==");
@@ -262,7 +281,7 @@ static class Program
             Anchors["dgrab"] = f => new Vector2Int(60, 50);
             var grabAtk = new AttackData { attack = "20", canHitSameTarget = 1, grab = new GrabData { enabled = true } };
             var grab = Attack("grab", grabAtk, 9, "carry");
-            var throwAtk = new AttackData { attack = "50", canHitSameTarget = 1, launchVelocity = "8" };
+            var throwAtk = new AttackData { attack = "50", canHitSameTarget = 1, launch = new LaunchData { z = "8" }, air = new LaunchData { z = "8" } };
             var carry = Attack("carry", throwAtk, 9, "idle");
             carry.attackPhase = new[] { new AttackBoxTurnOnInfo { frameRanges = new[] { new FrameRange(6, 7) }, attackPhase = 0 } };
             var a = Make(1, 1, "0", "grab", grab, carry);
@@ -348,7 +367,7 @@ static class Program
             Check(landTick > 5, $"起跳后落地触发 onLand (第 {landTick} 帧)");
         }
 
-        Console.WriteLine("== 8. hitStun 为 0 且未配置 targetActionChange：不僵直也不切受击动作 ==");
+        Console.WriteLine("== 8. hitStun 为 0 且未配置 hurtAction：不僵直也不切受击动作 ==");
         {
             var poke = normal; poke.hitStun = "";
             var a = Make(1, 1, "0", "atk", Attack("atk", poke, 8));
@@ -524,7 +543,7 @@ static class Program
 
         Console.WriteLine("== 13. 浮空完整流程：toair -> inair -> fall -> 触地弹起(inair) -> fall -> 弹不起倒地 -> lie -> standup(无敌) -> idle(追加无敌) ==");
         {
-            var launcher = normal; launcher.launchVelocity = "10";
+            var launcher = normal; launcher.launch = new LaunchData { z = "10" };
             var a = Make(1, 1, "0", "atk", Attack("atk", launcher, 8));
             var b = Make(3, 1, "0", "idle", Attack("atk", normal, 8));
             var t = Make(2, 2, "0.9", "idle");
@@ -573,7 +592,9 @@ static class Program
             }
             string flow = string.Join(" > ", seq);
             Check(flow.StartsWith("hurt_toair > hurt_inair > hurt_fall > hurt_inair > hurt_fall > lie > standup > idle"), $"动作流: {flow}");
-            Check(bounces == 1 && System.Math.Abs(impact1 - 5f) < 0.2f, $"弹起 1 次，速度约 10×0.5=5: 弹起 {bounces} 次, 速度 {impact1:F3}");
+            // 落地速度 = 起跳速度 10 + 落地帧内多积分的部分 (至多一帧 g×0.7/30)，弹起速度 = 落地速度 × 0.5
+            float maxOver = 0.5f * F(t.gravity * t.launchGravityScale) / 30f;
+            Check(bounces == 1 && impact1 >= 5f && impact1 <= 5f + maxOver, $"弹起 1 次，速度 10×0.5=5 (+至多 {maxOver:F3}，击飞重力 ×0.7): 弹起 {bounces} 次, 速度 {impact1:F3}");
             Check(standupProbed && afterProbed && finalProbed, "起身/追加无敌/无敌结束 三段均已检查");
         }
 
@@ -596,7 +617,7 @@ static class Program
             p.input = new InputToCommand();
             p.motion.Reset(new FPVector3(FP.Parse("0.9"), FP.Zero, FP.Zero));
 
-            var launcher = normal; launcher.launchVelocity = "10";
+            var launcher = normal; launcher.launch = new LaunchData { z = "10" };
             var a = Make(1, 1, "0", "idle", Attack("atk", launcher, 8));
             var w = World(a, p);
             void Feed(byte dir, int n)
@@ -775,7 +796,7 @@ static class Program
                 var c = Make(1, 1, "0", "idle", jump);
                 c.action.anim.RegisterAnim(jump.animKey, Anim(frames, false));
                 c.FacingLeft = facingLeft;
-                c.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = jump.id, priority = 200 }, ForceDirection.Forward);
+                c.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = jump.id, priority = 200 });
                 return c;
             }
 
@@ -809,7 +830,7 @@ static class Program
                 $"空中切换到其他动画后惯性消失: 空中切 idle={airborneAtSwitch}, x 保持 {xAtSwitch:F3} -> {F(js.motion.Position.x):F3}");
 
             // 击飞惯性：速度 8 -> 触地 8×0.5=4 >= 3 弹起 (保留惯性) -> 触地 2 < 3 倒地 (清除)
-            var launch = new AttackData { attack = "10", launchVelocity = "8", launchVelocityX = "2", canHitSameTarget = 1 };
+            var launch = new AttackData { attack = "10", launch = new LaunchData { z = "8", x = "2" }, canHitSameTarget = 1 };
             var a = Make(1, 1, "0", "atk", Attack("atk", launch, 8));
             var t = Make(2, 2, "0.9", "idle");
             var wt = World(a, t);

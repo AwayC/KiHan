@@ -143,7 +143,12 @@ namespace KiHan.Logic
         /// <summary>
         /// 重力加速度 (定点数，单位/秒²)
         /// </summary>
-        public FP gravity = FP.Parse("40");
+        public FP gravity = FP.Parse("30");
+
+        /// <summary>
+        /// 被击飞 (受击浮空) 期间的重力倍率：击飞、空中受击、下落、触地弹起都按 gravity × 该倍率下落，跳跃等主动动作不受影响
+        /// </summary>
+        public FP launchGravityScale = FP.Parse("0.7");
 
         /// <summary>
         /// 最大生命值 (定点数)
@@ -415,6 +420,7 @@ namespace KiHan.Logic
                 motion.SetPlanarVelocity(FacingLeft ? -v.x : v.x, v.y);
             }
 
+            motion.GravityScale = Hurt == HurtState.Launch ? launchGravityScale : FP.One;
             LastPhysicsEvent = motion.Step(delta, action.ZAcceleration, gravity, deltaFP, map);
 
             // 落地兜底：空中动作或击飞状态在地面上 (从未真正离地，不会产生 Landed 事件) 时视同落地
@@ -625,7 +631,7 @@ namespace KiHan.Logic
             GrabbedBy = null;
             ReleaseGrab();
             action.Unlock();
-            action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(Spawn.despawnActionId, DespawnPriority), ForceDirection.Forward);
+            action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(Spawn.despawnActionId, DespawnPriority));
         }
 
         /// <summary>
@@ -661,7 +667,7 @@ namespace KiHan.Logic
         private void PreorderHurtFlow(string actionId, int priority = HurtActionIds.FlowPriority)
         {
             if (action == null || string.IsNullOrEmpty(actionId)) return;
-            action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(actionId, priority), ForceDirection.Forward);
+            action.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(actionId, priority));
         }
 
         /// <summary>
@@ -781,7 +787,7 @@ namespace KiHan.Logic
             {
                 ExitHurt();
             }
-            action?.PreorderActionByActionChangeInfo(releaseChange, ForceDirection.Forward);
+            action?.PreorderActionByActionChangeInfo(releaseChange);
         }
 
         /// <summary>

@@ -37,7 +37,7 @@
 1. **逻辑内核变量全量定点数化**：
    - **位移与速度**：`FPVector3`、`FPVector2`、`FP moveSpeedX` / `FP moveSpeedY` (横向与纵深各自独立，摇杆只有 8 方向，斜向不归一化)、`MoveInputAcceptance.rateX` / `rateY`（横向 / 纵深移动速度接受率）。
    - **重力与动力学**：`FP weight`、`_curWeight`、`MoveInfo.moveDistance`、`MoveInfo.inSec`。
-   - **战斗与命中时钟**：`AttackInfo.attack`（伤害）、`AttackInfo.hitStun`（硬直）、`AttackInfo.freeze`（卡帧）、`AttackInfo.hitSameTargetDelay`、`HitRecord.Cooldown`。
+   - **战斗与命中时钟**：`AttackInfo.attack`（伤害）、`AttackInfo.hitStun`（硬直）、`AttackInfo.launch` / `air`（击飞速度）、`AttackInfo.hitSameTargetDelay`、`HitRecord.Cooldown`。
    - **动作打断与预约**：`ActionCommand.validInSec`、`ActionChangeInfo.freezingAfterChange`、`PreorderActionInfo.FreezingAfterChangeAction`。
 2. **代码与配置初始化一律使用“纯字符串” (String-First Standard)**：
    - **核心原则**：不同 CPU 硬件（x86 vs ARM64）对浮点字面量（如 `0.15f`）计算存在 IEEE 754 硬件舍入差异，为保证 100% 确定性，**代码默认值和配置文件中的定点数必须声明为字符串**。
@@ -66,15 +66,9 @@
      "validInSec": "0.05",
      "rateX": "1.0",
      "hitStun": "0.12",
-     "freeze": "0.05",
      "hitSameTargetDelay": "1.0",
-     "pushPower": {
-       "moveX": "0.2",
-       "moveY": "0.0",
-       "moveZ": "0.0",
-       "inSec": "0.08",
-       "tweenMethod": "Slowly"
-     }
+     "push": { "x": "0.2", "y": "0", "inSec": "0.08", "tweenMethod": "Slowly" },
+     "launch": { "z": "9", "x": "2" }
    }
    ```
 

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: 3tobnut0_3tobnut0
+  m_EditorClassIdentifier: 
+  AnimName: 3tobnut0_3tobnut0
+  Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
+  Steps:
+  - FrameIndex: 244
+    Duration: 1
+  - FrameIndex: 245
+    Duration: 1
+  - FrameIndex: 246
+    Duration: 1
+  - FrameIndex: 247
+    Duration: 1
+  - FrameIndex: 248
+    Duration: 1
+  - FrameIndex: 249
+    Duration: 1
+  - FrameIndex: 250
+    Duration: 1
+  - FrameIndex: 251
+    Duration: 1
+  - FrameIndex: 252
+    Duration: 1
+  - FrameIndex: 253
+    Duration: 1
+  - FrameIndex: 254
+    Duration: 1
+  - FrameIndex: 255
+    Duration: 1

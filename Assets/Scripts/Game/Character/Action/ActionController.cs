@@ -73,11 +73,6 @@ namespace KiHan.Logic
         private List<PreorderActionInfo> _preorderActions = new List<PreorderActionInfo>(16);
 
         /// <summary>
-        /// 按 Catalog 挑选受击动作时复用的候选列表 (避免每次命中分配)
-        /// </summary>
-        private readonly List<ActionInfo> _catalogCandidates = new List<ActionInfo>();
-
-        /// <summary>
         /// 当前动作的 RootMotion 分段
         /// </summary>
         private RootMotionSegment[] _rootMotion = Array.Empty<RootMotionSegment>();
@@ -241,7 +236,7 @@ namespace KiHan.Logic
         {
             if ((evt & PhysicsEvent.Landed) != 0 && CurrentAction.onLand.changeType != ActionChangeType.Keep)
             {
-                PreorderActionByActionChangeInfo(CurrentAction.onLand, ForceDirection.Forward);
+                PreorderActionByActionChangeInfo(CurrentAction.onLand);
             }
         }
 
@@ -717,7 +712,7 @@ namespace KiHan.Logic
             }
         }
 
-        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo, ForceDirection forceDir)
+        public void PreorderActionByActionChangeInfo(ActionChangeInfo acInfo)
         {
             switch (acInfo.changeType)
             {
@@ -725,27 +720,17 @@ namespace KiHan.Logic
                     break;
 
                 case ActionChangeType.ChangeByCatalog:
-                    List<ActionInfo> actions = _catalogCandidates;
-                    actions.Clear();
-                    foreach (ActionInfo info in AllActions)
+                    // 按 catalog 取动作库中第一个匹配的动作
+                    foreach (ActionInfo picked in AllActions)
                     {
-                        if (info.catalog == acInfo.param) actions.Add(info);
-                    }
-
-                    if (actions.Count > 0)
-                    {
-                        ActionInfo picked = actions[0];
-                        if (PickActionMethod.Methods.ContainsKey(acInfo.param))
-                        {
-                            picked = PickActionMethod.Methods[acInfo.param](actions, forceDir);
-                        }
-
+                        if (picked.catalog != acInfo.param) continue;
                         _preorderActions.Add(new PreorderActionInfo(
                             picked.id,
                             acInfo.priority + picked.priority,
                             acInfo.keepFrame ? _curFrame : acInfo.fromFrame,
                             acInfo.keepFrame
                         ));
+                        break;
                     }
                     break;
 

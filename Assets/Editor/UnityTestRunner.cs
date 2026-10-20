@@ -315,7 +315,7 @@ namespace KiHan.Editor
                     foreach (AttackInfo atk in a.attacks)
                     {
                         if (atk.selfActionChange.changeType == ActionChangeType.ChangeToActionId) RequireAction(atk.selfActionChange.param, $"动作 {a.id} 的 selfActionChange");
-                        if (atk.targetActionChange.changeType == ActionChangeType.ChangeToActionId) RequireAction(atk.targetActionChange.param, $"动作 {a.id} 的 targetActionChange");
+                        RequireAction(atk.hurtAction, $"动作 {a.id} 的 hurtAction");
                     }
                 }
                 if (a.events == null) continue;

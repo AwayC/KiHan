@@ -33,8 +33,7 @@ static class Program
         anim.RegisterAnim("idle", Anim(4, new int[0]));
         var attack = new ActionInfo { id = "attack", animKey = "attack", autoNextActionId = "idle",
             attackPhase = new[] { new AttackBoxTurnOnInfo { frameRanges = new[] { new FrameRange(0, 11) }, attackPhase = 0 } },
-            attacks = new[] { new AttackData { attack = "10", canHitSameTarget = 1, hitStun = "0.4",
-                targetActionChange = new ActionChangeData { changeType = 1, param = "hurt_1", priority = 100 } }.ToRuntime() } };
+            attacks = new[] { new AttackData { attack = "10", canHitSameTarget = 1, hitStun = "0.4", hurtAction = "hurt_1" }.ToRuntime() } };
         var hurt1 = new ActionInfo { id = "hurt_1", animKey = "hurt_1", autoNextActionId = "idle" };
         var idle = new ActionInfo { id = "idle", animKey = "idle", autoNextActionId = "idle", keepPlayingAnim = true };
         var ac = new ActionController { anim = anim };

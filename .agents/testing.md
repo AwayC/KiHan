@@ -111,7 +111,7 @@ Tests/LogicTests/
 ### 3. JSON 加载 (`JsonUtility`)
 L1 中的模板加载用的是 `System.Text.Json`，与游戏实际使用的 `JsonUtility` 行为不完全一致，必须在 Unity 中复核：
 - [ ] `JsonUtility.FromJson<ActionDataContainer>(action_template.json)` → 每个 `ToRuntime()`：动作数 9，`HurtActionIds.FindMissing` 为空，`SetAllActions` 无报错。
-- [ ] `example.json` 去掉 `//` 注释后同样加载：重点核对字符串定点数 (`"0.6"`)、帧区间 `{ "x": .., "y": .. }` (`frameRange` / `frameRanges` / `range`)、`commands` 的 `press` / `hold` / `release` 按键名 (`"Move"`、`"Up"`、`"Skill1"`)、嵌套结构 (`rootMotion` 分段、`grab`、`suction`、`pushPower`)。
+- [ ] `example.json` 去掉 `//` 注释后同样加载：重点核对字符串定点数 (`"0.6"`)、帧区间 `{ "x": .., "y": .. }` (`frameRange` / `frameRanges` / `range`)、`commands` 的 `press` / `hold` / `release` 按键名 (`"Move"`、`"Up"`、`"Skill1"`)、嵌套结构 (`rootMotion` 分段、`grab`、`suction`、`push`、`launch`、`air`)。
 - [ ] 缺省字段的默认值：未配置的 `ActionChangeData` (class) 在 `JsonUtility` 下会被实例化为默认对象，`changeType = 0 (Keep)`，确认不会产生意外的动作切换。
 
 ### 4. 战斗表现 (M3)

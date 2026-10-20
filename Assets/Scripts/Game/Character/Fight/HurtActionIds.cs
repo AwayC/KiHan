@@ -6,9 +6,9 @@ namespace KiHan.Logic
     /// 通用受击动作 id (所有角色共用同一套受击流程，动作 id 固定，必须全部配置)
     ///
     /// 受击流程由框架驱动 (CharacterObj)，受击动作只提供动画，autoNextActionId 不参与：
-    /// - 僵直：未指定 targetActionChange 时进入 hurt_1，僵直期间循环播放，时间到回到默认动作
-    /// - 抓取：未指定 targetActionChange 时进入 hurt_2，被抓期间循环播放
-    /// - 击飞：地面被击飞默认 hurt_toair，空中受击默认 hurt_inair (可被 launchActionChange 覆盖)；
+    /// - 僵直：未指定 hurtAction 时进入 hurt_1，僵直期间循环播放，时间到回到默认动作
+    /// - 抓取：未指定 hurtAction 时进入 hurt_2，被抓期间循环播放
+    /// - 击飞：地面被击飞默认 hurt_toair (可被 hurtAction 覆盖)，空中受击固定 hurt_inair；
     ///         hurt_toair -> hurt_inair -> hurt_fall (循环到落地)
     /// - 触地：弹起速度 = 落地速度 × 衰减系数，>= 最小弹起速度则弹起 (播 hurt_inair，无伤害，保持击飞)，否则倒地
     /// - 倒地：播放 lie，播完起身 (倒地时长 = lie 动画长度)；只有 canHitLying 的攻击能命中

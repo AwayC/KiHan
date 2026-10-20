@@ -9,7 +9,15 @@
 //   - changeType：0 = Keep (不变), 1 = ChangeToActionId (param 为动作 id), 2 = ChangeByCatalog (param 为 catalog)
 //   - 通用受击动作 id 固定且必须配置：hurt_1 hurt_2 hurt_toair hurt_inair hurt_fall lie standup (最小配置见 action_template.json)
 //     受击流程由框架驱动 (toair -> inair -> fall -> 触地弹起或倒地 -> lie -> standup 无敌 -> 默认动作)，受击动作无需配置 autoNext
-//     攻击不配置 targetActionChange / launchActionChange 时：僵直默认 hurt_1，抓取默认 hurt_2，地面击飞默认 hurt_toair，空中受击默认 hurt_inair
+//     攻击不配置 hurtAction 时：僵直默认 hurt_1，抓取默认 hurt_2，地面击飞默认 hurt_toair；空中受击固定 hurt_inair
+//   - 受击反应按目标状态决定 (每次命中只出一种)：
+//       被抓中 -> 只扣血；霸体 (armorBreak 不足) -> 只扣血；grab -> 抓取
+//       目标浮空 -> 所有攻击都按 air 重设速度 (未配置用全局默认 GameConfig.DefaultAirLaunch：z 5, x 1)
+//       目标在地面：配置 launch -> 击飞；否则 hitStun 僵直 + push 平推
+//       目标倒地：只有 canHitLying 的攻击能命中，有 launch 则挑起，否则保持倒地只扣血
+//     launch / air：z 竖直初速度, x 攻击者面朝方向前方, y 纵深 (单位/秒)，覆盖目标当前速度；水平速度在击飞流程中 (含触地弹起) 保持，弹不起倒地时清除
+//     被击飞期间重力为 gravity (40) × launchGravityScale (0.7) = 28：滞空时间 = 2z / 28，最高点 = z² / 56
+//     push：只在地面僵直时生效，inSec 秒内按 tweenMethod 平推 (x, y)
 //   - 不配置姿态：进入条件由取消关系决定；配置 onLand 且不设置 velocityZ 的动作视为空中动作
 //   - commands：触发指令，满足任意一条即可；每条由 press / hold / release 三组按键组成，组内与组间全部满足才成立
 //     press   = 预输入时长 (validInSec，默认 "0.2") 内按下过，且这次按下还没被动作切换用掉 (切换动作时所有按下都会用掉：点一下只出一段，只配 press 的键按住不连发)
@@ -96,25 +104,15 @@
         {
           "phase": 0,                                    // 段号
           "attack": "40",                                // 伤害
-          "forceDir": 0,                                 // 受力方向：0 Forward / 1 Backward / 2 Overhead
-          "pushPower": {                                 // 平推 (攻击者本地方向，按秒计时，与动作帧无关)
-            "moveX": "0.4",                              // 总位移 x (面朝方向为正)
-            "moveY": "0",                                // 总位移 y
-            "moveZ": "0",                                // 忽略 (竖直只走速度模型)
-            "inSec": "0.15",                             // 持续秒数
-            "tweenMethod": "Slowly"                      // 缓动：Linear / Slowly
-          },
-          "hitStun": "0.4",                              // 僵直秒数 (仅在未击飞时生效)
-          "launchVelocity": "9",                         // 击飞竖直初速度 (>0 即击飞)
-          "airLaunchVelocity": "5",                      // 目标已在空中时改用的速度 (留空沿用 launchVelocity)
-          "launchVelocityX": "2",                        // 击飞时给目标的水平惯性 (攻击者面朝方向前方为正，launchVelocityY 为纵深)；
-                                                         // 击飞流程中 (含触地弹起) 保持，弹不起倒地时清除；每次击飞覆盖目标原有惯性
+          "hitStun": "0.4",                              // 地面僵直秒数 (未击飞时生效)
+          "push": { "x": "0.4", "y": "0", "inSec": "0.15", "tweenMethod": "Slowly" },   // 地面僵直时的平推：x 攻击者面朝方向前方, y 纵深；tweenMethod：Linear / Slowly
+          "launch": { "z": "9", "x": "2" },              // 地面击飞：配置即击飞 (此时 hitStun / push 不生效)
+          "air": { "z": "5", "x": "1" },                 // 命中浮空目标时的速度 (可省略，默认 z 5, x 1)；z 为负即下砸
           "armorBreak": "None",                          // 破霸等级：None / Skill / Super / KingKong；>= 目标霸体才产生受击反应
-          "canHitLying": true,                           // 能否命中倒地目标 (扫地)；带击飞速度时会把倒地目标挑起
+          "canHitLying": true,                           // 能否命中倒地目标 (扫地)；有 launch 时把倒地目标挑起
           "canHitSameTarget": 1,                         // 同一目标最多命中次数
           "hitSameTargetDelay": "0",                     // 同一目标两次命中的间隔秒数
-          "targetActionChange": { "changeType": 1, "param": "hurt_2", "priority": 100 },        // 僵直时的受击动作 (可省略，默认 hurt_1)
-          "launchActionChange": { "changeType": 1, "param": "hurt_toair", "priority": 100 },    // 击飞时的受击动作 (可省略，默认 hurt_toair)
+          "hurtAction": "hurt_toair",                    // 地面受击动作 (僵直 / 击飞 / 被抓)，可省略
           "tempBeCancelledTagTurnOn": ["atk4_hit"]       // 命中后为自己开启的临时取消窗口 id
         }
       ]
@@ -245,7 +243,7 @@
           },
           "canHitSameTarget": 3,                         // 最多命中 3 次
           "hitSameTargetDelay": "0.1",                   // 每 0.1 秒一次
-          "targetActionChange": { "changeType": 1, "param": "hurt_1", "priority": 100 }
+          "hurtAction": "hurt_1"
         },
         {
           "phase": 1,                                    // 第二段：抓取 (被抓期间任何命中只扣血、保持抓取，可在此期间打多段)
@@ -257,24 +255,15 @@
             "releaseActionChange": { "changeType": 1, "param": "hurt_fall", "priority": 100 }   // 锚点消失释放 (主动松手/被打断/播完) 时目标的动作
           },
           "canHitSameTarget": 1,
-          "targetActionChange": { "changeType": 1, "param": "hurt_2", "priority": 100 }   // 被抓期间循环播放 (可省略，默认 hurt_2)
+          "hurtAction": "hurt_2"                         // 被抓期间循环播放 (可省略，默认 hurt_2)
         },
         {
           "phase": 2,                                    // 第三段：爆发击飞
           "attack": "120",
-          "forceDir": 0,
-          "pushPower": {
-            "moveX": "2.5",
-            "moveY": "0",
-            "moveZ": "0",
-            "inSec": "0.4",
-            "tweenMethod": "Slowly"
-          },
-          "launchVelocity": "7",                         // 地面目标的击飞速度
-          "airLaunchVelocity": "10",                     // 释放瞬间目标若在空中 (锚点 y > 0)，实际使用 10
+          "launch": { "z": "7", "x": "6" },              // 地面目标：竖直 7，向前 6 单位/秒飞出
+          "air": { "z": "10", "x": "6" },                // 释放瞬间目标若在空中 (锚点 y > 0)，竖直改用 10
           "armorBreak": "Super",
-          "canHitSameTarget": 1,
-          "launchActionChange": { "changeType": 1, "param": "hurt_toair", "priority": 100 }   // 可省略，默认 hurt_toair
+          "canHitSameTarget": 1
         }
       ]
     }

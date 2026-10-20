@@ -311,23 +311,17 @@ namespace KiHan.Logic
         [Tooltip("伤害或伤害倍率 (字符串，如 \"10.0\")")]
         public string attack;
 
-        public int forceDir;
-        public MoveInfoData pushPower;
-
-        [Tooltip("目标僵直时长 (字符串秒数，如 \"0.3\")，留空表示不施加僵直")]
+        [Tooltip("地面僵直时长 (字符串秒数，如 \"0.3\")，留空表示不施加僵直")]
         public string hitStun;
 
-        [Tooltip("击飞竖直初速度 (字符串，单位/秒，如 \"10\")，留空表示不击飞")]
-        public string launchVelocity;
+        [Tooltip("地面僵直时的平推 (攻击者本地方向)")]
+        public PushData push;
 
-        [Tooltip("命中空中目标时的竖直速度 (字符串，单位/秒)，留空沿用 launchVelocity")]
-        public string airLaunchVelocity;
+        [Tooltip("地面击飞 (配置即击飞，含挑起倒地目标)")]
+        public LaunchData launch;
 
-        [Tooltip("击飞时给目标的水平惯性速度 x (字符串，单位/秒，攻击者面朝方向前方为正)，击飞流程中保持，落地倒地清除")]
-        public string launchVelocityX;
-
-        [Tooltip("击飞时给目标的水平惯性速度 y (字符串，单位/秒，纵深)")]
-        public string launchVelocityY;
+        [Tooltip("命中浮空目标时的速度，留空使用全局默认 (GameConfig.DefaultAirLaunch)")]
+        public LaunchData air;
 
         [Tooltip("破霸等级：None / Skill / Super / KingKong")]
         public string armorBreak;
@@ -338,17 +332,16 @@ namespace KiHan.Logic
         public GrabData grab;
         public SuctionData suction;
 
-        [Tooltip("停帧时长 (字符串秒数)，预留给全局停帧，当前未生效")]
-        public string freeze;
-
         public int canHitSameTarget;
 
         [Tooltip("连击同一目标的冷却间隔 (字符串秒数，如 \"1.0\")")]
         public string hitSameTargetDelay;
 
         public ActionChangeData selfActionChange;
-        public ActionChangeData targetActionChange;
-        public ActionChangeData launchActionChange;
+
+        [Tooltip("地面受击动作 id (僵直 / 击飞 / 被抓)，留空使用默认受击动作")]
+        public string hurtAction;
+
         public string[] tempBeCancelledTagTurnOn;
 
         public AttackInfo ToRuntime()
@@ -357,57 +350,67 @@ namespace KiHan.Logic
             {
                 phase = phase,
                 attack = ActionData.ParseFP(attack),
-                forceDir = (ForceDirection)forceDir,
-                pushPower = pushPower.ToRuntime(),
+                push = push.ToRuntime(),
                 hitStun = ActionData.ParseFP(hitStun),
-                launchVelocity = ActionData.ParseFP(launchVelocity),
-                airLaunchVelocity = ActionData.ParseFP(airLaunchVelocity),
-                launchVelocityX = ActionData.ParseFP(launchVelocityX),
-                launchVelocityY = ActionData.ParseFP(launchVelocityY),
+                launch = launch.ToRuntime(),
+                air = air.ToRuntime(),
                 armorBreak = ActionData.ParseEnum(armorBreak, ArmorLevel.None),
                 canHitLying = canHitLying,
                 grab = grab.ToRuntime(),
                 suction = suction.ToRuntime(),
-                freeze = ActionData.ParseFP(freeze),
                 canHitSameTarget = canHitSameTarget > 0 ? canHitSameTarget : 1,
                 hitSameTargetDelay = ActionData.ParseFP(hitSameTargetDelay),
                 selfActionChange = selfActionChange != null ? selfActionChange.ToRuntime() : default,
-                targetActionChange = targetActionChange != null ? targetActionChange.ToRuntime() : default,
-                launchActionChange = launchActionChange != null ? launchActionChange.ToRuntime() : default,
+                hurtAction = hurtAction ?? string.Empty,
                 tempBeCancelledTagTurnOn = tempBeCancelledTagTurnOn ?? Array.Empty<string>()
             };
         }
     }
 
     /// <summary>
-    /// 受击/技能推力位移配置 DTO (支持纯字符串三维位移与持续时间)
+    /// 平推配置 DTO：x 攻击者面朝方向前方, y 纵深 (字符串，逻辑单位)，inSec 秒内按 tweenMethod 完成
     /// </summary>
     [Serializable]
-    public struct MoveInfoData
+    public struct PushData
     {
-        [Tooltip("X轴位移 (字符串，如 \"0.1\")")] public string moveX;
-        [Tooltip("Y轴位移 (字符串，如 \"0.0\")")] public string moveY;
-        [Tooltip("Z轴位移 (字符串，如 \"0.0\")")] public string moveZ;
+        public string x;
+        public string y;
 
-        [Tooltip("持续位移秒数 (字符串秒数，如 \"0.08\")")]
+        [Tooltip("持续秒数 (字符串，如 \"0.15\")，留空表示不平推")]
         public string inSec;
 
+        [Tooltip("缓动：Linear / Slowly，留空为 Linear")]
         public string tweenMethod;
-
-        // 兼容原版浮点 Vector3
-        public Vector3 moveDistance;
 
         public MoveInfo ToRuntime()
         {
-            FPVector3 dist = (!string.IsNullOrEmpty(moveX) || !string.IsNullOrEmpty(moveY) || !string.IsNullOrEmpty(moveZ))
-                ? new FPVector3(ActionData.ParseFP(moveX), ActionData.ParseFP(moveY), ActionData.ParseFP(moveZ))
-                : FPVector3.FromVector3Deterministic(moveDistance);
-
             return new MoveInfo
             {
-                moveDistance = dist,
+                moveDistance = new FPVector3(ActionData.ParseFP(x), ActionData.ParseFP(y), FP.Zero),
                 inSec = ActionData.ParseFP(inSec),
                 tweenMethod = tweenMethod ?? string.Empty
+            };
+        }
+    }
+
+    /// <summary>
+    /// 击飞速度配置 DTO：z 竖直初速度, x 攻击者面朝方向前方, y 纵深 (字符串，单位/秒)；三项都留空表示未配置
+    /// </summary>
+    [Serializable]
+    public struct LaunchData
+    {
+        public string z;
+        public string x;
+        public string y;
+
+        public LaunchInfo ToRuntime()
+        {
+            return new LaunchInfo
+            {
+                enabled = !string.IsNullOrEmpty(z) || !string.IsNullOrEmpty(x) || !string.IsNullOrEmpty(y),
+                z = ActionData.ParseFP(z),
+                x = ActionData.ParseFP(x),
+                y = ActionData.ParseFP(y)
             };
         }
     }

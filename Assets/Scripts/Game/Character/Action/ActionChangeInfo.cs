@@ -5,17 +5,6 @@ using UnityEngine;
 namespace KiHan.Logic
 {
     /// <summary>
-    /// 攻击判定的推力方向
-    /// </summary>
-    [Serializable]
-    public enum ForceDirection
-    {
-        Forward,  // 向前推
-        Backward, // 向后推
-        Overhead, // 破防/下砸重击
-    }
-
-    /// <summary>
     /// 动作变化信息，预约角色动作变化的一种信息
     /// 通常在动作命中对方的时候，会得出双方的ActionChangeInfo，用来调整双方动作走向
     /// </summary>

@@ -37,5 +37,11 @@ namespace KiHan.Logic
         /// 定点数秒 -> 逻辑帧数 (向上取整，不足一帧按一帧计)
         /// </summary>
         public static int SecondsToTicks(FP seconds) => seconds > FP.Zero ? (int)FP.Ceiling(seconds * LOGIC_FPS) : 0;
+
+        // ----------------- 战斗 -----------------
+        /// <summary>
+        /// 命中浮空目标的默认速度 (攻击未配置 air 时使用)：竖直 5、向前 1 (单位/秒)
+        /// </summary>
+        public static readonly LaunchInfo DefaultAirLaunch = new LaunchInfo { enabled = true, z = FP.Parse("5"), x = FP.Parse("1"), y = FP.Zero };
     }
 }

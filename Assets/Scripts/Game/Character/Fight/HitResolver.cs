@@ -11,12 +11,13 @@ namespace KiHan.Logic
     /// 2. 被抓中的目标：只结算伤害，保持原抓取状态 (不受击退/击飞/外力影响，也不会被其他抓取覆盖)
     ///    投掷做法：抓取锚点在第 N 帧消失 (先于命中检测释放)，同一帧开启的攻击即按正常受击结算
     /// 3. 霸体裁决：攻击破霸等级 &lt; 受击者霸体等级 -> 只结算伤害，不产生任何受击反应
-    /// 4. 受击反应 (按优先级)，受击动作未配置时使用 HurtActionIds 中的固定动作：
+    /// 4. 受击反应 (按优先级)，未配置 hurtAction 时使用 HurtActionIds 中的固定动作：
     ///    - 抓取：目标锁定到攻击者锚点 (默认 hurt_2)
-    ///    - 击飞：配置了击飞速度，或目标已在空中 (空中追击优先使用 airLaunchVelocity；地面默认 hurt_toair，空中默认 hurt_inair)
+    ///    - 空中受击：目标已浮空时所有攻击都按 air (未配置用 GameConfig.DefaultAirLaunch) 重设速度，播 hurt_inair
+    ///    - 地面击飞：配置了 launch (默认 hurt_toair)；倒地目标被 canHitLying 的击飞攻击挑起
     ///    - 倒地中被扫地且未挑起：保持倒地，只结算伤害
-    ///    - 僵直：地面受击 (默认 hurt_1)
-    ///    以及平推 (pushPower) 与吸附 (suction) 两种水平外力
+    ///    - 僵直：地面受击 (默认 hurt_1)，附加平推 push
+    ///    吸附 (suction) 在僵直 / 击飞 / 空中受击时生效
     /// 5. 双方动作变化与临时取消窗口 (动作切换在 BattleWorld 第 6 步统一裁决)
     /// </summary>
     public static class HitResolver
@@ -46,7 +47,7 @@ namespace KiHan.Logic
             }
 
             // 攻击方：命中即生效 (无论是否被霸体抵挡或目标处于被抓中)
-            attacker.action.PreorderActionByActionChangeInfo(atk.selfActionChange, atk.forceDir);
+            attacker.action.PreorderActionByActionChangeInfo(atk.selfActionChange);
             if (atk.tempBeCancelledTagTurnOn != null)
             {
                 foreach (string id in atk.tempBeCancelledTagTurnOn) attacker.action.AddTempBeCancelledTag(id);
@@ -68,62 +69,65 @@ namespace KiHan.Logic
         private static HitReaction ApplyReaction(HitResult hit, CharacterObj attacker, CharacterObj target, AttackInfo atk)
         {
             HitReaction reaction;
-            bool hasTargetChange = atk.targetActionChange.changeType != ActionChangeType.Keep;
-            ActionChangeInfo targetChange;
+            bool hasHurtAction = !string.IsNullOrEmpty(atk.hurtAction);
+            ActionChangeInfo targetChange = default;
 
             if (atk.grab.enabled)
             {
                 attacker.StartGrab(target, atk.grab);
-                targetChange = hasTargetChange ? atk.targetActionChange : HurtActionIds.ChangeTo(HurtActionIds.Heavy);
+                targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.Heavy);
                 reaction = HitReaction.Grab;
             }
             else
             {
-                bool airborne = target.IsAirborne;
-                FP velocity = airborne && atk.airLaunchVelocity > FP.Zero ? atk.airLaunchVelocity : atk.launchVelocity;
-
-                if (velocity > FP.Zero || airborne)
+                if (target.IsAirborne)
                 {
-                    if (velocity > FP.Zero) target.motion.Launch(velocity);
-                    target.EnterLaunch();
-                    // 击飞水平惯性 (攻击者本地方向 -> 世界)，覆盖目标当前惯性
-                    target.motion.SetPlanarVelocity(attacker.FacingLeft ? -atk.launchVelocityX : atk.launchVelocityX, atk.launchVelocityY);
-                    // 地面被击飞先播上升段，空中受击直接播空中受击段
-                    targetChange = atk.launchActionChange.changeType != ActionChangeType.Keep
-                        ? atk.launchActionChange
-                        : HurtActionIds.ChangeTo(airborne ? HurtActionIds.InAir : HurtActionIds.ToAir);
+                    Launch(attacker, target, atk.air.enabled ? atk.air : GameConfig.DefaultAirLaunch);
+                    targetChange = HurtActionIds.ChangeTo(HurtActionIds.InAir);
+                    reaction = HitReaction.Launch;
+                }
+                else if (atk.launch.enabled)
+                {
+                    Launch(attacker, target, atk.launch);
+                    targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.ToAir);
                     reaction = HitReaction.Launch;
                 }
                 else if (target.IsLying)
                 {
-                    targetChange = default;
                     reaction = HitReaction.Lying;
                 }
                 else
                 {
-                    // 未配置僵直时长时不进入僵直，也不套用默认受击动作
+                    // 未配置僵直时长与受击动作时不进入僵直，也不切换受击动作
                     int stunTicks = GameConfig.SecondsToTicks(atk.hitStun);
                     target.EnterStun(stunTicks);
-                    targetChange = hasTargetChange || stunTicks <= 0
-                        ? atk.targetActionChange
-                        : HurtActionIds.ChangeTo(HurtActionIds.Light);
+                    if (hasHurtAction || stunTicks > 0) targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.Light);
+                    if (atk.push.inSec > FP.Zero) target.SetForceMove(atk.push.ToWorld(attacker.FacingLeft));
                     reaction = HitReaction.Stun;
                 }
 
-                // 水平外力：平推 (配置为攻击者本地方向) 与吸附 (向攻击者核心点拉扯)
-                if (atk.pushPower.inSec > FP.Zero) target.SetForceMove(atk.pushPower.ToWorld(attacker.FacingLeft));
-                if (atk.suction.Enabled) target.StartSuction(attacker, atk.suction);
+                if (reaction != HitReaction.Lying && atk.suction.Enabled) target.StartSuction(attacker, atk.suction);
             }
 
-            target.action.PreorderActionByActionChangeInfo(targetChange, atk.forceDir);
-            attacker.action.PreorderActionByActionChangeInfo(hit.Defense.attackerActionChange, atk.forceDir);
-            target.action.PreorderActionByActionChangeInfo(hit.Defense.selfActionChange, atk.forceDir);
+            target.action.PreorderActionByActionChangeInfo(targetChange);
+            attacker.action.PreorderActionByActionChangeInfo(hit.Defense.attackerActionChange);
+            target.action.PreorderActionByActionChangeInfo(hit.Defense.selfActionChange);
             if (hit.Defense.tempBeCancelledTagTurnOn != null)
             {
                 foreach (string id in hit.Defense.tempBeCancelledTagTurnOn) target.action.AddTempBeCancelledTag(id);
             }
 
             return reaction;
+        }
+
+        /// <summary>
+        /// 击飞：设置竖直速度并覆盖水平惯性 (攻击者本地方向 -> 世界)，进入击飞状态
+        /// </summary>
+        private static void Launch(CharacterObj attacker, CharacterObj target, LaunchInfo launch)
+        {
+            target.motion.Launch(launch.z);
+            target.EnterLaunch();
+            target.motion.SetPlanarVelocity(attacker.FacingLeft ? -launch.x : launch.x, launch.y);
         }
     }
 }

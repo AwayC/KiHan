@@ -68,8 +68,7 @@ static class Program
 
     static void Main()
     {
-        var common = new AttackData { attack = "10", canHitSameTarget = 1,
-            targetActionChange = new ActionChangeData { changeType = 1, param = "hurt_1", priority = 100 } };
+        var common = new AttackData { attack = "10", canHitSameTarget = 1, hurtAction = "hurt_1" };
 
         var stun = common; stun.hitStun = "0.4";
         Run("== 场景A 僵直：hitStun 0.4s = 6 帧，hurt_1 只有 3 帧需循环；受击动作开放 attack 取消窗口 ==", stun, 14);
@@ -77,8 +76,8 @@ static class Program
         OpenWindow = false;
         Run("== 场景C 僵直：受击动作无取消窗口，僵直结束应直接回到 idle ==", stun, 9);
 
-        var launch = common; launch.launchVelocity = "8";
-        launch.launchActionChange = new ActionChangeData { changeType = 1, param = "hurt_air", priority = 100 };
-        Run("== 场景B 击飞：launchVelocity 8，hurt_air 循环直到落地 -> onLand hurt_land -> idle ==", launch, 14);
+        var launch = common; launch.launch = new LaunchData { z = "8" };
+        launch.hurtAction = "hurt_air";
+        Run("== 场景B 击飞：launch z 8，hurt_air 循环直到落地 -> onLand hurt_land -> idle ==", launch, 14);
     }
 }

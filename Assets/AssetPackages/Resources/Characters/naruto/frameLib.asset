@@ -143,7 +143,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 157, y: 78}
       Size: {x: 204, y: 156}
-      Side: 80
+      Side: 160
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: af0e2733854feb442acb71212608b43e, type: 3}
@@ -164,7 +164,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 192, y: 76}
       Size: {x: 278, y: 154}
-      Side: 80
+      Side: 160
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 38dca5ccc94dae74ea027d2d08baf436, type: 3}
@@ -185,7 +185,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 213, y: 84}
       Size: {x: 367, y: 225}
-      Side: 80
+      Side: 200
       Tag: 
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0029

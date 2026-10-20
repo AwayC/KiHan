@@ -30,9 +30,9 @@ static class Program
         var attack = new ActionInfo { id = "attack", animKey = "attack", autoNextActionId = "attack",
             attackPhase = new[] { new AttackBoxTurnOnInfo { frameRanges = new[] { new FrameRange(0, 999) }, attackPhase = 0 } },
             attacks = new[] { new AttackData {
-                attack = "10", freeze = "0.07", canHitSameTarget = 99, hitSameTargetDelay = "0.2",
-                pushPower = new MoveInfoData { moveX = "0.6", inSec = "0.2", tweenMethod = tween },
-                targetActionChange = new ActionChangeData { changeType = 2, param = "Hurt", priority = 100 } }.ToRuntime() } };
+                attack = "10", canHitSameTarget = 99, hitSameTargetDelay = "0.2",
+                push = new PushData { x = "0.6", inSec = "0.2", tweenMethod = tween },
+                hurtAction = "hurt" }.ToRuntime() } };
         var hurt = new ActionInfo { id = "hurt", animKey = "hurt", catalog = "Hurt", autoNextActionId = "idle" };
         var idle = new ActionInfo { id = "idle", animKey = "idle", autoNextActionId = "idle", keepPlayingAnim = true };
 

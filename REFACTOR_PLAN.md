@@ -156,7 +156,7 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 - **位移计算模型 (`ForceMove`)**：
   - 动作位移分为常规移动（`NatureMove` = 摇杆各轴分量 $\times$ 各轴速度 $\times$ `rateX` / `rateY` + `RootMotion`）与强制外力位移（`ForceMove`）。
   - `rootMotion` 为分段列表，每段带 `frameRange`：水平 `moveX/moveY` 按 `tweenMethod` (与 ForceMove 共用缓动表) 分配到区间内，多段同帧相加；竖直 `velocityZ` 在区间起始帧设置竖直速度 (起跳/二段跳)，`accelerationZ` 在区间内附加加速度。动作按状态切分 (循环、输入入口、落地转换、受击)，同一段连续动画上的位移变化用多段描述，不拆动作。
-  - **水平惯性**：`rootMotion` 段的 `velocityX/velocityY` 在区间起始帧设置水平惯性速度 (面朝方向前方为正)，由 `MotionBody` 与动画帧无关地积分；切换到其他动画 (`keepFrame` 变体除外)、落地、被抓时清除，撞墙/纵深边界时对应分量清零。攻击的 `launchVelocityX/launchVelocityY` 在击飞时覆盖目标惯性，击飞流程 (受击动作切换、触地弹起) 中保留，弹不起倒地时清除。
+  - **水平惯性**：`rootMotion` 段的 `velocityX/velocityY` 在区间起始帧设置水平惯性速度 (面朝方向前方为正)，由 `MotionBody` 与动画帧无关地积分；切换到其他动画 (`keepFrame` 变体除外)、落地、被抓时清除，撞墙/纵深边界时对应分量清零。攻击的 `launch` / `air` 的 `x/y` 在击飞时覆盖目标惯性，击飞流程 (受击动作切换、触地弹起) 中保留，弹不起倒地时清除。
   - 处于受击推移、技能突进时，`ForceMove` 接管角色位移，采用确定性定点数插值曲线（Linear, QuadOut 等）。
 
 ### 5. 5 维打击反馈、受击状态与霸体
@@ -177,11 +177,11 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - 配置了 `onLand` 且自身不起跳的动作视为空中动作，在地面上视同落地触发 `onLand`。
   - 倒地、击飞落地等状态由上面的固定受击动作 id 决定。
 - **5 维打击物理**：
-  1. **平推 (Push)**：`pushPower` 水平 `ForceMove` (按秒配置，与动作帧无关)，按攻击者朝向转为世界方向。
-  2. **击飞 (Launch)**：`launchVelocity` 设置竖直初速度；目标已在空中时进入击飞，`airLaunchVelocity` 用于空中追击上挑。
+  1. **平推 (Push)**：`push` 只在地面僵直时生效，水平 `ForceMove` (按秒配置，与动作帧无关)，按攻击者朝向转为世界方向。
+  2. **击飞 (Launch)**：地面目标被配置了 `launch` 的攻击击飞；目标已浮空时任何攻击都按 `air` (未配置用 `GameConfig.DefaultAirLaunch`) 重设竖直速度与水平惯性。受击动作由 `hurtAction` 指定 (空中受击固定 `hurt_inair`)。
   3. **吸附 (Suction)**：命中后在 `inSec` 秒内以 `speed` 把目标水平拉向攻击者本地核心点 (随攻击者移动，不越过核心点)。
   4. **抓取 (Grab)**：锚点即抓取。`grab.anchor` 指定帧库 `EffectAnchors` 中的锚点名 (默认 `grab`，整数像素，x 随朝向镜像、y 为高度)，抓取者当前处理的动画帧上存在该锚点即维持抓取并逐帧跟随 (可跨动作)，锚点消失即释放 (主动松手 / 动作播完 / 被打断)，目标按 `releaseActionChange` 转换，在空中则击飞下落。被抓期间受到的任何命中 (抓取者的多段攻击、第三方攻击) 只结算伤害，保持原抓取状态，也不会被其他抓取覆盖；投掷做法是让锚点在第 N 帧消失、同一帧开启投掷攻击盒 (释放先于命中检测)，投掷命中按正常受击结算。加载时校验抓取段开启区间内是否画有锚点。
-  5. **扫地 (OTG)**：`canHitLying` 的攻击可命中倒地目标；带击飞速度时重新挑起，否则保持倒地只结算伤害。
+  5. **扫地 (OTG)**：`canHitLying` 的攻击可命中倒地目标；有 `launch` 时重新挑起，否则保持倒地只结算伤害。
 - **霸体等级裁决 (`ArmorLevel`)**：
   - 等级顺序：`None(0) < Skill(1) < Super(2) < KingKong(3) < Invincible(4)`，由动作 `armorPhase` 按动画帧区间配置。
   - 攻击 `armorBreak` >= 受击者当前霸体等级时完整受击，否则只结算伤害、不打断当前动作；`Invincible` 不产生命中。
@@ -271,7 +271,7 @@ gantt
 | **`attack1`** | `Attack` | `attack1` | 第 9~12 帧允许 `move`, `attack2`, `skill` | `idle` | 平推受击判定，造成轻微地面推移 |
 | **`attack2`** | `Attack` | `attack2` | 第 7~11 帧允许 `move`, `attack3`, `skill` | `idle` | 平推受击判定，带前冲 RootMotion |
 | **`attack3`** | `Attack` | `attack3` | 第 5~10 帧允许 `move`, `attack4`, `skill` | `idle` | 击退判定，目标进入 `hurt_2` 较大硬直 |
-| **`attack4`** | `Attack` | `attack4` | 第 20~26 帧允许 `move`, `skill` | `idle` | 第 2 帧轻击，第 12~16 帧击飞 (`launchVelocity`) |
+| **`attack4`** | `Attack` | `attack4` | 第 20~26 帧允许 `move`, `skill` | `idle` | 第 2 帧轻击，第 12~16 帧击飞 (`launch`) |
 | **`skill1`** | `Skill` | `skill` | 后摇第 30~33 帧允许 `move`, `attack1` | `idle` | 螺旋丸 (`Skill_A_1`)：技能体；第 0 帧挂锚点 `lxw` 的球特效 (动作结束即收回) 与风特效；第 14~25 帧多段命中，第 26~27 帧击飞 |
 | **`skill2_1`** | `Skill` | `skill` | 无 | `skill2_land` | `Skill_B_1`：技能体；第 4 帧生成投射物 `naruto_skill2_fx` (`Skill_B_fx`，三段攻击) 并冒烟；本体第 19~26 帧命中后 `keepFrame` 切到 `skill2_1_hit` |
 | **`skill2_1_hit`** → **`skill2_land_hit`** → **`skill2_2`** | `Skill` | - | `skill2_2` 后摇允许 `move`, `attack1` | `idle` | 命中派生：播完落地 (`Skill_B_land`) 后接 `Skill_B_2` 击飞收尾；未命中走 `skill2_land` 回 idle |

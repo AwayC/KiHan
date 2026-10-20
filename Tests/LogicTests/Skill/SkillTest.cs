@@ -321,7 +321,7 @@ static class Program
             Check(w.HitEvents.Count == 1 && w.HitEvents[0].AttackerId == 1000 && w.HitEvents[0].OwnerId == 1, $"投射物命中，归属主人: 攻击者={(w.HitEvents.Count > 0 ? w.HitEvents[0].AttackerId : -1)} 主人={(w.HitEvents.Count > 0 ? w.HitEvents[0].OwnerId : -1)}");
             Check(p.Skills.Chakra == 1 && !p.Skills.IsChakraReady(summon), $"投射物命中为主人获得查克拉 (按来源技能计): {p.Skills.Chakra}");
 
-            t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 }, ForceDirection.Forward);
+            t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 });
             t.FacingLeft = true;
             bool hitProj = false;
             int despawnTick = -1, fxEndTick = -1;
@@ -402,7 +402,7 @@ static class Program
             Check(s == "0:Effect:fx_a,3:Camera:impact_heavy", $"第 0 帧特效、第 3 帧镜头各触发一次: {s}");
             Check(serialAtFx >= 0 && serialAtFx != p.action.ActionSerial, $"事件携带动作序号，动作结束后序号已改变 (表现层据此停止特效): 事件={serialAtFx} 当前={p.action.ActionSerial}");
 
-            p.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "fxact", priority = 200, fromFrame = 2 }, ForceDirection.Forward);
+            p.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "fxact", priority = 200, fromFrame = 2 });
             Step(w);
             seen.Clear();
             for (int i = 0; i < 8; i++) { Step(w); foreach (var v in w.ViewEvents) seen.Add(v.Asset); }
@@ -434,14 +434,14 @@ static class Program
             Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(sub) == 0, $"非受击状态按替身无效: {p.action.CurrentAction.id}");
             Step(w);
 
-            t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 }, ForceDirection.Forward);
+            t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 });
             Step(w, ButtonMask.None, 3);
             Check(p.Hurt == HurtState.Stun && p.action.CurrentAction.id == "hurt_1", $"被普攻命中进入僵直: {p.Hurt} {p.action.CurrentAction.id}");
             Step(w, ButtonMask.Substitution);
             Check(p.action.CurrentAction.id == "sub" && p.Hurt == HurtState.Standup && p.IsInvincible && p.StunTicks == 0,
                 $"僵直中按替身：进入替身动作、起身无敌: {p.action.CurrentAction.id} {p.Hurt} 无敌={p.IsInvincible}");
 
-            t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 }, ForceDirection.Forward);
+            t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 });
             int hits = 0, n = 0;
             while (p.action.CurrentAction.id == "sub" && n < 20) { Step(w); hits += w.HitEvents.Count; n++; }
             Check(hits == 0, $"替身期间不受命中: {hits}");
@@ -513,7 +513,7 @@ static class Program
             Step(w2, ButtonMask.Secret);
             Step(w2, ButtonMask.None, 2);
             CharacterObj c2 = w2.Spawned[0];
-            t2.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 }, ForceDirection.Forward);
+            t2.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 });
             bool cloneHit = false;
             for (int i = 0; i < 4; i++) { Step(w2); foreach (var e in w2.HitEvents) if (e.TargetId == c2.EntityId) cloneHit = true; }
             Check(cloneHit && F(c2.Hp) == 20f, $"敌方普攻命中分身，分身扣血 30-10=20: 命中={cloneHit} hp={F(c2.Hp)}");
@@ -527,7 +527,7 @@ static class Program
             var p = Player(Actions("proj"));
             var w = World(p);
             w.BuffTable["haste"] = new BuffData { id = "haste", duration = "0.2", effect = "fx_haste", anchor = "body" }.ToRuntime();
-            p.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "buffact", priority = 200 }, ForceDirection.Forward);
+            p.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "buffact", priority = 200 });
             var log = new List<string>();
             for (int i = 1; i <= 12; i++)
             {

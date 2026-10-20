@@ -43,28 +43,28 @@
         { "tag": "attack1", "startFormFrame": 0, "priority": 10 }
       ],
       "beCancelledTag": [
-        { "frameRange": { "x": 9, "y": 12 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
+        { "frameRange": { "x": 18, "y": 21 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
       ],
       "commands": [
         { "press": ["Attack"], "validInSec": "0.2" },
         { "hold": ["Attack"] }
       ],
       "attackPhase": [
-        { "frameRanges": [{ "x": 0, "y": 7 }], "tag": [], "attackPhase": 0, "priority": 10 }
+        { "frameRanges": [{ "x": 7, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 }
       ],
       "rootMotion" :[
-        { "frameRange": { "x": 4, "y": 6 }, "moveX": "0.2" }
+        { "frameRange": { "x": 8, "y": 10 }, "moveX": "0.6" }
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 1 }, "rateX": "1", "rateY": "1", "turn": true }
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
       ],
       "attacks": [
         {
           "phase": 0,
           "attack": "50",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.3", "moveY": "0", "moveZ": "0", "inSec": "0.15", "tweenMethod": "Slowly" },
-          "hitStun": "0.4",
+          "hitStun": "0.6",
+          "push": { "x": "0.6", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.6" },
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
         }
@@ -80,25 +80,29 @@
         { "tag": "attack2", "startFormFrame": 0, "priority": 10 }
       ],
       "beCancelledTag": [
-        { "frameRange": { "x": 7, "y": 11 }, "cancelTag": ["move", "attack3", "skill"], "priority": 0 }
+        { "frameRange": { "x": 13, "y": 13 }, "cancelTag": ["move", "attack3", "skill"], "priority": 0 }
       ],
       "commands": [
-        { "press": ["Attack"], "validInSec": "0.2" },
+        { "press": ["Attack"], "validInSec": "0.3" },
         { "hold": ["Attack"] }
       ],
       "attackPhase": [
-        { "frameRanges": [{ "x": 1, "y": 6 }], "tag": [], "attackPhase": 0, "priority": 10 }
+        { "frameRanges": [{ "x": 1, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 }
       ],
       "rootMotion" :[
-        { "frameRange": { "x": 3, "y": 6 }, "moveX": "0.25" }
+        { "frameRange": { "x": 1, "y": 4 }, "moveX": "1.0" }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "2", "rateY": "2", "turn": true },
+        { "range": { "x": 1, "y": 1 }, "rateX": "2", "rateY": "2", "turn": true }
       ],
       "attacks": [
         {
           "phase": 0,
           "attack": "50",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.25", "moveY": "0", "moveZ": "0", "inSec": "0.15", "tweenMethod": "Slowly" },
-          "hitStun": "0.4",
+          "hitStun": "0.6",
+          "push": { "x": "1.0", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "3" },
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
         }
@@ -114,7 +118,7 @@
         { "tag": "attack3", "startFormFrame": 0, "priority": 10 }
       ],
       "beCancelledTag": [
-        { "frameRange": { "x": 7, "y": 10 }, "cancelTag": ["move", "attack4", "skill"], "priority": 0 }
+        { "frameRange": { "x": 11, "y": 11 }, "cancelTag": ["move", "attack4", "skill"], "priority": 0 }
       ],
       "commands": [
         { "press": ["Attack"], "validInSec": "0.2" },
@@ -123,16 +127,19 @@
       "attackPhase": [
         { "frameRanges": [{ "x": 2, "y": 3 }], "tag": [], "attackPhase": 0, "priority": 10 }
       ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ],
       "attacks": [
         {
           "phase": 0,
           "attack": "60",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.5", "moveY": "0", "moveZ": "0", "inSec": "0.2", "tweenMethod": "Slowly" },
-          "hitStun": "0.5",
+          "hitStun": "0.6",
+          "push": { "x": "0.4", "inSec": "0.2", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "3" },
+          "hurtAction": "hurt_2",
           "canHitSameTarget": 1,
-          "hitSameTargetDelay": "0",
-          "targetActionChange": { "changeType": 1, "param": "hurt_2", "priority": 100 }
+          "hitSameTargetDelay": "0"
         }
       ]
     },
@@ -141,7 +148,7 @@
       "animKey": "Attack_4",
       "catalog": "Attack",
       "priority": 10,
-      "autoNextActionId": "Land",
+      "autoNextActionId": "Attack4_Land",
       "onLand": { "changeType" : 1, "param" : "Attack4_Land", "priority" : 100},
       "cancelTag": [
         { "tag": "attack4", "startFormFrame": 0, "priority": 10 }
@@ -156,25 +163,28 @@
         { "frameRanges": [{ "x": 12, "y": 12 }], "tag": [], "attackPhase": 1, "priority": 10 }
       ],
       "rootMotion" : [
-        { "frameRange": { "x": 2, "y": 8 }, "moveX": "1.4" },
-        { "frameRange": { "x": 9, "y": 9 }, "velocityX": "5", "velocityZ": "8" }
+        { "frameRange": { "x": 2, "y": 8 }, "moveX": "2" },
+        { "frameRange": { "x": 9, "y": 9 }, "velocityX": "6", "velocityZ": "9" }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 9, "y": 9 }, "rateX": "0", "rateY": "0", "turn": true }
       ],
       "attacks": [
         {
           "phase": 0,
           "attack": "30",
-          "forceDir": 0,
           "hitStun": "0.5",
+          "push": { "x": "2.1", "inSec": "0.3", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "4" },
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
         },
         {
           "phase": 1,
           "attack": "70",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.4", "moveY": "0", "moveZ": "0", "inSec": "0.2", "tweenMethod": "Slowly" },
-          "launchVelocity": "10",
-          "airLaunchVelocity": "10",
+          "launch": { "z": "11", "x": "3" },
+          "air": { "z": "10", "x": "3" },
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
         }
@@ -216,11 +226,14 @@
         { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
         { "frameRanges": [{ "x": 26, "y": 27 }], "tag": [], "attackPhase": 1, "priority": 20 }
       ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }
+      ],
       "attacks": [
         {
           "phase": 0,
           "attack": "30",
-          "forceDir": 0,
           "hitStun": "0.5",
           "armorBreak": "Skill",
           "canHitSameTarget": 6,
@@ -229,10 +242,8 @@
         {
           "phase": 1,
           "attack": "100",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.6", "moveY": "0", "moveZ": "0", "inSec": "0.2", "tweenMethod": "Slowly" },
-          "launchVelocity": "11",
-          "airLaunchVelocity": "8",
+          "launch": { "z": "10", "x": "0" },
+          "air": { "z": "10", "x": "0" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
@@ -266,9 +277,8 @@
         {
           "phase": 0,
           "attack": "100",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.8", "moveY": "0", "moveZ": "0", "inSec": "0.2", "tweenMethod": "Slowly" },
           "hitStun": "0.8",
+          "push": { "x": "0.8", "inSec": "0.2", "tweenMethod": "Slowly" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0",
@@ -322,10 +332,8 @@
         {
           "phase": 0,
           "attack": "120",
-          "forceDir": 0,
-          "pushPower": { "moveX": "1.0", "moveY": "0", "moveZ": "0", "inSec": "0.3", "tweenMethod": "Slowly" },
-          "launchVelocity": "10",
-          "airLaunchVelocity": "8",
+          "launch": { "z": "10", "x": "2" },
+          "air": { "z": "8", "x": "2" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
@@ -348,9 +356,8 @@
         {
           "phase": 0,
           "attack": "50",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.8", "moveY": "0", "moveZ": "0", "inSec": "0.15", "tweenMethod": "Slowly" },
           "hitStun": "0.4",
+          "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
@@ -358,9 +365,8 @@
         {
           "phase": 1,
           "attack": "50",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.8", "moveY": "0", "moveZ": "0", "inSec": "0.15", "tweenMethod": "Slowly" },
           "hitStun": "0.4",
+          "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
@@ -368,9 +374,8 @@
         {
           "phase": 2,
           "attack": "50",
-          "forceDir": 0,
-          "pushPower": { "moveX": "0.8", "moveY": "0", "moveZ": "0", "inSec": "0.15", "tweenMethod": "Slowly" },
           "hitStun": "0.4",
+          "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"

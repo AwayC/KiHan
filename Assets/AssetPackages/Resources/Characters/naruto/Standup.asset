@@ -15,7 +15,7 @@ MonoBehaviour:
   AnimName: Standup
   Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
   Steps:
-  - FrameIndex: 58
-    Duration: 2
+  - FrameIndex: 53
+    Duration: 3
   - FrameIndex: 57
     Duration: 2

@@ -14,14 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AnimName: Hurt_toair
   Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
-  IsLoop: 0
   Steps:
   - FrameIndex: 50
     Duration: 4
-    RootMotion: {x: 0, y: 0}
-  - FrameIndex: 49
-    Duration: 2
-    RootMotion: {x: 0, y: 0}
-  - FrameIndex: 52
-    Duration: 2
-    RootMotion: {x: 0, y: 0}

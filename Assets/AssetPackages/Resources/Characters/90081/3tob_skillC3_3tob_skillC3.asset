@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: 3tob_skillC3_3tob_skillC3
+  m_EditorClassIdentifier: 
+  AnimName: 3tob_skillC3_3tob_skillC3
+  Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
+  Steps:
+  - FrameIndex: 214
+    Duration: 1
+  - FrameIndex: 215
+    Duration: 1
+  - FrameIndex: 216
+    Duration: 1
+  - FrameIndex: 217
+    Duration: 1
