@@ -13,7 +13,17 @@ namespace KiHan.Editor
         private const float TrackHeaderWidth = 92f;
         private const float RulerHeight = 20f;
         private const float LaneHeight = 18f;
-        private const float EdgeGrabWidth = 5f;
+        private const float EdgeGrabWidth = 6f;
+
+        /// <summary>
+        /// 区间条目两端在条目外侧额外可抓取的宽度 (单帧的窄条目也能拉伸)
+        /// </summary>
+        private const float EdgeOutside = 4f;
+
+        /// <summary>
+        /// 时间轴控件 ID 的固定哈希：控件数量在帧间变化时拖动状态 (hotControl) 仍对得上
+        /// </summary>
+        private static readonly int TimelineControlHint = "KiHan.ActionEditor.Timeline".GetHashCode();
 
         /// <summary>
         /// 动画帧上限的约定写法：区间终点写成 999 等大数表示"到动画结束"
@@ -81,7 +91,7 @@ namespace KiHan.Editor
         };
 
         [SerializeField] private ItemRef _selection;
-        [SerializeField] private float _frameWidth = 18f;
+        [SerializeField] private float _frameWidth = 22f;
         [SerializeField] private float _previewZoom = 1.2f;
         [SerializeField] private Vector2 _previewPan;
         [SerializeField] private bool _showBoxes = true;
@@ -92,7 +102,10 @@ namespace KiHan.Editor
         private double _lastPlayTick;
 
         private DragMode _dragMode;
-        private int _dragStartFrame;
+        private float _dragStartX;
+        private ItemRef _hover;
+        private bool _hoverValid;
+        private int _dragUndoGroup = -1;
         private int _dragOrigX;
         private int _dragOrigY;
 
@@ -686,32 +699,94 @@ namespace KiHan.Editor
         {
             Rect r = ItemRect(item, top, total, track.Point);
             bool selected = IsSelected(item);
+            bool hovered = !selected && _hoverValid && _hover.Kind == item.Kind && _hover.Index == item.Index && _hover.Sub == item.Sub;
             Color c = track.Color;
-            c.a = selected ? 0.95f : 0.6f;
+            c.a = selected ? 0.95f : hovered ? 0.8f : 0.6f;
             EditorGUI.DrawRect(r, c);
+
+            if (!track.Point)
+            {
+                // 头尾手柄：可拖动调整起止帧
+                float grip = Mathf.Min(4f, r.width * 0.25f);
+                Color gripColor = selected ? Color.white : new Color(0f, 0f, 0f, 0.35f);
+                EditorGUI.DrawRect(new Rect(r.x, r.y, grip, r.height), gripColor);
+                if (item.Y < total) EditorGUI.DrawRect(new Rect(r.xMax - grip, r.y, grip, r.height), gripColor);
+            }
             if (selected) Handles.DrawSolidRectangleWithOutline(r, Color.clear, Color.white);
 
+            if (Event.current.type == EventType.Repaint && GUIUtility.hotControl == 0)
+            {
+                if (track.Point)
+                {
+                    EditorGUIUtility.AddCursorRect(r, MouseCursor.MoveArrow);
+                }
+                else
+                {
+                    float grab = EdgeGrab(r);
+                    EditorGUIUtility.AddCursorRect(new Rect(r.x + grab, r.y, Mathf.Max(0f, r.width - grab * 2), r.height), MouseCursor.MoveArrow);
+                    EditorGUIUtility.AddCursorRect(new Rect(r.x - EdgeOutside, r.y, grab + EdgeOutside, r.height), MouseCursor.ResizeHorizontal);
+                    EditorGUIUtility.AddCursorRect(new Rect(r.xMax - grab, r.y, grab + EdgeOutside, r.height), MouseCursor.ResizeHorizontal);
+                }
+            }
+
             var style = new GUIStyle(EditorStyles.miniLabel) { clipping = TextClipping.Clip, normal = { textColor = Color.black } };
+            string range = item.X == item.Y ? $"{item.X}" : item.Y >= OpenEndThreshold ? $"{item.X}-末" : $"{item.X}-{item.Y}";
             if (track.Point)
             {
                 // 点事件的文字画在标记右侧
                 var labelStyle = new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = track.Color } };
-                GUI.Label(new Rect(r.xMax + 2, r.y, 200, r.height), item.Label, labelStyle);
+                GUI.Label(new Rect(r.xMax + 2, r.y, 220, r.height), selected ? $"{item.Label} @{item.X}" : item.Label, labelStyle);
                 return;
             }
 
-            string label = item.Y >= total ? $"{item.Label} →" : item.Label;
-            GUI.Label(new Rect(r.x + 3, r.y, r.width - 4, r.height), new GUIContent(label, $"[{item.X}, {item.Y}] {item.Label}"), style);
+            string label = selected ? $"[{range}] {item.Label}" : item.Label;
+            if (item.Y >= total) label += " →";
+            GUI.Label(new Rect(r.x + 4, r.y, r.width - 6, r.height), new GUIContent(label, $"[{item.X}, {item.Y}] {item.Label}\n拖动中间平移，拖动两端调整起止帧"), style);
+
+            // 拖动中在条目上方实时显示区间
+            if (selected && _dragMode != DragMode.None && _dragMode != DragMode.Scrub)
+            {
+                var tipStyle = new GUIStyle(EditorStyles.miniBoldLabel) { normal = { textColor = Color.white } };
+                GUI.Label(new Rect(r.x, r.y - 14, 120, 14), $"[{item.X}, {item.Y}]", tipStyle);
+            }
         }
+
+        /// <summary>
+        /// 条目两端的拖动手柄宽度 (条目内侧部分)；窄条目按比例缩小，保证中间仍可平移
+        /// </summary>
+        private static float EdgeGrab(Rect r) => Mathf.Min(EdgeGrabWidth, r.width * 0.3f);
 
         /// <param name="visible">滚动视图中可见的区域 (滚动视图外的点击同样会传进来，必须排除)</param>
         private void HandleTimelineInput(ActionData a, List<TimelineItem>[] rows, int[] lanes, float[] tops, int total, Rect visible)
         {
             Event e = Event.current;
-            int controlId = GUIUtility.GetControlID(FocusType.Passive);
+            int controlId = GUIUtility.GetControlID(TimelineControlHint, FocusType.Passive);
+
+            if (GUIUtility.hotControl == controlId && e.type == EventType.Repaint)
+            {
+                // 拖动中整个时间轴保持对应光标
+                EditorGUIUtility.AddCursorRect(visible, _dragMode == DragMode.Left || _dragMode == DragMode.Right ? MouseCursor.ResizeHorizontal : _dragMode == DragMode.Move ? MouseCursor.MoveArrow : MouseCursor.Arrow);
+            }
 
             switch (e.GetTypeForControl(controlId))
             {
+                case EventType.MouseMove:
+                {
+                    bool had = _hoverValid;
+                    ItemRef old = _hover;
+                    _hoverValid = false;
+                    if (visible.Contains(e.mousePosition))
+                    {
+                        int t = TrackAt(e.mousePosition.y, lanes, tops);
+                        if (t >= 0 && TryHitItem(rows[t], Tracks[t], tops[t], total, e.mousePosition, out TimelineItem hover, out _))
+                        {
+                            _hover = RefOf(hover);
+                            _hoverValid = true;
+                        }
+                    }
+                    if (had != _hoverValid || old.Kind != _hover.Kind || old.Index != _hover.Index || old.Sub != _hover.Sub) Repaint();
+                    return;
+                }
                 case EventType.MouseDown:
                 {
                     if (!visible.Contains(e.mousePosition)) return;
@@ -728,10 +803,10 @@ namespace KiHan.Editor
                         return;
                     }
 
-                    int t = TrackAt(e.mousePosition.y, lanes, tops);
-                    if (t < 0) return;
+                    int track = TrackAt(e.mousePosition.y, lanes, tops);
+                    if (track < 0) return;
 
-                    if (TryHitItem(rows[t], Tracks[t], tops[t], total, e.mousePosition, out TimelineItem hit, out DragMode mode))
+                    if (TryHitItem(rows[track], Tracks[track], tops[track], total, e.mousePosition, out TimelineItem hit, out DragMode mode))
                     {
                         _selection = RefOf(hit);
                         GUI.FocusControl(null);
@@ -742,18 +817,22 @@ namespace KiHan.Editor
                         else if (e.button == 0)
                         {
                             _dragMode = mode;
-                            _dragStartFrame = frame;
+                            _dragStartX = e.mousePosition.x;
                             _dragOrigX = hit.X;
                             _dragOrigY = hit.Y;
+                            // 一次拖动 (多次 MouseDrag) 合并为一步撤销
+                            Undo.IncrementCurrentGroup();
+                            _dragUndoGroup = Undo.GetCurrentGroup();
                             GUIUtility.hotControl = controlId;
                         }
                         e.Use();
+                        Repaint();
                         return;
                     }
 
                     if (e.button == 1)
                     {
-                        ShowAddMenu(a, Tracks[t].Kind, frame);
+                        ShowAddMenu(a, Tracks[track].Kind, frame);
                     }
                     else if (e.button == 0)
                     {
@@ -763,21 +842,24 @@ namespace KiHan.Editor
                         GUI.FocusControl(null);
                     }
                     e.Use();
+                    Repaint();
                     return;
                 }
                 case EventType.MouseDrag:
                 {
                     if (GUIUtility.hotControl != controlId) return;
-                    int frame = FrameAt(e.mousePosition.x, total);
                     if (_dragMode == DragMode.Scrub)
                     {
-                        _frame = frame;
+                        _frame = FrameAt(e.mousePosition.x, total);
                     }
                     else if (_dragMode != DragMode.None && SelectionValid())
                     {
-                        ApplyDrag(a, frame - _dragStartFrame, total);
+                        // 按鼠标相对按下位置的位移换算帧数 (四舍五入)，与按下时落在帧格内的位置无关
+                        int delta = Mathf.RoundToInt((e.mousePosition.x - _dragStartX) / _frameWidth);
+                        ApplyDrag(a, delta, total);
                     }
                     e.Use();
+                    Repaint();
                     return;
                 }
                 case EventType.MouseUp:
@@ -785,7 +867,13 @@ namespace KiHan.Editor
                     if (GUIUtility.hotControl != controlId) return;
                     GUIUtility.hotControl = 0;
                     _dragMode = DragMode.None;
+                    if (_dragUndoGroup >= 0)
+                    {
+                        Undo.CollapseUndoOperations(_dragUndoGroup);
+                        _dragUndoGroup = -1;
+                    }
                     e.Use();
+                    Repaint();
                     return;
                 }
             }
@@ -800,22 +888,39 @@ namespace KiHan.Editor
             return -1;
         }
 
+        /// <summary>
+        /// 命中条目：选中的条目优先；区间条目两端 (含外侧 EdgeOutside 像素) 为调整起止帧，中间为平移
+        /// </summary>
         private bool TryHitItem(List<TimelineItem> items, TrackInfo track, float top, int total, Vector2 mouse, out TimelineItem hit, out DragMode mode)
         {
+            int best = -1;
             for (int i = items.Count - 1; i >= 0; i--)
             {
                 Rect r = ItemRect(items[i], top, total, track.Point);
+                if (!track.Point) r = new Rect(r.x - EdgeOutside, r.y, r.width + EdgeOutside * 2, r.height);
                 if (!r.Contains(mouse)) continue;
-                hit = items[i];
-                if (track.Point) mode = DragMode.Move;
-                else if (mouse.x <= r.x + EdgeGrabWidth && r.width > EdgeGrabWidth * 3) mode = DragMode.Left;
-                else if (mouse.x >= r.xMax - EdgeGrabWidth && r.width > EdgeGrabWidth * 3) mode = DragMode.Right;
-                else mode = DragMode.Move;
-                return true;
+                if (best < 0 || IsSelected(items[i])) best = i;
             }
-            hit = default;
-            mode = DragMode.None;
-            return false;
+
+            if (best < 0)
+            {
+                hit = default;
+                mode = DragMode.None;
+                return false;
+            }
+
+            hit = items[best];
+            mode = DragMode.Move;
+            if (!track.Point)
+            {
+                Rect r = ItemRect(hit, top, total, false);
+                float grab = EdgeGrab(r);
+                float dl = mouse.x - r.x;
+                float dr = r.xMax - mouse.x;
+                if (dl <= grab && dl <= dr) mode = DragMode.Left;
+                else if (dr <= grab) mode = DragMode.Right;
+            }
+            return true;
         }
 
         /// <summary>

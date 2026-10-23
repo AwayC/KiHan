@@ -48,6 +48,7 @@ namespace KiHan.Editor
         private void OnEnable()
         {
             titleContent = new GUIContent("动作编辑器");
+            wantsMouseMove = true;
             saveChangesMessage = "动作配置有未保存的修改，是否保存？";
             Undo.undoRedoPerformed += OnUndoRedo;
             EditorApplication.update += OnEditorUpdate;
@@ -296,7 +297,8 @@ namespace KiHan.Editor
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawActionList();
-                using (new EditorGUILayout.VerticalScope())
+                // 固定中栏宽度：中栏内容再长也不会把右侧属性面板挤出窗口
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(CenterWidth)))
                 {
                     DrawCenter();
                 }
@@ -565,25 +567,48 @@ namespace KiHan.Editor
                 }
             }
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.Label("去向", EditorStyles.miniBoldLabel, GUILayout.Width(28));
-                if (outgoing.Count == 0) GUILayout.Label("—", EditorStyles.miniLabel);
-                foreach (KeyValuePair<string, string> r in outgoing) DrawJumpChip(r.Key, r.Value);
-                GUILayout.Space(16);
-                GUILayout.Label("来源", EditorStyles.miniBoldLabel, GUILayout.Width(28));
-                if (incoming.Count == 0) GUILayout.Label("—", EditorStyles.miniLabel);
-                foreach (KeyValuePair<string, string> r in incoming) DrawJumpChip(r.Key, r.Value);
-                GUILayout.FlexibleSpace();
-            }
+            DrawChipRows("去向", outgoing);
+            DrawChipRows("来源", incoming);
         }
 
-        private void DrawJumpChip(string how, string target)
+        private float CenterWidth => Mathf.Max(320f, position.width - ListWidth - InspectorWidth - 12f);
+
+        /// <summary>
+        /// 跳转按钮按中栏宽度自动换行
+        /// </summary>
+        private void DrawChipRows(string title, List<KeyValuePair<string, string>> refs)
         {
-            int index = FindAction(target);
-            GUI.color = index >= 0 ? Color.white : new Color(1f, 0.5f, 0.5f);
-            if (GUILayout.Button($"{how} → {target}", EditorStyles.miniButton) && index >= 0) SelectAction(index);
-            GUI.color = Color.white;
+            const float titleWidth = 30f;
+            float maxWidth = CenterWidth - 8f;
+            GUIStyle style = EditorStyles.miniButton;
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label(title, EditorStyles.miniBoldLabel, GUILayout.Width(titleWidth));
+            float used = titleWidth;
+            if (refs.Count == 0) GUILayout.Label("—", EditorStyles.miniLabel);
+
+            foreach (KeyValuePair<string, string> r in refs)
+            {
+                var content = new GUIContent($"{r.Key} → {r.Value}");
+                float w = Mathf.Min(style.CalcSize(content).x, maxWidth - titleWidth);
+                if (used + w + style.margin.horizontal > maxWidth && used > titleWidth)
+                {
+                    GUILayout.FlexibleSpace();
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Space(titleWidth + 4f);
+                    used = titleWidth;
+                }
+
+                int index = FindAction(r.Value);
+                GUI.color = index >= 0 ? Color.white : new Color(1f, 0.5f, 0.5f);
+                if (GUILayout.Button(content, style, GUILayout.Width(w)) && index >= 0) SelectAction(index);
+                GUI.color = Color.white;
+                used += w + style.margin.horizontal;
+            }
+
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
         }
 
         /// <summary>
