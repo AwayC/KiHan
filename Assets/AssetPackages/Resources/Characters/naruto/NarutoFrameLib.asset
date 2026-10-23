@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 95f210864e3ce8a479f06198085e388a, type: 3}
-  m_Name: frameLib
+  m_Name: NarutoFrameLib
   m_EditorClassIdentifier: 
   DefaultHurtBox:
     Center: {x: 0, y: 0}

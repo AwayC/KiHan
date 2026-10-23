@@ -57,6 +57,10 @@ public int debugPlayer1CharId = 90001; // 1P 默认鸣人
 public int debugPlayer2CharId = 90001; // 2P 默认鸣人
 ```
 
+## 文档
+
+- [角色配置参考](DOCS/CONFIG_REFERENCE.html)：actions / skills / spawns / buffs 每个字段的语义与示例，含入门教程（浏览器直接打开）
+
 ## TODO
 
 框架部分：

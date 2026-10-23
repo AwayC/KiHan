@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KiHan 角色配置参考 — actions / skills / spawns / buffs</title>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1b1b1b; --muted: #5e5e5e; --border: #e2e2e2; --surface: #f7f7f7;
+  --side: #fbfbfb; --accent: #0069c2; --accent-bg: #e8f1fb; --code-bg: #f4f4f4;
+  --note: #0069c2; --note-bg: #eaf3fc; --warn: #a66200; --warn-bg: #fff6e5;
+  --bad: #b3261e; --bad-bg: #fdecea; --ok: #1a7f37; --ok-bg: #e9f7ee;
+  --k: #a626a4; --s: #50a14f; --n: #986801; --p: #4078f2;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1b1b; --fg: #e6e6e6; --muted: #a0a0a0; --border: #343434; --surface: #232323;
+    --side: #202020; --accent: #8cb4ff; --accent-bg: #23304a; --code-bg: #262626;
+    --note: #8cb4ff; --note-bg: #1f2a3d; --warn: #f0b45a; --warn-bg: #3a2e18;
+    --bad: #ff8a80; --bad-bg: #3d2222; --ok: #6fd18b; --ok-bg: #1c3324;
+    --k: #d38bff; --s: #98c379; --n: #e5c07b; --p: #7fb2ff;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 64px; }
+body { margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.7 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+header.top { position: sticky; top: 0; z-index: 10; height: 52px; display: flex; align-items: center;
+  gap: 16px; padding: 0 20px; background: var(--bg); border-bottom: 1px solid var(--border); }
+header.top .logo { font-weight: 700; font-size: 17px; white-space: nowrap; }
+header.top .logo span { color: var(--accent); }
+header.top input { flex: 0 1 320px; margin-left: auto; padding: 6px 10px; border: 1px solid var(--border);
+  border-radius: 6px; background: var(--surface); color: var(--fg); font-size: 14px; }
+.layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); }
+nav.side { position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; padding: 16px 12px 40px;
+  background: var(--side); border-right: 1px solid var(--border); font-size: 14px; }
+nav.side h4 { margin: 18px 8px 6px; font-size: 12px; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; }
+nav.side a { display: block; padding: 2px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; }
+nav.side a:hover { background: var(--accent-bg); color: var(--accent); }
+nav.side a.sub { padding-left: 22px; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+nav.side a.sub2 { padding-left: 36px; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; color: var(--muted); }
+nav.side a.hidden { display: none; }
+main { padding: 24px 48px 120px; max-width: 980px; }
+h1 { font-size: 32px; margin: 8px 0 12px; }
+h2 { font-size: 24px; margin: 56px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 19px; margin: 40px 0 8px; }
+h4 { font-size: 15px; margin: 20px 0 6px; }
+p { margin: 8px 0; }
+a { color: var(--accent); }
+code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 13px; background: var(--code-bg);
+  padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px;
+  overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: none; padding: 0; }
+pre .k { color: var(--p); } pre .s { color: var(--s); } pre .n { color: var(--n); } pre .c { color: var(--muted); font-style: italic; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+th { background: var(--surface); font-weight: 600; }
+.crumb { font-size: 13px; color: var(--muted); margin-top: 48px; }
+.crumb + h3 { margin-top: 2px; }
+.summary { font-size: 16px; }
+section.field { border-top: 1px solid var(--border); }
+table.props th { width: 120px; }
+.badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 0 7px; border-radius: 10px; margin-left: 8px;
+  vertical-align: 2px; border: 1px solid var(--border); color: var(--muted); font-family: sans-serif; }
+.badge.req { color: var(--bad); border-color: var(--bad); }
+.badge.logic { color: var(--ok); border-color: var(--ok); }
+.badge.view { color: var(--warn); border-color: var(--warn); }
+.badge.dead { color: var(--muted); text-decoration: line-through; }
+.callout { border-left: 4px solid var(--note); background: var(--note-bg); padding: 8px 14px; border-radius: 0 6px 6px 0; margin: 12px 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-bg); }
+.callout.bad { border-color: var(--bad); background: var(--bad-bg); }
+.callout.ok { border-color: var(--ok); background: var(--ok-bg); }
+.callout b:first-child { display: block; margin-bottom: 2px; }
+.see { font-size: 14px; color: var(--muted); }
+.cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cmp > div > pre { margin: 4px 0; }
+.cmp .lbl { font-size: 13px; font-weight: 600; }
+.cmp .lbl.bad { color: var(--bad); } .cmp .lbl.ok { color: var(--ok); }
+.timeline { font-family: ui-monospace, Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; line-height: 1.5; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0; font-size: 13.5px; }
+.flow .node { border: 1px solid var(--accent); background: var(--accent-bg); border-radius: 6px; padding: 3px 10px; font-family: ui-monospace, Consolas, monospace; }
+.flow .node.alt { border-color: var(--warn); background: var(--warn-bg); }
+.flow .arr { color: var(--muted); }
+.flow .lab { color: var(--muted); font-size: 12px; }
+footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px solid var(--border); padding-top: 12px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } nav.side { display: none; } main { padding: 16px; } .cmp { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">KiHan <span>配置参考</span></div>
+  <input id="q" type="search" placeholder="搜索字段，例如 cancelTag、keepFrame…" autocomplete="off">
+</header>
+<div class="layout">
+<nav class="side" id="side">
+  <h4>入门</h4>
+  <a href="#home">概览与约定</a>
+  <a href="#concept-frame">帧、tick 与区间</a>
+  <a href="#concept-switch">动作是怎么切换的</a>
+  <a href="#concept-cancel">取消系统：cancelTag 与 beCancelledTag</a>
+  <a href="#concept-priority">优先级裁决</a>
+  <a href="#concept-order">一个逻辑帧里发生了什么</a>
+  <h4>教程</h4>
+  <a href="#tut-minimal">1. 最小可运行角色</a>
+  <a href="#tut-combo">2. 普攻连段</a>
+  <a href="#tut-skill">3. 单段技能与 CD</a>
+  <a href="#tut-hitbranch">4. 命中派生（变体动作法）</a>
+  <a href="#tut-spawn">5. 投射物生成物</a>
+  <a href="#tut-sub">6. 替身术</a>
+  <h4>actions.json</h4>
+  <a href="#action-root">ActionDataContainer</a>
+  <a class="sub" href="#action-id">id</a>
+  <a class="sub" href="#action-animKey">animKey</a>
+  <a class="sub" href="#action-catalog">catalog</a>
+  <a class="sub" href="#action-priority">priority</a>
+  <a class="sub" href="#action-cancelTag">cancelTag</a>
+  <a class="sub" href="#action-beCancelledTag">beCancelledTag</a>
+  <a class="sub" href="#action-tempBeCancelledTag">tempBeCancelledTag</a>
+  <a class="sub" href="#action-commands">commands</a>
+  <a class="sub" href="#action-inputAcceptance">inputAcceptance</a>
+  <a class="sub" href="#action-autoNextActionId">autoNextActionId</a>
+  <a class="sub" href="#action-keepPlayingAnim">keepPlayingAnim</a>
+  <a class="sub" href="#action-autoTerminate">autoTerminate</a>
+  <a class="sub" href="#action-inverse">inverse</a>
+  <a class="sub" href="#action-facing">facing</a>
+  <a class="sub" href="#action-onLand">onLand</a>
+  <a class="sub" href="#action-attackPhase">attackPhase</a>
+  <a class="sub" href="#action-attacks">attacks</a>
+  <a class="sub" href="#action-defensePhase">defensePhase</a>
+  <a class="sub" href="#action-armorPhase">armorPhase</a>
+  <a class="sub" href="#action-rootMotion">rootMotion</a>
+  <a class="sub" href="#action-events">events</a>
+  <a class="sub" href="#action-breakHurt">breakHurt</a>
+  <h4>actions.json · 子结构</h4>
+  <a class="sub" href="#t-FrameRange">FrameRange</a>
+  <a class="sub" href="#t-CancelTag" data-k="tag startFormFrame">CancelTag</a>
+  <a class="sub" href="#t-BeCancelledTag" data-k="frameRange">BeCancelledTag</a>
+  <a class="sub" href="#t-TempBeCancelledTag" data-k="startFrames">TempBeCancelledTag</a>
+  <a class="sub" href="#t-ActionCommand" data-k="press hold release validInSec">ActionCommand</a>
+  <a class="sub2" href="#t-CommandKey" data-k="Attack Skill1 Skill2 Ultimate Substitution Secret Summon Move Up Down Forward Backward">按键名 CommandKey</a>
+  <a class="sub" href="#t-MoveInputAcceptance" data-k="range rateX rateY turn">MoveInputAcceptance</a>
+  <a class="sub" href="#t-ActionChange" data-k="changeType param fromFrame keepFrame">ActionChange</a>
+  <a class="sub" href="#t-AttackBoxTurnOn" data-k="frameRanges tag attackPhase">AttackBoxTurnOn</a>
+  <a class="sub" href="#t-Attack">Attack</a>
+  <a class="sub2" href="#attack-attack">attack</a>
+  <a class="sub2" href="#attack-hitStun">hitStun</a>
+  <a class="sub2" href="#attack-push" data-k="x y inSec tweenMethod Linear Slowly">push</a>
+  <a class="sub2" href="#attack-launch" data-k="z x y">launch / air</a>
+  <a class="sub2" href="#attack-armorBreak">armorBreak</a>
+  <a class="sub2" href="#attack-canHitLying">canHitLying</a>
+  <a class="sub2" href="#attack-grab" data-k="enabled anchor releaseActionChange">grab</a>
+  <a class="sub2" href="#attack-suction" data-k="centerX centerY speed inSec">suction</a>
+  <a class="sub2" href="#attack-canHitSameTarget" data-k="hitSameTargetDelay">canHitSameTarget</a>
+  <a class="sub2" href="#attack-selfActionChange">selfActionChange</a>
+  <a class="sub2" href="#attack-hurtAction">hurtAction</a>
+  <a class="sub2" href="#attack-tempOn">tempBeCancelledTagTurnOn</a>
+  <a class="sub2" href="#attack-phase">phase</a>
+  <a class="sub" href="#t-BeHitBoxTurnOn" data-k="attackerActionChange selfActionChange defensePhase">BeHitBoxTurnOn</a>
+  <a class="sub" href="#t-ArmorPhase" data-k="range level None Skill Super KingKong Invincible">ArmorPhase / ArmorLevel</a>
+  <a class="sub" href="#t-RootMotion" data-k="moveX moveY velocityZ accelerationZ velocityX velocityY tweenMethod">RootMotionSegment</a>
+  <a class="sub" href="#t-Event" data-k="frame type asset spawnId anchor offset bind stopOnActionEnd loop Effect Camera Spawn Buff">ActionEvent</a>
+  <a class="sub" href="#t-HurtIds" data-k="hurt_1 hurt_2 hurt_toair hurt_inair hurt_fall lie standup">固定受击动作</a>
+  <h4>skills.json</h4>
+  <a href="#skill-root">SkillDataContainer</a>
+  <a class="sub" href="#skill-chakraMax">chakraMax</a>
+  <a class="sub" href="#skill-id">id</a>
+  <a class="sub" href="#skill-button">button</a>
+  <a class="sub" href="#skill-icon">icon</a>
+  <a class="sub" href="#skill-cooldown">cooldown</a>
+  <a class="sub" href="#skill-chakraCost">chakraCost</a>
+  <a class="sub" href="#skill-requireHurt">requireHurt</a>
+  <a class="sub" href="#skill-stages">stages</a>
+  <a class="sub2" href="#stage-actionId">actionId</a>
+  <a class="sub2" href="#stage-followActions">followActions</a>
+  <a class="sub2" href="#stage-stageDuration">stageDuration</a>
+  <a class="sub2" href="#stage-cdReturn">cdReturn</a>
+  <a class="sub2" href="#stage-icon">icon</a>
+  <a class="sub" href="#skill-chakra">查克拉规则</a>
+  <h4>spawns.json</h4>
+  <a href="#spawn-root">SpawnDataContainer</a>
+  <a class="sub" href="#spawn-trigger">生成流程</a>
+  <a class="sub" href="#spawn-id">id</a>
+  <a class="sub" href="#spawn-type" data-k="Simple Actor">type</a>
+  <a class="sub" href="#spawn-initialActionId">initialActionId</a>
+  <a class="sub" href="#spawn-despawnActionId">despawnActionId</a>
+  <a class="sub" href="#spawn-lifeTime">lifeTime</a>
+  <a class="sub" href="#spawn-hp">hp</a>
+  <a class="sub" href="#spawn-brain" data-k="script frame hold buttons dir None Script">brain / script</a>
+  <a class="sub" href="#spawn-prewarm">prewarm</a>
+  <h4>buffs.json</h4>
+  <a href="#buff-root" data-k="id duration effect anchor offset">BuffData</a>
+  <h4>附录</h4>
+  <a href="#ap-framecheck">帧判定口径对照</a>
+  <a href="#ap-validate">自动校验清单</a>
+  <a href="#ap-pitfalls">已知陷阱与不一致</a>
+</nav>
+<main>
+<!-- ============================== 概览 ============================== -->
+<section id="home">
+<h1>KiHan 角色配置参考</h1>
+<p class="summary">这份文档讲清楚一个角色的四个配置文件里<strong>每个字段是什么意思、什么时候生效、和谁有冲突</strong>。每个字段都附了可以直接抄的示例。</p>
+
+<p>一个角色的所有配置都放在 <code>Assets/AssetPackages/Resources/Characters/&lt;角色目录&gt;/</code> 下，由 <code>CharacterFactory</code> 按角色 ID 加载：</p>
+<table>
+<tr><th>文件</th><th>必需</th><th>内容</th><th>缺失时</th></tr>
+<tr><td><code>actions.json</code></td><td>是</td><td>动作库：每个动作播什么动画、什么时候能被打断、攻击判定、位移、事件</td><td>报错 <code>找不到动作配置</code>，动作库为空</td></tr>
+<tr><td><code>*.asset</code></td><td>是</td><td>动画（<code>AnimationFrameData</code>），资源名就是 <code>animKey</code></td><td>动作播不出画面</td></tr>
+<tr><td><code>skills.json</code></td><td>否</td><td>技能：CD、多段、查克拉、按键图标</td><td>没有技能，查克拉上限 4</td></tr>
+<tr><td><code>spawns.json</code></td><td>否</td><td>生成物：投射物、分身</td><td>没有生成物</td></tr>
+<tr><td><code>buffs.json</code></td><td>否</td><td>Buff：持续时间与循环特效</td><td>没有 Buff</td></tr>
+</table>
+<p>角色 ID 与目录的对应关系写死在 <code>CharacterFactory.ResourceDirs</code> 里（目前只有 <code>90001 → Characters/naruto</code>），新角色要在那里加一行。</p>
+
+<h3>通用约定</h3>
+<table>
+<tr><th>写法</th><th>含义</th><th>示例</th></tr>
+<tr><td><b>字符串数值</b></td><td>所有定点数都写成<strong>带引号的字符串</strong>，运行时用整数运算解析为定点数，保证不同 CPU 结果一致。留空或省略等于 0。只接受 <code>[+|-]数字[.数字]</code>，写 <code>"3s"</code>、<code>"1e3"</code> 会在加载时抛异常。</td><td><code>"hitStun": "0.6"</code></td></tr>
+<tr><td><b>秒 → 逻辑帧</b></td><td>逻辑固定 30 帧/秒。秒数换算为 <code>ceil(秒 × 30)</code>，<strong>不足一帧按一帧算</strong>；0 或负数为 0。</td><td><code>"0.2"</code> → 6 帧</td></tr>
+<tr><td><b>帧区间</b></td><td><code>{ "x": 起, "y": 止 }</code>，动画帧从 0 开始，<strong>两端都包含</strong>。</td><td><code>{ "x": 7, "y": 10 }</code> 是第 7、8、9、10 帧</td></tr>
+<tr><td><b>像素与逻辑单位</b></td><td>判定盒、锚点、偏移用像素；位移、速度用逻辑单位。100 像素 = 1 逻辑单位。</td><td><code>"moveX": "0.6"</code> = 60 像素</td></tr>
+<tr><td><b>坐标轴</b></td><td>x 横向（正方向 = 角色面朝方向，朝左时自动镜像），y 纵深，z 高度。</td><td></td></tr>
+<tr><td><b>枚举字符串</b></td><td>大多数枚举（霸体等级、事件类型、生成物类型）不区分大小写，写错<strong>静默</strong>回落默认值。例外：缓动名 <code>tweenMethod</code> 区分大小写；按键名写错会报错。</td><td><code>"level": "skill"</code> 与 <code>"Skill"</code> 等价</td></tr>
+<tr><td><b>注释</b></td><td>Unity 的 JsonUtility <strong>不支持 <code>//</code> 注释</strong>。仓库根目录的 <code>example.json</code>、<code>*_example.json</code> 带注释，只能参考，不能直接放进 Resources。</td><td></td></tr>
+</table>
+
+<h3>标记说明</h3>
+<p>
+<span class="badge req">必填</span> 不写会出错或没有意义
+<span class="badge logic">逻辑</span> 影响战斗结果，双端必须一致
+<span class="badge view">表现</span> 只影响画面/UI
+<span class="badge dead">未使用</span> 会被读入但运行时没有任何代码使用
+</p>
+</section>
+
+<!-- ============================== 核心概念 ============================== -->
+<h2 id="concept-frame">帧、tick 与区间</h2>
+<p>理解所有"第几帧生效"的问题，只需要记住下面三件事。</p>
+
+<h4>1. 一个 tick 处理一帧动画</h4>
+<p>逻辑帧（tick）固定 30 帧/秒，动画素材也是 30 帧/秒，所以<strong>每个 tick 推进并"处理"恰好一帧动画</strong>。动画由若干步（Step）组成，每步可以持续多帧，动作总帧数 = 各步 <code>Duration</code> 之和。配置里所有帧号都是指这个展开后的动画帧序号，从 0 开始。</p>
+<div class="timeline">tick:        1    2    3    4    5    6
+处理的动画帧:  0    1    2    3    4    5        （第 k 个 tick 处理第 k-1 帧）</div>
+
+<h4>2. 区间是闭区间，"处理到其中任意一帧"就成立</h4>
+<p>取消窗口、攻击段、输入接受率等区间 <code>[x, y]</code>：本 tick 处理的帧落在区间内即成立。动画播完后如果没有切走，会<strong>停在最后一帧</strong>（stall），此时按最后一帧判断，所以覆盖最后一帧的取消窗口会一直开着。</p>
+
+<h4>3. 切换在 tick 末尾统一发生，下一 tick 才播新动作</h4>
+<p>一个 tick 里所有"想切换"的请求（按键取消、播完、落地、命中……）都只是<strong>预约</strong>，等物理和命中全部结算完，再按优先级选出一个执行。新动作的起始帧在<strong>下一个 tick</strong> 才被处理。</p>
+<div class="timeline">例：attack1 的取消窗口 frameRange {x:18, y:21}，玩家一直按住攻击
+tick 19：处理第 18 帧 → 窗口成立 → 预约 attack2 → tick 末尾切换
+tick 20：处理 attack2 的第 0 帧</div>
+<div class="callout"><b>记忆口诀</b>"处理完第 x 帧才能切"，所以窗口起点 x 的画面一定会被看到。</div>
+
+<h2 id="concept-switch">动作是怎么切换的</h2>
+<p>配置里只有这几条路能让角色换动作，每条路有自己的字段和优先级：</p>
+<table>
+<tr><th>途径</th><th>由谁触发</th><th>配置字段</th><th>是否检查技能 CD</th></tr>
+<tr><td>主动取消</td><td>输入 + 当前动作开着匹配的窗口</td><td>目标的 <a href="#action-cancelTag"><code>cancelTag</code></a>、<a href="#action-commands"><code>commands</code></a>；当前动作的 <a href="#action-beCancelledTag"><code>beCancelledTag</code></a></td><td>是</td></tr>
+<tr><td>自然衔接</td><td>动画播完（或 <code>autoTerminate</code> 时每帧）</td><td><a href="#action-autoNextActionId"><code>autoNextActionId</code></a></td><td>否</td></tr>
+<tr><td>落地</td><td>物理落地事件</td><td><a href="#action-onLand"><code>onLand</code></a></td><td>否</td></tr>
+<tr><td>命中</td><td>本帧攻击命中</td><td><a href="#attack-selfActionChange"><code>attacks[].selfActionChange</code></a>（攻击方）、<a href="#attack-hurtAction"><code>hurtAction</code></a>（受击方）</td><td>否</td></tr>
+<tr><td>受击流程</td><td>框架内置</td><td><a href="#t-HurtIds">固定受击动作 id</a></td><td>否</td></tr>
+<tr><td>替身破除受击</td><td>受击锁定中按键</td><td><a href="#action-breakHurt"><code>breakHurt</code></a></td><td>是</td></tr>
+<tr><td>生成物寿命到期</td><td>框架内置</td><td><a href="#spawn-despawnActionId"><code>despawnActionId</code></a></td><td>—</td></tr>
+</table>
+<div class="callout warn"><b>注意：只有"输入发起"的切换会经过技能准入</b>落地、命中、自然衔接直接进入目标动作，不看 CD 与段号。所以技能的后续动作（落地、命中派生、收招）必须登记在 <a href="#stage-followActions"><code>followActions</code></a> 里，否则进入它们时技能会被当成"已经放完"，提前开始计算 CD。</div>
+
+<h2 id="concept-cancel">取消系统：cancelTag 与 beCancelledTag</h2>
+<p>这是整个动作框架最核心的设计：<strong>能不能从 A 切到 B，由 A 和 B 各说一半</strong>。</p>
+<ul>
+<li><b>B 的 <code>cancelTag</code></b>：B 声明"我属于哪些标签"。比如所有技能都挂 <code>skill</code> 标签。</li>
+<li><b>A 的 <code>beCancelledTag</code></b>：A 声明"在第 x~y 帧，允许哪些标签打断我"。</li>
+<li>两者有交集，且 B 的 <code>commands</code> 本帧满足，B 就会被预约。</li>
+</ul>
+<pre><code class="json">{
+  "id": "attack1",
+  "beCancelledTag": [
+    { "frameRange": { "x": 18, "y": 21 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
+  ]
+},
+{
+  "id": "skill1",
+  "cancelTag": [ { "tag": "skill", "startFormFrame": 0, "priority": 20 } ],
+  "commands":  [ { "press": ["Skill1"], "validInSec": "0.2" } ]
+}</code></pre>
+<p>读法：attack1 的第 18~21 帧，允许带 <code>move</code>、<code>attack2</code>、<code>skill</code> 标签的动作打断；skill1 带 <code>skill</code> 标签，按下 Skill1 就能在这个窗口里切进去。</p>
+<div class="callout"><b>为什么要用标签而不是直接写动作 id？</b>因为一个窗口通常要放行一大类动作。新增第 5 个技能时，只要给它挂上 <code>skill</code> 标签，所有已经放行 <code>skill</code> 的窗口自动生效，不用逐个修改。</div>
+<p>还有一种<strong>临时窗口</strong> <a href="#action-tempBeCancelledTag"><code>tempBeCancelledTag</code></a>：平时关闭，攻击命中时才打开，用来做"打中了才能取消后摇"。它只在<strong>当前动作</strong>里有效，切动作即失效。</p>
+
+<h2 id="concept-priority">优先级裁决</h2>
+<p>同一个 tick 里可能同时有多个预约（比如刚好落地、又被打中、又按了技能）。框架收集全部预约，选<strong>数值最大</strong>的；数值相同时<strong>先加入的</strong>赢。</p>
+<table>
+<tr><th>来源</th><th>最终优先级</th><th>起始帧</th></tr>
+<tr><td>生成物寿命到期 → 消失动作</td><td><b>300</b> + 目标动作 priority</td><td>0</td></tr>
+<tr><td>受击中按替身（<code>breakHurt</code>）</td><td><b>200</b> + 动作 priority</td><td>0</td></tr>
+<tr><td>被命中 → 受击动作</td><td><b>100</b> + 受击动作 priority</td><td>0</td></tr>
+<tr><td>击飞触地弹起 / 倒地</td><td><b>95</b> + 目标 priority</td><td>0</td></tr>
+<tr><td>受击流程推进（toair→inair→fall、起身、僵直结束回 idle）</td><td><b>90</b> + 目标 priority</td><td>0</td></tr>
+<tr><td>主动取消</td><td>窗口 priority + 标签 priority + 动作 priority</td><td><code>startFormFrame</code></td></tr>
+<tr><td><code>onLand</code> / <code>selfActionChange</code> / <code>releaseActionChange</code></td><td>配置的 priority + 目标动作 priority</td><td><code>fromFrame</code>，或 <code>keepFrame</code> 时接着当前帧</td></tr>
+<tr><td><code>autoNextActionId</code></td><td><b>0</b>（不加动作 priority）</td><td>0</td></tr>
+</table>
+<div class="callout"><b>autoNext 是"兜底"</b>只有在本 tick 此前没有任何预约时才会加入。只要有按键取消、受击等预约，autoNext 就不会出现。</div>
+
+<h2 id="concept-order">一个逻辑帧里发生了什么</h2>
+<p><code>BattleWorld.Tick</code> 的顺序（所有角色按 EntityId 从小到大依次处理）：</p>
+<ol>
+<li><b>输入</b>：玩家读取本帧输入；分身由大脑脚本生成输入。</li>
+<li><b>动作推进</b>，对每个角色：
+  <ol type="a">
+  <li>无敌计时、技能 CD 与接段计时、生成物寿命、Buff 计时、僵直倒数</li>
+  <li>动画推进一帧 → 计算攻击段/受击段 → 霸体 → 移动接受率与转向 → RootMotion → <b>触发本帧事件</b></li>
+  <li>扫描所有动作，看能否主动取消 → 都没有时预约 autoNext</li>
+  <li>受击流程推进</li>
+  </ol></li>
+<li><b>物理</b>：位移、跳跃、重力、落地（触发 <code>onLand</code> 预约）；然后抓取跟随、吸附。</li>
+<li><b>命中检测</b>：只收集，不生效。</li>
+<li><b>命中结算</b>：扣血、查克拉、受击反应、命中切换预约。</li>
+<li><b>裁决</b>：每个角色选出优先级最高的预约，<b>真正切换动作</b>。</li>
+<li><b>生成与回收</b>：回收结束的生成物，执行本帧的生成请求。</li>
+</ol>
+<div class="callout ok"><b>这个顺序带来的保证</b>同一 tick 内"刚好落地又刚好命中"，两个结果都会先记下来再统一裁决，不会因为谁先算而不同；联机双端结果一致。</div>
+
+<!-- ============================== 教程 ============================== -->
+<h2 id="tut-minimal">教程 1：最小可运行角色</h2>
+<p>目标：角色能站着、能走、能被打。一个能进战斗的角色至少需要下面这些动作。</p>
+<pre><code class="json">{
+  "data": [
+    {
+      "id": "idle", "animKey": "Idle", "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill"], "priority": 0 }
+      ],
+      "inputAcceptance": [ { "range": { "x": 0, "y": 999 }, "rateX": "0", "rateY": "0", "turn": true } ]
+    },
+    {
+      "id": "move", "animKey": "Run", "catalog": "Base",
+      "keepPlayingAnim": true, "autoTerminate": true, "autoNextActionId": "idle",
+      "cancelTag": [ { "tag": "move", "startFormFrame": 0, "priority": 0 } ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill"], "priority": 0 }
+      ],
+      "commands": [ { "hold": ["Move"] } ],
+      "inputAcceptance": [ { "range": { "x": 0, "y": 999 }, "rateX": "1", "rateY": "1", "turn": true } ]
+    },
+    { "id": "hurt_1",     "animKey": "Hurt_1",     "catalog": "Hurt" },
+    { "id": "hurt_2",     "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "hurt_toair", "animKey": "Hurt_toair", "catalog": "Hurt" },
+    { "id": "hurt_inair", "animKey": "Hurt_inair", "catalog": "Hurt" },
+    { "id": "hurt_fall",  "animKey": "Hurt_fall",  "catalog": "Hurt" },
+    { "id": "lie",        "animKey": "Hurt_land",  "catalog": "Hurt" },
+    { "id": "standup",    "animKey": "Land",       "catalog": "Hurt" }
+  ]
+}</code></pre>
+<h4>逐段解释</h4>
+<ul>
+<li><b>idle 必须叫 <code>idle</code></b>：它是默认动作，受击结束、生成物初始化都会回到它。</li>
+<li><b>idle 的窗口 <code>0~999</code></b>：整段动画都允许 <code>move</code>、<code>attack1</code>、<code>skill</code> 打断。999 只是"足够大"，超出动画长度没关系，播完停在末帧时按末帧判断，窗口仍然开着。</li>
+<li><b><code>keepPlayingAnim</code> + <code>autoNextActionId</code> 指向自己</b>：播完不重新"进入" idle，只把动画从头再播，不会清掉按键缓冲。</li>
+<li><b>move 的 <code>hold: ["Move"]</code></b>：推着摇杆就满足。move 自己的窗口也放行 <code>move</code> 标签，所以推摇杆期间每帧都在"取消进自己"，从而保持住。</li>
+<li><b><code>autoTerminate</code></b>：松开摇杆的那一帧，没有任何取消预约，autoNext 立刻把角色送回 idle，不用等跑步动画播完。</li>
+<li><b><code>inputAcceptance</code></b>：idle 的 <code>rateX/rateY = 0</code> 表示站着时推摇杆不会移动，但 <code>turn: true</code> 允许转身；move 的 1 表示全速移动。</li>
+<li><b>7 个受击动作</b>的 id 是框架写死的，缺一个就会报错。它们只提供动画，流程由框架驱动。</li>
+</ul>
+
+<h2 id="tut-combo">教程 2：普攻连段</h2>
+<p>目标：按住攻击键自动打出 1→2 段，点一下只出一段，第 2 段允许预输入。</p>
+<pre><code class="json">{
+  "id": "attack1", "animKey": "Attack_1", "catalog": "Attack", "priority": 10,
+  "autoNextActionId": "idle",
+  "cancelTag": [ { "tag": "attack1", "startFormFrame": 0, "priority": 10 } ],
+  "beCancelledTag": [
+    { "frameRange": { "x": 18, "y": 21 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
+  ],
+  "commands": [
+    { "press": ["Attack"], "validInSec": "0.2" },
+    { "hold": ["Attack"] }
+  ],
+  "attackPhase": [ { "frameRanges": [{ "x": 7, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 } ],
+  "rootMotion":  [ { "frameRange": { "x": 8, "y": 10 }, "moveX": "0.6" } ],
+  "attacks": [
+    { "attack": "50", "hitStun": "0.6",
+      "push": { "x": "0.6", "inSec": "0.15", "tweenMethod": "Slowly" },
+      "canHitSameTarget": 1 }
+  ]
+},
+{
+  "id": "attack2", "animKey": "Attack_2", "catalog": "Attack", "priority": 10,
+  "autoNextActionId": "idle",
+  "cancelTag": [ { "tag": "attack2", "startFormFrame": 0, "priority": 10 } ],
+  "commands": [
+    { "press": ["Attack"], "validInSec": "0.3" },
+    { "hold": ["Attack"] }
+  ]
+}</code></pre>
+<h4>为什么 commands 要写两条</h4>
+<p><code>commands</code> 里<strong>任意一条</strong>满足即可：</p>
+<ul>
+<li><code>press</code> 是"按下"事件，带 0.2 秒缓冲。在窗口打开前提前点一下，等窗口打开时仍然有效，这就是<strong>预输入</strong>。</li>
+<li><code>hold</code> 是"正按着"。一直按住攻击键，窗口一开就接下一段，这就是<strong>长按连段</strong>。</li>
+</ul>
+<div class="callout warn"><b>按下会在切动作时被用掉</b>从 idle 按攻击进入 attack1 的那一刻，这次"按下"就被消费了。所以只配 <code>press</code> 时，按住不放不会连段，必须松开再按。这是有意的设计，防止一次按键打出两段。</div>
+<h4>攻击是怎么接上判定的</h4>
+<ul>
+<li><code>attackPhase</code> 决定<b>哪几帧</b>开攻击盒：第 7~10 帧，使用 <code>attacks[0]</code> 的数值。</li>
+<li>攻击盒的<b>形状</b>在帧库（<code>CharacterSpriteLibrary</code>）里逐帧画，配置里不写。</li>
+<li><code>canHitSameTarget: 1</code>：这个动作里同一个目标最多打一次。</li>
+</ul>
+
+<h2 id="tut-skill">教程 3：单段技能与 CD</h2>
+<p>技能分两半：动作写在 <code>actions.json</code>（怎么放），规则写在 <code>skills.json</code>（CD、查克拉）。</p>
+<pre><code class="json">// actions.json
+{
+  "id": "skill1", "animKey": "Skill_A_1", "catalog": "Skill", "priority": 20,
+  "autoNextActionId": "idle",
+  "cancelTag": [ { "tag": "skill", "startFormFrame": 0, "priority": 20 } ],
+  "commands":  [ { "press": ["Skill1"], "validInSec": "0.2" }, { "hold": ["Skill1"] } ],
+  "armorPhase": [ { "range": { "x": 0, "y": 29 }, "level": "Skill" } ],
+  "beCancelledTag": [ { "frameRange": { "x": 30, "y": 33 }, "cancelTag": ["move", "attack1"], "priority": 0 } ]
+}
+
+// skills.json
+{
+  "chakraMax": 4,
+  "data": [
+    { "id": "skill1", "button": "Skill1", "cooldown": "3",
+      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
+      "stages": [ { "actionId": "skill1" } ] }
+  ]
+}</code></pre>
+<ul>
+<li><b>出招由动作的 <code>commands</code> 决定</b>，不是 <code>button</code>。<code>button</code> 只决定 CD 遮罩显示在哪个按钮上。</li>
+<li><b>CD 什么时候开始</b>：离开技能的那一帧（进入 idle 时），不是按下时。释放过程中 CD 为 0。</li>
+<li><b>CD 期间</b>按键仍然会被检测，但技能准入拒绝，所以什么都不会发生。</li>
+<li><b>霸体 <code>Skill</code></b>：第 0~29 帧被普通攻击打中只扣血、不会被打断；对方攻击的 <code>armorBreak</code> 达到 <code>Skill</code> 才能打断。</li>
+</ul>
+
+<h2 id="tut-hitbranch">教程 4：命中派生（变体动作法）</h2>
+<p>需求：鸣人技能 2 的第一段是<strong>起跳攻击</strong>。打中了，落地后接第二段；没打中，落地硬直后回 idle。</p>
+<p>难点在于"打中过"这个信息要<strong>跨两个动作</strong>（空中段 → 落地段）才能用上，而框架没有可查询的"命中过"状态。解决方法是<b>把分支编码进动作本身</b>：命中时切到一个"命中版"的同动画动作，后面的流程都走命中版。</p>
+<div class="flow">
+  <span class="node">skill2_1</span><span class="arr">─ 落地 / 播完 →</span><span class="node alt">skill2_land</span><span class="arr">→</span><span class="node alt">idle</span>
+</div>
+<div class="flow">
+  <span class="lab">命中（keepFrame）↓</span>
+</div>
+<div class="flow">
+  <span class="node">skill2_1_hit</span><span class="arr">─ 落地 / 播完 →</span><span class="node">skill2_land_hit</span><span class="arr">─ 播完 →</span><span class="node">skill2_2</span><span class="arr">→</span><span class="node alt">idle</span>
+</div>
+<pre><code class="json">{
+  "id": "skill2_1", "animKey": "Skill_B_1", "catalog": "Skill", "priority": 20,
+  "autoNextActionId": "skill2_land",
+  "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 },
+  "cancelTag": [ { "tag": "skill", "startFormFrame": 0, "priority": 20 } ],
+  "commands":  [ { "press": ["Skill2"], "validInSec": "0.2" }, { "hold": ["Skill2"] } ],
+  "rootMotion": [ { "frameRange": { "x": 9, "y": 9 }, "velocityX": "8", "velocityZ": "5" } ],
+  "attackPhase": [ { "frameRanges": [{ "x": 19, "y": 26 }], "tag": [], "attackPhase": 0, "priority": 10 } ],
+  "attacks": [
+    { "attack": "100", "hitStun": "0.8", "armorBreak": "Skill", "canHitSameTarget": 1,
+      "selfActionChange": { "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true } }
+  ]
+},
+{
+  "id": "skill2_1_hit", "animKey": "Skill_B_1", "catalog": "Skill", "priority": 20,
+  "autoNextActionId": "skill2_land_hit",
+  "onLand": { "changeType": 1, "param": "skill2_land_hit", "priority": 100 },
+  "armorPhase": [ { "range": { "x": 0, "y": 28 }, "level": "Skill" } ]
+},
+{ "id": "skill2_land", "animKey": "Skill_B_land", "catalog": "Skill", "priority": 20, "autoNextActionId": "idle" },
+{
+  "id": "skill2_land_hit", "animKey": "Skill_B_land", "catalog": "Skill", "priority": 20,
+  "autoNextActionId": "skill2_2",
+  "armorPhase": [ { "range": { "x": 0, "y": 9 }, "level": "Skill" } ]
+}</code></pre>
+<h4>关键点逐条看</h4>
+<ol>
+<li><b><code>keepFrame: true</code></b>：切到 <code>skill2_1_hit</code> 时接着当前帧播（同一个动画 <code>Skill_B_1</code>），玩家看不出切换。同时<strong>保留水平惯性</strong>，第 9 帧设置的 <code>velocityX: 8</code> 不会被清掉，角色继续往前飞。</li>
+<li><b>命中版不配 <code>attackPhase</code></b>：已经打中了，不需要再打。也不配 <code>events</code>：从第 19 帧之后接着播，第 4 帧的生成事件本来就不会重放。</li>
+<li><b>命中版要把霸体抄过去</b>：变体是独立动作，<code>armorPhase</code> 不会继承。漏抄的话，命中后的下落过程会变成可被打断。</li>
+<li><b><code>onLand</code> 与 <code>autoNextActionId</code> 都写</b>：先落地就由 <code>onLand</code> 切走（优先级 100+20）；如果动画先播完而角色还在空中，autoNext 会切到落地动作，避免停在最后一帧的空中姿势。</li>
+<li><b>空中动作兜底</b>：<code>skill2_1_hit</code> 配了 <code>onLand</code> 而自己没有起跳段，框架把它当成"空中动作"。如果命中那一刻角色恰好已经在地面上，进入后会立即视为落地，直接走 <code>skill2_land_hit</code>，不会卡在空中姿势。</li>
+</ol>
+<p>最后在 <code>skills.json</code> 里把整条链登记进同一段，CD 才会在 <code>skill2_2</code> 结束后开始：</p>
+<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"] }</code></pre>
+<div class="callout"><b>代价与取舍</b>每个"命中才接"的分支要多配 1~2 个变体动作，改霸体、位移时要两边一起改。好处是每条路径都是显式的动作链，编辑器和自动校验都能看见，不存在隐藏状态。</div>
+
+<h2 id="tut-spawn">教程 5：投射物生成物</h2>
+<p>需求：技能 2 第 4 帧放出一个独立的踢击投射物，三段命中后落地消失。</p>
+<pre><code class="json">// actions.json —— 本体在第 4 帧生成
+"events": [ { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx" } ]
+
+// spawns.json
+{ "data": [
+  { "id": "naruto_skill2_fx", "type": "Simple", "initialActionId": "skill2_fx", "lifeTime": "3", "prewarm": 2 }
+] }
+
+// actions.json —— 投射物自己的动作，和本体写在同一个文件里
+{
+  "id": "skill2_fx", "animKey": "Skill_B_fx", "catalog": "Spawn",
+  "autoNextActionId": "skill2_fx_land",
+  "onLand": { "changeType": 1, "param": "skill2_fx_land", "priority": 100 },
+  "attackPhase": [
+    { "frameRanges": [{ "x": 2,  "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 },
+    { "frameRanges": [{ "x": 11, "y": 19 }], "tag": [], "attackPhase": 1, "priority": 10 },
+    { "frameRanges": [{ "x": 33, "y": 41 }], "tag": [], "attackPhase": 2, "priority": 10 }
+  ]
+},
+{ "id": "skill2_fx_land", "animKey": "Skill_B_fx_land", "catalog": "Spawn" }</code></pre>
+<ul>
+<li><b>生成物和主人共用动作库</b>：投射物的动作直接写在同一个 <code>actions.json</code> 里。</li>
+<li><b>继承</b>：阵营、朝向来自主人，位置是事件的锚点 + 偏移（留空为脚底）。</li>
+<li><b>回收</b>：<code>Simple</code> 类型在动作链走完时回收：当前动作播完、没有 autoNext、也不在等待落地。<code>skill2_fx_land</code> 没写 autoNext，播完即回收。<code>lifeTime</code> 是兜底。</li>
+<li><b>查克拉归属</b>：投射物命中时，按"由哪个技能生成的"给主人加查克拉。</li>
+<li><b><code>prewarm</code></b>：开局预建 2 个实例，同屏超过 2 个时会在局内补建并输出警告（会产生内存分配）。</li>
+</ul>
+
+<h2 id="tut-sub">教程 6：替身术</h2>
+<p>需求：只能在被打时用；用了立即起身无敌。</p>
+<pre><code class="json">// actions.json
+{
+  "id": "substitution", "animKey": "Standup", "catalog": "Hurt",
+  "breakHurt": true,
+  "commands": [ { "press": ["Substitution"], "validInSec": "0.2" } ]
+}
+
+// skills.json
+{ "id": "substitution", "button": "Substitution", "cooldown": "3", "requireHurt": true,
+  "stages": [ { "actionId": "substitution" } ] }</code></pre>
+<ul>
+<li><b><code>breakHurt</code></b>：受击时角色处于"受控锁定"，正常的取消检测全部停止，只检测带 <code>breakHurt</code> 的动作，并以 200 的高优先级预约。进入后解除僵直、抓取、击退，起身无敌；播完再追加 0.5 秒无敌。</li>
+<li><b><code>requireHurt</code></b>：非受击状态时技能准入拒绝。注意起身（Standup）阶段<strong>不算</strong>可替身的受击状态，因为此时已经无敌了。</li>
+<li><b>没有 <code>cancelTag</code></b>：所以平时无法通过取消窗口进入，只能在受击中使用。</li>
+</ul>
+<!-- ============================== actions.json ============================== -->
+<h2 id="action-root">actions.json · ActionDataContainer</h2>
+<p class="summary">动作库的根对象。<code>data</code> 是动作数组，<strong>顺序有意义</strong>：同 id 时取第一个；同一帧多个动作都能取消且优先级相同时，排在前面的赢；<code>ChangeByCatalog</code> 取第一个匹配类别的动作。</p>
+<pre><code class="json">{ "data": [ { "id": "idle", "animKey": "Idle" } ] }</code></pre>
+<p>运行时类型：<code>ActionDataContainer</code> → 每项 <code>ActionData.ToRuntime()</code> → <code>ActionInfo</code>（<code>Assets/Scripts/Game/Character/Action/ActionData.cs</code>）。</p>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-id">
+<h3><code>id</code><span class="badge req">必填</span><span class="badge logic">逻辑</span></h3>
+<p class="summary">动作的唯一标识，所有跳转都按它查找。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code></td></tr><tr><th>匹配</th><td>区分大小写，重复时取<strong>第一个</strong></td></tr></table>
+<h4>说明</h4>
+<p>被这些地方引用：<code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、<code>hurtAction</code>、skills.json 的 <code>actionId</code>/<code>followActions</code>、spawns.json 的 <code>initialActionId</code>/<code>despawnActionId</code>。以下 id 有框架含义，不能改名：<code>idle</code>（默认动作）与 7 个<a href="#t-HurtIds">固定受击动作</a>。</p>
+<h4>示例</h4>
+<pre><code class="json">"id": "attack1"</code></pre>
+<div class="callout warn"><b>引用了不存在的 id 不会报错</b>运行时切换请求会被静默丢弃，角色停在原动作的最后一帧。用 Unity 菜单 <code>KiHan/Testing/Run All Unity Environment Tests</code> 能查出 autoNext、selfActionChange、hurtAction 和技能段的悬空引用（<code>onLand</code> 不检查）。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-animKey">
+<h3><code>animKey</code><span class="badge req">必填</span><span class="badge logic">逻辑</span></h3>
+<p class="summary">播放的动画资源名，即角色目录下 <code>AnimationFrameData</code> 资产的文件名。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code></td></tr><tr><th>匹配</th><td>不区分大小写</td></tr></table>
+<h4>说明</h4>
+<p>动画决定动作长度（总帧数）、每帧的受击盒/攻击盒/锚点，所以它影响逻辑，不只是表现。多个动作可以共用一个动画，例如 <code>skill2_1</code> 与 <code>skill2_1_hit</code> 都用 <code>Skill_B_1</code>，这是做变体动作的基础。</p>
+<h4>示例</h4>
+<pre><code class="json">"animKey": "Attack_1"</code></pre>
+<div class="callout bad"><b>动画不存在时</b>只输出警告，<code>CurrentAction</code> 已经换了，画面和判定却还是上一个动画，行为会非常奇怪。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-catalog">
+<h3><code>catalog</code></h3>
+<p class="summary">动作类别标签。目前只有一个运行时用途：<code>changeType: 2</code>（按类别切换）时用它查找目标。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code></td></tr><tr><th>惯用值</th><td><code>Base</code>、<code>Attack</code>、<code>Skill</code>、<code>Hurt</code>、<code>Spawn</code></td></tr></table>
+<h4>示例</h4>
+<pre><code class="json">"catalog": "Attack"</code></pre>
+<p>除按类别切换外，它只是给人看的分组，写什么都不影响行为。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-priority">
+<h3><code>priority</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">动作自身的优先级，加到所有"切到我"的预约上。</p>
+<table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>0</td></tr></table>
+<h4>说明</h4>
+<p>会加到：主动取消、<code>breakHurt</code> 预约、以及所有以我为目标的 <code>onLand</code>/<code>selfActionChange</code>/受击流程预约。<strong>不会</strong>加到 <code>autoNextActionId</code>（autoNext 固定为 0）。</p>
+<h4>示例</h4>
+<pre><code class="json">"priority": 20</code></pre>
+<p>项目惯例：普攻 10，技能 20。同帧既能取消进普攻又能取消进技能时，技能赢。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-cancelTag">
+<h3><code>cancelTag</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">"我属于哪些标签"。其他动作的取消窗口列出了其中某个标签，我就能切进去。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-CancelTag"><code>CancelTag</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
+<h4>说明</h4>
+<p>空数组表示这个动作<strong>永远不能通过主动取消进入</strong>，只能由 autoNext、落地、命中切换或 <code>breakHurt</code> 进入。命中派生的变体动作、落地动作通常就不配 <code>cancelTag</code>。</p>
+<h4>示例</h4>
+<pre><code class="json">"cancelTag": [
+  { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+]</code></pre>
+<p>可以挂多个标签，每个标签有自己的起始帧和优先级。比如同一个技能从 idle 进入从第 0 帧开始，从普攻取消进入跳过前摇：</p>
+<pre><code class="json">"cancelTag": [
+  { "tag": "skill",        "startFormFrame": 0, "priority": 20 },
+  { "tag": "skill_cancel", "startFormFrame": 5, "priority": 25 }
+]</code></pre>
+<p class="see">参见：<a href="#concept-cancel">取消系统</a>、<a href="#action-beCancelledTag"><code>beCancelledTag</code></a></p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-beCancelledTag">
+<h3><code>beCancelledTag</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">"在第几帧允许谁打断我"：静态取消窗口。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-BeCancelledTag"><code>BeCancelledTag</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code>（不能被主动取消）</td></tr></table>
+<h4>说明</h4>
+<p>每次进入本动作时复制到"当前窗口列表"。可以配多个窗口，区间可以重叠。一个窗口里的 <code>cancelTag</code> 为空等于没有这个窗口。</p>
+<h4>示例：前摇不可取消，后摇可以接技能</h4>
+<pre><code class="json">"beCancelledTag": [
+  { "frameRange": { "x": 12, "y": 20 }, "cancelTag": ["skill"], "priority": 0 },
+  { "frameRange": { "x": 18, "y": 21 }, "cancelTag": ["move", "attack2"], "priority": 0 }
+]</code></pre>
+<div class="callout"><b>不写 commands 的目标会"自动"切入</b>如果被放行的动作没有配 <code>commands</code>，窗口一打开就会被预约，不需要任何按键。这可以用来做"到第 N 帧自动接下一段"，但要小心：放行的标签对应的所有无指令动作都会被选中。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-tempBeCancelledTag">
+<h3><code>tempBeCancelledTag</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">预先声明、默认关闭的取消窗口，由攻击命中打开。用来做"<strong>打中了</strong>才能取消后摇"。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-TempBeCancelledTag"><code>TempBeCancelledTag</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr><tr><th>作用范围</th><td><strong>只在当前动作内</strong>，切换动作即失效</td></tr></table>
+<h4>说明</h4>
+<p>攻击段的 <a href="#attack-tempOn"><code>tempBeCancelledTagTurnOn</code></a> 列出 id，命中时在当前动作里找同 id 的模板，打开一个从"下一帧"开始、持续 <code>startFrames</code> 帧的窗口。</p>
+<h4>示例：普攻 4 命中后 6 帧内可以取消进技能</h4>
+<pre><code class="json">{
+  "id": "attack4",
+  "tempBeCancelledTag": [
+    { "id": "atk4_hit", "startFrames": 6, "cancelTag": ["skill"], "priority": 5 }
+  ],
+  "attacks": [
+    { "attack": "70", "tempBeCancelledTagTurnOn": ["atk4_hit"] }
+  ]
+}</code></pre>
+<div class="callout warn"><b>不能跨动作</b>命中后如果本动作马上切走（比如同时配了 <code>selfActionChange</code>），临时窗口会随之丢失。"空中命中、落地后接二段"这种跨动作的需求，请用<a href="#tut-hitbranch">变体动作法</a>。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-commands">
+<h3><code>commands</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">进入本动作需要的输入。<strong>任意一条</strong>满足即可。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-ActionCommand"><code>ActionCommand</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code>（不需要输入）</td></tr></table>
+<h4>说明</h4>
+<ul>
+<li>只在<strong>有窗口放行本动作时</strong>才检查；窗口不开，按什么都没用。</li>
+<li>空数组：窗口一开就自动进入（见上文 beCancelledTag 的提示）。</li>
+<li>对 <code>breakHurt</code> 动作，空数组表示受击中<strong>永远</strong>不会触发。</li>
+<li>没有输入组件的实体（Simple 生成物）永远满足不了带指令的取消。</li>
+</ul>
+<h4>示例：预输入 + 长按连段</h4>
+<pre><code class="json">"commands": [
+  { "press": ["Attack"], "validInSec": "0.2" },
+  { "hold": ["Attack"] }
+]</code></pre>
+<h4>示例：方向派生（按住上 + 攻击）</h4>
+<pre><code class="json">"commands": [ { "hold": ["Up"], "press": ["Attack"], "validInSec": "0.2" } ]</code></pre>
+<p>把派生动作的 <code>priority</code> 设得比普通段高：推上时普通段和派生段都满足，优先级高的赢。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-inputAcceptance">
+<h3><code>inputAcceptance</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">动作播放期间摇杆能让角色移动多快、能不能转身。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-MoveInputAcceptance"><code>MoveInputAcceptance</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code>：不移动、不转身</td></tr></table>
+<h4>说明</h4>
+<p>没有任何区间覆盖的帧，移动倍率为 0、不能转身。多个区间重叠时，横向、纵深各取<strong>最小值</strong>（0 也参与），转身取"任一允许"。受击锁定时摇杆被强制归零。</p>
+<h4>示例：出招第 0 帧允许转身，之后锁死方向</h4>
+<pre><code class="json">"inputAcceptance": [
+  { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+]</code></pre>
+<p>这是攻击动作最常见的写法：按下攻击时可以按摇杆决定打哪边，但出招后不会被摇杆带着走。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-autoNextActionId">
+<h3><code>autoNextActionId</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">动画播完后自动进入的动作。</p>
+<table class="props"><tr><th>类型</th><td>string（动作 id）</td></tr><tr><th>默认</th><td><code>""</code>：播完停在最后一帧</td></tr><tr><th>优先级</th><td>0，且只在本帧<strong>没有其他预约</strong>时加入</td></tr></table>
+<h4>说明</h4>
+<p>在处理最后一帧的那个 tick 就会预约，下一 tick 直接播新动作，中间没有空档。受击锁定期间不生效（受击动作的 autoNext 写了也没用）。</p>
+<table>
+<tr><th>写法</th><th>效果</th></tr>
+<tr><td>留空</td><td>停在最后一帧，直到别的预约到来。覆盖最后一帧的窗口一直开着。Simple 生成物会因此被回收。</td></tr>
+<tr><td>指向自己 + <code>keepPlayingAnim</code></td><td>原地循环（idle、run 的写法）。</td></tr>
+<tr><td>指向自己，不带 <code>keepPlayingAnim</code></td><td>完整地重新进入：清空按键缓冲和命中记录，动作序号 +1。</td></tr>
+<tr><td>不存在的 id</td><td>预约被丢弃，效果等同留空。</td></tr>
+</table>
+<h4>示例</h4>
+<pre><code class="json">"autoNextActionId": "idle"</code></pre>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-keepPlayingAnim">
+<h3><code>keepPlayingAnim</code></h3>
+<p class="summary">被要求"切到自己"时，不重新进入，只在动画播完时从头再播。</p>
+<table class="props"><tr><th>类型</th><td>bool</td></tr><tr><th>默认</th><td>false</td></tr></table>
+<h4>说明</h4>
+<p>为 true 时，自己切自己不会消耗按键、不会清临时窗口和命中记录、动作序号不变（绑定在动作上的特效不会停）。为 idle、run 这类循环动作而设计。</p>
+<h4>示例</h4>
+<pre><code class="json">{ "id": "idle", "keepPlayingAnim": true, "autoNextActionId": "idle" }</code></pre>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-autoTerminate">
+<h3><code>autoTerminate</code></h3>
+<p class="summary">每一帧都尝试 autoNext，而不是只在播完时。配合"取消进自己"实现"松手即停"。</p>
+<table class="props"><tr><th>类型</th><td>bool</td></tr><tr><th>默认</th><td>false</td></tr></table>
+<h4>说明</h4>
+<p>原理：move 的窗口放行 <code>move</code> 标签，推着摇杆时每帧都预约"切进 move 自己"，这个预约挡住了 autoNext；松开摇杆后没有任何预约，autoNext 生效回到 idle。<code>autoNextActionId</code> 为空时本字段无效。</p>
+<h4>示例</h4>
+<pre><code class="json">{
+  "id": "move", "keepPlayingAnim": true, "autoTerminate": true, "autoNextActionId": "idle",
+  "cancelTag": [ { "tag": "move" } ],
+  "beCancelledTag": [ { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move"] } ],
+  "commands": [ { "hold": ["Move"] } ]
+}</code></pre>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-inverse">
+<h3><code>inverse</code></h3>
+<p class="summary">进入本动作时角色朝向翻转。</p>
+<table class="props"><tr><th>类型</th><td>bool</td></tr><tr><th>默认</th><td>false</td></tr></table>
+<h4>说明</h4>
+<p>每次进入都翻一次（包括开局进入默认动作）。循环播放不会重复翻转。翻转在 tick 末尾发生，下一 tick 起镜像生效。用于"转身攻击"之类的动作。</p>
+<h4>示例</h4>
+<pre><code class="json">{ "id": "turn_attack", "inverse": true }</code></pre>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-facing">
+<h3><code>facing</code><span class="badge dead">未使用</span></h3>
+<p class="summary">保留字段。会被读入，但运行时没有任何代码使用，写什么都没有效果。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code></td></tr></table>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-onLand">
+<h3><code>onLand</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">落地时的动作切换。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-ActionChange"><code>ActionChange</code></a></td></tr><tr><th>默认</th><td>省略 = 不处理落地</td></tr></table>
+<h4>说明</h4>
+<p>两种情况会被视为"落地"：</p>
+<ol>
+<li>真实的从空中到地面。</li>
+<li><b>兜底</b>：本动作是"空中动作"且角色正站在地面上。"空中动作"的定义是：配了 <code>onLand</code>，并且 <code>rootMotion</code> 里<strong>没有</strong> <code>velocityZ</code> 段（自己不起跳）。</li>
+</ol>
+<p>所以：自己起跳的动作（有 <code>velocityZ</code>）在起跳前不会误触发落地；空中攻击、命中变体这类"从空中接进来"的动作，即使接进来时已经在地上，也能正确收尾。</p>
+<h4>示例</h4>
+<pre><code class="json">"onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 }</code></pre>
+<div class="callout"><b>优先级惯例写 100</b>落地预约的最终优先级是 <code>100 + 目标动作 priority</code>，高于普通的按键取消（通常 20~50），保证落地的那一帧不会被取消抢走。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-attackPhase">
+<h3><code>attackPhase</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">哪些帧打开攻击盒，以及用 <code>attacks</code> 里的哪一段数值。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-AttackBoxTurnOn"><code>AttackBoxTurnOn</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code>：这个动作打不到人</td></tr></table>
+<h4>说明</h4>
+<p>攻击盒的形状在帧库里逐帧画；这里只控制"开不开"和"用哪段伤害"。只检测本 tick <strong>实际处理的帧</strong>，所以动画停在末帧时不会再打。</p>
+<h4>示例：两段攻击</h4>
+<pre><code class="json">"attackPhase": [
+  { "frameRanges": [{ "x": 2,  "y": 4  }], "tag": [], "attackPhase": 0, "priority": 10 },
+  { "frameRanges": [{ "x": 12, "y": 12 }], "tag": [], "attackPhase": 1, "priority": 10 }
+]</code></pre>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-attacks">
+<h3><code>attacks</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">攻击数值列表（伤害、僵直、击飞、抓取……），由 <code>attackPhase[].attackPhase</code> 按<strong>从 0 开始的下标</strong>引用。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-Attack"><code>Attack</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
+<h4>示例</h4>
+<pre><code class="json">"attacks": [
+  { "attack": "30", "hitStun": "0.5", "push": { "x": "2.1", "inSec": "0.3", "tweenMethod": "Slowly" } },
+  { "attack": "70", "launch": { "z": "11", "x": "3" } }
+]</code></pre>
+<div class="callout warn"><b>下标，不是 <code>phase</code> 字段</b>每项里的 <code>phase</code> 字段不参与匹配（运行时未使用），真正起作用的是它在数组里的位置。调整顺序时要同步修改 <code>attackPhase</code>。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-defensePhase">
+<h3><code>defensePhase</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">哪些帧受击盒有效，以及被打中时的额外反应（如反击）。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-BeHitBoxTurnOn"><code>BeHitBoxTurnOn</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code>：所有帧的受击盒都有效</td></tr></table>
+<h4>说明</h4>
+<p><strong>一旦配置</strong>，只有区间覆盖的帧才能被打中，其余帧等同无敌。不配置时全程可被打中。</p>
+<h4>示例：反击架势（只有第 0~5 帧接受攻击，被打中就反击）</h4>
+<pre><code class="json">"defensePhase": [
+  { "frameRanges": [{ "x": 0, "y": 5 }], "tag": [], "priority": 0,
+    "selfActionChange": { "changeType": 1, "param": "counter", "priority": 150 } }
+]</code></pre>
+<div class="callout warn"><b>比攻击段早一帧</b>受击段按"即将显示的帧"判断，而攻击段、霸体、取消窗口按"刚处理完的帧"判断，所以同样写 <code>{x:2,y:3}</code>，受击段会早一帧生效。目前没有任何正式配置使用 defensePhase。</div>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-armorPhase">
+<h3><code>armorPhase</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">霸体：哪些帧被打中时不会被打断。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-ArmorPhase"><code>ArmorPhase</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code>：无霸体</td></tr></table>
+<h4>示例</h4>
+<pre><code class="json">"armorPhase": [ { "range": { "x": 0, "y": 29 }, "level": "Skill" } ]</code></pre>
+<p>重叠区间取最高等级。被霸体挡住的攻击仍然扣血。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-rootMotion">
+<h3><code>rootMotion</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">动作自带的位移：前冲、后撤、起跳、空中加速度。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-RootMotion"><code>RootMotionSegment</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
+<h4>示例：前冲两段，第 9 帧起跳</h4>
+<pre><code class="json">"rootMotion": [
+  { "frameRange": { "x": 2, "y": 8 }, "moveX": "2" },
+  { "frameRange": { "x": 9, "y": 9 }, "velocityX": "6", "velocityZ": "9" }
+]</code></pre>
+<p>多段重叠时位移相加。被击退（<code>push</code>）期间 rootMotion 与摇杆移动都暂停。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-events">
+<h3><code>events</code></h3>
+<p class="summary">时间轴事件：第 N 帧播特效、震屏、生成投射物、加 Buff。</p>
+<table class="props"><tr><th>类型</th><td><a href="#t-Event"><code>ActionEvent</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
+<h4>示例</h4>
+<pre><code class="json">"events": [
+  { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+  { "frame": 4, "type": "Spawn",  "spawnId": "naruto_skill2_fx" }
+]</code></pre>
+<p>特效、震屏只影响画面；生成物、Buff 影响逻辑。</p>
+</section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-breakHurt">
+<h3><code>breakHurt</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">受击锁定期间也检测本动作的指令；进入后解除受击、起身无敌。用于替身术。</p>
+<table class="props"><tr><th>类型</th><td>bool</td></tr><tr><th>默认</th><td>false</td></tr></table>
+<h4>说明</h4>
+<ol>
+<li>角色受击（僵直、击飞、被抓、倒地）时处于"受控锁定"，普通取消检测停止，只扫描 <code>breakHurt</code> 动作：指令满足且技能准入通过，就以 <b>200 + priority</b> 预约，<strong>不需要取消窗口</strong>。</li>
+<li>进入后：释放抓取，清除僵直、击退、吸附，进入起身无敌状态。</li>
+<li>播完：回到默认动作，追加 0.5 秒（15 帧）无敌。</li>
+</ol>
+<h4>示例</h4>
+<pre><code class="json">{ "id": "substitution", "animKey": "Standup", "breakHurt": true,
+  "commands": [ { "press": ["Substitution"], "validInSec": "0.2" } ] }</code></pre>
+<p class="see">参见：<a href="#tut-sub">教程 6</a>、<a href="#skill-requireHurt"><code>requireHurt</code></a></p>
+</section>
+<!-- ============================== 子结构 ============================== -->
+<h2 id="t-FrameRange">FrameRange · 帧区间</h2>
+<p class="summary"><code>{ "x": 起始帧, "y": 结束帧 }</code>，整数，动画帧从 0 开始，<strong>两端都包含</strong>。</p>
+<pre><code class="json">{ "x": 7, "y": 10 }   // 第 7、8、9、10 帧</code></pre>
+<ul>
+<li><code>x &gt; y</code> 的区间永远不成立（rootMotion 除外，见该节）。</li>
+<li>想覆盖"整个动作"，写一个足够大的 y（如 999）即可，不用精确等于总帧数。</li>
+<li>不同字段判断的是"哪一帧"略有差异，见附录<a href="#ap-framecheck">帧判定口径对照</a>。</li>
+</ul>
+
+<h2 id="t-CancelTag">CancelTag</h2>
+<div class="crumb">actions.json › ActionData › cancelTag[]</div>
+<p class="summary">本动作携带的一个取消标签。</p>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>tag</code></td><td>string</td><td>—</td><td>标签名，与窗口里的 <code>cancelTag</code> 字符串逐个比较，区分大小写。</td></tr>
+<tr><td><code>startFormFrame</code></td><td>int</td><td>0</td><td>通过<strong>这个标签</strong>进入时，从第几帧开始播（跳过前摇）。超出总帧数会被夹到最后一帧。跳过部分的事件、起跳不会补发。<br><b>拼写就是 startFormFrame</b>（From 拼成了 Form），写成 <code>startFromFrame</code> 不会生效。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>加到这次取消的优先级上。</td></tr>
+</table>
+<pre><code class="json">{ "tag": "attack2", "startFormFrame": 0, "priority": 10 }</code></pre>
+<h4>匹配规则</h4>
+<p>对每个候选动作，按顺序检查当前打开的窗口（先静态窗口，后临时窗口），取<strong>第一个</strong>有交集的窗口和标签计算优先级：<code>窗口.priority + 标签.priority + 动作.priority</code>。不会在多个匹配里挑最大值。</p>
+
+<h2 id="t-BeCancelledTag">BeCancelledTag</h2>
+<div class="crumb">actions.json › ActionData › beCancelledTag[]</div>
+<p class="summary">一个静态取消窗口。</p>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>frameRange</code></td><td><a href="#t-FrameRange">FrameRange</a></td><td>{0,0}</td><td>处理到区间内任意一帧时窗口打开。动画停在末帧时按末帧判断。</td></tr>
+<tr><td><code>cancelTag</code></td><td>string[]</td><td><code>[]</code></td><td>允许打断的标签。空数组等于没有窗口。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>从这个窗口取消时额外增加的优先级。</td></tr>
+</table>
+<pre><code class="json">{ "frameRange": { "x": 18, "y": 21 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }</code></pre>
+<div class="callout"><b>预输入在窗口打开前就可以按</b>窗口 <code>{5,7}</code> 前的第 3 帧按下攻击（<code>validInSec: "0.2"</code> = 6 帧缓冲），处理到第 5 帧时这次按下还有效，会在第 5 帧切入。</div>
+
+<h2 id="t-TempBeCancelledTag">TempBeCancelledTag</h2>
+<div class="crumb">actions.json › ActionData › tempBeCancelledTag[]</div>
+<p class="summary">一个由命中打开的临时取消窗口模板。</p>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>id</code></td><td>string</td><td>—</td><td>被 <a href="#attack-tempOn"><code>tempBeCancelledTagTurnOn</code></a> 引用的名字。</td></tr>
+<tr><td><code>startFrames</code></td><td>int</td><td>0</td><td><strong>窗口持续的帧数</strong>（虽然名字叫 start，含义是"开多久"）。命中发生在处理第 f 帧时，窗口为 <code>[f+1, f+startFrames]</code>。≤ 0 时窗口永远不开。</td></tr>
+<tr><td><code>cancelTag</code></td><td>string[]</td><td>—</td><td>同静态窗口。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>同静态窗口。</td></tr>
+</table>
+<pre><code class="json">{ "id": "atk4_hit", "startFrames": 6, "cancelTag": ["skill"], "priority": 5 }</code></pre>
+<h4>生命周期</h4>
+<ul>
+<li>切换动作时丢弃；循环播放（<code>keepPlayingAnim</code>）时保留。</li>
+<li>同一动作内多次命中会重复追加窗口，无副作用。</li>
+<li>被挡住的命中（对方霸体）也会打开窗口。</li>
+</ul>
+
+<h2 id="t-ActionCommand">ActionCommand · 指令</h2>
+<div class="crumb">actions.json › ActionData › commands[]</div>
+<p class="summary">一条输入条件。同一条里的所有按键<strong>都要</strong>满足；<code>commands</code> 里<strong>任意一条</strong>满足即可。</p>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>press</code></td><td>string[]</td><td><code>[]</code></td><td>每个键都在缓冲时间内<strong>按下</strong>过（上升沿），且这次按下还没被用掉。多个键时顺序不限。</td></tr>
+<tr><td><code>hold</code></td><td>string[]</td><td><code>[]</code></td><td>每个键<strong>当前正按着</strong>。摇杆方向键只能写在这里。</td></tr>
+<tr><td><code>release</code></td><td>string[]</td><td><code>[]</code></td><td>每个键在缓冲时间内<strong>松开</strong>过。用于蓄力释放。</td></tr>
+<tr><td><code>validInSec</code></td><td>字符串秒数</td><td>0.2 秒（6 帧）</td><td><code>press</code> 与 <code>release</code> 的缓冲时间。写 0、负数、留空都按 0.2 秒。</td></tr>
+</table>
+<h4>按下与松开的消费规则</h4>
+<ul>
+<li><b>按下</b>：任何一次动作切换都会把所有未用的按下标记为已用。所以一次点击只能触发一次切换。</li>
+<li><b>松开</b>：跨动作保留，只有再次按下同一个键才会作废之前的松开。所以"按住蓄力 → 进入蓄力动作 → 松开释放"可以跨动作成立。</li>
+<li>缓冲包含两端：第 F 帧的按下在 F ~ F+6 帧都算数（共 7 帧）。</li>
+</ul>
+<h4>示例</h4>
+<pre><code class="json">{ "press": ["Attack"], "validInSec": "0.2" }                    // 点一下（带预输入）
+{ "hold": ["Attack"] }                                          // 按住
+{ "hold": ["Down"], "press": ["Attack"], "validInSec": "0.2" }  // 下 + 攻击
+{ "press": ["Skill1", "Attack"], "validInSec": "0.1" }          // 两键同按
+{ "release": ["Skill1"], "validInSec": "0.2" }                  // 松开技能 1
+{ "press": ["Skill2"], "release": ["Skill2"], "validInSec": "0.2" } // 0.2 秒内按下并松开 = 点按</code></pre>
+
+<h3 id="t-CommandKey">按键名 CommandKey</h3>
+<p>不区分大小写，前后空格会被去掉。写错名字、写 <code>"None"</code>、把摇杆键写进 press/release，都会在加载时<strong>报错</strong>，该键变成永远不满足。</p>
+<table>
+<tr><th>名称</th><th>类别</th><th>可用于</th><th>含义</th></tr>
+<tr><td><code>Attack</code></td><td>按钮</td><td>press / hold / release</td><td>普攻</td></tr>
+<tr><td><code>Skill1</code> <code>Skill2</code></td><td>按钮</td><td>同上</td><td>技能 1、2</td></tr>
+<tr><td><code>Ultimate</code></td><td>按钮</td><td>同上</td><td>奥义</td></tr>
+<tr><td><code>Substitution</code></td><td>按钮</td><td>同上</td><td>替身</td></tr>
+<tr><td><code>Secret</code> <code>Summon</code></td><td>按钮</td><td>同上</td><td>秘卷、通灵</td></tr>
+<tr><td><code>Move</code></td><td>摇杆</td><td><b>只能 hold</b></td><td>摇杆推向任意方向</td></tr>
+<tr><td><code>Up</code> <code>Down</code></td><td>摇杆</td><td>只能 hold</td><td>纵深方向有分量（斜向也算）</td></tr>
+<tr><td><code>Forward</code> <code>Backward</code></td><td>摇杆</td><td>只能 hold</td><td>横向与<strong>当前朝向</strong>同向 / 反向。朝向在同一帧先按摇杆转身，再判断指令。</td></tr>
+</table>
+
+<h2 id="t-MoveInputAcceptance">MoveInputAcceptance · 移动接受率</h2>
+<div class="crumb">actions.json › ActionData › inputAcceptance[]</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>range</code></td><td><a href="#t-FrameRange">FrameRange</a></td><td>{0,0}</td><td>生效帧区间。</td></tr>
+<tr><td><code>rateX</code></td><td>字符串倍率</td><td>0</td><td>横向速度 = 基础速度（5 单位/秒）× rateX × 摇杆方向。可以大于 1。</td></tr>
+<tr><td><code>rateY</code></td><td>字符串倍率</td><td>0</td><td>纵深速度，同上。斜向不归一化：两轴都是全速。</td></tr>
+<tr><td><code>turn</code></td><td>bool</td><td>false</td><td>允许按摇杆左右转身（纯上下不转）。</td></tr>
+</table>
+<pre><code class="json">{ "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }</code></pre>
+<p>上例出自螺旋丸：第 12~15 帧可以用 3 倍速调整位置。</p>
+
+<h2 id="t-ActionChange">ActionChange · 动作切换</h2>
+<div class="crumb">用于 onLand、attacks[].selfActionChange、grab.releaseActionChange、defensePhase[].*ActionChange</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>changeType</code></td><td>int</td><td>0</td><td><b>0</b> 不切换（Keep）　<b>1</b> 切到 id 为 <code>param</code> 的动作　<b>2</b> 切到第一个 <code>catalog == param</code> 的动作</td></tr>
+<tr><td><code>param</code></td><td>string</td><td><code>""</code></td><td>动作 id 或类别名，区分大小写。找不到时什么都不做。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>基础优先级，会再加上目标动作的 priority。</td></tr>
+<tr><td><code>fromFrame</code></td><td>int</td><td>0</td><td>目标动作从第几帧开始。<code>keepFrame</code> 为 true 时忽略。</td></tr>
+<tr><td><code>keepFrame</code></td><td>bool</td><td>false</td><td>从当前动作"下一帧"的帧号开始播目标动作。并且<strong>保留水平惯性</strong>（正常切动作会清除）。用于同动画的变体切换。</td></tr>
+</table>
+<pre><code class="json">{ "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true }</code></pre>
+<div class="callout"><b>keepFrame 的帧号</b>第 1 帧命中（处理完第 1 帧），变体从第 2 帧继续播，画面无缝衔接。</div>
+
+<h2 id="t-AttackBoxTurnOn">AttackBoxTurnOn · 攻击段</h2>
+<div class="crumb">actions.json › ActionData › attackPhase[]</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>frameRanges</code></td><td>FrameRange[]</td><td>—</td><td>多个区间取并集。只检测本 tick 实际处理的帧。</td></tr>
+<tr><td><code>tag</code></td><td>string[]</td><td>—</td><td>按帧库里攻击盒的 <code>Tag</code> 过滤：没打 Tag 的盒子任何段都能用；打了 Tag 的盒子只在列出该 Tag 的段里生效。<code>[]</code> 表示只用没打 Tag 的盒子。</td></tr>
+<tr><td><code>attackPhase</code></td><td>int</td><td>0</td><td><code>attacks</code> 数组的<strong>下标</strong>（从 0 开始）。越界时该段被忽略。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>同一帧多个段命中同一盒子时取高的；与受击段 priority 相加决定命中优先级。</td></tr>
+</table>
+<pre><code class="json">{ "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 }</code></pre>
+<div class="callout"><b>每个 tick 每对攻防最多一次命中</b>同一帧多个攻击盒同时碰到同一目标，只结算优先级最高的一次。多段伤害靠"多帧 + canHitSameTarget + hitSameTargetDelay"实现。</div>
+
+<!-- ---------- Attack ---------- -->
+<h2 id="t-Attack">Attack · 攻击数值</h2>
+<div class="crumb">actions.json › ActionData › attacks[]</div>
+<p class="summary">一段攻击命中后发生什么。按下面的顺序决定<strong>受击反应</strong>，命中一个分支就不再看后面的：</p>
+<ol>
+<li>目标正被抓 → 只扣血</li>
+<li>攻击的 <code>armorBreak</code> 低于目标霸体 → 只扣血（被挡住）</li>
+<li>配了 <code>grab</code> → 抓取</li>
+<li>目标在空中 → 按 <code>air</code> 重新击飞</li>
+<li>配了 <code>launch</code> → 击飞</li>
+<li>目标倒地 → 只扣血（需要 <code>canHitLying</code> 才能打到）</li>
+<li>其余 → 僵直 <code>hitStun</code> + 击退 <code>push</code></li>
+</ol>
+
+<h3 id="attack-attack"><code>attack</code><span class="badge logic">逻辑</span></h3>
+<p>伤害值（字符串）。每次命中都扣，包括被霸体挡住、目标被抓时。角色默认血量 1000。≤ 0 不扣血。</p>
+<pre><code class="json">"attack": "50"</code></pre>
+
+<h3 id="attack-hitStun"><code>hitStun</code><span class="badge logic">逻辑</span></h3>
+<p>地面僵直秒数。只在第 7 个分支生效。&gt; 0 时目标进入僵直（循环播放 <code>hurt_1</code> 或 <code>hurtAction</code>），倒数结束回到 idle。新的僵直会<strong>覆盖</strong>剩余时间。为 0 且没配 <code>hurtAction</code> 时目标不僵直、不换动作，但击退仍然生效。</p>
+<pre><code class="json">"hitStun": "0.6"   // 18 帧</code></pre>
+
+<h3 id="attack-push"><code>push</code> · 击退</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>x</code></td><td>字符串单位</td><td>0</td><td>沿攻击方面朝方向的总位移。</td></tr>
+<tr><td><code>y</code></td><td>字符串单位</td><td>0</td><td>纵深总位移。</td></tr>
+<tr><td><code>inSec</code></td><td>字符串秒数</td><td>0</td><td>在多少秒内完成。为 0 时没有击退。</td></tr>
+<tr><td><code>tweenMethod</code></td><td>string</td><td>Linear</td><td><code>Linear</code> 匀速，<code>Slowly</code> 先快后慢。<strong>区分大小写</strong>，写错按 Linear。</td></tr>
+</table>
+<pre><code class="json">"push": { "x": "0.6", "inSec": "0.15", "tweenMethod": "Slowly" }</code></pre>
+<p>击退期间目标的摇杆移动和 rootMotion 都暂停。新的击退覆盖旧的。</p>
+
+<h3 id="attack-launch"><code>launch</code> / <code>air</code> · 击飞</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>z</code></td><td>字符串，单位/秒</td><td>0</td><td>竖直初速度，向上为正。</td></tr>
+<tr><td><code>x</code></td><td>字符串，单位/秒</td><td>0</td><td>沿攻击方面朝方向的水平惯性速度。</td></tr>
+<tr><td><code>y</code></td><td>字符串，单位/秒</td><td>0</td><td>纵深惯性速度。</td></tr>
+</table>
+<ul>
+<li><b><code>launch</code></b>：目标在地面（或倒地且 <code>canHitLying</code>）时把它打上天，进入 <code>hurt_toair</code>（或 <code>hurtAction</code>）。</li>
+<li><b><code>air</code></b>：目标<strong>已经在空中</strong>时使用，任何攻击都会按它重新击飞，动作固定为 <code>hurt_inair</code>。没配时使用全局默认 z=5、x=1。</li>
+<li><b>是否启用</b>：z、x、y 任意一个写了就算启用，哪怕写的是 <code>"0"</code>。</li>
+<li>击飞期间重力 ×0.7（默认重力 30）；触地时 <code>落地速度 × 0.5 ≥ 3</code> 会弹起，否则倒地。</li>
+</ul>
+<pre><code class="json">"launch": { "z": "11", "x": "3" },
+"air":    { "z": "10", "x": "3" }</code></pre>
+<div class="callout"><b>浮空连击的关键是 air</b>只配 <code>launch</code> 的招式打空中目标时，会用全局默认的 z=5 把对手托起，往往不是你想要的高度。连段里每一招都应该写自己的 <code>air</code>。</div>
+
+<h3 id="attack-armorBreak"><code>armorBreak</code></h3>
+<p>破霸等级，取值同 <a href="#t-ArmorPhase">ArmorLevel</a>。攻击 <code>armorBreak ≥ 目标当前霸体</code> 才能造成完整受击反应。<code>Invincible</code> 霸体的目标完全打不到。</p>
+<pre><code class="json">"armorBreak": "Skill"</code></pre>
+
+<h3 id="attack-canHitLying"><code>canHitLying</code></h3>
+<p>bool，默认 false。能否打到倒地的目标（扫地）。打到时：配了 <code>launch</code> 会把对手重新挑起，否则只扣血。</p>
+
+<h3 id="attack-grab"><code>grab</code> · 抓取</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>enabled</code></td><td>bool</td><td>false</td><td>命中即抓住目标（优先于空中判断）。目标进入 <code>hurt_2</code>（或 <code>hurtAction</code>）并循环播放。</td></tr>
+<tr><td><code>anchor</code></td><td>string</td><td><code>"grab"</code></td><td>帧库中的锚点名。每帧把目标放到抓取方该锚点的位置。<strong>锚点消失即释放</strong>，跨动作也保持抓取。</td></tr>
+<tr><td><code>releaseActionChange</code></td><td><a href="#t-ActionChange">ActionChange</a></td><td>不切换</td><td>释放（不是被投掷打飞）时给目标的动作切换。</td></tr>
+</table>
+<pre><code class="json">"grab": { "enabled": true, "anchor": "grab",
+          "releaseActionChange": { "changeType": 1, "param": "hurt_fall", "priority": 100 } }</code></pre>
+<div class="callout"><b>投技写法</b>抓取段之后，在某一帧让锚点消失，同一帧打开一个带 <code>launch</code> 的攻击段，就是"抓住 → 甩出去"。加载时会检查：抓取段覆盖的帧（及下一帧）必须画了锚点，否则报错。</div>
+
+<h3 id="attack-suction"><code>suction</code> · 吸附</h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>centerX</code></td><td>字符串单位</td><td>0</td><td>吸附点：攻击方脚底前方偏移，随攻击方当前朝向镜像。</td></tr>
+<tr><td><code>centerY</code></td><td>字符串单位</td><td>0</td><td>纵深偏移。</td></tr>
+<tr><td><code>speed</code></td><td>字符串，单位/秒</td><td>0</td><td>每帧向吸附点移动 <code>speed / 30</code>，不会越过。</td></tr>
+<tr><td><code>inSec</code></td><td>字符串秒数</td><td>0</td><td>持续时间。<code>speed</code> 与 <code>inSec</code> 都大于 0 才启用。</td></tr>
+</table>
+<pre><code class="json">"suction": { "centerX": "1.0", "speed": "3", "inSec": "0.5" }</code></pre>
+<p>常用于多段技能，把被打散的目标拉回攻击范围。</p>
+
+<h3 id="attack-canHitSameTarget"><code>canHitSameTarget</code> / <code>hitSameTargetDelay</code></h3>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>canHitSameTarget</code></td><td>int</td><td>1（≤0 也按 1）</td><td>在<strong>一次动作</strong>内，这一段对同一目标最多命中几次。切换动作时清零。</td></tr>
+<tr><td><code>hitSameTargetDelay</code></td><td>字符串秒数</td><td>0</td><td>两次命中同一目标之间的最短间隔。</td></tr>
+</table>
+<pre><code class="json">"canHitSameTarget": 6, "hitSameTargetDelay": "0.06"   // 螺旋丸：最多 6 段，每段至少隔 2 帧</code></pre>
+
+<h3 id="attack-selfActionChange"><code>selfActionChange</code></h3>
+<p>命中时<strong>攻击方自己</strong>的动作切换（<a href="#t-ActionChange">ActionChange</a>）。每次命中都会触发，包括被霸体挡住的命中。命中派生、"打中才接"的核心字段。</p>
+<pre><code class="json">"selfActionChange": { "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true }</code></pre>
+<p class="see">参见：<a href="#tut-hitbranch">教程 4 命中派生</a></p>
+
+<h3 id="attack-hurtAction"><code>hurtAction</code></h3>
+<p>目标在地面被这段攻击打中时进入的动作 id，替换默认的 <code>hurt_1</code>（僵直）/ <code>hurt_2</code>（被抓）/ <code>hurt_toair</code>（击飞）。目标在空中时无效（固定 <code>hurt_inair</code>）。</p>
+<pre><code class="json">"hurtAction": "hurt_2"   // 普攻 3 打出重受击</code></pre>
+
+<h3 id="attack-tempOn"><code>tempBeCancelledTagTurnOn</code></h3>
+<p>string[]，命中时在攻击方<strong>当前动作</strong>里打开这些 id 的 <a href="#t-TempBeCancelledTag">临时窗口</a>。</p>
+<pre><code class="json">"tempBeCancelledTagTurnOn": ["atk4_hit"]</code></pre>
+
+<h3 id="attack-phase"><code>phase</code><span class="badge dead">未使用</span></h3>
+<p>只是给人看的编号，运行时不读取。攻击段靠它在 <code>attacks</code> 数组中的<strong>位置</strong>被引用。建议仍按下标填写，便于阅读。</p>
+
+<!-- ---------- BeHitBoxTurnOn ---------- -->
+<h2 id="t-BeHitBoxTurnOn">BeHitBoxTurnOn · 受击段</h2>
+<div class="crumb">actions.json › ActionData › defensePhase[]</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>frameRanges</code></td><td>FrameRange[]</td><td>—</td><td>受击盒有效的帧（按即将显示的帧判断，比攻击段早一帧）。</td></tr>
+<tr><td><code>tag</code></td><td>string[]</td><td>—</td><td>按帧库受击盒 Tag 过滤，规则同攻击段。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>与攻击段 priority 相加决定命中优先级。</td></tr>
+<tr><td><code>tempBeCancelledTagTurnOn</code></td><td>string[]</td><td>—</td><td>被完整命中时在<strong>自己</strong>当前动作里打开临时窗口。通常同帧就切到受击动作而失效。</td></tr>
+<tr><td><code>attackerActionChange</code></td><td>ActionChange</td><td>不切换</td><td>被完整命中时给<strong>攻击方</strong>的切换（比如被反击时让对方硬直）。</td></tr>
+<tr><td><code>selfActionChange</code></td><td>ActionChange</td><td>不切换</td><td>被完整命中时给<strong>自己</strong>的切换，与受击预约（100+）竞争，要写更高的优先级才会生效。</td></tr>
+</table>
+<div class="callout warn"><b>尚无正式配置使用</b>此结构的 <code>changeType</code> 在 C# 里是枚举类型，用整数 0/1/2 写在 JSON 里能否正确解析<strong>未经验证</strong>。使用前请在 Unity 里实测。</div>
+
+<!-- ---------- ArmorPhase ---------- -->
+<h2 id="t-ArmorPhase">ArmorPhase / ArmorLevel · 霸体</h2>
+<div class="crumb">actions.json › ActionData › armorPhase[]</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>range</code></td><td>FrameRange</td><td>{0,0}</td><td>按刚处理完的帧判断。重叠取最高等级。</td></tr>
+<tr><td><code>level</code></td><td>string</td><td><code>None</code></td><td>见下表。不区分大小写，写错按 None。</td></tr>
+</table>
+<table>
+<tr><th>等级</th><th>数值</th><th>含义</th></tr>
+<tr><td><code>None</code></td><td>0</td><td>无霸体</td></tr>
+<tr><td><code>Skill</code></td><td>1</td><td>技能霸体：普攻打不断</td></tr>
+<tr><td><code>Super</code></td><td>2</td><td>超级霸体</td></tr>
+<tr><td><code>KingKong</code></td><td>3</td><td>金刚霸体</td></tr>
+<tr><td><code>Invincible</code></td><td>4</td><td>无敌：完全不会被命中（不扣血）</td></tr>
+</table>
+<pre><code class="json">{ "range": { "x": 0, "y": 29 }, "level": "Skill" }</code></pre>
+<p>攻击方 <code>armorBreak ≥ level</code> 才能打断。Invincible 以下的霸体被挡住时<strong>仍然扣血</strong>。</p>
+
+<!-- ---------- RootMotion ---------- -->
+<h2 id="t-RootMotion">RootMotionSegment · 位移段</h2>
+<div class="crumb">actions.json › ActionData › rootMotion[]</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>frameRange</code></td><td>FrameRange</td><td>{0,0}</td><td>生效区间。</td></tr>
+<tr><td><code>moveX</code></td><td>字符串单位</td><td>0</td><td>区间内沿面朝方向的<strong>总</strong>位移，按帧均分（或按缓动分配）。<code>y &lt; x</code> 时在第 x 帧一次性完成。</td></tr>
+<tr><td><code>moveY</code></td><td>字符串单位</td><td>0</td><td>纵深总位移。</td></tr>
+<tr><td><code>tweenMethod</code></td><td>string</td><td>Linear</td><td><code>Linear</code> / <code>Slowly</code>，区分大小写。</td></tr>
+<tr><td><code>velocityZ</code></td><td>字符串，单位/秒</td><td>不设置</td><td>在第 <b>x</b> 帧设置竖直速度（起跳）。写 <code>"0"</code> 表示清零竖直速度。<strong>配了它的动作不算空中动作</strong>。</td></tr>
+<tr><td><code>accelerationZ</code></td><td>字符串，单位/秒²</td><td>0</td><td>区间内附加的竖直加速度（与重力叠加），用于滞空、缓降。</td></tr>
+<tr><td><code>velocityX</code> / <code>velocityY</code></td><td>字符串，单位/秒</td><td>不设置</td><td>在第 x 帧设置水平惯性速度（随朝向镜像），持续到落地、撞墙或换动作（<code>keepFrame</code> 切换除外）。</td></tr>
+</table>
+<h4>示例</h4>
+<pre><code class="json">{ "frameRange": { "x": 0, "y": 7 },  "moveX": "1" }                         // 前 8 帧前进 1
+{ "frameRange": { "x": 1, "y": 4 },  "moveX": "-0.3", "tweenMethod": "Slowly" }  // 后撤
+{ "frameRange": { "x": 9, "y": 9 },  "velocityX": "8", "velocityZ": "5" }   // 第 9 帧向前上方跳
+{ "frameRange": { "x": 5, "y": 12 }, "accelerationZ": "30" }               // 抵消重力，空中悬停</code></pre>
+<div class="callout"><b>moveX 与 velocityX 的区别</b><code>moveX</code> 绑定在动画帧上，动作被打断就停；<code>velocityX</code> 是物理惯性，和动画无关，一直飞到落地。跳跃招式用 velocityX，地面突进用 moveX。</div>
+
+<!-- ---------- Event ---------- -->
+<h2 id="t-Event">ActionEvent · 时间轴事件</h2>
+<div class="crumb">actions.json › ActionData › events[]</div>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>frame</code></td><td>int</td><td>0</td><td>处理到这一帧时触发一次。从中间帧进入（<code>startFormFrame</code>/<code>keepFrame</code>）不会补发之前的事件；循环动作每圈都触发。</td></tr>
+<tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 震屏 / <code>Spawn</code> 生成物 / <code>Buff</code>。不区分大小写，写错按 Effect。</td></tr>
+<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效资源路径（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：<code>impact_heavy</code> 为重震，其他为轻震。Buff：<b>Buff 的 id</b>。</td></tr>
+<tr><td><code>spawnId</code></td><td>string</td><td><code>""</code></td><td>Spawn：spawns.json 中的生成物 id。</td></tr>
+<tr><td><code>anchor</code></td><td>string</td><td><code>""</code></td><td>帧库锚点名，作为位置基准；留空或该帧没有此锚点时用脚底。</td></tr>
+<tr><td><code>offset</code></td><td><code>{x,y}</code> 整数像素</td><td>{0,0}</td><td>相对锚点的偏移：x 朝前（随朝向镜像），y 向上。</td></tr>
+<tr><td><code>bind</code></td><td>bool</td><td>false</td><td>特效跟随角色移动；否则留在触发位置。</td></tr>
+<tr><td><code>stopOnActionEnd</code></td><td>bool</td><td>false</td><td>离开本动作时停止特效（循环播放不算离开）。</td></tr>
+<tr><td><code>loop</code></td><td>bool</td><td>false</td><td>特效循环播放，不会自行回收；会自动打开 <code>stopOnActionEnd</code>。</td></tr>
+</table>
+<pre><code class="json">{ "frame": 0,  "type": "Effect", "asset": "Characters/naruto/effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+{ "frame": 12, "type": "Camera", "asset": "impact_heavy" }
+{ "frame": 4,  "type": "Spawn",  "spawnId": "naruto_skill2_fx", "offset": { "x": 40, "y": 0 } }
+{ "frame": 6,  "type": "Buff",   "asset": "haste" }</code></pre>
+<div class="callout warn"><b>Buff 的 id 写在 asset 里</b>不是 <code>spawnId</code>。Buff 事件忽略本事件的 anchor/offset/bind，特效位置以 buffs.json 为准；Buff 总是加在触发事件的实体自己身上。</div>
+
+<!-- ---------- Hurt ids ---------- -->
+<h2 id="t-HurtIds">固定受击动作</h2>
+<p class="summary">这 7 个 id 由框架按名字调用，每个角色都<strong>必须</strong>配置，缺失会在加载时报错。它们只提供动画，流程由框架驱动，自己写的 <code>autoNextActionId</code> 不起作用。</p>
+<table>
+<tr><th>id</th><th>何时进入</th><th>播放方式</th><th>何时离开</th></tr>
+<tr><td><code>hurt_1</code></td><td>地面僵直（未配 hurtAction）</td><td>循环</td><td>僵直时间到 → idle</td></tr>
+<tr><td><code>hurt_2</code></td><td>被抓（未配 hurtAction）</td><td>循环</td><td>锚点消失 → 释放</td></tr>
+<tr><td><code>hurt_toair</code></td><td>地面被击飞</td><td>一次</td><td>播完 → hurt_inair</td></tr>
+<tr><td><code>hurt_inair</code></td><td>空中被打中 / 触地弹起</td><td>一次</td><td>播完 → hurt_fall</td></tr>
+<tr><td><code>hurt_fall</code></td><td>下落</td><td>循环直到触地</td><td>触地 → 弹起或倒地</td></tr>
+<tr><td><code>lie</code></td><td>弹不起来，倒地</td><td>一次（只受扫地攻击）</td><td>播完 → standup</td></tr>
+<tr><td><code>standup</code></td><td>起身</td><td>一次，全程无敌</td><td>播完 → idle，并追加 0.5 秒无敌</td></tr>
+</table>
+<pre><code class="json">{ "id": "hurt_1", "animKey": "Hurt_1", "catalog": "Hurt" }</code></pre>
+<!-- ============================== skills.json ============================== -->
+<h2 id="skill-root">skills.json · SkillDataContainer</h2>
+<p class="summary">技能层：在动作层之上加 CD、多段、查克拉和按键 UI。<strong>技能不定义怎么出招</strong>，出招仍然是 actions.json 里入口动作的 <code>commands</code> 和取消窗口；技能只负责"现在能不能进"和"什么时候开始 CD"。</p>
+<pre><code class="json">{
+  "chakraMax": 4,
+  "data": [
+    { "id": "skill1", "button": "Skill1", "cooldown": "3", "stages": [ { "actionId": "skill1" } ] }
+  ]
+}</code></pre>
+<div class="callout"><b>技能准入什么时候检查</b>只在"输入发起"的切换时检查：主动取消（第 2 步扫描取消时）和受击中的 <code>breakHurt</code>。autoNext、落地、命中切换进入技能动作时不检查。</div>
+
+<div class="crumb">skills.json</div>
+<section class="field" id="skill-chakraMax">
+<h3><code>chakraMax</code></h3>
+<p class="summary">查克拉上限（颗）。</p>
+<table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>≤ 0 或省略时为 4</td></tr></table>
+<pre><code class="json">"chakraMax": 4</code></pre>
+<p>每局开始查克拉为 0。获得规则见<a href="#skill-chakra">查克拉规则</a>。</p>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-id">
+<h3><code>id</code></h3>
+<p class="summary">技能名，只用于日志和校验信息。运行时用的是技能在 <code>data</code> 数组里的<strong>下标</strong>。</p>
+<pre><code class="json">"id": "skill2"</code></pre>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-button">
+<h3><code>button</code><span class="badge view">表现</span></h3>
+<p class="summary">CD 遮罩、图标、段号显示在哪个按钮上。<strong>不决定出招按键。</strong></p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>None</code>（不显示）</td></tr><tr><th>有按钮 UI 的值</th><td><code>Skill1</code>、<code>Skill2</code>、<code>Ultimate</code>、<code>Substitution</code></td></tr></table>
+<h4>说明</h4>
+<p>按键名不区分大小写，写错时静默变为 None。<code>Secret</code>、<code>Summon</code> 在逻辑上可用，但目前没有对应的按钮界面。多个技能绑同一个按钮时，UI 只显示第一个。</p>
+<pre><code class="json">"button": "Skill2"</code></pre>
+<div class="callout warn"><b>常见误区</b>把 <code>button</code> 改成 Skill1，出招键并不会变。出招键要改入口动作的 <code>commands</code>。</div>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-icon">
+<h3><code>icon</code><span class="badge view">表现</span></h3>
+<p class="summary">按钮图标的资源地址。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code>：保留按钮预制体自带的图</td></tr></table>
+<h4>格式</h4>
+<ul>
+<li><code>"路径"</code>：单图贴图。</li>
+<li><code>"路径#子图名"</code>：多图切片贴图，按 <code>#</code> 后的名字精确匹配子图（区分大小写）。</li>
+</ul>
+<pre><code class="json">"icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_0"</code></pre>
+<p>战斗界面创建时预加载，找不到会报错。Unity 环境测试也会检查所有非空图标地址。</p>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-cooldown">
+<h3><code>cooldown</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">完整 CD 秒数。</p>
+<table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0</td></tr></table>
+<h4>CD 什么时候开始</h4>
+<ul>
+<li>放完<strong>最后一段</strong>：离开本技能所有动作（入口 + followActions）的那一帧开始，完整 CD。</li>
+<li>多段技能某段之后<strong>超时没接下一段</strong>：开始 CD，并返还该段的 <code>cdReturn</code>。</li>
+<li>释放过程中被打断（进入受击）也算离开。</li>
+</ul>
+<pre><code class="json">"cooldown": "3"    // 90 帧</code></pre>
+<div class="timeline">离开技能的 tick 记为 N，cooldown = "1"（30 帧）
+tick N   : CD = 30
+tick N+1 : CD = 29
+...
+tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-chakraCost">
+<h3><code>chakraCost</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">释放第一段时消耗的查克拉。不足时无法释放。</p>
+<table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>0</td></tr></table>
+<p>只检查、只扣第一段，后续段不消耗。实际扣除发生在真正进入入口动作时。因为开局查克拉为 0，消耗大于 0 的技能（奥义）要先攒查克拉。</p>
+<pre><code class="json">"chakraCost": 2</code></pre>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-requireHurt">
+<h3><code>requireHurt</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">只能在受击中释放（僵直 / 击飞 / 被抓 / 倒地）。起身阶段不算。</p>
+<table class="props"><tr><th>类型</th><td>bool</td></tr><tr><th>默认</th><td>false</td></tr></table>
+<pre><code class="json">{ "id": "substitution", "button": "Substitution", "cooldown": "3", "requireHurt": true,
+  "stages": [ { "actionId": "substitution" } ] }</code></pre>
+<div class="callout bad"><b>入口动作必须配 breakHurt</b>受击中普通取消检测是关闭的，只有 <code>"breakHurt": true</code> 的动作会被检查。<code>requireHurt</code> 而入口动作没有 <code>breakHurt</code>，技能永远放不出来，且没有任何报错。</div>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-stages">
+<h3><code>stages</code><span class="badge req">必填</span><span class="badge logic">逻辑</span></h3>
+<p class="summary">技能段，按顺序为第 1 段、第 2 段……至少一段。</p>
+<table class="props"><tr><th>类型</th><td>SkillStage[]</td></tr><tr><th>默认</th><td><code>[]</code>：技能永远放不出</td></tr></table>
+<h4>多段技能怎么工作</h4>
+<div class="timeline">stages = [multi_1 (stageDuration 2, cdReturn 4), multi_2 (stageDuration 1.5, cdReturn 2), multi_3]   cooldown 12
+
+按键 → multi_1 → 放完回 idle → 2 秒内再按 → multi_2 → 放完 → 1.5 秒内再按 → multi_3 → 放完 → CD 12 秒
+                          └ 2 秒没按 → CD = 12 - 4 = 8 秒，回到第 1 段
+                                                           └ 1.5 秒没按 → CD = 12 - 2 = 10 秒</div>
+<p>同一时刻只有"下一段"的入口能进，其他段的入口被准入拦截，所以各段入口可以绑同一个按键。</p>
+<div class="callout warn"><b>一个动作只能属于一个技能段</b>同一个动作 id 出现在两个段（或两个技能）里会报错，并且只有第一次登记生效。</div>
+</section>
+
+<div class="crumb">skills.json › data[] › stages[]</div>
+<section class="field" id="stage-actionId">
+<h3><code>actionId</code><span class="badge req">必填</span></h3>
+<p class="summary">本段的入口动作 id。由输入发起，受准入裁决（CD、段号、查克拉、受击条件）。</p>
+<pre><code class="json">{ "actionId": "skill1" }</code></pre>
+<p>入口动作本身要在 actions.json 里配好 <code>cancelTag</code>（通常是 <code>skill</code>）和 <code>commands</code>，并且要有窗口放行这个标签（idle、move、普攻后摇等）。</p>
+</section>
+
+<div class="crumb">skills.json › data[] › stages[]</div>
+<section class="field" id="stage-followActions">
+<h3><code>followActions</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">本段的后续动作：落地、命中派生、收招、技能派生。处于这些动作期间仍算"正在释放本段"。</p>
+<table class="props"><tr><th>类型</th><td>string[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
+<h4>为什么必须列全</h4>
+<ul>
+<li><b>CD</b>：进入一个没登记的动作，技能就被认为"放完了"，CD 提前开始。</li>
+<li><b>查克拉</b>：登记的动作（及其生成物）命中才算本技能的命中，会给查克拉。</li>
+<li><b>不受准入</b>：后续动作不检查 CD 和段号。</li>
+</ul>
+<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"] }</code></pre>
+<div class="callout"><b>怎么找全</b>从入口动作出发，沿着 <code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、以及只在技能窗口里放行的派生动作，一直走到回 idle 为止，路上所有动作都要列进来。</div>
+</section>
+
+<div class="crumb">skills.json › data[] › stages[]</div>
+<section class="field" id="stage-stageDuration">
+<h3><code>stageDuration</code></h3>
+<p class="summary">本段放完后，接下一段的时限（秒）。最后一段无效。</p>
+<table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0：放完立即开始 CD</td></tr></table>
+<p>时限从离开本段时开始倒数，<strong>释放期间不倒数</strong>。设 W 帧时限、在第 N 帧离开：第 N+1 ~ N+W-1 帧按键能接下一段，第 N+W 帧超时。</p>
+<p>时限内按钮会显示下一段的图标（没配就显示段号）。</p>
+<pre><code class="json">"stageDuration": "2"</code></pre>
+</section>
+
+<div class="crumb">skills.json › data[] › stages[]</div>
+<section class="field" id="stage-cdReturn">
+<h3><code>cdReturn</code></h3>
+<p class="summary">连段在本段之后中断时返还的 CD 秒数。</p>
+<table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0</td></tr></table>
+<pre><code class="json">"cdReturn": "4"   // cooldown 12 → 只放第 1 段时实际 CD 8 秒</code></pre>
+<p>实际 CD = max(0, cooldown − cdReturn)。最后一段的 cdReturn 不会被使用。</p>
+</section>
+
+<div class="crumb">skills.json › data[] › stages[]</div>
+<section class="field" id="stage-icon">
+<h3><code>icon</code><span class="badge view">表现</span></h3>
+<p class="summary">轮到本段时按钮显示的图标，格式同技能 <a href="#skill-icon"><code>icon</code></a>。留空用技能图标，并在按钮中央显示段号。</p>
+<pre><code class="json">{ "actionId": "multi_2", "icon": "UI/SkillButton/xxx#xxx_1", "stageDuration": "1.5" }</code></pre>
+</section>
+
+<h3 id="skill-chakra">查克拉规则</h3>
+<ul>
+<li>开局为 0，上限 <code>chakraMax</code>。</li>
+<li><b>获得</b>：某技能的任意段、后续动作或它生成的生成物<strong>命中</strong>时 +1。被霸体挡住、命中被抓目标也算。</li>
+<li><b>每轮一次</b>：获得一次后，要等该技能 CD 结束（刷新）才能再获得。所以一个技能多段命中只给 1 颗。</li>
+<li>普攻等不属于任何技能的动作，命中不给查克拉。</li>
+<li><b>消耗</b>：见 <a href="#skill-chakraCost"><code>chakraCost</code></a>。</li>
+</ul>
+
+<!-- ============================== spawns.json ============================== -->
+<h2 id="spawn-root">spawns.json · SpawnDataContainer</h2>
+<p class="summary">生成物：投射物（Simple）和分身/召唤物（Actor）。生成物复用角色的整套动作系统，<strong>动作库与主人共用</strong>，它的动作就写在主人的 actions.json 里。</p>
+<pre><code class="json">{ "data": [
+  { "id": "naruto_skill2_fx", "type": "Simple", "initialActionId": "skill2_fx", "lifeTime": "3", "prewarm": 2 }
+] }</code></pre>
+
+<h3 id="spawn-trigger">生成流程</h3>
+<ol>
+<li>主人的动作在某帧触发 <code>{"type": "Spawn", "spawnId": "…"}</code> 事件。</li>
+<li>记录生成请求：位置 = 主人该帧的 <code>anchor</code> + <code>offset</code>（留空为脚底），朝向与阵营继承主人，"来源技能"记为主人当前所在的技能。</li>
+<li>本帧末尾（第 7 步）从实例池取出实例，进入 <code>initialActionId</code>，血量重置。<strong>下一 tick</strong> 才开始行动。</li>
+<li>生成物命中的伤害、跳字归属主人；按来源技能给主人加查克拉。</li>
+</ol>
+<div class="callout"><b>不能配置的属性</b>阵营、朝向、位置都由触发事件决定；能否被打由 <code>type</code> 决定。spawns.json 里没有这些字段。</div>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-id">
+<h3><code>id</code><span class="badge req">必填</span></h3>
+<p class="summary">生成物 id，被事件的 <code>spawnId</code> 引用。按角色隔离，不同角色可以重名。</p>
+<pre><code class="json">"id": "naruto_skill2_fx"</code></pre>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-type">
+<h3><code>type</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">生成物类型。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>Simple</code>（写错也是 Simple）</td></tr></table>
+<table>
+<tr><th></th><th><code>Simple</code>（投射物）</th><th><code>Actor</code>（分身 / 召唤物）</th></tr>
+<tr><td>能被打</td><td>否</td><td>是，有独立血量</td></tr>
+<tr><td>接收输入</td><td>否</td><td>由大脑脚本注入</td></tr>
+<tr><td>受击流程</td><td>无</td><td>完整（僵直、击飞……）</td></tr>
+<tr><td>回收时机</td><td>动作链走完，或寿命到期</td><td>寿命到期（可播消失动作），或血量归零（当帧）</td></tr>
+<tr><td>技能 CD</td><td colspan="2">生成物没有技能控制器，技能动作不受 CD 限制</td></tr>
+</table>
+<p>"动作链走完"指：当前动作已播完、不是循环动作、没有 autoNext、也没有在等落地。</p>
+<pre><code class="json">"type": "Actor"</code></pre>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-initialActionId">
+<h3><code>initialActionId</code><span class="badge req">必填</span></h3>
+<p class="summary">生成后进入的动作。攻击判定、事件、位移都在这个动作（及其后续）里配置。</p>
+<pre><code class="json">"initialActionId": "skill2_fx"</code></pre>
+<p>id 不存在时不会报错，实例会停留在 idle 或上次回收时的动作，务必通过 Unity 环境测试检查。</p>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-despawnActionId">
+<h3><code>despawnActionId</code></h3>
+<p class="summary">寿命到期时播放的消失动作。播放期间无敌，播完回收。</p>
+<table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code>：到期直接回收</td></tr></table>
+<p>到期时以 300 的最高优先级切入，并清除受击、抓取、击退状态。</p>
+<pre><code class="json">"despawnActionId": "clone_vanish"</code></pre>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-lifeTime">
+<h3><code>lifeTime</code></h3>
+<p class="summary">寿命秒数。</p>
+<table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>留空或 ≤ 0：不限</td></tr></table>
+<p>第 N 帧生成、寿命 L 帧：在第 N+1 ~ N+L 帧参与判定，第 N+L 帧末尾回收（或开始消失动作）。Simple 一般靠动作链结束回收，寿命只是兜底。</p>
+<pre><code class="json">"lifeTime": "3"</code></pre>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-hp">
+<h3><code>hp</code></h3>
+<p class="summary">生命值，只对 Actor 有意义。归零当帧回收。</p>
+<table class="props"><tr><th>类型</th><td>字符串数值</td></tr><tr><th>默认</th><td>留空：沿用角色默认血量 1000</td></tr></table>
+<pre><code class="json">"hp": "300"</code></pre>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-brain">
+<h3><code>brain</code> / <code>script</code></h3>
+<p class="summary">Actor 的输入来源。<code>None</code>：不注入输入，只走动作链；<code>Script</code>：按脚本在指定帧"按键"。Simple 忽略这两个字段。</p>
+<table>
+<tr><th>script[] 字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>frame</code></td><td>int</td><td>0</td><td>从生成后第几个 tick 开始（0 = 生成后的第一个 tick）。</td></tr>
+<tr><td><code>hold</code></td><td>int</td><td>1（≤0 按 1）</td><td>持续几个 tick，区间为 <code>[frame, frame+hold)</code>。</td></tr>
+<tr><td><code>buttons</code></td><td>string[]</td><td><code>[]</code></td><td>按住的按钮：Attack、Skill1、Skill2、Ultimate、Substitution、Secret、Summon。写错<strong>静默</strong>忽略。</td></tr>
+<tr><td><code>dir</code></td><td>string[]</td><td><code>[]</code></td><td>摇杆：<code>Forward</code>/<code>Backward</code>（按分身当前朝向换算）、<code>Up</code>/<code>Down</code>，可以组合成斜向。写错会报错并忽略。</td></tr>
+</table>
+<p>按下、松开事件由"按住状态的变化"自动推导，和玩家输入完全一致。多个步骤时间重叠时，按钮取并集，同一方向轴后写的覆盖先写的。</p>
+<pre><code class="json">"brain": "Script",
+"script": [
+  { "frame": 2,  "hold": 1,  "buttons": ["Attack"] },
+  { "frame": 12, "hold": 1,  "buttons": ["Attack"] },
+  { "frame": 30, "hold": 10, "buttons": [], "dir": ["Forward"] },
+  { "frame": 40, "hold": 1,  "buttons": ["Skill1"] }
+]</code></pre>
+<p>上例：第 2 帧普攻，第 12 帧再按一次接连段，第 30~39 帧向前走，第 40 帧放技能 1。</p>
+</section>
+
+<div class="crumb">spawns.json › data[]</div>
+<section class="field" id="spawn-prewarm">
+<h3><code>prewarm</code></h3>
+<p class="summary">开局预建的实例数，应等于同屏可能同时存在的最大数量。</p>
+<table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>≤ 0 或省略：1</td></tr></table>
+<p>不够用时局内补建并输出警告，会产生内存分配（违反"战斗中 0 GC"）。回收的实例同一 tick 内不会被复用。</p>
+<pre><code class="json">"prewarm": 2</code></pre>
+</section>
+
+<!-- ============================== buffs.json ============================== -->
+<h2 id="buff-root">buffs.json · BuffData</h2>
+<p class="summary">Buff 目前只有"持续时间 + 循环特效"，没有数值效果、没有层数上限（每次添加都是独立的一层，各自计时）。由动作事件 <code>{"type": "Buff", "asset": "buff id"}</code> 添加到触发者自己身上。</p>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>id</code></td><td>string</td><td><code>""</code></td><td>被事件的 <code>asset</code> 引用。全局共享：同一场战斗里后加载角色的同名 Buff 会覆盖先加载的。</td></tr>
+<tr><td><code>duration</code></td><td>字符串秒数</td><td>0</td><td>第 N 帧添加，第 N+帧数 帧移除。0 表示下一帧就移除。</td></tr>
+<tr><td><code>effect</code></td><td>string</td><td><code>""</code></td><td>循环特效的资源路径，Buff 移除时停止。</td></tr>
+<tr><td><code>anchor</code></td><td>string</td><td><code>""</code>（脚底）</td><td>特效跟随的锚点。</td></tr>
+<tr><td><code>offset</code></td><td><code>{x,y}</code> 像素</td><td>{0,0}</td><td>特效偏移。</td></tr>
+</table>
+<pre><code class="json">{ "data": [
+  { "id": "haste", "duration": "0.2", "effect": "fx_haste", "anchor": "body" }
+] }</code></pre>
+<p>目前没有任何角色配置 buffs.json，上例来自逻辑测试。事件引用了未定义的 Buff id 时运行时静默忽略（Unity 环境测试会报出来）。</p>
+<!-- ============================== 附录 ============================== -->
+<h2 id="ap-framecheck">附录 A · 帧判定口径对照</h2>
+<p>同样写 <code>{x: 2, y: 3}</code>，不同字段判断的"帧"略有不同。大多数情况下不用关心，调试"差一帧"的问题时查这张表。</p>
+<table>
+<tr><th>字段</th><th>判断哪一帧</th><th>备注</th></tr>
+<tr><td><code>beCancelledTag</code>、<code>attackPhase</code>（是否开启）、<code>inputAcceptance</code></td><td>本 tick 处理的帧</td><td>动画停在末帧时按末帧</td></tr>
+<tr><td><code>attackPhase</code>（逐帧检测）</td><td>本 tick 实际处理的每一帧</td><td>停在末帧时不再检测，打不到人</td></tr>
+<tr><td><code>armorPhase</code></td><td>刚处理完的帧</td><td></td></tr>
+<tr><td><code>defensePhase</code></td><td>即将显示的帧</td><td><b>比上面早一帧</b></td></tr>
+<tr><td><code>rootMotion</code></td><td>按区间进度分配</td><td>每处理一帧拿走 1/区间长度</td></tr>
+<tr><td><code>events</code></td><td>本 tick 处理的帧</td><td>只触发一次；中途进入不补发</td></tr>
+<tr><td><code>velocityZ</code>、<code>velocityX/Y</code></td><td>区间起点 x 那一帧</td><td>区间终点无意义</td></tr>
+</table>
+
+<h2 id="ap-validate">附录 B · 自动校验清单</h2>
+<p>在 Unity 里执行菜单 <code>KiHan/Testing/Run All Unity Environment Tests</code>（编辑器编译完成后也会自动运行一次），结果写入工程根目录的 <code>unity_test_results.log</code>。</p>
+<table>
+<tr><th>会检查</th><th>不会检查（写错只会静默失效）</th></tr>
+<tr><td>
+<ul>
+<li>7 个固定受击动作是否齐全</li>
+<li>每个动作的 <code>animKey</code> 动画是否存在</li>
+<li><code>autoNextActionId</code>、<code>selfActionChange</code>（changeType 1）、<code>hurtAction</code> 引用的动作是否存在</li>
+<li>指令里的按键名是否合法</li>
+<li>抓取段覆盖的帧是否画了抓取锚点</li>
+<li>事件的 <code>spawnId</code>、Buff id、特效资源是否存在</li>
+<li>技能至少一段；<code>actionId</code>、<code>followActions</code> 是否存在；图标能否加载</li>
+<li>生成物的 <code>initialActionId</code>、<code>despawnActionId</code> 是否存在</li>
+<li>Buff 的 <code>effect</code> 能否加载</li>
+</ul>
+</td><td>
+<ul>
+<li><code>onLand</code>、<code>releaseActionChange</code>、<code>defensePhase</code> 里的动作引用</li>
+<li>取消标签名是否有动作在用（拼错的标签永远匹配不上）</li>
+<li><code>catalog</code></li>
+<li>帧区间是否超出动画长度</li>
+<li>霸体等级、事件类型、生成物类型、缓动名的拼写（静默回落默认值）</li>
+<li>技能 <code>button</code> 是否合法</li>
+<li><code>requireHurt</code> 的入口动作是否配了 <code>breakHurt</code></li>
+<li>同一动作被登记到多个技能段（只在运行时报错）</li>
+</ul>
+</td></tr>
+</table>
+
+<h2 id="ap-pitfalls">附录 C · 已知陷阱与不一致</h2>
+<table>
+<tr><th>现象</th><th>原因</th><th>建议</th></tr>
+<tr><td>写了 <code>startFromFrame</code> 不生效</td><td>字段名是 <code>startFormFrame</code>（历史拼写）</td><td>照抄现有配置的拼写</td></tr>
+<tr><td><code>startFrames</code> 以为是"从第几帧开始"</td><td>实际是临时窗口的<strong>持续帧数</strong></td><td>见 <a href="#t-TempBeCancelledTag">TempBeCancelledTag</a></td></tr>
+<tr><td>调整 <code>attacks</code> 顺序后伤害错位</td><td>攻击段按数组下标引用，<code>phase</code> 字段不参与</td><td>改顺序时同步改 <code>attackPhase</code></td></tr>
+<tr><td>技能 CD 提前开始</td><td>后续动作没列进 <code>followActions</code></td><td>沿 autoNext / onLand / 命中切换把整条链列全</td></tr>
+<tr><td>命中派生后霸体消失</td><td>变体动作不继承原动作的 <code>armorPhase</code></td><td>变体里把霸体抄一份</td></tr>
+<tr><td>只配 press 时按住不连段</td><td>切动作会消耗"按下"</td><td>连段动作同时配 <code>press</code> 和 <code>hold</code></td></tr>
+<tr><td>浮空连击高度不对</td><td>打空中目标用的是 <code>air</code>，没配时用全局默认 z=5</td><td>每一招都写自己的 <code>air</code></td></tr>
+<tr><td>动作停在最后一帧不动</td><td><code>autoNextActionId</code> 留空或指向不存在的 id</td><td>检查 Unity 环境测试结果</td></tr>
+<tr><td>带 <code>//</code> 注释的 json 加载失败</td><td>JsonUtility 不支持注释</td><td>Resources 里的配置不能带注释</td></tr>
+<tr><td><code>example.json</code> 注释说重力 40</td><td>代码默认重力是 <b>30</b></td><td>以代码为准</td></tr>
+<tr><td><code>facing</code> 写了没效果</td><td>运行时未使用</td><td>不要依赖</td></tr>
+<tr><td>用整数写 <code>defensePhase</code> 的 <code>changeType</code></td><td>该字段在 C# 中是枚举，整数写法能否解析未经验证</td><td>使用前在 Unity 中实测</td></tr>
+</table>
+
+<footer>
+<p>本文档根据 <code>Assets/Scripts/Game/Character/Action/ActionData.cs</code>、<code>Skill/SkillInfo.cs</code>、<code>Spawn/SpawnInfo.cs</code>、<code>Buff/BuffInfo.cs</code> 及其运行时代码（<code>ActionController</code>、<code>CharacterObj</code>、<code>HitResolver</code>、<code>SkillController</code>、<code>BattleWorld</code>、<code>CharacterFactory</code>）整理。代码改动后请同步更新本文档。</p>
+</footer>
+</main>
+</div>
+<script>
+// 侧边栏搜索：按文字过滤链接
+(function () {
+  var q = document.getElementById('q');
+  var links = Array.prototype.slice.call(document.querySelectorAll('#side a'));
+  q.addEventListener('input', function () {
+    var v = q.value.trim().toLowerCase();
+    links.forEach(function (a) {
+      a.classList.toggle('hidden', v !== '' && (a.textContent + ' ' + (a.dataset.k || '')).toLowerCase().indexOf(v) < 0);
+    });
+  });
+  q.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    var hit = links.filter(function (a) { return !a.classList.contains('hidden'); })[0];
+    if (hit) location.hash = hit.getAttribute('href');
+  });
+})();
+// JSON 代码着色：键 / 字符串 / 数字 / 注释
+(function () {
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  document.querySelectorAll('pre code.json').forEach(function (el) {
+    var src = el.textContent, out = '', re = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")(\s*:)?|(-?\b\d+(?:\.\d+)?\b|\btrue\b|\bfalse\b)/g, last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      if (m[1]) out += '<span class="c">' + esc(m[1]) + '</span>';
+      else if (m[2]) out += '<span class="' + (m[3] ? 'k' : 's') + '">' + esc(m[2]) + '</span>' + (m[3] || '');
+      else out += '<span class="n">' + esc(m[4]) + '</span>';
+      last = re.lastIndex;
+    }
+    el.innerHTML = out + esc(src.slice(last));
+  });
+})();
+</script>
+</body>
+</html>

@@ -16,20 +16,20 @@ MonoBehaviour:
   Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
   Steps:
   - FrameIndex: 186
-    Duration: 1
+    Duration: 4
   - FrameIndex: 187
-    Duration: 1
+    Duration: 3
   - FrameIndex: 188
-    Duration: 1
+    Duration: 3
   - FrameIndex: 189
-    Duration: 1
+    Duration: 4
   - FrameIndex: 190
-    Duration: 1
+    Duration: 2
   - FrameIndex: 191
-    Duration: 1
+    Duration: 3
   - FrameIndex: 192
-    Duration: 1
+    Duration: 4
   - FrameIndex: 193
-    Duration: 1
+    Duration: 3
   - FrameIndex: 194
-    Duration: 1
+    Duration: 2

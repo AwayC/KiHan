@@ -14,44 +14,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AnimName: 
   Library: {fileID: 11400000, guid: 8425c0ffe26c2b44d91ba64b7e688f9b, type: 2}
-  IsLoop: 0
   Steps:
   - FrameIndex: 80
     Duration: 3
-    RootMotion: {x: 30, y: 0}
   - FrameIndex: 81
     Duration: 1
-    RootMotion: {x: 30, y: 0}
   - FrameIndex: 82
     Duration: 2
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 83
     Duration: 2
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 84
     Duration: 4
-    RootMotion: {x: 50, y: 0}
   - FrameIndex: 84
     Duration: 8
-    RootMotion: {x: 10, y: 0}
   - FrameIndex: 85
     Duration: 2
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 86
     Duration: 2
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 87
     Duration: 4
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 88
     Duration: 2
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 89
     Duration: 2
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 90
     Duration: 3
-    RootMotion: {x: 0, y: 0}
   - FrameIndex: 91
     Duration: 4
-    RootMotion: {x: 0, y: 0}

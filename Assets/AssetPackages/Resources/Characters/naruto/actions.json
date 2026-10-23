@@ -43,17 +43,17 @@
         { "tag": "attack1", "startFormFrame": 0, "priority": 10 }
       ],
       "beCancelledTag": [
-        { "frameRange": { "x": 18, "y": 21 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
+        { "frameRange": { "x": 12, "y": 13 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
       ],
       "commands": [
         { "press": ["Attack"], "validInSec": "0.2" },
         { "hold": ["Attack"] }
       ],
       "attackPhase": [
-        { "frameRanges": [{ "x": 7, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 }
+        { "frameRanges": [{ "x": 0, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 }
       ],
       "rootMotion" :[
-        { "frameRange": { "x": 8, "y": 10 }, "moveX": "0.6" }
+        { "frameRange": { "x": 4, "y": 6 }, "moveX": "0.6" }
       ],
       "inputAcceptance": [
         { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
@@ -80,7 +80,7 @@
         { "tag": "attack2", "startFormFrame": 0, "priority": 10 }
       ],
       "beCancelledTag": [
-        { "frameRange": { "x": 13, "y": 13 }, "cancelTag": ["move", "attack3", "skill"], "priority": 0 }
+        { "frameRange": { "x": 10, "y": 10 }, "cancelTag": ["move", "attack3", "skill"], "priority": 0 }
       ],
       "commands": [
         { "press": ["Attack"], "validInSec": "0.3" },
@@ -93,8 +93,8 @@
         { "frameRange": { "x": 1, "y": 4 }, "moveX": "1.0" }
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 0 }, "rateX": "2", "rateY": "2", "turn": true },
-        { "range": { "x": 1, "y": 1 }, "rateX": "2", "rateY": "2", "turn": true }
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "2", "turn": true },
+        { "range": { "x": 1, "y": 2 }, "rateX": "0", "rateY": "2", "turn": true }
       ],
       "attacks": [
         {
@@ -164,10 +164,11 @@
       ],
       "rootMotion" : [
         { "frameRange": { "x": 2, "y": 8 }, "moveX": "2" },
-        { "frameRange": { "x": 9, "y": 9 }, "velocityX": "6", "velocityZ": "9" }
+        { "frameRange": { "x": 9, "y": 9 }, "velocityX": "6", "velocityZ": "7" }
       ],
       "inputAcceptance": [
-        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "2", "turn": true },
+        { "range": { "x": 1, "y": 2 }, "rateX": "0", "rateY": "2", "turn": false },
         { "range": { "x": 9, "y": 9 }, "rateX": "0", "rateY": "0", "turn": true }
       ],
       "attacks": [
@@ -256,6 +257,7 @@
       "catalog": "Skill",
       "priority": 20,
       "autoNextActionId": "skill2_land",
+      "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 },
       "cancelTag": [
         { "tag": "skill", "startFormFrame": 0, "priority": 20 }
       ],
@@ -272,6 +274,9 @@
       ],
       "attackPhase": [
         { "frameRanges": [{ "x": 19, "y": 26 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "rootMotion": [
+        { "frameRange": { "x": 19, "y": 19 }, "velocityX": "8", "velocityZ": "5" }
       ],
       "attacks": [
         {
@@ -292,6 +297,7 @@
       "catalog": "Skill",
       "priority": 20,
       "autoNextActionId": "skill2_land_hit",
+      "onLand": { "changeType": 1, "param": "skill2_land_hit", "priority": 100 },
       "armorPhase": [
         { "range": { "x": 0, "y": 28 }, "level": "Skill" }
       ]
@@ -320,7 +326,7 @@
       "priority": 20,
       "autoNextActionId": "idle",
       "beCancelledTag": [
-        { "frameRange": { "x": 35, "y": 38 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+        { "frameRange": { "x": 38, "y": 38 }, "cancelTag": ["move", "attack1"], "priority": 0 }
       ],
       "armorPhase": [
         { "range": { "x": 0, "y": 23 }, "level": "Skill" }
@@ -328,11 +334,15 @@
       "attackPhase": [
         { "frameRanges": [{ "x": 8, "y": 23 }], "tag": [], "attackPhase": 0, "priority": 10 }
       ],
+      "rootMotion": [
+        { "frameRange": { "x": 0, "y": 7 }, "moveX": "1" },
+        { "frameRange": { "x": 8, "y": 11 }, "moveX": "2" }
+      ],
       "attacks": [
         {
           "phase": 0,
           "attack": "120",
-          "launch": { "z": "10", "x": "2" },
+          "launch": { "z": "10", "x": "3" },
           "air": { "z": "8", "x": "2" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
@@ -343,6 +353,8 @@
     {
       "id": "skill2_fx",
       "animKey": "Skill_B_fx",
+      "autoNextActionId": "skill2_fx_land",
+      "onLand": { "changeType" : 1, "param" : "skill2_fx_land", "priority" : 100},
       "catalog": "Spawn",
       "events": [
         { "frame": 54, "type": "Effect", "asset": "Characters/naruto/effect/skill2_smk/skill2_smk" }
@@ -352,12 +364,17 @@
         { "frameRanges": [{ "x": 11, "y": 19 }], "tag": [], "attackPhase": 1, "priority": 10 },
         { "frameRanges": [{ "x": 33, "y": 41 }], "tag": [], "attackPhase": 2, "priority": 10 }
       ],
+      "rootMotion": [
+        { "frameRange": { "x": 0, "y": 6 }, "moveX": "1" },
+        { "frameRange": { "x": 28, "y": 28 }, "velocityX": "6", "velocityZ": "7" }
+      ],
       "attacks": [
         {
           "phase": 0,
           "attack": "50",
           "hitStun": "0.4",
           "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.8" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
@@ -367,6 +384,7 @@
           "attack": "50",
           "hitStun": "0.4",
           "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.8" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
@@ -376,11 +394,17 @@
           "attack": "50",
           "hitStun": "0.4",
           "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.8" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
         }
       ]
+    },
+    {
+      "id": "skill2_fx_land",
+      "animKey": "Skill_B_fx_land",
+      "catalog": "Spawn"
     },
     {
       "id": "substitution",

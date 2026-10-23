@@ -28,6 +28,14 @@ namespace KiHan.View.Render
         /// </summary>
         private const float LayerDepthStep = 0.001f;
 
+        /// <summary>
+        /// 同纵深角色的前后裁决：按 EntityId 分档朝相机 (-Z) 前移，EntityId 越大越靠前。
+        /// 每档间距大于额外图层的深度跨度 (OrderOffset ±1 → ±LayerDepthStep)，保证两个角色整体前后分开、不交叉穿插；
+        /// 最大偏移 (ActorDepthSlots - 1) × ActorDepthStep 小于 ActionEffectOffset，不会盖过同纵深其他角色的动作特效
+        /// </summary>
+        private const float ActorDepthStep = 0.004f;
+        private const int ActorDepthSlots = 8;
+
         private static Material _spriteMaterial;
 
         public CharacterObj Character { get; private set; }
@@ -303,7 +311,9 @@ namespace KiHan.View.Render
 
         private void ApplyTransform(Vector3 logicPos)
         {
-            transform.position = BattleViewSpace.GroundToWorld(logicPos.x, logicPos.y);
+            // 纵深相同时世界 Z 相同，ZTest LEqual 下两者像素谁覆盖谁取决于不稳定的绘制顺序 (互相穿插/闪烁)，加档位偏移打破平局
+            float depthBias = (Character.EntityId & (ActorDepthSlots - 1)) * ActorDepthStep;
+            transform.position = BattleViewSpace.GroundToWorld(logicPos.x, logicPos.y) + new Vector3(0f, 0f, -depthBias);
             Body.localPosition = new Vector3(0f, logicPos.z, 0f);
         }
 

@@ -182,8 +182,8 @@ namespace KiHan.Editor
             // 4. 帧库与判定盒资产检查 (.agents/testing.md L2.2)
             try
             {
-                Log("\n--- [4/5] 帧库与判定盒资产检查 (frameLib.asset) ---");
-                string libPath = "Assets/AssetPackages/Resources/Characters/naruto/frameLib.asset";
+                Log("\n--- [4/5] 帧库与判定盒资产检查 (NarutoFrameLib.asset) ---");
+                string libPath = "Assets/AssetPackages/Resources/Characters/naruto/NarutoFrameLib.asset";
                 var frameLib = AssetDatabase.LoadAssetAtPath<CharacterSpriteLibrary>(libPath);
                 if (frameLib == null)
                 {
