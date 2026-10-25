@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using KiHan.Config;
 using KiHan.Logic;
 using KiHan.Tests;
 
@@ -152,7 +153,7 @@ namespace KiHan.Editor
                         var exampleProblems = new List<string>();
                         foreach (var d in exampleContainer.data)
                         {
-                            ValidateCommands(d.ToRuntime(), exampleProblems);
+                            CharacterValidator.ValidateCommands(d.ToRuntime(), exampleProblems);
                             exampleCount++;
                         }
                         foreach (string p in exampleProblems) LogError($"example.json 配置错误: {p}");
@@ -179,55 +180,51 @@ namespace KiHan.Editor
                 LogError($"JsonUtility 配置加载测试异常: {ex.Message}\n{ex.StackTrace}");
             }
 
-            // 4. 帧库与判定盒资产检查 (.agents/testing.md L2.2)
+            // 4. 帧库与判定盒资产检查 (.agents/testing.md L2.2)：注册表中每个角色包的帧库
+            // 5. 角色配置交叉引用 (动作 / 技能 / 生成物 / 动作事件 / 动画 / 包内资源)
             try
             {
-                Log("\n--- [4/5] 帧库与判定盒资产检查 (NarutoFrameLib.asset) ---");
-                string libPath = "Assets/AssetPackages/Resources/Characters/naruto/NarutoFrameLib.asset";
-                var frameLib = AssetDatabase.LoadAssetAtPath<CharacterSpriteLibrary>(libPath);
-                if (frameLib == null)
+                Log("\n--- [4/5] 帧库与判定盒资产检查 / [5/5] 角色包配置交叉引用检查 (注册表全部角色) ---");
+                CharacterRegistry registry = CharacterPackages.LoadRegistry();
+                if (registry == null)
                 {
-                    LogError($"无法通过 AssetDatabase 加载帧库: {libPath}");
+                    LogError("找不到角色注册表 Resources/Config/CharacterRegistry.asset");
                 }
                 else
                 {
-                    int frameCount = frameLib.AllFrames != null ? frameLib.AllFrames.Count : 0;
-                    Log($"  [OK] 帧库加载成功，共 {frameCount} 帧数据");
-                    if (frameCount > 0)
+                    foreach (CharacterRegistryEntry entry in registry.characters)
                     {
-                        var firstFrame = frameLib.AllFrames[0];
-                        int hurtCount = firstFrame.HurtBoxes != null ? firstFrame.HurtBoxes.Count : 0;
-                        int hitCount = firstFrame.HitBoxes != null ? firstFrame.HitBoxes.Count : 0;
-                        Log($"  [OK] 帧数据健全: 采样第0帧 HurtBoxes={hurtCount}, HitBoxes={hitCount}");
+                        CharacterManifest manifest = entry.manifest;
+                        if (manifest == null)
+                        {
+                            LogError("注册表中有丢失的角色包");
+                            continue;
+                        }
+
+                        CharacterSpriteLibrary frameLib = null;
+                        foreach (AnimationFrameData clip in manifest.animations)
+                        {
+                            if (clip != null && clip.Library != null) { frameLib = clip.Library; break; }
+                        }
+                        int frameCount = frameLib != null && frameLib.AllFrames != null ? frameLib.AllFrames.Count : 0;
+                        if (frameCount == 0) LogError($"角色 {manifest.id} 的动画没有引用帧库或帧库为空");
+                        else Log($"  [OK] 角色 {manifest.id} 帧库 {frameLib.name}: {frameCount} 帧");
+
+                        List<string> problems = CharacterValidator.Validate(manifest);
+                        if (problems.Count == 0)
+                        {
+                            Log($"  [OK] 角色 {manifest.id} {manifest.displayName}{(entry.enabled ? string.Empty : " (未启用)")}: 配置引用全部有效");
+                        }
+                        else
+                        {
+                            foreach (string p in problems) LogError($"角色 {manifest.id} 配置错误: {p}");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                LogError($"frameLib.asset 检查异常: {ex.Message}\n{ex.StackTrace}");
-            }
-
-            // 5. 角色配置交叉引用 (动作 / 技能 / 生成物 / 动作事件 / 动画 / 特效资源)
-            try
-            {
-                Log("\n--- [5/5] 角色配置交叉引用检查 (actions.json / skills.json / spawns.json) ---");
-                const int narutoId = 90001;
-                CharacterFactory.ClearTemplates();
-                CharacterTemplate template = CharacterFactory.GetTemplate(narutoId);
-                List<string> problems = ValidateTemplate(template);
-                CharacterFactory.ClearTemplates();
-                if (problems.Count == 0)
-                {
-                    Log($"  [OK] 角色 {narutoId}: 动作 {template.Actions.Count} 个、技能 {template.Skills.Length} 个、生成物 {template.Spawns.Count} 个，引用全部有效");
-                }
-                else
-                {
-                    foreach (string p in problems) LogError($"角色 {narutoId} 配置错误: {p}");
-                }
-            }
-            catch (Exception ex)
-            {
-                LogError($"角色配置检查异常: {ex.Message}\n{ex.StackTrace}");
+                LogError($"角色包检查异常: {ex.Message}\n{ex.StackTrace}");
             }
 
             // 总结报告
@@ -259,100 +256,6 @@ namespace KiHan.Editor
             string raw = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), fileName));
             string cleaned = Regex.Replace(raw, @"//.*$", "", RegexOptions.Multiline);
             return Regex.Replace(cleaned, @",\s*([}\]])", "$1");
-        }
-
-        /// <summary>
-        /// 触发指令：每条至少一个按键，按键名全部可识别 (无法识别或摇杆键写在 press / release 中时 ToRuntime 记为 None)
-        /// </summary>
-        private static void ValidateCommands(ActionInfo a, List<string> problems)
-        {
-            if (a.commands == null) return;
-            for (int i = 0; i < a.commands.Length; i++)
-            {
-                ActionCommand c = a.commands[i];
-                int count = c.press.Length + c.hold.Length + c.release.Length;
-                if (count == 0) problems.Add($"动作 {a.id} 的第 {i} 条指令没有配置任何按键");
-                if (Array.IndexOf(c.press, CommandKey.None) >= 0 || Array.IndexOf(c.hold, CommandKey.None) >= 0 || Array.IndexOf(c.release, CommandKey.None) >= 0)
-                    problems.Add($"动作 {a.id} 的第 {i} 条指令含无法识别的按键 (摇杆键只能写在 hold 中)");
-            }
-        }
-
-        /// <summary>
-        /// 角色配置交叉引用：动作的 animKey / autoNext / 命中动作变化目标、技能段 (入口与后续) 动作、生成物初始与消失动作、
-        /// 动作事件引用的生成物与特效资源都必须存在
-        /// </summary>
-        private static List<string> ValidateTemplate(CharacterTemplate template)
-        {
-            var problems = new List<string>();
-            if (template == null)
-            {
-                problems.Add("模板加载失败");
-                return problems;
-            }
-
-            var actionIds = new HashSet<string>();
-            foreach (ActionInfo a in template.Actions) actionIds.Add(a.id);
-            var animKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (AnimationFrameData clip in template.Anims) animKeys.Add(clip.name);
-
-            void RequireAction(string id, string where)
-            {
-                if (!string.IsNullOrEmpty(id) && !actionIds.Contains(id)) problems.Add($"{where} 引用了不存在的动作 {id}");
-            }
-
-            void RequireIcon(string address, string where)
-            {
-                if (!string.IsNullOrEmpty(address) && global::View.UI.SkillIconCache.Load(address) == null) problems.Add($"{where} 的图标不存在: {address}");
-            }
-
-            foreach (ActionInfo a in template.Actions)
-            {
-                if (!animKeys.Contains(a.animKey)) problems.Add($"动作 {a.id} 的动画 {a.animKey} 不存在");
-                RequireAction(a.autoNextActionId, $"动作 {a.id} 的 autoNextActionId");
-                ValidateCommands(a, problems);
-                if (a.attacks != null)
-                {
-                    foreach (AttackInfo atk in a.attacks)
-                    {
-                        if (atk.selfActionChange.changeType == ActionChangeType.ChangeToActionId) RequireAction(atk.selfActionChange.param, $"动作 {a.id} 的 selfActionChange");
-                        RequireAction(atk.hurtAction, $"动作 {a.id} 的 hurtAction");
-                    }
-                }
-                if (a.events == null) continue;
-                foreach (ActionEventInfo evt in a.events)
-                {
-                    if (evt.type == ActionEventType.Spawn && !template.Spawns.ContainsKey(evt.spawnId))
-                        problems.Add($"动作 {a.id} 第 {evt.frame} 帧生成了未配置的生成物 {evt.spawnId}");
-                    if (evt.type == ActionEventType.Effect && Resources.Load<GameObject>(evt.asset) == null)
-                        problems.Add($"动作 {a.id} 第 {evt.frame} 帧的特效资源不存在: {evt.asset}");
-                    if (evt.type == ActionEventType.Buff && !template.Buffs.ContainsKey(evt.asset))
-                        problems.Add($"动作 {a.id} 第 {evt.frame} 帧添加了未配置的 Buff {evt.asset}");
-                }
-            }
-
-            foreach (SkillInfo skill in template.Skills)
-            {
-                if (skill.stages.Length == 0) problems.Add($"技能 {skill.id} 没有配置段");
-                RequireIcon(skill.icon, $"技能 {skill.id}");
-                foreach (SkillStageInfo stage in skill.stages)
-                {
-                    RequireAction(stage.actionId, $"技能 {skill.id}");
-                    foreach (string follow in stage.followActions) RequireAction(follow, $"技能 {skill.id} 的后续动作");
-                    RequireIcon(stage.icon, $"技能 {skill.id} 的段 {stage.actionId}");
-                }
-            }
-
-            foreach (BuffInfo buff in template.Buffs.Values)
-            {
-                if (Resources.Load<GameObject>(buff.effect) == null) problems.Add($"Buff {buff.id} 的特效资源不存在: {buff.effect}");
-            }
-
-            foreach (SpawnInfo spawn in template.Spawns.Values)
-            {
-                RequireAction(spawn.initialActionId, $"生成物 {spawn.id} 的初始动作");
-                RequireAction(spawn.despawnActionId, $"生成物 {spawn.id} 的消失动作");
-            }
-            return problems;
         }
     }
 }

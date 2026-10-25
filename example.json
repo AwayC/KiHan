@@ -212,7 +212,7 @@
         { "hold": ["Down"], "press": ["Skill2"], "validInSec": "0.2" }   // 推着下 + 技能2
       ],
       "events": [                                        // 动作时间轴事件 (处理到该帧时触发一次，中途切入不补发)
-        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },   // 跟随锚点的特效，动作结束即回收
+        { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },   // 跟随锚点的特效 (角色包内 key，找不到时按全局 Resources 路径)，动作结束即回收
         { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx", "anchor": "", "offset": { "x": 0, "y": 0 } },   // 生成物 (spawns.json)，位置 = 锚点 + 像素偏移
         { "frame": 6, "type": "Camera", "asset": "impact_heavy" },   // 镜头效果：impact / impact_heavy
         { "frame": 6, "type": "Buff", "asset": "rage" }              // 给自己添加一层 Buff (buffs.json)

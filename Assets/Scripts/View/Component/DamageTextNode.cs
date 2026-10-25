@@ -7,7 +7,7 @@ namespace View.Component
     /// <summary>
     /// 伤害跳字节点 (由 DamageTextPool 复用)
     /// 预建固定数量的数字精灵，显示时只替换精灵与位置 (0 GC)
-    /// 动画：先沿飞出方向减速飞出一小段 (稍慢)，再加速继续飞并淡出消失 (稍快)，播完归还对象池
+    /// 动画：沿受击方向抛物线飞出 (上抛 + 重力)，后半段淡出，播完归还对象池
     /// </summary>
     public class DamageTextNode : MonoBehaviour
     {
@@ -16,17 +16,14 @@ namespace View.Component
         /// </summary>
         public const int MaxDigits = 7;
 
-        private const float FlyOutSeconds = 0.25f;
-        private const float FlyOutDistance = 0.45f;
-        private const float FlyAwaySeconds = 0.3f;
-        private const float FlyAwayDistance = 1.2f;
+        private const float Duration = 0.5f;
+        private const float Gravity = 12f;
         private const int SortingOrder = 30000; // 覆盖在人物之上
 
         private readonly SpriteRenderer[] _digits = new SpriteRenderer[MaxDigits];
         private readonly int[] _digitValues = new int[MaxDigits];
         private int _digitCount;
-        private Vector3 _origin;
-        private Vector3 _direction;
+        private Vector3 _velocity;
         private float _timer;
         private Action<DamageTextNode> _onFinished;
 
@@ -90,9 +87,8 @@ namespace View.Component
                 _digits[i].transform.localPosition -= new Vector3(halfWidth, 0f, 0f);
             }
 
-            // 在屏幕平面 (世界 XY) 内斜向上飞：沿受击方向偏转，带少许随机
-            _direction = new Vector3(hitDirectionX * UnityEngine.Random.Range(0.35f, 0.7f), 1f, 0f).normalized;
-            _origin = worldPos;
+            // 抛物线在屏幕平面 (世界 XY) 内运动：沿受击方向的随机水平速度 + 随机初始上抛速度
+            _velocity = new Vector3(UnityEngine.Random.Range(1.0f, 2.5f) * hitDirectionX, UnityEngine.Random.Range(3.5f, 5.0f), 0f);
             _timer = 0f;
             transform.SetPositionAndRotation(worldPos, Quaternion.identity);
             gameObject.SetActive(true);
@@ -113,35 +109,24 @@ namespace View.Component
 
         private void Update()
         {
-            _timer += Time.deltaTime;
+            float dt = Time.deltaTime;
+            _timer += dt;
 
-            float distance;
-            float alpha = 1f;
-            if (_timer < FlyOutSeconds)
-            {
-                // 飞出：减速 (ease-out)
-                float t = _timer / FlyOutSeconds;
-                distance = FlyOutDistance * (1f - (1f - t) * (1f - t));
-            }
-            else
-            {
-                // 继续飞走：加速 (ease-in) 并淡出
-                float t = Mathf.Clamp01((_timer - FlyOutSeconds) / FlyAwaySeconds);
-                distance = FlyOutDistance + FlyAwayDistance * t * t;
-                alpha = 1f - t;
-            }
+            transform.position += _velocity * dt;
+            _velocity.y -= Gravity * dt;
 
-            transform.position = _origin + _direction * distance;
-            if (alpha < 1f)
+            // 后半段淡出
+            float progress = _timer / Duration;
+            if (progress > 0.5f)
             {
-                var c = new Color(1f, 1f, 1f, alpha);
+                var c = new Color(1f, 1f, 1f, Mathf.Clamp01(1f - (progress - 0.5f) * 2f));
                 for (int i = 0; i < _digitCount; i++)
                 {
                     _digits[i].color = c;
                 }
             }
 
-            if (_timer >= FlyOutSeconds + FlyAwaySeconds)
+            if (_timer >= Duration)
             {
                 gameObject.SetActive(false);
                 _onFinished?.Invoke(this);

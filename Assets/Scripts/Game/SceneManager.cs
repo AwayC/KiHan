@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using KiHan.Asset;
+using KiHan.Config;
 using KiHan.Logic;
 using KiHan.View.Render;
 using Managers;
@@ -52,30 +54,41 @@ public class SceneManager : UnitySingleton<SceneManager>
 
     /// <summary>
     /// 预热角色动作事件与 Buff 引用的特效 (加载阶段，每个资源预建 ActionEffectPrewarm 个实例)
+    /// 特效 key 在角色包资源表中找到时登记包内预制体 (地址 pkg/{id}/{key})，否则按全局 Resources 路径加载
     /// </summary>
-    public void PreloadActionEffects(List<ActionInfo> actions, ICollection<BuffInfo> buffs)
+    public void PreloadActionEffects(CharacterTemplate template)
     {
         var assets = new HashSet<string>();
-        if (actions != null)
+        foreach (ActionInfo action in template.Actions)
         {
-            foreach (ActionInfo action in actions)
+            if (action.events == null) continue;
+            foreach (ActionEventInfo evt in action.events)
             {
-                if (action.events == null) continue;
-                foreach (ActionEventInfo evt in action.events)
-                {
-                    if (evt.type == ActionEventType.Effect) Preload(evt.asset, assets);
-                }
+                if (evt.type == ActionEventType.Effect) Preload(template.Manifest, evt.asset, assets);
             }
         }
-        if (buffs != null)
-        {
-            foreach (BuffInfo buff in buffs) Preload(buff.effect, assets);
-        }
+        foreach (BuffInfo buff in template.Buffs.Values) Preload(template.Manifest, buff.effect, assets);
     }
 
-    private static void Preload(string asset, HashSet<string> loaded)
+    private static void Preload(CharacterManifest manifest, string key, HashSet<string> loaded)
     {
-        if (!string.IsNullOrEmpty(asset) && loaded.Add(asset)) EffectManager.Instance.Preload(asset, ActionEffectPrewarm);
+        if (string.IsNullOrEmpty(key) || !loaded.Add(key)) return;
+        string address = key;
+        if (manifest != null && manifest.TryGetPrefab(key, out string packaged, out GameObject prefab))
+        {
+            ObjectPoolManager.Instance.RegisterPrefab(packaged, prefab);
+            address = packaged;
+        }
+        EffectManager.Instance.Preload(address, ActionEffectPrewarm);
+    }
+
+    /// <summary>
+    /// 特效 key -> 播放地址 (与预热时一致；包内地址由清单缓存，不产生 GC)
+    /// </summary>
+    private static string ResolveEffect(int characterId, string key)
+    {
+        CharacterManifest manifest = CharacterRegistry.Find(characterId);
+        return manifest != null && manifest.TryGetPrefab(key, out string address, out _) ? address : key;
     }
 
     /// <summary>
@@ -184,7 +197,7 @@ public class SceneManager : UnitySingleton<SceneManager>
         bool follow = evt.Bind && owner != null;
         bool buff = evt.Type == ActionEventType.Buff;
 
-        var data = new EffectData { EffectName = evt.Asset, IsFacingLeft = evt.FacingLeft };
+        var data = new EffectData { EffectName = ResolveEffect(evt.CharacterId, evt.Asset), IsFacingLeft = evt.FacingLeft };
         if (follow)
         {
             data.BindView = owner;

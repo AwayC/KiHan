@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d624727439d54ec992c9d64498e4287f, type: 3}
+  m_Name: Character
+  m_EditorClassIdentifier: 
+  id: 90001
+  displayName: "\u9E23\u4EBA"
+  headshot: {fileID: 21300000, guid: be445394a34e4a747ac3a921895244d8, type: 3}
+  actions: {fileID: 4900000, guid: c4e6b3ef81e632d4db328dc251f51227, type: 3}
+  skills: {fileID: 4900000, guid: dff45c14f500f01469897d4906df3218, type: 3}
+  spawns: {fileID: 4900000, guid: 508b9b7320d054145a7127ee25a03aac, type: 3}
+  buffs: {fileID: 0}
+  animations:
+  - {fileID: 11400000, guid: 84a41a12695ae69458ed4faf9907c499, type: 2}
+  - {fileID: 11400000, guid: 54611913e793ff94aa0339660d48ba52, type: 2}
+  - {fileID: 11400000, guid: 7a14c4d2447a982469423156ce03979c, type: 2}
+  - {fileID: 11400000, guid: df7434e4566f14a48aff9f6783deb24a, type: 2}
+  - {fileID: 11400000, guid: 1107cf7f1ff753f449fd72b01c01b8fe, type: 2}
+  - {fileID: 11400000, guid: d292dc5810feab147a559a6adbaa9a12, type: 2}
+  - {fileID: 11400000, guid: a69253894d90b644d9a6ddce2f7d2b66, type: 2}
+  - {fileID: 11400000, guid: 5a8570ac84327b84192d7510e46a5e36, type: 2}
+  - {fileID: 11400000, guid: 151eec246ae14534fb57de329634f7b3, type: 2}
+  - {fileID: 11400000, guid: 60aecbb54fa26b84bb6b2ca8f7e272d6, type: 2}
+  - {fileID: 11400000, guid: 9998437c4e6eb18429b8a5a080e8645d, type: 2}
+  - {fileID: 11400000, guid: e1085a67d7cbb5f4ca0f566232b11cac, type: 2}
+  - {fileID: 11400000, guid: 2b3416a8d97040a419f7bd9c85ea935e, type: 2}
+  - {fileID: 11400000, guid: 058f7cc49b9588c4e9847f2afbf6b876, type: 2}
+  - {fileID: 11400000, guid: a5587bf6fdb3abc4f843ebc35dd90256, type: 2}
+  - {fileID: 11400000, guid: d9ec36ec8f9667547a06408422b684c1, type: 2}
+  - {fileID: 11400000, guid: 3ea206060b280c74fb5c71f62cbd22ba, type: 2}
+  - {fileID: 11400000, guid: e34d25087c6ae214391682b87e8b89a8, type: 2}
+  - {fileID: 11400000, guid: dbfc63ea41884f34590613befb0e0851, type: 2}
+  - {fileID: 11400000, guid: 1a0311b1452f6bb4fb89a0143db22674, type: 2}
+  - {fileID: 11400000, guid: 43c72bcf9864b254c8a7320336fceb05, type: 2}
+  - {fileID: 11400000, guid: 672698bfd43fa5248a6adab989698f26, type: 2}
+  - {fileID: 11400000, guid: fd1cdcd8308128643adf516eb173225a, type: 2}
+  - {fileID: 11400000, guid: e2130118fca05ba449d9db669b90cb6d, type: 2}
+  resources:
+  - key: Effect/fengshen/fengshen
+    asset: {fileID: 2556400640471425680, guid: 9d629d654531ea8438518f5cbb186793, type: 3}
+  - key: Effect/lxw/ball
+    asset: {fileID: 4589074302170459123, guid: 244753a9d5161a24491da80b8969b4c0, type: 3}
+  - key: Effect/skill2_smk/skill2_smk
+    asset: {fileID: 2438920868185007899, guid: 6f28c57be016bee4080e6d48ea3b5a2a, type: 3}
+  - key: Effect/ultraSkill_smk/ultraSkill_smk
+    asset: {fileID: 6588677266008982484, guid: a19a503f0ae80df4ba7c551f8fd6e335, type: 3}
+  - key: UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0
+    asset: {fileID: 2131943674, guid: 8cf839738145f354ea509d3be1e4a16e, type: 3}
+  - key: UI/90001_SkillIconAtlas#90001_SkillIconAtlas_1
+    asset: {fileID: 1453582778, guid: 8cf839738145f354ea509d3be1e4a16e, type: 3}
+  - key: UI/90001_SkillIconAtlas#90001_SkillIconAtlas_2
+    asset: {fileID: -1258383415, guid: 8cf839738145f354ea509d3be1e4a16e, type: 3}

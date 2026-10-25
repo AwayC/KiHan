@@ -4,15 +4,17 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using KiHan.Config;
 using KiHan.Logic;
 
 namespace KiHan.Editor
 {
     /// <summary>
-    /// 导入 Tools/SpriteFrameExporter 的导出结果 (每个动作一个目录：*.png + animation.json)：
-    /// - 图片复制到 Assets/AssetPackages/Characters/{角色}/{动作}/，按项目约定导入 (Sprite、中心 pivot、FullRect)
-    /// - 帧写入 Resources/Characters/{角色}/frameLib.asset，Offset = 图片中心相对脚底的像素偏移
-    /// - 每个动作生成 Resources/Characters/{角色}/{动作}.asset (AnimationFrameData，资源名即 animKey)
+    /// 导入 Tools/SpriteFrameExporter 的导出结果 (每个动作一个目录：*.png + animation.json) 到角色包 Assets/AssetPackages/Characters/{角色}/：
+    /// - 图片复制到 {角色}/{动作}/，按项目约定导入 (Sprite、中心 pivot、FullRect)
+    /// - 帧写入包内已有的帧库 (没有时新建 Anims/{角色}FrameLib.asset)，Offset = 图片中心相对脚底的像素偏移
+    /// - 每个动作生成 Anims/{动作}.asset (AnimationFrameData，资源名即 animKey)
+    /// - 包内没有清单时新建 Character.asset 并刷新 (之后在清单上填写 ID、名字、头像并登记到注册表)
     /// 重复导入按帧名匹配：只替换 Sprite 与 Offset，保留已编辑的判定盒、锚点、额外图层和步骤时长。
     /// </summary>
     public class SequenceFrameImporter : EditorWindow
@@ -37,7 +39,7 @@ namespace KiHan.Editor
         }
 
         private const string SpriteRoot = "Assets/AssetPackages/Characters";
-        private const string DataRoot = "Assets/AssetPackages/Resources/Characters";
+        private const string AnimFolder = "Anims";
 
         /// <summary>本次导入中的图片路径 -> pixelsPerUnit，供 OnPreprocessTexture 设置导入参数</summary>
         internal static readonly Dictionary<string, float> PendingTextures = new Dictionary<string, float>();
@@ -71,7 +73,7 @@ namespace KiHan.Editor
 
             string character = _character.Trim();
             EditorGUILayout.LabelField("图片", $"{SpriteRoot}/{character}/<动作>/");
-            EditorGUILayout.LabelField("数据", $"{DataRoot}/{character}/frameLib.asset, <动作>.asset");
+            EditorGUILayout.LabelField("数据", $"{SpriteRoot}/{character}/{AnimFolder}/<动作>.asset、帧库、{CharacterManifest.FileName}.asset");
 
             using (new EditorGUI.DisabledScope(string.IsNullOrWhiteSpace(_exportDir) || string.IsNullOrWhiteSpace(character)))
             {
@@ -118,7 +120,7 @@ namespace KiHan.Editor
             }
 
             string spriteDir = $"{SpriteRoot}/{character}";
-            string dataDir = $"{DataRoot}/{character}";
+            string dataDir = $"{spriteDir}/{AnimFolder}";
             Directory.CreateDirectory(spriteDir);
             Directory.CreateDirectory(dataDir);
 
@@ -152,13 +154,13 @@ namespace KiHan.Editor
                 PendingTextures.Clear();
             }
 
-            // 2. 帧库：按帧名匹配已有帧
-            string libPath = $"{dataDir}/frameLib.asset";
-            var lib = AssetDatabase.LoadAssetAtPath<CharacterSpriteLibrary>(libPath);
+            // 2. 帧库：沿用包内已有的帧库 (可能已改名)，按帧名匹配已有帧
+            string libGuid = AssetDatabase.FindAssets("t:" + nameof(CharacterSpriteLibrary), new[] { spriteDir }).FirstOrDefault();
+            CharacterSpriteLibrary lib = libGuid != null ? AssetDatabase.LoadAssetAtPath<CharacterSpriteLibrary>(AssetDatabase.GUIDToAssetPath(libGuid)) : null;
             if (lib == null)
             {
                 lib = CreateInstance<CharacterSpriteLibrary>();
-                AssetDatabase.CreateAsset(lib, libPath);
+                AssetDatabase.CreateAsset(lib, $"{dataDir}/{character}FrameLib.asset");
             }
             var frameIndex = new Dictionary<string, int>();
             for (int i = 0; i < lib.AllFrames.Count; i++)
@@ -242,7 +244,19 @@ namespace KiHan.Editor
             }
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"[SequenceFrameImporter] {character}: {anims.Count} 个动作，新增 {added} 帧，更新 {updated} 帧 -> {dataDir}");
+
+            // 4. 角色包清单：没有时新建，并按目录收集动画与资源
+            string manifestPath = $"{spriteDir}/{CharacterManifest.FileName}.asset";
+            var manifest = AssetDatabase.LoadAssetAtPath<CharacterManifest>(manifestPath);
+            if (manifest == null)
+            {
+                manifest = CreateInstance<CharacterManifest>();
+                manifest.displayName = character;
+                AssetDatabase.CreateAsset(manifest, manifestPath);
+            }
+            CharacterPackages.Refresh(manifest);
+
+            Debug.Log($"[SequenceFrameImporter] {character}: {anims.Count} 个动作，新增 {added} 帧，更新 {updated} 帧 -> {spriteDir}");
             return true;
         }
 

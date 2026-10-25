@@ -20,6 +20,11 @@ public class AnimationFrameDataEditor : Editor
     private float _previewZoom = 1.8f;
     private Vector2 _previewOffset = Vector2.zero;
     private bool _previewLoop = true;
+
+    // 步骤拖动排序：按住行首手柄拖动，松开时把该步骤移动到插入线位置 (Esc 取消)
+    private readonly List<Rect> _stepRowRects = new List<Rect>();
+    private int _dragStep = -1;
+    private int _dragSlot = -1;
     private void OnEnable()
     {
         _data = (AnimationFrameData)target;
@@ -340,6 +345,10 @@ public class AnimationFrameDataEditor : Editor
         }
 
         int deleteIndex = -1;
+        int dragControl = GUIUtility.GetControlID(FocusType.Passive);
+        Event e = Event.current;
+        while (_stepRowRects.Count < _stepsProp.arraySize) _stepRowRects.Add(Rect.zero);
+        if (_stepRowRects.Count > _stepsProp.arraySize) _stepRowRects.RemoveRange(_stepsProp.arraySize, _stepRowRects.Count - _stepsProp.arraySize);
 
         int frameCursor = 0;
         for (int i = 0; i < _stepsProp.arraySize; i++)
@@ -348,7 +357,8 @@ public class AnimationFrameDataEditor : Editor
             bool isCurrent = (i == _previewIndex);
 
             Color originalColor = GUI.backgroundColor;
-            if (isCurrent) GUI.backgroundColor = new Color(0.8f, 1f, 0.8f);
+            if (i == _dragStep) GUI.backgroundColor = new Color(0.6f, 0.8f, 1f);
+            else if (isCurrent) GUI.backgroundColor = new Color(0.8f, 1f, 0.8f);
 
             using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
             {
@@ -356,6 +366,18 @@ public class AnimationFrameDataEditor : Editor
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
+                    // 拖动手柄
+                    Rect handle = GUILayoutUtility.GetRect(14, 18, GUILayout.Width(14));
+                    EditorGUIUtility.AddCursorRect(handle, MouseCursor.Pan);
+                    GUI.Label(handle, "≡", EditorStyles.centeredGreyMiniLabel);
+                    if (e.type == EventType.MouseDown && e.button == 0 && handle.Contains(e.mousePosition))
+                    {
+                        _dragStep = i;
+                        _dragSlot = i;
+                        GUIUtility.hotControl = dragControl;
+                        e.Use();
+                    }
+
                     // 步骤序号
                     EditorGUILayout.LabelField($"#{i + 1}", EditorStyles.boldLabel, GUILayout.Width(28));
 
@@ -411,7 +433,10 @@ public class AnimationFrameDataEditor : Editor
                 }
 
             }
+            if (e.type == EventType.Repaint && i < _stepRowRects.Count) _stepRowRects[i] = GUILayoutUtility.GetLastRect();
         }
+
+        HandleStepDrag(dragControl);
 
         // 安全执行删除，防止越界异常
         if (deleteIndex >= 0)
@@ -464,6 +489,68 @@ public class AnimationFrameDataEditor : Editor
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 拖动中：按鼠标高度计算插入位置并画插入线；松开时移动步骤，预览跟随被移动的步骤
+    /// </summary>
+    private void HandleStepDrag(int dragControl)
+    {
+        if (_dragStep < 0) return;
+        Event e = Event.current;
+        int count = _stepRowRects.Count;
+        if (_dragStep >= count)
+        {
+            EndStepDrag();
+            return;
+        }
+
+        switch (e.GetTypeForControl(dragControl))
+        {
+            case EventType.MouseDrag:
+                _dragSlot = count;
+                for (int k = 0; k < count; k++)
+                {
+                    if (e.mousePosition.y < _stepRowRects[k].center.y) { _dragSlot = k; break; }
+                }
+                e.Use();
+                Repaint();
+                break;
+
+            case EventType.MouseUp:
+                int to = _dragSlot > _dragStep ? _dragSlot - 1 : _dragSlot;
+                if (to >= 0 && to != _dragStep)
+                {
+                    _stepsProp.MoveArrayElement(_dragStep, to);
+                    _previewIndex = to;
+                }
+                EndStepDrag();
+                e.Use();
+                break;
+
+            case EventType.KeyDown:
+                if (e.keyCode == KeyCode.Escape)
+                {
+                    EndStepDrag();
+                    e.Use();
+                }
+                break;
+
+            case EventType.Repaint:
+                if (_dragSlot < 0 || _dragSlot == _dragStep || _dragSlot == _dragStep + 1) break;
+                Rect row = _stepRowRects[Mathf.Min(_dragSlot, count - 1)];
+                float y = _dragSlot < count ? row.yMin - 2f : row.yMax + 1f;
+                EditorGUI.DrawRect(new Rect(row.x, y, row.width, 2f), new Color(0.3f, 0.65f, 1f));
+                break;
+        }
+    }
+
+    private void EndStepDrag()
+    {
+        _dragStep = -1;
+        _dragSlot = -1;
+        if (GUIUtility.hotControl != 0) GUIUtility.hotControl = 0;
+        Repaint();
     }
 
     private void ShowFrameSelectionMenu(SerializedProperty frameIndexProp, Rect buttonRect)

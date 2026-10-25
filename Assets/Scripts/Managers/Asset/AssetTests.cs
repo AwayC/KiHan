@@ -56,23 +56,15 @@ namespace KiHan.Tests
                 string testAddress = "Test/MockPoolItem";
                 var pool = ObjectPoolManager.Instance;
 
-                // 创建一个空测试预制体放入临时缓存
+                // 测试预制体直接登记到对象池 (不经 AssetManager 按地址加载)
                 GameObject samplePrefab = new GameObject("MockPrefab");
                 samplePrefab.AddComponent<MockPoolItem>();
+                pool.RegisterPrefab(testAddress, samplePrefab);
 
-                // 通过 Spawn/Recycle 测试生命周期
+                // 池空：实例化新对象并触发 OnSpawn
                 GameObject instance = pool.Spawn(testAddress, Vector3.zero, Quaternion.identity, null, PoolCategory.FX);
-                // 如果没有实际预制体，手动绑定 tracker
-                if (instance == null)
-                {
-                    instance = UnityEngine.Object.Instantiate(samplePrefab);
-                    var tracker = instance.AddComponent<PoolItemTracker>();
-                    tracker.PoolAddress = testAddress;
-                    tracker.Category = PoolCategory.FX;
-                }
-
-                var mock = instance.GetComponent<MockPoolItem>() ?? instance.AddComponent<MockPoolItem>();
-                mock.OnSpawn();
+                AssertTrue(instance != null, "登记过预制体的地址应能生成实例");
+                var mock = instance.GetComponent<MockPoolItem>();
                 AssertTrue(mock.SpawnCount == 1, "OnSpawn 应该被调用 1 次");
 
                 // 回收
@@ -84,6 +76,7 @@ namespace KiHan.Tests
                 GameObject reused = pool.Spawn(testAddress, Vector3.one, Quaternion.identity, null, PoolCategory.FX);
                 AssertTrue(reused == instance, "对象池应复用同一实例");
                 AssertTrue(reused.activeSelf, "重新取出后 GameObject 应处于激活状态");
+                AssertTrue(mock.SpawnCount == 2, "复用时 OnSpawn 应再次调用");
 
                 // 清理
                 pool.Recycle(reused);

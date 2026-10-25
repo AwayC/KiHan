@@ -32,8 +32,9 @@ namespace KiHan.View.UI.Login
         private RenderTexture _videoRT;
         private bool _isLoggedIn = false;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             // 查找各个模块（兼容了首字母大小写）
             _unLoginGroup = FindChild(gameObject, "unLoginGroup") ?? FindChild(gameObject, "UnloginGroup");
             _loginedGroup = FindChild(gameObject, "LoginedGroup");
@@ -177,16 +178,6 @@ namespace KiHan.View.UI.Login
 
         private void BindEvents()
         {
-            // 给所有按键统一自动加上点击缩放动画组件
-            Button[] allBtns = GetComponentsInChildren<Button>(true);
-            foreach (var b in allBtns)
-            {
-                if (b.gameObject.GetComponent<UIButtonScale>() == null)
-                {
-                    b.gameObject.AddComponent<UIButtonScale>();
-                }
-            }
-
             // 绑定密码可见性切换
             BindPasswordToggle(_loginPasswordInput);
             BindPasswordToggle(_regPasswordInput);

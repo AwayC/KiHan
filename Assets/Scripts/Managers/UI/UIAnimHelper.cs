@@ -1,41 +1,8 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using System.Collections;
 
 namespace Managers
 {
-    // 按钮点击缩放效果
-    public class UIButtonScale : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
-    {
-        private Vector3 _originalScale = Vector3.one;
-        private bool _isInit = false;
-        
-        private void Init()
-        {
-            if (!_isInit)
-            {
-                _originalScale = transform.localScale;
-                _isInit = true;
-            }
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            Init();
-            transform.localScale = _originalScale * 0.9f;
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            transform.localScale = _originalScale;
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            transform.localScale = _originalScale;
-        }
-    }
-
     // 面板打开/关闭缩放效果
     public static class UIPanelAnim
     {

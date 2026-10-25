@@ -165,6 +165,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <h4>skills.json</h4>
   <a href="#skill-root">SkillDataContainer</a>
   <a class="sub" href="#skill-chakraMax">chakraMax</a>
+  <a class="sub" href="#skill-chakraStart">chakraStart</a>
   <a class="sub" href="#skill-id">id</a>
   <a class="sub" href="#skill-button">button</a>
   <a class="sub" href="#skill-icon">icon</a>
@@ -202,16 +203,18 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
 <h1>KiHan 角色配置参考</h1>
 <p class="summary">这份文档讲清楚一个角色的四个配置文件里<strong>每个字段是什么意思、什么时候生效、和谁有冲突</strong>。每个字段都附了可以直接抄的示例。</p>
 
-<p>一个角色的所有配置都放在 <code>Assets/AssetPackages/Resources/Characters/&lt;角色目录&gt;/</code> 下，由 <code>CharacterFactory</code> 按角色 ID 加载：</p>
+<p>一个角色就是一个<strong>角色包</strong>：一个文件夹（如 <code>Assets/AssetPackages/Characters/naruto/</code>），根目录放清单 <code>Character.asset</code>（<code>CharacterManifest</code>），由 <code>CharacterFactory</code> 按角色 ID 经注册表找到清单加载：</p>
 <table>
-<tr><th>文件</th><th>必需</th><th>内容</th><th>缺失时</th></tr>
-<tr><td><code>actions.json</code></td><td>是</td><td>动作库：每个动作播什么动画、什么时候能被打断、攻击判定、位移、事件</td><td>报错 <code>找不到动作配置</code>，动作库为空</td></tr>
-<tr><td><code>*.asset</code></td><td>是</td><td>动画（<code>AnimationFrameData</code>），资源名就是 <code>animKey</code></td><td>动作播不出画面</td></tr>
-<tr><td><code>skills.json</code></td><td>否</td><td>技能：CD、多段、查克拉、按键图标</td><td>没有技能，查克拉上限 4</td></tr>
-<tr><td><code>spawns.json</code></td><td>否</td><td>生成物：投射物、分身</td><td>没有生成物</td></tr>
-<tr><td><code>buffs.json</code></td><td>否</td><td>Buff：持续时间与循环特效</td><td>没有 Buff</td></tr>
+<tr><th>位置</th><th>必需</th><th>内容</th><th>缺失时</th></tr>
+<tr><td><code>Config/actions.json</code></td><td>是</td><td>动作库：每个动作播什么动画、什么时候能被打断、攻击判定、位移、事件</td><td>报错 <code>没有动作配置</code>，动作库为空</td></tr>
+<tr><td>包内任意位置的 <code>*.asset</code></td><td>是</td><td>动画（<code>AnimationFrameData</code>），资源名就是 <code>animKey</code>；以及它们引用的帧库</td><td>动作播不出画面</td></tr>
+<tr><td><code>Config/skills.json</code></td><td>否</td><td>技能：CD、多段、查克拉、按键图标</td><td>没有技能，查克拉上限 4</td></tr>
+<tr><td><code>Config/spawns.json</code></td><td>否</td><td>生成物：投射物、分身</td><td>没有生成物</td></tr>
+<tr><td><code>Config/buffs.json</code></td><td>否</td><td>Buff：持续时间与循环特效</td><td>没有 Buff</td></tr>
+<tr><td>包内 prefab、<code>UI/</code> 下的图片</td><td>否</td><td>特效、技能图标；json 中用<strong>包内 key</strong> 引用</td><td>—</td></tr>
 </table>
-<p>角色 ID 与目录的对应关系写死在 <code>CharacterFactory.ResourceDirs</code> 里（目前只有 <code>90001 → Characters/naruto</code>），新角色要在那里加一行。</p>
+<p><b>包内 key</b>：相对包根目录的路径、不含扩展名，多图切片追加 <code>#子图名</code>，如 <code>Effect/lxw/ball</code>、<code>UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0</code>。key 在本包资源表中找不到时，按全局 <code>Resources</code> 路径加载（用于多个角色共用的特效）。</p>
+<p>清单里的配置、动画与资源表按目录<strong>自动收集</strong>（包内文件变化时自动刷新，也可用菜单 <code>KiHan/角色/刷新全部角色包</code>），只需手填 ID、显示名与头像。插拔角色：在注册表 <code>Resources/Config/CharacterRegistry.asset</code> 中增删一行或切换启用；<code>KiHan/角色/校验全部角色包</code> 检查全部角色包的引用。</p>
 
 <h3>通用约定</h3>
 <table>
@@ -428,7 +431,7 @@ tick 20：处理 attack2 的第 0 帧</div>
   "chakraMax": 4,
   "data": [
     { "id": "skill1", "button": "Skill1", "cooldown": "3",
-      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
+      "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
       "stages": [ { "actionId": "skill1" } ] }
   ]
 }</code></pre>
@@ -829,7 +832,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <table class="props"><tr><th>类型</th><td><a href="#t-Event"><code>ActionEvent</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
 <h4>示例</h4>
 <pre><code class="json">"events": [
-  { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+  { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
   { "frame": 4, "type": "Spawn",  "spawnId": "naruto_skill2_fx" }
 ]</code></pre>
 <p>特效、震屏只影响画面；生成物、Buff 影响逻辑。</p>
@@ -1142,7 +1145,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
 <tr><td><code>frame</code></td><td>int</td><td>0</td><td>处理到这一帧时触发一次。从中间帧进入（<code>startFormFrame</code>/<code>keepFrame</code>）不会补发之前的事件；循环动作每圈都触发。</td></tr>
 <tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 震屏 / <code>Spawn</code> 生成物 / <code>Buff</code>。不区分大小写，写错按 Effect。</td></tr>
-<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效资源路径（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：<code>impact_heavy</code> 为重震，其他为轻震。Buff：<b>Buff 的 id</b>。</td></tr>
+<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局 Resources 路径加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：<code>impact_heavy</code> 为重震，其他为轻震。Buff：<b>Buff 的 id</b>。</td></tr>
 <tr><td><code>spawnId</code></td><td>string</td><td><code>""</code></td><td>Spawn：spawns.json 中的生成物 id。</td></tr>
 <tr><td><code>anchor</code></td><td>string</td><td><code>""</code></td><td>帧库锚点名，作为位置基准；留空或该帧没有此锚点时用脚底。</td></tr>
 <tr><td><code>offset</code></td><td><code>{x,y}</code> 整数像素</td><td>{0,0}</td><td>相对锚点的偏移：x 朝前（随朝向镜像），y 向上。</td></tr>
@@ -1150,7 +1153,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td><code>stopOnActionEnd</code></td><td>bool</td><td>false</td><td>离开本动作时停止特效（循环播放不算离开）。</td></tr>
 <tr><td><code>loop</code></td><td>bool</td><td>false</td><td>特效循环播放，不会自行回收；会自动打开 <code>stopOnActionEnd</code>。</td></tr>
 </table>
-<pre><code class="json">{ "frame": 0,  "type": "Effect", "asset": "Characters/naruto/effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+<pre><code class="json">{ "frame": 0,  "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
 { "frame": 12, "type": "Camera", "asset": "impact_heavy" }
 { "frame": 4,  "type": "Spawn",  "spawnId": "naruto_skill2_fx", "offset": { "x": 40, "y": 0 } }
 { "frame": 6,  "type": "Buff",   "asset": "haste" }</code></pre>
@@ -1187,7 +1190,15 @@ tick 20：处理 attack2 的第 0 帧</div>
 <p class="summary">查克拉上限（颗）。</p>
 <table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>≤ 0 或省略时为 4</td></tr></table>
 <pre><code class="json">"chakraMax": 4</code></pre>
-<p>每局开始查克拉为 0。获得规则见<a href="#skill-chakra">查克拉规则</a>。</p>
+<p>每局开始的查克拉见 <a href="#skill-chakraStart"><code>chakraStart</code></a>。获得规则见<a href="#skill-chakra">查克拉规则</a>。</p>
+</section>
+
+<div class="crumb">skills.json</div>
+<section class="field" id="skill-chakraStart" data-k="chakraStart 开局 初始 查克拉">
+<h3><code>chakraStart</code></h3>
+<p class="summary">每局开始时的查克拉（颗）。</p>
+<table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>0；超过 <code>chakraMax</code> 按上限计</td></tr></table>
+<pre><code class="json">"chakraStart": 4    // 开局满查克拉</code></pre>
 </section>
 
 <div class="crumb">skills.json › data[]</div>
@@ -1211,14 +1222,14 @@ tick 20：处理 attack2 的第 0 帧</div>
 <div class="crumb">skills.json › data[]</div>
 <section class="field" id="skill-icon">
 <h3><code>icon</code><span class="badge view">表现</span></h3>
-<p class="summary">按钮图标的资源地址。</p>
+<p class="summary">按钮图标：角色包内 key，或全局 Resources 地址。</p>
 <table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code>：保留按钮预制体自带的图</td></tr></table>
 <h4>格式</h4>
 <ul>
-<li><code>"路径"</code>：单图贴图。</li>
-<li><code>"路径#子图名"</code>：多图切片贴图，按 <code>#</code> 后的名字精确匹配子图（区分大小写）。</li>
+<li>包内 key：图片放在角色包 <code>UI/</code> 下，写相对包根目录的路径；多图切片追加 <code>#子图名</code>（区分大小写）。</li>
+<li>找不到包内 key 时按全局 Resources 地址加载：<code>"路径"</code> 单图，<code>"路径#子图名"</code> 多图切片。</li>
 </ul>
-<pre><code class="json">"icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_0"</code></pre>
+<pre><code class="json">"icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0"</code></pre>
 <p>战斗界面创建时预加载，找不到会报错。Unity 环境测试也会检查所有非空图标地址。</p>
 </section>
 
@@ -1321,12 +1332,12 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <section class="field" id="stage-icon">
 <h3><code>icon</code><span class="badge view">表现</span></h3>
 <p class="summary">轮到本段时按钮显示的图标，格式同技能 <a href="#skill-icon"><code>icon</code></a>。留空用技能图标，并在按钮中央显示段号。</p>
-<pre><code class="json">{ "actionId": "multi_2", "icon": "UI/SkillButton/xxx#xxx_1", "stageDuration": "1.5" }</code></pre>
+<pre><code class="json">{ "actionId": "multi_2", "icon": "UI/xxx#xxx_1", "stageDuration": "1.5" }</code></pre>
 </section>
 
 <h3 id="skill-chakra">查克拉规则</h3>
 <ul>
-<li>开局为 0，上限 <code>chakraMax</code>。</li>
+<li>开局为 <code>chakraStart</code>（默认 0），上限 <code>chakraMax</code>。</li>
 <li><b>获得</b>：某技能的任意段、后续动作或它生成的生成物<strong>命中</strong>时 +1。被霸体挡住、命中被抓目标也算。</li>
 <li><b>每轮一次</b>：获得一次后，要等该技能 CD 结束（刷新）才能再获得。所以一个技能多段命中只给 1 颗。</li>
 <li>普攻等不属于任何技能的动作，命中不给查克拉。</li>

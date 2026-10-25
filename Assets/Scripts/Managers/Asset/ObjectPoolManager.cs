@@ -27,6 +27,11 @@ namespace KiHan.Asset
         }
 
         private readonly Dictionary<string, PoolBucket> _buckets = new();
+
+        /// <summary>
+        /// 直接登记的预制体 (角色包内资源，不走 AssetManager 按地址加载)
+        /// </summary>
+        private readonly Dictionary<string, GameObject> _registeredPrefabs = new();
         private readonly Dictionary<PoolCategory, Transform> _categoryRoots = new();
         private Transform _poolGlobalRoot;
 
@@ -68,6 +73,20 @@ namespace KiHan.Asset
         }
 
         /// <summary>
+        /// 登记预制体：之后该地址的预热与生成直接使用此预制体 (角色包内资源通过清单引用，不在 Resources 中)
+        /// </summary>
+        public void RegisterPrefab(string address, GameObject prefab)
+        {
+            if (string.IsNullOrEmpty(address) || prefab == null) return;
+            _registeredPrefabs[address] = prefab;
+        }
+
+        private GameObject LoadPrefab(string address)
+        {
+            return _registeredPrefabs.TryGetValue(address, out GameObject prefab) ? prefab : AssetManager.Instance.Load<GameObject>(address);
+        }
+
+        /// <summary>
         /// 预热对象池：在加载阶段批量实例化灌入池中，消除战斗运行时卡顿
         /// </summary>
         /// <param name="onCreated">每个新实例创建后调用 (如补挂运行时组件)，在加载阶段执行</param>
@@ -75,7 +94,7 @@ namespace KiHan.Asset
         {
             if (string.IsNullOrEmpty(address) || count <= 0) return;
 
-            GameObject prefab = AssetManager.Instance.Load<GameObject>(address);
+            GameObject prefab = LoadPrefab(address);
             if (prefab == null)
             {
                 Debug.LogWarning($"[ObjectPoolManager] 预热失败，未找到预制体: {address}");
@@ -114,7 +133,7 @@ namespace KiHan.Asset
 
             if (instance == null)
             {
-                GameObject prefab = AssetManager.Instance.Load<GameObject>(address);
+                GameObject prefab = LoadPrefab(address);
                 if (prefab == null)
                 {
                     Debug.LogError($"[ObjectPoolManager] 实例化失败，无法加载: {address}");
@@ -171,7 +190,7 @@ namespace KiHan.Asset
             if (!instance.TryGetComponent(out PoolItemTracker tracker) || string.IsNullOrEmpty(tracker.PoolAddress))
             {
                 // 未登记的对象直接销毁
-                Destroy(instance);
+                DestroyPooled(instance);
                 return;
             }
 
@@ -209,9 +228,9 @@ namespace KiHan.Asset
                     while (kv.Value.Available.Count > 0)
                     {
                         var go = kv.Value.Available.Pop();
-                        if (go != null) Destroy(go);
+                        if (go != null) DestroyPooled(go);
                     }
-                    if (kv.Value.Root != null) Destroy(kv.Value.Root.gameObject);
+                    if (kv.Value.Root != null) DestroyPooled(kv.Value.Root.gameObject);
                     keysToRemove.Add(kv.Key);
                 }
             }
@@ -232,11 +251,20 @@ namespace KiHan.Asset
                 while (kv.Value.Available.Count > 0)
                 {
                     var go = kv.Value.Available.Pop();
-                    if (go != null) Destroy(go);
+                    if (go != null) DestroyPooled(go);
                 }
-                if (kv.Value.Root != null) Destroy(kv.Value.Root.gameObject);
+                if (kv.Value.Root != null) DestroyPooled(kv.Value.Root.gameObject);
             }
             _buckets.Clear();
+        }
+
+        /// <summary>
+        /// 编辑器非运行状态 (如 Unity 环境测试) 下 Destroy 不可用，改为立即销毁
+        /// </summary>
+        private static void DestroyPooled(GameObject go)
+        {
+            if (Application.isPlaying) Destroy(go);
+            else DestroyImmediate(go);
         }
     }
 }

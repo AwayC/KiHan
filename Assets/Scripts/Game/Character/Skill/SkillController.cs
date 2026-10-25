@@ -39,6 +39,11 @@ namespace KiHan.Logic
         public int Chakra { get; private set; }
         public int ChakraMax { get; private set; } = DefaultChakraMax;
 
+        /// <summary>
+        /// 开局 (Reset) 时的查克拉
+        /// </summary>
+        public int ChakraStart { get; private set; }
+
         public int Count => _skills.Length;
 
         public SkillInfo GetSkill(int index) => _skills[index];
@@ -75,10 +80,11 @@ namespace KiHan.Logic
             return -1;
         }
 
-        public void Setup(SkillInfo[] skills, int chakraMax)
+        public void Setup(SkillInfo[] skills, int chakraMax, int chakraStart = 0)
         {
             _skills = skills ?? Array.Empty<SkillInfo>();
             ChakraMax = chakraMax > 0 ? chakraMax : DefaultChakraMax;
+            ChakraStart = System.Math.Max(0, System.Math.Min(chakraStart, ChakraMax));
 
             _actionMap.Clear();
             for (int s = 0; s < _skills.Length; s++)
@@ -110,7 +116,7 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 开局重置：全部技能就绪、可获得查克拉，查克拉清零
+        /// 开局重置：全部技能就绪、可获得查克拉，查克拉回到开局值 (ChakraStart)
         /// </summary>
         public void Reset()
         {
@@ -122,7 +128,7 @@ namespace KiHan.Logic
                 _chakraReady[i] = true;
             }
             CastingSkill = -1;
-            Chakra = 0;
+            Chakra = ChakraStart;
         }
 
         /// <summary>

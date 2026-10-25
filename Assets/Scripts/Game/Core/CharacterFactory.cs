@@ -12,10 +12,17 @@ namespace KiHan.Logic
     public class CharacterTemplate
     {
         public int Id;
+
+        /// <summary>
+        /// 来源角色包 (表现层按其资源表解析特效与图标 key)
+        /// </summary>
+        public CharacterManifest Manifest;
+
         public AnimationFrameData[] Anims;
         public List<ActionInfo> Actions;
         public SkillInfo[] Skills;
         public int ChakraMax;
+        public int ChakraStart;
         public readonly Dictionary<string, SpawnInfo> Spawns = new Dictionary<string, SpawnInfo>();
         public readonly Dictionary<string, BuffInfo> Buffs = new Dictionary<string, BuffInfo>();
     }
@@ -23,12 +30,12 @@ namespace KiHan.Logic
     /// <summary>
     /// 战斗角色装配：按角色 ID 加载模板，组装 CharacterObj + ActionController + FrameAnimator (+ InputToCommand)
     ///
-    /// 角色 ID -> 资源目录由角色配置表 (CharacterTable) 提供；资源目录约定 (Resources 相对路径)：
-    /// - {dir}/*.asset        AnimationFrameData，资源名即 animKey
-    /// - {dir}/actions.json   ActionDataContainer 动作配置 (String-First)
-    /// - {dir}/skills.json    SkillDataContainer 技能配置 (可选)
-    /// - {dir}/spawns.json    SpawnDataContainer 生成物配置 (可选，动作库与本角色共用)
-    /// - {dir}/buffs.json     BuffDataContainer Buff 配置 (可选，动作事件 Buff 按 id 引用)
+    /// 角色 ID -> 角色包清单 (CharacterManifest) 由角色注册表 (CharacterRegistry) 提供；清单直接引用：
+    /// - animations   AnimationFrameData，资源名即 animKey
+    /// - actions      ActionDataContainer 动作配置 (String-First)
+    /// - skills       SkillDataContainer 技能配置 (可选)
+    /// - spawns       SpawnDataContainer 生成物配置 (可选，动作库与本角色共用)
+    /// - buffs        BuffDataContainer Buff 配置 (可选，动作事件 Buff 按 id 引用)
     /// </summary>
     public static class CharacterFactory
     {
@@ -36,36 +43,47 @@ namespace KiHan.Logic
 
         private static readonly Dictionary<int, CharacterTemplate> Templates = new Dictionary<int, CharacterTemplate>();
 
-        public static bool IsKnown(int characterId) => CharacterTable.Instance != null && CharacterTable.Instance.Find(characterId) != null;
+        public static bool IsKnown(int characterId) => CharacterRegistry.Find(characterId) != null;
 
         /// <summary>
-        /// 获取 (首次调用时加载) 角色模板，未知角色返回 null
+        /// 获取 (首次调用时加载) 角色模板，未注册或未启用的角色返回 null
         /// </summary>
         public static CharacterTemplate GetTemplate(int characterId)
         {
             if (Templates.TryGetValue(characterId, out CharacterTemplate template)) return template;
-            CharacterEntry entry = CharacterTable.Instance != null ? CharacterTable.Instance.Find(characterId) : null;
-            if (entry == null || string.IsNullOrEmpty(entry.resourceDir))
+            CharacterManifest manifest = CharacterRegistry.Find(characterId);
+            if (manifest == null)
             {
-                Debug.LogError($"[CharacterFactory] 角色配置表中没有角色 {characterId} (或未填写资源目录)");
+                Debug.LogError($"[CharacterFactory] 角色注册表中没有已启用的角色 {characterId}");
                 return null;
             }
-            string dir = entry.resourceDir;
 
-            template = new CharacterTemplate
+            template = BuildTemplate(manifest);
+            Templates[characterId] = template;
+            return template;
+        }
+
+        /// <summary>
+        /// 按角色包清单解析出模板 (不缓存；编辑器校验未注册的角色包时也直接调用)
+        /// </summary>
+        public static CharacterTemplate BuildTemplate(CharacterManifest manifest)
+        {
+            var template = new CharacterTemplate
             {
-                Id = characterId,
-                Anims = AssetManager.Instance.LoadAll<AnimationFrameData>(dir),
-                Actions = LoadActions($"{dir}/actions")
+                Id = manifest.id,
+                Manifest = manifest,
+                Anims = manifest.animations.FindAll(clip => clip != null).ToArray(),
+                Actions = LoadActions(manifest)
             };
 
-            SkillDataContainer skills = LoadJson<SkillDataContainer>($"{dir}/skills");
+            SkillDataContainer skills = LoadJson<SkillDataContainer>(manifest.skills);
             template.ChakraMax = skills != null ? skills.chakraMax : 0;
+            template.ChakraStart = skills != null ? skills.chakraStart : 0;
             int skillCount = skills?.data != null ? skills.data.Length : 0;
             template.Skills = new SkillInfo[skillCount];
             for (int i = 0; i < skillCount; i++) template.Skills[i] = skills.data[i].ToRuntime();
 
-            SpawnDataContainer spawns = LoadJson<SpawnDataContainer>($"{dir}/spawns");
+            SpawnDataContainer spawns = LoadJson<SpawnDataContainer>(manifest.spawns);
             if (spawns?.data != null)
             {
                 foreach (SpawnData data in spawns.data)
@@ -75,7 +93,7 @@ namespace KiHan.Logic
                 }
             }
 
-            BuffDataContainer buffs = LoadJson<BuffDataContainer>($"{dir}/buffs");
+            BuffDataContainer buffs = LoadJson<BuffDataContainer>(manifest.buffs);
             if (buffs?.data != null)
             {
                 foreach (BuffData data in buffs.data)
@@ -85,7 +103,6 @@ namespace KiHan.Logic
                 }
             }
 
-            Templates[characterId] = template;
             return template;
         }
 
@@ -112,7 +129,7 @@ namespace KiHan.Logic
             character.InputSlot = inputSlot;
 
             var skills = new SkillController();
-            skills.Setup(template.Skills, template.ChakraMax);
+            skills.Setup(template.Skills, template.ChakraMax, template.ChakraStart);
             character.Skills = skills;
 
             character.FacingLeft = facingLeft;
@@ -158,13 +175,13 @@ namespace KiHan.Logic
             return character;
         }
 
-        private static List<ActionInfo> LoadActions(string address)
+        private static List<ActionInfo> LoadActions(CharacterManifest manifest)
         {
             var actions = new List<ActionInfo>();
-            ActionDataContainer container = LoadJson<ActionDataContainer>(address);
+            ActionDataContainer container = LoadJson<ActionDataContainer>(manifest.actions);
             if (container?.data == null)
             {
-                Debug.LogError($"[CharacterFactory] 找不到动作配置: {address}");
+                Debug.LogError($"[CharacterFactory] 角色包 {manifest.name} ({manifest.id}) 没有动作配置 (Config/actions.json)");
                 return actions;
             }
 
@@ -175,9 +192,8 @@ namespace KiHan.Logic
             return actions;
         }
 
-        private static T LoadJson<T>(string address) where T : class
+        private static T LoadJson<T>(TextAsset json) where T : class
         {
-            TextAsset json = AssetManager.Instance.Load<TextAsset>(address);
             return json != null ? JsonUtility.FromJson<T>(json.text) : null;
         }
     }

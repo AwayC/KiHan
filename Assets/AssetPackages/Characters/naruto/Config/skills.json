@@ -1,10 +1,11 @@
 {
   "chakraMax": 4,
+  "chakraStart": 4,
   "data": [
     {
       "id": "skill1",
       "button": "Skill1",
-      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
+      "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
       "cooldown": "3",
       "stages": [
         { "actionId": "skill1" }
@@ -13,7 +14,7 @@
     {
       "id": "skill2",
       "button": "Skill2",
-      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_1",
+      "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_1",
       "cooldown": "3",
       "stages": [
         { "actionId": "skill2_1", "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"] }
@@ -22,7 +23,7 @@
     {
       "id": "ultimate",
       "button": "Ultimate",
-      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_2",
+      "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_2",
       "cooldown": "0",
       "chakraCost": 4,
       "stages": [

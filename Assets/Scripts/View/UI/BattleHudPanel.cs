@@ -38,8 +38,9 @@ namespace View.UI
 
         private CharacterObj _local;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _backPanel.SetActive(false);
             _backButton.onClick.AddListener(() => UIPanelAnim.Show(this, _backPanel));
             _backClose.onClick.AddListener(HideBackPanel);
@@ -64,7 +65,7 @@ namespace View.UI
 
             _local = local;
             _icons.Clear();
-            if (local != null && local.Skills != null) _icons.Preload(local.Skills);
+            if (local != null && local.Skills != null) _icons.Preload(local.Skills, CharacterRegistry.Find(local.CharacterId));
             foreach (SkillButtonView button in _skillButtons) button.Bind(_icons);
 
             // 通灵系统尚未实现：佩戴的通灵都还没有使用

@@ -13,8 +13,9 @@ namespace KiHan.View.UI.System
         private CanvasGroup _canvasGroup;
         private Coroutine _fadeCoroutine;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _canvasGroup = GetComponent<CanvasGroup>();
             // 路径：Canvas/Background/Text
             _tipText = transform.Find("Canvas/Background/Text")?.GetComponent<TMP_Text>();

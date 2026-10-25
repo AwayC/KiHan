@@ -169,7 +169,7 @@ public class BattleManager : UnitySingleton<BattleManager>
         {
             CharacterTemplate template = CharacterFactory.GetTemplate(character.CharacterId);
             foreach (BuffInfo buff in template.Buffs.Values) World.BuffTable[buff.id] = buff;
-            SceneManager.Instance.PreloadActionEffects(template.Actions, template.Buffs.Values);
+            SceneManager.Instance.PreloadActionEffects(template);
         }
         return SceneManager.Instance.SpawnView(character);
     }

@@ -220,8 +220,8 @@
         { "range": { "x": 0, "y": 29 }, "level": "Skill" }
       ],
       "events": [
-        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
-        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+        { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+        { "frame": 0, "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
       ],
       "attackPhase": [
         { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
@@ -271,8 +271,8 @@
         { "range": { "x": 0, "y": 33 }, "level": "Super" }
       ],
       "events": [
-        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
-        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+        { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+        { "frame": 0, "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
       ],
       "attackPhase": [
         { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
@@ -321,7 +321,7 @@
       ],
       "events": [
         { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx" },
-        { "frame": 4, "type": "Effect", "asset": "Characters/naruto/effect/skill2_smk/skill2_smk" }
+        { "frame": 4, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk" }
       ],
       "attackPhase": [
         { "frameRanges": [{ "x": 19, "y": 26 }], "tag": [], "attackPhase": 0, "priority": 10 }
@@ -408,7 +408,7 @@
       "onLand": { "changeType" : 1, "param" : "skill2_fx_land", "priority" : 100},
       "catalog": "Spawn",
       "events": [
-        { "frame": 54, "type": "Effect", "asset": "Characters/naruto/effect/skill2_smk/skill2_smk" }
+        { "frame": 54, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk" }
       ],
       "attackPhase": [
         { "frameRanges": [{ "x": 2, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 },

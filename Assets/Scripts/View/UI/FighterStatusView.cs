@@ -31,15 +31,15 @@ namespace View.UI
             }
             gameObject.SetActive(true);
 
-            CharacterEntry entry = CharacterTable.Instance != null ? CharacterTable.Instance.Find(character.CharacterId) : null;
-            if (entry != null)
+            CharacterManifest manifest = CharacterRegistry.Find(character.CharacterId);
+            if (manifest != null)
             {
-                if (entry.headshot != null) _headshot.sprite = entry.headshot;
-                _name.text = entry.displayName;
+                if (manifest.headshot != null) _headshot.sprite = manifest.headshot;
+                _name.text = manifest.displayName;
             }
             else
             {
-                Debug.LogError($"[FighterStatusView] 角色配置表中没有角色 {character.CharacterId}");
+                Debug.LogError($"[FighterStatusView] 角色注册表中没有已启用的角色 {character.CharacterId}");
             }
 
             _hpBar.SetImmediate(HpRatio(character));

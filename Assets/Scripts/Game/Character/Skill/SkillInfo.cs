@@ -88,6 +88,9 @@ namespace KiHan.Logic
         [Tooltip("查克拉上限 (颗)，<= 0 时取默认 4")]
         public int chakraMax;
 
+        [Tooltip("开局时的查克拉 (颗)，超过上限按上限计；默认 0")]
+        public int chakraStart;
+
         public SkillData[] data;
     }
 

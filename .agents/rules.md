@@ -104,3 +104,10 @@
 
 1. 测试分层、用例写法、提交前检查与 Unity 验证清单见 [testing.md](testing.md)。
 2. 逻辑层改动提交前必须运行 `Tests/LogicTests/run_all.sh` 并全部通过；无 Unity 环境完成的 Unity 侧改动须在提交说明中注明「未经 Unity 验证」。
+
+---
+
+## 八、 UI 规范 (UI)
+
+1. 按钮交互 (统一 Q 弹按压动画)、节点绑定、布局适配、刷新性能与特殊效果的约定见 [ui.md](ui.md)。
+2. 所有没有特殊设计的按钮都必须带 `UIPressBounce` 按压回弹；特殊设计的按钮挂 `UIPressBounceIgnore` 后自行实现。

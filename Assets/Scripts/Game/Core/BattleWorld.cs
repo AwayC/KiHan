@@ -142,6 +142,7 @@ namespace KiHan.Logic
             {
                 Type = evt.type,
                 EntityId = source.EntityId,
+                CharacterId = source.CharacterId,
                 ActionSerial = source.action != null ? source.action.ActionSerial : 0,
                 Asset = evt.asset,
                 Anchor = evt.anchor,
@@ -164,6 +165,7 @@ namespace KiHan.Logic
             {
                 Type = ActionEventType.Buff,
                 EntityId = target.EntityId,
+                CharacterId = target.CharacterId,
                 Asset = buff.effect,
                 Anchor = buff.anchor,
                 Offset = buff.offset,
@@ -184,6 +186,7 @@ namespace KiHan.Logic
             {
                 Type = ActionEventType.BuffRemoved,
                 EntityId = target.EntityId,
+                CharacterId = target.CharacterId,
                 Asset = buff.Info.effect,
                 BuffSerial = buff.Serial
             });

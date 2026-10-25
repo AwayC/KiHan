@@ -46,7 +46,7 @@ git lfs pull
 ## 启动
 
 当前引入了调试配置文件，可以配置启动时是否直接加载单机对局
-在 Assets/AssetPackages/Resources/ 下右键选择 KiHan/Create Debug Config，创建 LocalDebugConfig 文件。启动时会在此路径下加载这个文件，如果有配置，就会按照配置启动项目，可在编辑器中编辑设置。
+在 Assets/AssetPackages/Resources/Config/ 下右键选择 KiHan/Create Debug Config，创建 LocalDebugConfig 文件。启动时会在此路径下加载这个文件，如果有配置，就会按照配置启动项目，可在编辑器中编辑设置。
 目前可选项:
 
 ```C#

@@ -32,7 +32,7 @@ namespace KiHan.Logic
         public ActionEventType type;
 
         /// <summary>
-        /// Effect：特效资源地址；Camera：镜头效果名 (见 CameraEffects)；Buff：buff id (buffs.json)
+        /// Effect：特效 key (优先在本角色包资源表中查找，找不到按全局 Resources 路径加载)；Camera：镜头效果名 (见 CameraEffects)；Buff：buff id (buffs.json)
         /// </summary>
         public string asset;
 
@@ -119,6 +119,11 @@ namespace KiHan.Logic
     {
         public ActionEventType Type;
         public int EntityId;
+
+        /// <summary>
+        /// 触发者的角色 ID (生成物为其主人角色)：表现层据此在对应角色包中解析 Asset key
+        /// </summary>
+        public int CharacterId;
 
         /// <summary>
         /// 触发时角色的动作序号 (ActionController.ActionSerial)，表现层据此判断动作是否已结束

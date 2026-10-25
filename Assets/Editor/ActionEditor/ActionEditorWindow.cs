@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using KiHan.Config;
 using KiHan.Logic;
 using UnityEditor;
 using UnityEngine;
@@ -9,7 +10,7 @@ using UnityEngine;
 namespace KiHan.Editor
 {
     /// <summary>
-    /// 动作编辑器：编辑角色目录下的 actions.json
+    /// 动作编辑器：编辑角色包 (Character.asset 所在目录) 下的 Config/actions.json
     ///
     /// 布局：左侧动作列表 | 中间预览 + 时间轴 (判定阶段 / 霸体 / 取消窗口 / 移动 / 位移 / 事件) | 右侧属性面板
     /// - 时间轴条目可拖动整体平移、拖动两端改区间，右键空白处在该帧新增，右键条目删除
@@ -18,7 +19,6 @@ namespace KiHan.Editor
     /// </summary>
     public partial class ActionEditorWindow : EditorWindow
     {
-        private const string CharactersRoot = "Assets/AssetPackages/Resources/Characters";
         private const string ActionsFileName = "actions.json";
         private const float ListWidth = 210f;
         private const float InspectorWidth = 380f;
@@ -107,11 +107,18 @@ namespace KiHan.Editor
 
         #region 读写
 
+        /// <summary>
+        /// 全部角色包的根目录 (清单所在目录)
+        /// </summary>
         private static string[] CharacterDirs()
         {
-            if (!AssetDatabase.IsValidFolder(CharactersRoot)) return Array.Empty<string>();
-            return AssetDatabase.GetSubFolders(CharactersRoot);
+            List<CharacterManifest> manifests = CharacterPackages.FindManifests();
+            var dirs = new string[manifests.Count];
+            for (int i = 0; i < dirs.Length; i++) dirs[i] = CharacterPackages.PackageRoot(manifests[i]);
+            return dirs;
         }
+
+        private static string ActionsPath(string dir) => $"{dir}/{CharacterPackages.ConfigFolder}/{ActionsFileName}";
 
         private bool ConfirmDiscard()
         {
@@ -148,7 +155,7 @@ namespace KiHan.Editor
 
             LoadAnimations();
 
-            string path = $"{dir}/{ActionsFileName}";
+            string path = ActionsPath(dir);
             if (!File.Exists(path)) return;
 
             string text = File.ReadAllText(path).Replace("\r\n", "\n");
@@ -201,7 +208,9 @@ namespace KiHan.Editor
 
         private void CreateActionsFile()
         {
-            string path = $"{_characterDir}/{ActionsFileName}";
+            string path = ActionsPath(_characterDir);
+            string configDir = $"{_characterDir}/{CharacterPackages.ConfigFolder}";
+            if (!AssetDatabase.IsValidFolder(configDir)) AssetDatabase.CreateFolder(_characterDir, CharacterPackages.ConfigFolder);
             string idleAnim = _anims.ContainsKey("Idle") ? "Idle" : (_animNames.Length > 0 ? _animNames[0] : "Idle");
             var sb = new StringBuilder();
             sb.Append("{\n  \"data\": [\n    {\n");
@@ -213,6 +222,8 @@ namespace KiHan.Editor
             sb.Append("    }\n  ]\n}\n");
             File.WriteAllText(path, sb.ToString(), new UTF8Encoding(false));
             AssetDatabase.ImportAsset(path);
+            var manifest = AssetDatabase.LoadAssetAtPath<CharacterManifest>($"{_characterDir}/{CharacterManifest.FileName}.asset");
+            if (manifest != null) CharacterPackages.Refresh(manifest);
             LoadCharacter(_characterDir);
         }
 
@@ -286,7 +297,7 @@ namespace KiHan.Editor
             if (string.IsNullOrEmpty(_state.jsonPath))
             {
                 EditorGUILayout.Space(20);
-                EditorGUILayout.HelpBox($"{_characterDir} 下没有 {ActionsFileName}。", MessageType.Info);
+                EditorGUILayout.HelpBox($"{_characterDir} 下没有 {CharacterPackages.ConfigFolder}/{ActionsFileName}。", MessageType.Info);
                 if (!string.IsNullOrEmpty(_characterDir) && GUILayout.Button("创建 actions.json (含 idle 动作)", GUILayout.Height(28), GUILayout.Width(260)))
                 {
                     CreateActionsFile();
@@ -360,7 +371,7 @@ namespace KiHan.Editor
                 for (int i = 0; i < dirs.Length; i++)
                 {
                     string name = Path.GetFileName(dirs[i]);
-                    labels[i] = File.Exists($"{dirs[i]}/{ActionsFileName}") ? name : $"{name} (无 actions.json)";
+                    labels[i] = File.Exists(ActionsPath(dirs[i])) ? name : $"{name} (无 actions.json)";
                     if (dirs[i] == _characterDir) current = i;
                 }
 

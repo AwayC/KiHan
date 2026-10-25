@@ -48,8 +48,9 @@ namespace KiHan.View.UI.Lobby
         private Dictionary<RectTransform, Vector2> _originalPositions = new Dictionary<RectTransform, Vector2>();
 
         // 把原来的 Init() 改回 Awake()，UIManager 不会调用 Init，只有 Unity 会调用 Awake
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             // Bind RectTransforms for animation
             // 优先查找根节点的直接子物体，防止和深层节点的同名物体冲突
             _title = transform.Find("Title")?.GetComponent<RectTransform>() ?? FindChild(gameObject, "Title")?.GetComponent<RectTransform>();
@@ -146,7 +147,6 @@ namespace KiHan.View.UI.Lobby
             }
 
             BindEvents();
-            AddButtonScales();
         }
 
         private void CachePosition(RectTransform rect)
@@ -154,18 +154,6 @@ namespace KiHan.View.UI.Lobby
             if (rect != null && !_originalPositions.ContainsKey(rect))
             {
                 _originalPositions[rect] = rect.anchoredPosition;
-            }
-        }
-
-        private void AddButtonScales()
-        {
-            Button[] allBtns = GetComponentsInChildren<Button>(true);
-            foreach (var b in allBtns)
-            {
-                if (b.gameObject.GetComponent<UIButtonScale>() == null)
-                {
-                    b.gameObject.AddComponent<UIButtonScale>();
-                }
             }
         }
 
@@ -492,6 +480,7 @@ namespace KiHan.View.UI.Lobby
                     _matchPanelGo = Instantiate(prefab);
                     _matchPanelGo.transform.localScale = Vector3.one;
                     _matchPanelGo.transform.localPosition = Vector3.zero;
+                    UIPressBounce.AttachToButtons(_matchPanelGo);
 
                     // 确保 MatchPanel 的 Canvas 层级高于 LobbyPanel，显示在最上层
                     Canvas matchCanvas = _matchPanelGo.GetComponent<Canvas>();

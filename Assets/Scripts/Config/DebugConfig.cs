@@ -7,7 +7,7 @@ namespace KiHan.DebugTools
 
     public class DebugConfig : ScriptableObject
     {
-        static public string DefaultPath = "LocalDebugConfig";
+        static public string DefaultPath = "Config/LocalDebugConfig";
         [Header("--- 训练场快速调试 ---")]
         public bool isBattleDebug = false;
 
