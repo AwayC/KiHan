@@ -9,7 +9,7 @@ namespace KiHan.Logic
     /// 职责：
     /// 1. 技能准入：入口动作只在 CD 结束、轮到该段、查克拉足够、满足受击条件时允许进入 (ActionController 主动打断时裁决)
     /// 2. 多段流转：动作切换时识别进入 / 离开技能段，维护下一段与接段时限
-    /// 3. CD：释放完最后一段后开始计算；接段超时开始计算并返还 cdReturn
+    /// 3. CD：释放最后一段 (进入其入口动作) 时立即开始计算；接段超时开始计算并返还 cdReturn
     /// 4. 查克拉：技能刷新 (CD 结束) 后可获得一次，该技能任一段或其生成物命中时 +1，之后要等下次刷新
     /// </summary>
     public class SkillController
@@ -177,7 +177,8 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 动作切换：离开正在释放的技能时结算 (开始 CD 或进入接段窗口)，进入入口动作时推进段号并扣除查克拉
+        /// 动作切换：离开正在释放的技能时结算 (未放完最后一段则进入接段窗口)，进入入口动作时推进段号并扣除查克拉，
+        /// 进入最后一段时立即开始 CD
         /// </summary>
         public void OnActionChanged(string toActionId)
         {
@@ -192,9 +193,16 @@ namespace KiHan.Logic
             if (hasTo && to.Entry)
             {
                 CastingSkill = to.Skill;
-                _nextStage[to.Skill] = to.Stage + 1;
-                _window[to.Skill] = 0;
                 if (to.Stage == 0) Chakra = System.Math.Max(0, Chakra - _skills[to.Skill].chakraCost);
+                if (to.Stage >= _skills[to.Skill].stages.Length - 1)
+                {
+                    StartCooldown(to.Skill, 0);
+                }
+                else
+                {
+                    _nextStage[to.Skill] = to.Stage + 1;
+                    _window[to.Skill] = 0;
+                }
             }
         }
 
@@ -209,16 +217,15 @@ namespace KiHan.Logic
             return true;
         }
 
+        /// <summary>
+        /// 离开技能：最后一段已在进入时开始 CD (段号已回到 0)；否则打开接段窗口，没有窗口则直接开始 CD 并返还 cdReturn
+        /// </summary>
         private void FinishCasting(int s)
         {
-            SkillStageInfo[] stages = _skills[s].stages;
             int next = _nextStage[s];
-            if (next >= stages.Length)
-            {
-                StartCooldown(s, 0);
-                return;
-            }
+            if (next == 0) return;
 
+            SkillStageInfo[] stages = _skills[s].stages;
             _window[s] = stages[next - 1].windowTicks;
             if (_window[s] <= 0) StartCooldown(s, stages[next - 1].cdReturnTicks);
         }

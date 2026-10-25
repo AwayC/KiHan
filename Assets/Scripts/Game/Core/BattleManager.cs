@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TrueSync;
 using KiHan.Asset;
+using KiHan.Config;
 using KiHan.DebugTools;
 using KiHan.Logic;
 using KiHan.Math;
@@ -76,8 +77,10 @@ public class BattleManager : UnitySingleton<BattleManager>
     private readonly List<CharacterObj> _characters = new List<CharacterObj>();
     private SpawnPool _spawnPool;
     private GameObject _combatUIGo;
-    private int _p1CharacterId = DefaultCharacterId;
-    private int _p2CharacterId = DefaultCharacterId;
+    private PlayerLoadout _p1Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
+    private PlayerLoadout _p2Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
+    private CharacterObj _p1;
+    private CharacterObj _p2;
     private bool _infiniteHp;
 
     public void EnterBattle(bool isOnline, uint targetRoomId = 1)
@@ -85,8 +88,8 @@ public class BattleManager : UnitySingleton<BattleManager>
         this.roomId = targetRoomId;
         this.IsOnline = isOnline;
 
-        _p1CharacterId = DefaultCharacterId;
-        _p2CharacterId = DefaultCharacterId;
+        _p1Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
+        _p2Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
         _infiniteHp = false;
         if (!isOnline)
         {
@@ -97,8 +100,8 @@ public class BattleManager : UnitySingleton<BattleManager>
                 _infiniteHp = dbgConfig.infiniteHp;
                 if (dbgConfig.isBattleDebug)
                 {
-                    _p1CharacterId = dbgConfig.debugPlayer1CharId;
-                    _p2CharacterId = dbgConfig.debugPlayer2CharId;
+                    _p1Loadout = dbgConfig.player1;
+                    _p2Loadout = dbgConfig.player2;
                 }
             }
         }
@@ -128,8 +131,10 @@ public class BattleManager : UnitySingleton<BattleManager>
         int localSlot = IsOnline ? LockstepManager.Instance.MyGameId : P1Slot;
         SceneManager.Instance.InitWorld(localSlot);
 
-        ActorView p1 = SpawnPlayer(_p1CharacterId, P1Slot, P1Spawn, facingLeft: false);
-        ActorView p2 = SpawnPlayer(_p2CharacterId, P2Slot, P2Spawn, facingLeft: true);
+        ActorView p1 = SpawnPlayer(_p1Loadout.characterId, P1Slot, P1Spawn, facingLeft: false);
+        ActorView p2 = SpawnPlayer(_p2Loadout.characterId, P2Slot, P2Spawn, facingLeft: true);
+        _p1 = p1 != null ? p1.Character : null;
+        _p2 = p2 != null ? p2.Character : null;
         ActorView local = localSlot == P2Slot ? p2 : p1;
         LocalCharacter = local != null ? local.Character : null;
         if (local != null) CameraControllor.Instance.SetTarget(local, true);
@@ -137,7 +142,7 @@ public class BattleManager : UnitySingleton<BattleManager>
         // 生成物实例与视图、动作事件特效全部在加载阶段预建 (局内不再 Load / 新建实例)
         SceneManager.Instance.PrewarmSpawnViews(_spawnPool.Instances);
 
-        InitCombatUI();
+        InitCombatUI(localSlot == P2Slot ? _p2Loadout : _p1Loadout);
         UIManager.Instance.ClosePanel(UIConst.LobbyPanel);
         GameApp.Instance.SetGameRunning(true);
     }
@@ -169,17 +174,20 @@ public class BattleManager : UnitySingleton<BattleManager>
         return SceneManager.Instance.SpawnView(character);
     }
 
-    private void InitCombatUI()
+    private void InitCombatUI(PlayerLoadout localLoadout)
     {
         GameObject uiPrefab = AssetManager.Instance.Load<GameObject>(CombatUIPath);
         if (uiPrefab == null) return;
 
         _combatUIGo = Instantiate(uiPrefab);
         _combatUIGo.name = "Battle_UI";
-        if (_combatUIGo.GetComponent<View.UI.BattleUIPanel>() == null)
+        var hud = _combatUIGo.GetComponent<View.UI.BattleHudPanel>();
+        if (hud == null)
         {
-            _combatUIGo.AddComponent<View.UI.BattleUIPanel>();
+            Debug.LogError($"[BattleManager] 战斗 HUD 预制体 {CombatUIPath} 根节点缺少 BattleHudPanel");
+            return;
         }
+        hud.Bind(_p1, _p2, LocalCharacter, localLoadout);
     }
 
     public void OnBattleTick(RoomFrame frame)
@@ -210,6 +218,8 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         World = null;
         LocalCharacter = null;
+        _p1 = null;
+        _p2 = null;
         CameraControllor.Instance.ResetView();
         SceneManager.Instance.Clear();
         foreach (CharacterObj character in _characters)

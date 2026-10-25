@@ -23,6 +23,11 @@ namespace View.UI
             }
         }
 
+        public void Clear()
+        {
+            _sprites.Clear();
+        }
+
         public Sprite Get(string address)
         {
             return !string.IsNullOrEmpty(address) && _sprites.TryGetValue(address, out Sprite sprite) ? sprite : null;

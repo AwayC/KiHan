@@ -265,7 +265,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td>替身破除受击</td><td>受击锁定中按键</td><td><a href="#action-breakHurt"><code>breakHurt</code></a></td><td>是</td></tr>
 <tr><td>生成物寿命到期</td><td>框架内置</td><td><a href="#spawn-despawnActionId"><code>despawnActionId</code></a></td><td>—</td></tr>
 </table>
-<div class="callout warn"><b>注意：只有"输入发起"的切换会经过技能准入</b>落地、命中、自然衔接直接进入目标动作，不看 CD 与段号。所以技能的后续动作（落地、命中派生、收招）必须登记在 <a href="#stage-followActions"><code>followActions</code></a> 里，否则进入它们时技能会被当成"已经放完"，提前开始计算 CD。</div>
+<div class="callout warn"><b>注意：只有"输入发起"的切换会经过技能准入</b>落地、命中、自然衔接直接进入目标动作，不看 CD 与段号。所以技能的后续动作（落地、命中派生、收招）必须登记在 <a href="#stage-followActions"><code>followActions</code></a> 里，否则进入它们时技能会被当成"已经放完"：多段技能会提前开始接段计时（没有接段时限则直接开始 CD）。</div>
 
 <h2 id="concept-cancel">取消系统：cancelTag 与 beCancelledTag</h2>
 <p>这是整个动作框架最核心的设计：<strong>能不能从 A 切到 B，由 A 和 B 各说一半</strong>。</p>
@@ -1229,12 +1229,12 @@ tick 20：处理 attack2 的第 0 帧</div>
 <table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0</td></tr></table>
 <h4>CD 什么时候开始</h4>
 <ul>
-<li>放完<strong>最后一段</strong>：离开本技能所有动作（入口 + followActions）的那一帧开始，完整 CD。</li>
+<li>释放<strong>最后一段</strong>：进入该段入口动作的那一帧开始完整 CD，释放期间照常倒计时（单段技能即按下就开始）。</li>
 <li>多段技能某段之后<strong>超时没接下一段</strong>：开始 CD，并返还该段的 <code>cdReturn</code>。</li>
-<li>释放过程中被打断（进入受击）也算离开。</li>
+<li>非最后一段释放中被打断（进入受击）也算离开该段，开始接段计时。</li>
 </ul>
 <pre><code class="json">"cooldown": "3"    // 90 帧</code></pre>
-<div class="timeline">离开技能的 tick 记为 N，cooldown = "1"（30 帧）
+<div class="timeline">释放最后一段的 tick 记为 N，cooldown = "1"（30 帧）
 tick N   : CD = 30
 tick N+1 : CD = 29
 ...

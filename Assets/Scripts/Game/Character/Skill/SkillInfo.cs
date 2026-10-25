@@ -9,7 +9,7 @@ namespace KiHan.Logic
     ///
     /// 多段技能：每一段由入口动作 (entry) 发起，同一段的后续动作 (落地、命中派生、收招) 列在 followActions 中，
     /// 期间都算作"正在释放该段"。CD 规则：
-    /// - 释放完最后一段 (离开最后一段的全部动作) 后开始计算完整 CD
+    /// - 释放最后一段 (进入其入口动作) 时立即开始计算完整 CD
     /// - 某一段放完后在 stageDuration 内没有接下一段：开始计算 CD，并返还该段的 cdReturn
     /// </summary>
     public class SkillInfo

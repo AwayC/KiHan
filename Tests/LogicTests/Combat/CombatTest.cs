@@ -123,7 +123,7 @@ static class Program
             Check(t2.Hurt == HurtState.Stun && t2.action.CurrentAction.id == "hurt_1", $"破霸后完整受击: {t2.Hurt}, {t2.action.CurrentAction.id}");
         }
 
-        Console.WriteLine("== 1b. 生命值归零后不再受击；无限血目标生命值不低于 1，可持续被命中 ==");
+        Console.WriteLine("== 1b. 生命值归零后不再受击；无限血 (训练场) 目标照常扣血，归零时立即回满，可持续被命中 ==");
         {
             var a = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
             var t = Make(2, 2, "0.9", "idle");
@@ -136,13 +136,13 @@ static class Program
 
             var a2 = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
             var t2 = Make(2, 2, "0.9", "idle");
-            t2.maxHp = FP.Parse("50");
+            t2.maxHp = FP.Parse("80");
             t2.infiniteHp = true;
             var w2 = World(a2, t2); Step(w2);
-            Check(!t2.IsDead && F(t2.Hp) == 1f && w2.HitEvents.Count == 1, $"无限血扣到 1: Hp={F(t2.Hp)}");
+            Check(!t2.IsDead && F(t2.Hp) == 30f && w2.HitEvents.Count == 1, $"无限血照常扣血: Hp={F(t2.Hp)}");
             a2.action.SetAllActions(a2.action.AllActions, "atk");
             Step(w2);
-            Check(w2.HitEvents.Count == 1 && F(t2.Hp) == 1f, $"仍可被命中且保持 1: 命中 {w2.HitEvents.Count}, Hp={F(t2.Hp)}");
+            Check(w2.HitEvents.Count == 1 && !t2.IsDead && F(t2.Hp) == 80f, $"归零时回满且仍可被命中: 命中 {w2.HitEvents.Count}, Hp={F(t2.Hp)}");
         }
 
         Console.WriteLine("== 2. 无敌：armorPhase 配置 Invincible 的动作 (如闪避)，不产生命中 ==");

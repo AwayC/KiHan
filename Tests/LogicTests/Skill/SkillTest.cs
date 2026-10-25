@@ -229,24 +229,24 @@ static class Program
     {
         int s1 = 0, multi = 1, sub = 2, summon = 3;
 
-        Console.WriteLine("== 1. 单段技能：释放完 (离开技能动作) 后开始计算完整 CD，CD 中按键无效，CD 结束可再次释放 ==");
+        Console.WriteLine("== 1. 单段技能：释放时立即开始计算完整 CD，CD 中按键无效，CD 结束可再次释放 ==");
         {
             var p = Player(Actions("proj"));
             var w = World(p);
             Step(w, ButtonMask.Skill1);
-            Check(p.action.CurrentAction.id == "s1" && p.Skills.CastingSkill == s1 && p.Skills.GetCooldown(s1) == 0,
-                $"按下即进入 s1，释放中不计 CD: 动作={p.action.CurrentAction.id} CD={p.Skills.GetCooldown(s1)}");
+            Check(p.action.CurrentAction.id == "s1" && p.Skills.CastingSkill == s1 && p.Skills.GetCooldown(s1) == 30,
+                $"按下即进入 s1 并开始完整 CD 1 秒×30=30: 动作={p.action.CurrentAction.id} CD={p.Skills.GetCooldown(s1)}");
             int n = UntilIdle(w, p);
-            Check(n == 10 && p.Skills.GetCooldown(s1) == 30, $"s1 播完 (预期 10 帧) 回到 idle 当帧开始 CD，预期 1 秒×30=30: 用时 {n} 帧, CD={p.Skills.GetCooldown(s1)}");
+            Check(n == 10 && p.Skills.GetCooldown(s1) == 20, $"s1 播完 (预期 10 帧) 回到 idle，释放期间 CD 照常倒计时: 用时 {n} 帧, CD={p.Skills.GetCooldown(s1)} (预期 20)");
             Step(w, ButtonMask.Skill1);
-            Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(s1) == 29, $"CD 中按键无效: 动作={p.action.CurrentAction.id}, CD={p.Skills.GetCooldown(s1)} (预期 29)");
-            Step(w, ButtonMask.None, 29);
-            Check(p.Skills.GetCooldown(s1) == 0, $"再过 29 帧 CD 归零: {p.Skills.GetCooldown(s1)}");
+            Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(s1) == 19, $"CD 中按键无效: 动作={p.action.CurrentAction.id}, CD={p.Skills.GetCooldown(s1)} (预期 19)");
+            Step(w, ButtonMask.None, 19);
+            Check(p.Skills.GetCooldown(s1) == 0, $"再过 19 帧 CD 归零: {p.Skills.GetCooldown(s1)}");
             Step(w, ButtonMask.Skill1);
             Check(p.action.CurrentAction.id == "s1", $"CD 结束后再次释放: {p.action.CurrentAction.id}");
         }
 
-        Console.WriteLine("== 2. 多段技能：段间时限内接下一段，最后一段释放完后计算完整 CD；超时未接则返还 cdReturn ==");
+        Console.WriteLine("== 2. 多段技能：段间时限内接下一段，释放最后一段时开始完整 CD；超时未接则返还 cdReturn ==");
         {
             var p = Player(Actions("proj"));
             var w = World(p);
@@ -256,10 +256,10 @@ static class Program
                 $"第 1 段放完：下一段=1、接段时限 0.5×30=15、CD 未开始: 段={p.Skills.GetNextStage(multi)} 时限={p.Skills.GetWindow(multi)} CD={p.Skills.GetCooldown(multi)}");
             Step(w, ButtonMask.Skill2);
             Check(p.action.CurrentAction.id == "m2", $"时限内同一按键接第 2 段 (第 1 段入口被准入拦截): {p.action.CurrentAction.id}");
-            Check(p.Skills.GetCooldown(multi) == 0, $"第 2 段释放中仍不计 CD: {p.Skills.GetCooldown(multi)}");
-            UntilIdle(w, p);
             Check(p.Skills.GetCooldown(multi) == 60 && p.Skills.GetNextStage(multi) == 0,
-                $"最后一段释放完开始完整 CD 2×30=60 并回到第 1 段: CD={p.Skills.GetCooldown(multi)} 段={p.Skills.GetNextStage(multi)}");
+                $"释放最后一段时开始完整 CD 2×30=60 并回到第 1 段: CD={p.Skills.GetCooldown(multi)} 段={p.Skills.GetNextStage(multi)}");
+            int m2Ticks = UntilIdle(w, p);
+            Check(p.Skills.GetCooldown(multi) == 60 - m2Ticks, $"第 2 段释放期间 CD 照常倒计时: CD={p.Skills.GetCooldown(multi)} (预期 60-{m2Ticks})");
 
             var q = Player(Actions("proj"));
             var w2 = World(q);
@@ -447,7 +447,7 @@ static class Program
             Check(hits == 0, $"替身期间不受命中: {hits}");
             Check(n == 5 && p.Hurt == HurtState.None && p.InvincibleTicks == 15 && p.action.CurrentAction.id == "idle",
                 $"替身动作 5 帧播完回到 idle，追加 0.5×30=15 帧无敌: 用时 {n}, {p.Hurt}, 无敌 {p.InvincibleTicks}");
-            Check(p.Skills.GetCooldown(sub) == 30, $"替身释放完开始 CD 1×30=30: {p.Skills.GetCooldown(sub)}");
+            Check(p.Skills.GetCooldown(sub) == 30 - n, $"释放替身时开始 CD 1×30=30，播完时已倒计时 {n} 帧: {p.Skills.GetCooldown(sub)}");
 
             p.EnterLying();
             Step(w);
@@ -556,7 +556,7 @@ static class Program
                 $"第 1 段沿用技能图标、第 2 段用自己的图标: {skill.IconOfStage(0)} / {skill.IconOfStage(1)}");
         }
 
-        Console.WriteLine("== 12. 技能派生 (技能划平 A)：技能释放中点普攻接派生 (followActions)，派生期间不计 CD，回到 idle 才开始 CD；idle 下点普攻不会进入派生 ==");
+        Console.WriteLine("== 12. 技能派生 (技能划平 A)：技能释放中点普攻接派生 (followActions)，派生仍算释放该技能，CD 从释放技能时开始计算；idle 下点普攻不会进入派生 ==");
         {
             var actions = Actions("proj");
             actions[actions.FindIndex(a => a.id == "s1")] = new ActionData
@@ -582,10 +582,10 @@ static class Program
             Step(w, ButtonMask.None);
             Step(w, ButtonMask.Attack);
             Step(w, ButtonMask.None, 3);
-            Check(p.action.CurrentAction.id == "s1_follow" && p.Skills.CastingSkill == 0 && p.Skills.GetCooldown(0) == 0,
-                $"窗口打开时接派生，仍算释放 s1 且不计 CD: 动作={p.action.CurrentAction.id} 释放中={p.Skills.CastingSkill} CD={p.Skills.GetCooldown(0)}");
+            Check(p.action.CurrentAction.id == "s1_follow" && p.Skills.CastingSkill == 0 && p.Skills.GetCooldown(0) == 25,
+                $"窗口打开时接派生，仍算释放 s1，CD 从释放 s1 时起已倒计时 5 帧: 动作={p.action.CurrentAction.id} 释放中={p.Skills.CastingSkill} CD={p.Skills.GetCooldown(0)} (预期 25)");
             int n = UntilIdle(w, p);
-            Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(0) == 30, $"派生播完回到 idle 当帧开始完整 CD (预期 30): 用时 {n} 帧, CD={p.Skills.GetCooldown(0)}");
+            Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(0) == 25 - n, $"派生播完回到 idle，CD 不重新计算: 用时 {n} 帧, CD={p.Skills.GetCooldown(0)} (预期 25-{n})");
         }
 
         Console.WriteLine(_fail == 0 ? "\n全部通过" : $"\n失败 {_fail} 项");

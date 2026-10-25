@@ -156,7 +156,7 @@ namespace KiHan.Logic
         public FP maxHp = FP.Parse("1000");
 
         /// <summary>
-        /// 调试无限血：受击照常扣血与结算，但生命值不低于 1 (不会因死亡而无法再被命中)
+        /// 训练场无限血：受击照常扣血与结算，生命值归零时立即回满 (不会死亡)
         /// </summary>
         public bool infiniteHp = false;
 
@@ -676,8 +676,8 @@ namespace KiHan.Logic
         public void TakeDamage(FP damage)
         {
             if (damage <= FP.Zero) return;
-            FP floor = infiniteHp ? FP.One : FP.Zero;
-            Hp = FPMath.Max(floor, Hp - damage);
+            Hp = FPMath.Max(FP.Zero, Hp - damage);
+            if (infiniteHp && Hp <= FP.Zero) Hp = maxHp;
         }
 
         /// <summary>

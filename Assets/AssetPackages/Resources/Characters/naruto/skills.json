@@ -20,9 +20,20 @@
       ]
     },
     {
+      "id": "ultimate",
+      "button": "Ultimate",
+      "icon": "UI/SkillButton/90001_SkillIconAtlas#90001_SkillIconAtlas_2",
+      "cooldown": "0",
+      "chakraCost": 4,
+      "stages": [
+        { "actionId": "ultimate" }
+      ]
+    },
+    {
       "id": "substitution",
       "button": "Substitution",
       "cooldown": "3",
+      "chakraCost": 1,
       "requireHurt": true,
       "stages": [
         { "actionId": "substitution" }

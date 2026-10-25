@@ -252,6 +252,57 @@
       ]
     },
     {
+      "id": "ultimate",
+      "animKey": "Skill_A_1",
+      "catalog": "Skill",
+      "priority": 30,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 30 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 30, "y": 33 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Ultimate"], "validInSec": "0.2" },
+        { "hold": ["Ultimate"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 33 }, "level": "Super" }
+      ],
+      "events": [
+        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+        { "frame": 0, "type": "Effect", "asset": "Characters/naruto/effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
+        { "frameRanges": [{ "x": 26, "y": 27 }], "tag": [], "attackPhase": 1, "priority": 30 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "60",
+          "hitStun": "0.5",
+          "armorBreak": "Super",
+          "canHitSameTarget": 6,
+          "hitSameTargetDelay": "0.06"
+        },
+        {
+          "phase": 1,
+          "attack": "200",
+          "launch": { "z": "12", "x": "3" },
+          "air": { "z": "12", "x": "3" },
+          "armorBreak": "Super",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
       "id": "skill2_1",
       "animKey": "Skill_B_1",
       "catalog": "Skill",

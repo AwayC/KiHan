@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isBattleDebug: 1
   infiniteHp: 1
-  debugPlayer1CharId: 90001
-  debugPlayer2CharId: 90001
+  player1:
+    characterId: 90001
+    summons: []
+  player2:
+    characterId: 90001
+    summons: []

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using KiHan.Asset;
+using KiHan.Config;
 using KiHan.Math;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace KiHan.Logic
     /// <summary>
     /// 战斗角色装配：按角色 ID 加载模板，组装 CharacterObj + ActionController + FrameAnimator (+ InputToCommand)
     ///
-    /// 角色资源目录约定 (Resources 相对路径)：
+    /// 角色 ID -> 资源目录由角色配置表 (CharacterTable) 提供；资源目录约定 (Resources 相对路径)：
     /// - {dir}/*.asset        AnimationFrameData，资源名即 animKey
     /// - {dir}/actions.json   ActionDataContainer 动作配置 (String-First)
     /// - {dir}/skills.json    SkillDataContainer 技能配置 (可选)
@@ -33,14 +34,9 @@ namespace KiHan.Logic
     {
         public const string DefaultActionId = "idle";
 
-        private static readonly Dictionary<int, string> ResourceDirs = new Dictionary<int, string>
-        {
-            { 90001, "Characters/naruto" },
-        };
-
         private static readonly Dictionary<int, CharacterTemplate> Templates = new Dictionary<int, CharacterTemplate>();
 
-        public static bool IsKnown(int characterId) => ResourceDirs.ContainsKey(characterId);
+        public static bool IsKnown(int characterId) => CharacterTable.Instance != null && CharacterTable.Instance.Find(characterId) != null;
 
         /// <summary>
         /// 获取 (首次调用时加载) 角色模板，未知角色返回 null
@@ -48,11 +44,13 @@ namespace KiHan.Logic
         public static CharacterTemplate GetTemplate(int characterId)
         {
             if (Templates.TryGetValue(characterId, out CharacterTemplate template)) return template;
-            if (!ResourceDirs.TryGetValue(characterId, out string dir))
+            CharacterEntry entry = CharacterTable.Instance != null ? CharacterTable.Instance.Find(characterId) : null;
+            if (entry == null || string.IsNullOrEmpty(entry.resourceDir))
             {
-                Debug.LogError($"[CharacterFactory] 未知角色 ID: {characterId}");
+                Debug.LogError($"[CharacterFactory] 角色配置表中没有角色 {characterId} (或未填写资源目录)");
                 return null;
             }
+            string dir = entry.resourceDir;
 
             template = new CharacterTemplate
             {

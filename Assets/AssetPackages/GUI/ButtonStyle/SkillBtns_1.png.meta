@@ -1,0 +1,884 @@
+fileFormatVersion: 2
+guid: df7b47fbee4777e4e90cab8b51a73484
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SkillBtns_1_0
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 258
+        width: 515
+        height: 254
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49403be065d38994595f6475bfa86ddb
+      internalID: 762173256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_1
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 498
+        width: 36
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ea715ab015977b4419f49b093a75d97a
+      internalID: -438533663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_2
+      rect:
+        serializedVersion: 2
+        x: 513
+        y: 422
+        width: 36
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a195ae0b9de3cba4a91f99e742789748
+      internalID: -955591499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 278
+        width: 82
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17445ee5b8093a84aa88df4484737e98
+      internalID: -1584955956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_4
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 66
+        width: 135
+        height: 205
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e80e15f58661c54f91e63fd51eb11a6
+      internalID: -1729546133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_5
+      rect:
+        serializedVersion: 2
+        x: 294
+        y: 216
+        width: 24
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b93c1f2da62d3a148aa42e7242a4c4ac
+      internalID: -744212383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_6
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 98
+        width: 153
+        height: 158
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9628f7114e2c2804aa7ca987831f7423
+      internalID: 1463743955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_7
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 225
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 09b9b9fedb92b654bb1ec5a2a1489211
+      internalID: -1120663408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_8
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 144
+        width: 142
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8da08c8f97fad014987be09d7a280ef0
+      internalID: -749999597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_9
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 162
+        width: 54
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5d54a11af93113428bf48e43c3429d7
+      internalID: -1228806417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_10
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 180
+        width: 24
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ace466096c109444937d6869567d396
+      internalID: -95525373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_11
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 174
+        width: 14
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd22dcd6887d64949841ee400b33d8da
+      internalID: -1889737975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_12
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 114
+        width: 70
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a63029c58990584d8a0dfd1415778a6
+      internalID: 67648895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_13
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 18
+        width: 117
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b95a130c97436f41b45c8b409b2eb20
+      internalID: 5920121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_14
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 162
+        width: 4
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fc9eb122c49cd7a4daf80a13e595f635
+      internalID: 2029975560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_15
+      rect:
+        serializedVersion: 2
+        x: 308
+        y: 162
+        width: 4
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 243491ec58d991048a63a9b62e3f4d6c
+      internalID: -152608163
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_16
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 126
+        width: 27
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b074cb20b7ffcc4458a6fabdf940839b
+      internalID: -1940843790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_17
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 6
+        width: 256
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a083ceb5acbdec4c8dea1cbcddded5d
+      internalID: -1923985349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_18
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 138
+        width: 6
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2956b211173d26346a9471318b7d8211
+      internalID: 2047327261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_19
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 0
+        width: 79
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fcbf23cde8a1e9547aa96f6bd9065570
+      internalID: -2116821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_20
+      rect:
+        serializedVersion: 2
+        x: 189
+        y: 18
+        width: 45
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68d6a45a39c0bfb48bebf35588376ea2
+      internalID: 1514133893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_21
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 49
+        width: 30
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1aaedccc164483944a0ca91fe2be1651
+      internalID: 621553846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_22
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 10
+        width: 115
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: caeaa1d2f4629e148805a5c6fb8e2099
+      internalID: -484337172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_23
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 10
+        width: 142
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd4fb2ae6d325b142a388c82a285fa8f
+      internalID: -827091027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_24
+      rect:
+        serializedVersion: 2
+        x: 114
+        y: 30
+        width: 6
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c10d4fd67c59638409c6ee2e2ab993be
+      internalID: -680024943
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_25
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 3
+        width: 32
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 81bc006dc88b04140a49fbc6112c7a44
+      internalID: -1007925851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_26
+      rect:
+        serializedVersion: 2
+        x: 42
+        y: 12
+        width: 18
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 455c53380fedbe746a03fb05bdbd29ed
+      internalID: -1102122431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_27
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 1
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7b89169a5bb4e3b4597f6736f9e62adc
+      internalID: 1364589128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_28
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 4
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9672b94e0eb7094db2e3441ec7f8bfa
+      internalID: 484025198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_29
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 11
+        width: 18
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9182bb4e5898914793aabeb2fab597e
+      internalID: -1152875395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_30
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 0
+        width: 11
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f37ce1b4c5ab90a4fa3fa41fb73b0f5b
+      internalID: 2131450599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_31
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 0
+        width: 26
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1db8c2c0b8933f4188625bf51861083
+      internalID: 669138854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_32
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 4
+        width: 6
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64b3b703169e43745b549c09dc946477
+      internalID: -1888969005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_33
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 0
+        width: 57
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e77c21e478c83704db15a22c0a530004
+      internalID: -1562619216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SkillBtns_1_34
+      rect:
+        serializedVersion: 2
+        x: 420
+        y: 3
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5bdcfc19a8896e743b2ec8c381b591d4
+      internalID: -1068905148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      SkillBtns_1_0: 762173256
+      SkillBtns_1_1: -438533663
+      SkillBtns_1_10: -95525373
+      SkillBtns_1_11: -1889737975
+      SkillBtns_1_12: 67648895
+      SkillBtns_1_13: 5920121
+      SkillBtns_1_14: 2029975560
+      SkillBtns_1_15: -152608163
+      SkillBtns_1_16: -1940843790
+      SkillBtns_1_17: -1923985349
+      SkillBtns_1_18: 2047327261
+      SkillBtns_1_19: -2116821
+      SkillBtns_1_2: -955591499
+      SkillBtns_1_20: 1514133893
+      SkillBtns_1_21: 621553846
+      SkillBtns_1_22: -484337172
+      SkillBtns_1_23: -827091027
+      SkillBtns_1_24: -680024943
+      SkillBtns_1_25: -1007925851
+      SkillBtns_1_26: -1102122431
+      SkillBtns_1_27: 1364589128
+      SkillBtns_1_28: 484025198
+      SkillBtns_1_29: -1152875395
+      SkillBtns_1_3: -1584955956
+      SkillBtns_1_30: 2131450599
+      SkillBtns_1_31: 669138854
+      SkillBtns_1_32: -1888969005
+      SkillBtns_1_33: -1562619216
+      SkillBtns_1_34: -1068905148
+      SkillBtns_1_4: -1729546133
+      SkillBtns_1_5: -744212383
+      SkillBtns_1_6: 1463743955
+      SkillBtns_1_7: -1120663408
+      SkillBtns_1_8: -749999597
+      SkillBtns_1_9: -1228806417
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

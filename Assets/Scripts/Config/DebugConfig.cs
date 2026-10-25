@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using KiHan.Config;
 using UnityEngine;
 
 namespace KiHan.DebugTools
@@ -12,11 +11,11 @@ namespace KiHan.DebugTools
         [Header("--- 训练场快速调试 ---")]
         public bool isBattleDebug = false;
 
-        [Tooltip("单机对局双方无限血：受击照常扣血与显示伤害，但生命值不低于 1")]
+        [Tooltip("单机训练场无限血：受击照常扣血与显示伤害，生命值归零时立即回满")]
         public bool infiniteHp = false;
 
-        [Header("--- 选人测试 ---")]
-        public int debugPlayer1CharId = 90001; // 1P 默认鸣人
-        public int debugPlayer2CharId = 90001; // 2P 默认鸣人
+        [Header("--- 出战配置 (单机) ---")]
+        public PlayerLoadout player1 = new PlayerLoadout();
+        public PlayerLoadout player2 = new PlayerLoadout();
     }
 }
