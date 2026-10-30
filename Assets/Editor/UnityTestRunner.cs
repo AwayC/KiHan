@@ -119,13 +119,13 @@ namespace KiHan.Editor
                         }
 
                         var missingHurt = HurtActionIds.FindMissing(acts);
-                        if (acts.Count == 9 && missingHurt.Count == 0)
+                        if (acts.Count == 8 && missingHurt.Count == 0)
                         {
                             Log($"  [OK] action_template.json: 成功解析 {acts.Count} 个动作，通用受击动作齐全 (FindMissing 为空)");
                         }
                         else
                         {
-                            LogError($"action_template.json 动作数量或受击动作不匹配: 动作数={acts.Count} (预期9), 缺失受击=[{string.Join(",", missingHurt)}]");
+                            LogError($"action_template.json 动作数量或受击动作不匹配: 动作数={acts.Count} (预期8), 缺失受击=[{string.Join(",", missingHurt)}]");
                         }
                     }
                 }

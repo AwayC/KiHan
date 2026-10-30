@@ -99,10 +99,10 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 
 ### 2. 真实 3D 纵深渲染与 2D/3D 混合深度穿插 (M3 已完成)
 - **唯一映射入口 `View/Render/BattleViewSpace.cs`**：不旋转的正交相机 (沿 +Z 观察)，角色、特效、地图等 2D 素材同样不旋转，正立显示。
-  $$\text{World}(x, y, z) = (x,\; k\,y + z,\; y),\quad k = \texttt{DepthToScreenY}\ (\text{原版实测 } 0.368，与脚下阴影圆盘纵向压缩共用)$$
-  - 逻辑坐标：$x$ 横向、$y$ 纵深、$z$ 离地高度 (与 `MotionBody` 一致)。
-  - 屏幕横坐标 $= x$，屏幕纵坐标 $= k\,y + z$：纵深按比例 $k$ 压缩到屏幕纵向，高度 1:1；地图美术无需改动。
-  - 世界 Z $= y$，只取决于纵深：跳跃不改变前后关系；同一像素上前后由深度缓冲裁决，角色之间不再计算 sortingOrder。
+  $$\text{World}(x, y, z) = (x,\; y + z,\; y / k),\quad k = \texttt{DepthToScreenY}\ (\text{原版实测 } 0.368，地面透视压缩)$$
+  - 逻辑坐标：$x$ 横向、$y$ 纵深、$z$ 离地高度 (与 `MotionBody` 一致)。纵深 $y$ 与原版一致使用视觉单位 (脚底在画面上的纵坐标)，纵深移动速度 = 横向 × $k$。
+  - 屏幕横坐标 $= x$，屏幕纵坐标 $= y + z$，高度 1:1；地图美术无需改动。判定盒纵深为视觉半轴 `LogicBox.Side`，命中条件 $|\Delta y| \le$ 双方 Side 之和。
+  - 世界 Z $= y / k$ (换算回地面距离)，只取决于纵深：跳跃不改变前后关系；同一像素上前后由深度缓冲裁决，角色之间不再计算 sortingOrder。
   - 逻辑层不感知相机：`FPVector2.ToRenderWorldPos` 已删除，表现层统一调用 `BattleViewSpace.ToWorld / GroundToWorld`。
 - **渲染顺序与 Shader**：
   - 角色材质 `Resources/Render/SpriteZWriteAlphaTest.mat` (`KiHan/Render/SpriteZWriteAlphaTest`)：`ZWrite On` + `clip(alpha - 0.1)`，渲染队列为 **Transparent**。与背景、阴影、特效同队列按 sortingOrder + 与相机的距离排序，边缘半透明像素混合到已绘制的背景上，避免黑边。
@@ -164,21 +164,21 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 
 - **物理约定**：逻辑坐标 `x` 横向、`y` 纵深、`z` 高度；水平面走曲线位移 (RootMotion / ForceMove / 吸附)，竖直方向只走速度模型 (起跳/击飞速度 + 附加加速度 + 重力，匀加速精确积分)；墙体仅为地图边界墙；角色之间不碰撞。
 - **受击状态 (`HurtState`)**：
-  - **僵直 (Stun)**：地面受击，不能主动行动，受击动作循环播放，`hitStun` 秒到期后回到受击动作的 `autoNextActionId`。
-  - **击飞 (Launch)**：空中受击或被击飞，不能主动行动，按速度模型下落。地面被击飞 `hurt_toair → hurt_inair → hurt_fall`，空中受击直接 `hurt_inair → hurt_fall`，`hurt_fall` 循环到触地。触地时弹起速度 = 落地速度 × `bounceRestitution`，不低于 `minBounceVelocity` 则弹起 (重播 `hurt_inair`，无伤害，保持击飞)，否则倒地。
-  - **被抓取 (Grabbed)**：位置逐帧锁定在抓取者的帧锚点上，不受重力与外力影响。
-  - **倒地 (Lying)**：播放 `lie`，播完即起身 (倒地时长 = lie 动画长度)；只有 `canHitLying` 的攻击能命中，带击飞速度时重新浮空。
+  - **僵直 (Stun)**：地面受击，不能主动行动，受击动作循环播放，`hitStun` 秒到期后回到默认动作。未指定 `hurtAction` 时在已配置的 `hurt` / `hurt_1` / `hurt_2` / `hurt_3` 中确定性随机 (逻辑帧号 + 攻防双方实体 id 哈希，各客户端一致)。
+  - **击飞 (Launch)**：空中受击或被击飞，不能主动行动，按速度模型下落。地面被击飞 `float` 从头播放，空中受击与触地弹起播 `float` 并从其 `airHitStep` 切片步开始 (原版从第 2 步)；`float` 播完转 `fall`，`fall` 循环到触地。触地时弹起速度 = 落地速度 × `bounceRestitution`，不低于 `minBounceVelocity` 则弹起 (无伤害，保持击飞)，否则倒地。
+  - **被抓取 (Grabbed)**：位置逐帧锁定在抓取者的帧锚点上，不受重力与外力影响。被抓姿势由 `grab.pose` 指定 (动作 + 切片步 + 是否定格)，未配置时用 `hurtAction`，再没有则循环 `grabbed`。
+  - **倒地 (Lying)**：循环播放 `lie`，固定 `lieSec` 秒后起身 (原版 `lie_down` 只有一帧)；只有 `canHitLying` 的攻击能命中，带击飞速度时重新浮空。
   - **起身 (Standup)**：播放 `standup`，期间无敌 (不产生任何命中)，播完回到默认动作并追加 `standupInvincibleSec` 秒无敌。
   - 受击流程由框架驱动，受击动作只提供动画，`autoNextActionId` 不参与；命中切换优先级 100 > 触地结果 95 > 动画播完推进 90。
-- **通用受击动作 (`HurtActionIds`)**：所有角色共用同一套受击流程，以下动作 id 固定且必须全部配置 (加载时检查缺失)：`hurt_1` `hurt_2` `hurt_toair` `hurt_inair` `hurt_fall` `lie` `standup`。攻击未配置 `targetActionChange` / `launchActionChange` 时，僵直默认 `hurt_1`、抓取默认 `hurt_2`、地面击飞默认 `hurt_toair`、空中受击默认 `hurt_inair`。最小配置见 `action_template.json`。
-- **角色物理参数** (CharacterObj，带默认值)：`gravity`、`bounceRestitution` (0.5)、`minBounceVelocity` (3)、`standupInvincibleSec` (0.5)。
+- **通用受击动作 (`HurtActionIds`)**：所有角色共用同一套受击流程，以下动作 id 固定且必须全部配置 (加载时检查缺失)：`hurt` `grabbed` `float` `fall` `lie` `standup`；`hurt_1` `hurt_2` `hurt_3` 为可选的僵直变体。对应原版基础动画：`get_hit`(_1/_2/_3) / `catch` / `Float` / `Float_air` / `lie_down` / `lie_got_up`。出入场动画 `jump_in` / `jump_in_1` / `jump_out` 只配置为 `Show` 类动作，暂不接入框架。最小配置见 `action_template.json`。
+- **角色物理参数** (CharacterObj，带默认值)：`gravity`、`bounceRestitution` (0.5)、`minBounceVelocity` (3)、`standupInvincibleSec` (0.5)、`lieSec` (0.5)。
 - **姿态隐性控制 (不配置 `posture`)**：
   - 进入条件由 `cancelTag` / `beCancelledTag` 的取消关系决定 (如空中攻击只挂在跳跃动作的取消窗口上)。
   - 配置了 `onLand` 且自身不起跳的动作视为空中动作，在地面上视同落地触发 `onLand`。
   - 倒地、击飞落地等状态由上面的固定受击动作 id 决定。
 - **5 维打击物理**：
   1. **平推 (Push)**：`push` 只在地面僵直时生效，水平 `ForceMove` (按秒配置，与动作帧无关)，按攻击者朝向转为世界方向。
-  2. **击飞 (Launch)**：地面目标被配置了 `launch` 的攻击击飞；目标已浮空时任何攻击都按 `air` (未配置用 `GameConfig.DefaultAirLaunch`) 重设竖直速度与水平惯性。受击动作由 `hurtAction` 指定 (空中受击固定 `hurt_inair`)。
+  2. **击飞 (Launch)**：地面目标被配置了 `launch` 的攻击击飞；目标已浮空时任何攻击都按 `air` (未配置用 `GameConfig.DefaultAirLaunch`) 重设竖直速度与水平惯性。受击动作由 `hurtAction` 指定 (空中受击固定 `float`，从 `airHitStep` 起)。
   3. **吸附 (Suction)**：命中后在 `inSec` 秒内以 `speed` 把目标水平拉向攻击者本地核心点 (随攻击者移动，不越过核心点)。
   4. **抓取 (Grab)**：锚点即抓取。`grab.anchor` 指定帧库 `EffectAnchors` 中的锚点名 (默认 `grab`，整数像素，x 随朝向镜像、y 为高度)，抓取者当前处理的动画帧上存在该锚点即维持抓取并逐帧跟随 (可跨动作)，锚点消失即释放 (主动松手 / 动作播完 / 被打断)，目标按 `releaseActionChange` 转换，在空中则击飞下落。被抓期间受到的任何命中 (抓取者的多段攻击、第三方攻击) 只结算伤害，保持原抓取状态，也不会被其他抓取覆盖；投掷做法是让锚点在第 N 帧消失、同一帧开启投掷攻击盒 (释放先于命中检测)，投掷命中按正常受击结算。加载时校验抓取段开启区间内是否画有锚点。
   5. **扫地 (OTG)**：`canHitLying` 的攻击可命中倒地目标；有 `launch` 时重新挑起，否则保持倒地只结算伤害。
@@ -251,7 +251,7 @@ gantt
 | :--- | :--- | :--- | :--- |
 | **M1: 定点数数学库与物理改造** | `Math/FP.cs`<br>`Math/FPVector2.cs`<br>`Physics/MotionBody.cs`<br>`LogicCommon.cs` | 1. 建立纯定点数数学运算库<br>2. 实体坐标、速度、高度、重力定点数化<br>3. 判定盒 `LogicBox` 切换为定点数碰撞 | 编写纯单元测试：跨平台运行 10000 次复杂物理模拟运算，哈希值绝对一致。 |
 | **M2: 资源管理与对象池** | `Managers/Asset/IAssetProvider.cs`<br>`Managers/Asset/ObjectPoolManager.cs`<br>`View/Component/AutoRecycleFX.cs` | 1. 抽象资源提供器接口<br>2. 实现按类型隔离的分级对象池<br>3. 改造战斗前加载预热流程 | 连续对战 5 分钟，战斗运行时无任何 `Resources.Load` 与新实例分配产生的 GC Spike。 |
-| **M3: 3D 纵深渲染与穿插 (已完成)** | `View/Render/BattleViewSpace.cs`<br>`View/Render/ActorView.cs`<br>`View/Render/Shaders/SpriteZWriteAlphaTest.shader`<br>`Game/Core/BattleManager.cs`<br>`Game/Core/CharacterFactory.cs`<br>`Game/SceneManager.cs` | 1. `BattleViewSpace` 统一映射 `World = (x, k·y + z, y)` (`DepthToScreenY`)：纵深为真实 Z 深度并按比例投到屏幕纵向<br>2. 相机与素材均不旋转 (正交，沿 +Z 观察)，地图为放在最远处的背景板<br>3. 角色材质 Alpha-Test ZWrite (透明队列)<br>4. `ActorView` 只读绑定 `CharacterObj`，`BattleManager` 驱动 `BattleWorld`，`HitEvents` 转火花/跳字/震屏<br>5. 删除旧表现链路 `LogicEntity` / `EntityView` / `EffectNode` / `HitData` | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
+| **M3: 3D 纵深渲染与穿插 (已完成)** | `View/Render/BattleViewSpace.cs`<br>`View/Render/ActorView.cs`<br>`View/Render/Shaders/SpriteZWriteAlphaTest.shader`<br>`Game/Core/BattleManager.cs`<br>`Game/Core/CharacterFactory.cs`<br>`Game/SceneManager.cs` | 1. `BattleViewSpace` 统一映射 `World = (x, y + z, y / k)` (`DepthToScreenY`)：纵深为视觉单位 (屏幕纵坐标)，世界 Z 换算回地面距离用于深度裁决<br>2. 相机与素材均不旋转 (正交，沿 +Z 观察)，地图为放在最远处的背景板<br>3. 角色材质 Alpha-Test ZWrite (透明队列)<br>4. `ActorView` 只读绑定 `CharacterObj`，`BattleManager` 驱动 `BattleWorld`，`HitEvents` 转火花/跳字/震屏<br>5. 删除旧表现链路 `LogicEntity` / `EntityView` / `EffectNode` / `HitData` | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
 | **M4: ACT 动作核心与输入** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`InputToCommand.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 按下 / 按住 / 松开指令 (含预输入) 与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
 | **M5: 5 维打击与受击状态** | `Game/Core/BattleWorld.cs`<br>`Game/Physics/MotionBody.cs`<br>`Character/Fight/HitResolver.cs`<br>`Character/Fight/CombatTypes.cs`<br>`Character/Fight/HurtState.cs`<br>`Character/Fight/HiRecord.cs` | 1. 平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 僵直/击飞/被抓/倒地受击状态<br>3. 霸体等级判定 | 僵直期间不能行动且循环受击动画；击飞落地转倒地；霸体只扣血不打断；抓取逐帧跟随帧锚点、锚点消失即释放；整条命中链路 0 GC。（停帧与保护机制已移出计划） |
 | **M6: 技能/查克拉/分身系统 (框架已完成)** | `Character/Skill/SkillController.cs`<br>`Character/Spawn/SpawnInfo.cs` / `CloneBrain.cs`<br>`Character/Buff/BuffController.cs`<br>`Character/Action/ActionEventInfo.cs`<br>`Game/Core/CharacterFactory.cs` (`SpawnPool`) | 1. 动作事件 (特效 / 生成 / 镜头 / Buff) 与锚点跟随特效<br>2. 多段技能 CD、查克拉、替身 (`breakHurt`)<br>3. Simple / Actor 生成物复用 `CharacterObj`，预建实例池，`CloneBrain` 脚本输入<br>4. Buff 持续时间 + 循环特效 | L1 `Skill` 工程全部通过 (CD / 多段 / 查克拉 / 替身 / 生成回收确定性与 0 GC / 分身 / Buff)；鸣人技能 1、技能 2 (投射物 + 命中派生)、替身已配表。CD 数值与查克拉获得规则以原版实测为准再调。 |
@@ -273,15 +273,14 @@ gantt
 | **`attack3`** | `Attack` | `attack3` | 第 5~10 帧允许 `move`, `attack4`, `skill` | `idle` | 击退判定，目标进入 `hurt_2` 较大硬直 |
 | **`attack4`** | `Attack` | `attack4` | 第 20~26 帧允许 `move`, `skill` | `idle` | 第 2 帧轻击，第 12~16 帧击飞 (`launch`) |
 | **`skill1`** | `Skill` | `skill` | 后摇第 30~33 帧允许 `move`, `attack1` | `idle` | 螺旋丸 (`Skill_A_1`)：技能体；第 0 帧挂锚点 `lxw` 的球特效 (动作结束即收回) 与风特效；第 14~25 帧多段命中，第 26~27 帧击飞 |
-| **`skill2_1`** | `Skill` | `skill` | 无 | `skill2_land` | `Skill_B_1`：技能体；第 4 帧生成投射物 `naruto_skill2_fx` (`Skill_B_fx`，三段攻击) 并冒烟；本体第 19~26 帧命中后 `keepFrame` 切到 `skill2_1_hit` |
-| **`skill2_1_hit`** → **`skill2_land_hit`** → **`skill2_2`** | `Skill` | - | `skill2_2` 后摇允许 `move`, `attack1` | `idle` | 命中派生：播完落地 (`Skill_B_land`) 后接 `Skill_B_2` 击飞收尾；未命中走 `skill2_land` 回 idle |
+| **`skill2_1`** | `Skill` | `skill` | 无 | `skill2_land` | `Skill_B_1`：技能体；第 4 帧生成投射物 `naruto_skill2_fx` (`Skill_B_fx`，三段攻击) 并冒烟；进入时清空命中记录，本体第 19~26 帧命中写入记录，落地 / 播完进 `skill2_land` |
+| **`skill2_land`** → **`skill2_2`** | `Skill` | - | `skill2_2` 后摇允许 `move`, `attack1` | `idle` | 命中分支：`Skill_B_land` 第 9 帧命中记录为真则接 `Skill_B_2` 击飞收尾，否则播完回 idle |
 | **`substitution`** | `Hurt` | - | 无 | (框架) | 替身 (`breakHurt`)：受击中按替身键进入，起身动画 + 无敌，播完追加起身后无敌 |
-| **`hurt_1`** | `Hurt` | - | 无 | (框架) | 地面轻受击僵直，循环播放，僵直结束回默认动作 |
-| **`hurt_2`** | `Hurt` | - | 无 | (框架) | 地面重受击僵直 / 被抓循环 |
-| **`hurt_toair`**| `Hurt` | - | 无 | (框架) | 地面被击飞的上升段，播完转 `hurt_inair` |
-| **`hurt_inair`**| `Hurt` | - | 无 | (框架) | 空中受击 / 触地弹起，播完转 `hurt_fall` |
-| **`hurt_fall`** | `Hurt` | - | 无 | (框架) | 坠落阶段，循环播放直到触地 (弹起或倒地) |
-| **`lie`** | `Hurt` | - | 无 | (框架) | 倒地，播完起身，仅受扫地技能影响 |
+| **`hurt`** / `hurt_1..3` | `Hurt` | - | 无 | (框架) | 地面僵直 (`Hurt_1`..`Hurt_4`)，未指定 `hurtAction` 时随机一个，循环播放，僵直结束回默认动作 |
+| **`grabbed`** | `Hurt` | - | 无 | (框架) | 被抓默认姿势 (`Hurt_2`) 循环 |
+| **`float`**| `Hurt` | - | 无 | (框架) | 浮空 (`Hurt_float` = 上升 + 空中两段)：地面击飞从头播，空中受击 / 触地弹起从第 2 步 (`airHitStep` 1) 播，播完转 `fall` |
+| **`fall`** | `Hurt` | - | 无 | (框架) | 坠落阶段，循环播放直到触地 (弹起或倒地) |
+| **`lie`** | `Hurt` | - | 无 | (框架) | 倒地，固定 `lieSec` 秒后起身，仅受扫地技能影响 |
 | **`standup`** | `Hurt`| - | 无 | (框架) | 起身阶段，框架强制无敌，结束后追加无敌 |
 
 ---

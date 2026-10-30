@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d624727439d54ec992c9d64498e4287f, type: 3}
+  m_Name: 90003sasuke
+  m_EditorClassIdentifier: 
+  id: 90003
+  displayName: "\u4F50\u52A9"
+  headshot: {fileID: 21300000, guid: be445394a34e4a747ac3a921895244d8, type: 3}
+  actions: {fileID: 4900000, guid: f8907fab895e9d44ebdc4eea7e301ca7, type: 3}
+  skills: {fileID: 4900000, guid: e484b3f3c87eb20469f511c2c2de8750, type: 3}
+  spawns: {fileID: 0}
+  buffs: {fileID: 0}
+  animations:
+  - {fileID: 11400000, guid: 73d0a74040a0f154e9e4326dc0f6b58f, type: 2}
+  - {fileID: 11400000, guid: 2073d6644de3d5c41ba1a09859be38ce, type: 2}
+  - {fileID: 11400000, guid: 06262a4f8be6320429b60197f5b3fa29, type: 2}
+  - {fileID: 11400000, guid: 03a510ccab260a349b40d0d95e87081f, type: 2}
+  - {fileID: 11400000, guid: 0c17e6205e2291a47897ceebcc4a6046, type: 2}
+  - {fileID: 11400000, guid: 7858a03327ece6846877d4b2035c37e3, type: 2}
+  - {fileID: 11400000, guid: 9f1a93cc915f1dc408ac1985951ef7ef, type: 2}
+  - {fileID: 11400000, guid: 6ee516686832ca84aad70b9207124618, type: 2}
+  - {fileID: 11400000, guid: 45dd24f5bb7128242b81e60e87633ccd, type: 2}
+  - {fileID: 11400000, guid: 48066905738dd1c4d956e4cb3deca0a6, type: 2}
+  - {fileID: 11400000, guid: fa81cf7768a56df469c62610fa918bc0, type: 2}
+  - {fileID: 11400000, guid: 994d55371cd90284c9d3a328346e5375, type: 2}
+  - {fileID: 11400000, guid: 9d6d8c5e3fb8df24ab3667ccef7ef665, type: 2}
+  - {fileID: 11400000, guid: fc1b9ee4131fa084b87aab9fdb63894e, type: 2}
+  - {fileID: 11400000, guid: d4796a69e147b484ca9d629f036e52b6, type: 2}
+  - {fileID: 11400000, guid: e0986694f94691645a9695b1ea35a08c, type: 2}
+  - {fileID: 11400000, guid: 41f2e8219020ef74d99e92f75629aa5d, type: 2}
+  - {fileID: 11400000, guid: 7d8004616456fd1459dd62b1b81e6cc8, type: 2}
+  - {fileID: 11400000, guid: ccd2e0f113ef75d46be13f5f54301a1b, type: 2}
+  - {fileID: 11400000, guid: 3dca5d226cb1aeb4e9edc9c575eb2a4a, type: 2}
+  - {fileID: 11400000, guid: 91ab6d560993bfa49bafc8470294fbb1, type: 2}
+  - {fileID: 11400000, guid: 7d3674f0c069c7249acee4540eb4b2c7, type: 2}
+  - {fileID: 11400000, guid: 94c6203c7fe44874197751218b024cae, type: 2}
+  - {fileID: 11400000, guid: a6e4e65cf146d23428d274dbc7528921, type: 2}
+  - {fileID: 11400000, guid: b9f5d1d1648b6f948bd1579273de5da3, type: 2}
+  - {fileID: 11400000, guid: 6647ed1577087fd45a49c6d1c61963ea, type: 2}
+  - {fileID: 11400000, guid: a9e428156b10a184192033fecd9c3a3a, type: 2}
+  - {fileID: 11400000, guid: 8a5b4aa66ada9c64ba1c9fc24b31f392, type: 2}
+  resources:
+  - key: Effect/90003
+    asset: {fileID: 1461900260060568457, guid: b5c6c005b06c2494285d244ef916e515, type: 3}
+  - key: Effect/90003024
+    asset: {fileID: 2765035272122467380, guid: 93daa66e2d19310438ce9b7d50ae949b, type: 3}
+  - key: Effect/90003026
+    asset: {fileID: 3220275535790790682, guid: e4d41dd5c0b9c5448ab21f701c250344, type: 3}
+  - key: Effect/90003027
+    asset: {fileID: 1877797915253918913, guid: 3baa73bd8c7d9c24ca9c211aca586ae7, type: 3}
+  - key: Effect/90003028
+    asset: {fileID: 5500713500213614614, guid: 571243a38a81f6e47b3687fb037a3bfa, type: 3}
+  - key: Effect/90003099
+    asset: {fileID: 955850225323963934, guid: a7eed6dda42a99c439893ca39ae27895, type: 3}
+  - key: Effect/90003111
+    asset: {fileID: 8569737426761077212, guid: 79fd41faba2f8e144aa7ec382cb59c34, type: 3}
+  - key: Effect/90003112
+    asset: {fileID: 4103780193223564728, guid: 661a8d38569bc9b469894415f4827e1b, type: 3}
+  - key: Effect/90003113
+    asset: {fileID: 6067074693568093370, guid: 55ee87c8e60073646867b184e16349cc, type: 3}
+  - key: Effect/90003114
+    asset: {fileID: 796093220094477291, guid: 6d291433e25d2c2428a7fe1fb98abc5d, type: 3}
+  - key: Effect/90003120
+    asset: {fileID: 4950745536870636190, guid: 3f770c19df7b8ab4a843b9d65ba062cf, type: 3}
+  - key: Effect/90003121
+    asset: {fileID: 950668580671080172, guid: e10265b1ba6e291498a0df6a4a7a8839, type: 3}
+  - key: Effect/90003123
+    asset: {fileID: 6631450340390930959, guid: 45f6fa83e2b28a042b4065925d7876bd, type: 3}
+  - key: Effect/90003124
+    asset: {fileID: 5002404099973789602, guid: 638635f6f71e0a84a818236ceb6d5f8f, type: 3}
+  - key: Effect/90003125
+    asset: {fileID: 3332503814736875992, guid: 59e0915320bc8804eb94dae06ceedada, type: 3}
+  - key: Effect/90003126
+    asset: {fileID: 4360970897080950153, guid: 20cd0c2fd9ff0d44d9ffd3d3a2f3f8e0, type: 3}
+  - key: Effect/90003127
+    asset: {fileID: 772053314965390573, guid: 63c22094a577e8d4382dd869d06a3db7, type: 3}
+  - key: Effect/90003128
+    asset: {fileID: 1681640405675340199, guid: f0958c6be7d603f4c80b03d57721f68c, type: 3}
+  - key: Effect/90003129
+    asset: {fileID: 4850324083478293576, guid: d5ae916e00d434847895263ea2092ecb, type: 3}
+  - key: Effect/90003130
+    asset: {fileID: 460921299503749092, guid: 7b1c89f267831864d87ccbe8df3384c5, type: 3}
+  - key: Effect/90003131
+    asset: {fileID: 8373642946783484841, guid: 1fa8338795d4d3b429e5666993b817b6, type: 3}
+  - key: Effect/90003133
+    asset: {fileID: 7503903290433550222, guid: f0fec99dbec097b43b67f719bfbe9327, type: 3}
+  - key: Effect/90003205
+    asset: {fileID: 4809610267924783490, guid: 4585664cae6e6064da03329e0aa040fe, type: 3}
+  - key: Effect/90003206
+    asset: {fileID: 9094044385125256238, guid: aaccfc1d0dde40947a61d13c2d73f5cc, type: 3}
+  - key: Effect/90003401
+    asset: {fileID: 1763981300434282093, guid: 628227e109e1d934e9e31986f23de3d2, type: 3}
+  - key: Effect/90003402
+    asset: {fileID: 8486538048384177846, guid: e6834cdf94ea80d41ba55c5a7755fa38, type: 3}
+  - key: Effect/90003404
+    asset: {fileID: 4633189659832371339, guid: 0a4e420e3c8ce064d8566aea49013133, type: 3}
+  - key: Effect/90003405
+    asset: {fileID: 4355616450211564776, guid: 8643914bd7e14344293ce30fbc7553ed, type: 3}
+  - key: Effect/90003407
+    asset: {fileID: 6142223099863600668, guid: 5d56f24374e1a694fb31f1f10444d096, type: 3}
+  - key: Effect/90003412
+    asset: {fileID: 6329750554485201603, guid: b254e0ce839124349bc42e6785af2a8e, type: 3}
+  - key: Effect/90003414
+    asset: {fileID: 6892347520800502263, guid: d4e00a08703bad546806973c57b809a2, type: 3}
+  - key: Effect/90003416
+    asset: {fileID: 5957914508315997805, guid: e250a8bc47532f2468c3358bd181f6e0, type: 3}

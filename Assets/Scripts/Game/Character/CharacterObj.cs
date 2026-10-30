@@ -136,9 +136,10 @@ namespace KiHan.Logic
         public FP moveSpeedX = FP.Parse("5.0");
 
         /// <summary>
-        /// 纵深移动速度 (定点数，单位/秒)：与横向各自独立，斜向两轴同时全速
+        /// 纵深移动速度 (定点数，单位/秒)：纵深为视觉单位 (屏幕纵坐标)，取横向速度 × 地面透视压缩 0.368 (原版实测)，
+        /// 与横向各自独立，斜向两轴同时全速
         /// </summary>
-        public FP moveSpeedY = FP.Parse("5.0");
+        public FP moveSpeedY = FP.Parse("1.84");
 
         /// <summary>
         /// 重力加速度 (定点数，单位/秒²)
@@ -176,6 +177,11 @@ namespace KiHan.Logic
         public FP standupInvincibleSec = FP.Parse("0.5");
 
         /// <summary>
+        /// 倒地时长 (定点数秒)：倒地期间循环播放 lie，到时起身 (原版 lie_down 只有一帧，时长由框架决定)
+        /// </summary>
+        public FP lieSec = FP.Parse("0.5");
+
+        /// <summary>
         /// 剩余的起身后无敌逻辑帧数
         /// </summary>
         public int InvincibleTicks { get; private set; }
@@ -206,6 +212,11 @@ namespace KiHan.Logic
         /// 剩余僵直逻辑帧数 (仅 Hurt == Stun 时有效)
         /// </summary>
         public int StunTicks { get; private set; }
+
+        /// <summary>
+        /// 剩余倒地逻辑帧数 (仅 Hurt == Lying 时有效)
+        /// </summary>
+        public int LieTicks { get; private set; }
 
         /// <summary>
         /// 抓住自己的角色 (仅 Hurt == Grabbed 时有效)
@@ -371,6 +382,13 @@ namespace KiHan.Logic
                 if (StunTicks <= 0) ExitHurt();
             }
 
+            // 倒地倒计时：固定时长后起身
+            if (Hurt == HurtState.Lying)
+            {
+                LieTicks--;
+                if (LieTicks <= 0) EnterStandup();
+            }
+
             // 推进动作状态机
             action?.Tick();
 
@@ -430,7 +448,7 @@ namespace KiHan.Logic
                 LastPhysicsEvent |= PhysicsEvent.Landed;
             }
 
-            // 击飞触地：按落地速度衰减弹起 (无伤害，保持击飞并重播 hurt_inair)，弹不起则倒地
+            // 击飞触地：按落地速度衰减弹起 (无伤害，保持击飞并从 airHitStep 切片步重播 float)，弹不起则倒地
             if (Hurt == HurtState.Launch && (LastPhysicsEvent & PhysicsEvent.Landed) != 0)
             {
                 FP bounce = motion.LastImpactSpeed * bounceRestitution;
@@ -438,7 +456,7 @@ namespace KiHan.Logic
                 {
                     motion.Launch(bounce);
                     LastPhysicsEvent = (LastPhysicsEvent & ~PhysicsEvent.Landed) | PhysicsEvent.Bounced;
-                    PreorderHurtFlow(HurtActionIds.InAir, HurtActionIds.LandPriority);
+                    action?.PreorderActionByActionChangeInfo(HurtActionIds.ChangeTo(HurtActionIds.Float, HurtActionIds.LandPriority, action.FloatAirHitFrame));
                 }
                 else
                 {
@@ -533,13 +551,14 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 倒地：播放 lie，播完起身 (击飞触地弹不起时进入，也可供直接击倒类效果调用)
+        /// 倒地：循环播放 lie，lieSec 秒后起身 (击飞触地弹不起时进入，也可供直接击倒类效果调用)
         /// </summary>
         public void EnterLying()
         {
             Hurt = HurtState.Lying;
             StunTicks = 0;
-            action?.Lock(false);
+            LieTicks = GameConfig.SecondsToTicks(lieSec);
+            action?.Lock(true);
             PreorderHurtFlow(HurtActionIds.Lie, HurtActionIds.LandPriority);
         }
 
@@ -569,9 +588,9 @@ namespace KiHan.Logic
 
         /// <summary>
         /// 受击流程推进：当前受击动作播完时决定下一个动作
-        /// - 击飞：hurt_toair -> hurt_inair，其余 (hurt_inair / hurt_fall / 自定义击飞动作) -> hurt_fall (循环到落地)
-        /// - 倒地：lie 播完 -> 起身
+        /// - 击飞：float 及其余击飞动作 (自定义击飞动作 / fall) 播完 -> fall (循环到落地)
         /// - 起身：standup 播完 -> 默认动作，并追加起身后无敌
+        /// (倒地由 LieTicks 计时起身，不依赖动画长度)
         /// </summary>
         private void UpdateHurtFlow()
         {
@@ -581,10 +600,7 @@ namespace KiHan.Logic
             switch (Hurt)
             {
                 case HurtState.Launch:
-                    PreorderHurtFlow(current == HurtActionIds.ToAir ? HurtActionIds.InAir : HurtActionIds.Fall);
-                    break;
-                case HurtState.Lying:
-                    if (current == HurtActionIds.Lie) EnterStandup();
+                    PreorderHurtFlow(HurtActionIds.Fall);
                     break;
                 case HurtState.Standup:
                     // 起身动作或替身动作 (breakHurt) 播完：回到默认动作并追加起身后无敌
@@ -688,6 +704,7 @@ namespace KiHan.Logic
             Hp = maxHp;
             Hurt = HurtState.None;
             StunTicks = 0;
+            LieTicks = 0;
             InvincibleTicks = 0;
             GrabbedBy = null;
             GrabTarget = null;
@@ -779,6 +796,8 @@ namespace KiHan.Logic
         private void ReleaseFromGrab(ActionChangeInfo releaseChange)
         {
             GrabbedBy = null;
+            // 被抓姿势可能定格：释放后恢复播放，空中时 float / 姿势动作播完转 fall
+            action?.ReleaseHold();
             if (motion.Position.z > FP.Zero)
             {
                 EnterLaunch();
@@ -986,6 +1005,7 @@ namespace KiHan.Logic
                         Attacker = this,
                         Target = target,
                         AttackPhase = phaseIdx,
+                        Frame = frame,
                         Attack = cur.attacks[phaseIdx],
                         Defense = defPhase,
                         HitPoint = atkWorld.IntersectionCenter(defWorld),

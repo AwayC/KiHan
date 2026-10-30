@@ -80,12 +80,22 @@ namespace KiHan.Editor
                 if (!animKeys.Contains(a.animKey)) problems.Add($"动作 {a.id} 的动画 {a.animKey} 不存在");
                 RequireAction(a.autoNextActionId, $"动作 {a.id} 的 autoNextActionId");
                 ValidateCommands(a, problems);
+                if (a.hitBranches != null)
+                {
+                    foreach (HitBranch branch in a.hitBranches) RequireAction(branch.actionId, $"动作 {a.id} 第 {branch.frame} 帧的命中分支");
+                }
                 if (a.attacks != null)
                 {
                     foreach (AttackInfo atk in a.attacks)
                     {
                         if (atk.selfActionChange.changeType == ActionChangeType.ChangeToActionId) RequireAction(atk.selfActionChange.param, $"动作 {a.id} 的 selfActionChange");
                         RequireAction(atk.hurtAction, $"动作 {a.id} 的 hurtAction");
+                        if (atk.grab.enabled)
+                        {
+                            RequireAction(atk.grab.pose.action, $"动作 {a.id} 的抓取姿势");
+                            if (atk.grab.releaseActionChange.changeType == ActionChangeType.ChangeToActionId)
+                                RequireAction(atk.grab.releaseActionChange.param, $"动作 {a.id} 的抓取释放动作");
+                        }
                     }
                 }
                 if (a.events == null) continue;

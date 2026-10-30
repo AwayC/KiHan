@@ -75,6 +75,36 @@ namespace KiHan.Logic
         /// 锚点消失而释放 (非投掷命中) 时目标的动作变化；目标在空中时转为击飞状态下落
         /// </summary>
         public ActionChangeInfo releaseActionChange;
+
+        /// <summary>
+        /// 被抓姿势：抓取命中时目标进入的动作、起始切片步与是否定格；未配置动作时目标进入 hurtAction / grabbed。
+        /// 抓取者对已被自己抓住的目标再次命中且带 pose 时，按新姿势切换 (多段抓取技逐段换姿势)
+        /// </summary>
+        public GrabPoseInfo pose;
+    }
+
+    /// <summary>
+    /// 被抓姿势 (如从浮空动作 float 中取第 N 个切片步并定格)
+    /// </summary>
+    [Serializable]
+    public struct GrabPoseInfo
+    {
+        /// <summary>
+        /// 目标进入的动作 id，留空表示未配置
+        /// </summary>
+        public string action;
+
+        /// <summary>
+        /// 起始切片步 (0 起)
+        /// </summary>
+        public int step;
+
+        /// <summary>
+        /// 是否定格在该切片步 (不推进动画，直到被释放或换姿势)
+        /// </summary>
+        public bool hold;
+
+        public bool Enabled => !string.IsNullOrEmpty(action);
     }
 
     /// <summary>

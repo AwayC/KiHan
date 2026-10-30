@@ -8,12 +8,12 @@ using KiHan.Logic;
 /// </summary>
 public class MapLogic
 {
-    public FP MinX = FP.Parse("-7");
-    public FP MaxX = FP.Parse("7");
-    // 纵深上下限：与画面可走地面带匹配。表现层按 BattleViewSpace.DepthToScreenY 压缩纵深，
-    // 屏幕纵向范围 = 本值 × DepthToScreenY (修改该比例时需同步此处)
-    public FP MinY = FP.Parse("-2.4");
-    public FP MaxY = FP.Parse("2.4");
+    // 边界随地图美术放大 BattleViewSpace.MapScale (8/7)：原值 ±7 / ±2.4 × 8/7 (修改该倍数时需同步此处)
+    public FP MinX = FP.Parse("-8");
+    public FP MaxX = FP.Parse("8");
+    // 纵深上下限 (视觉单位，即屏幕纵坐标)：与画面可走地面带匹配，同样随地图放大 8/7 (原地面距离 ±2.742857 × 0.368)
+    public FP MinY = FP.Parse("-1.009371");
+    public FP MaxY = FP.Parse("1.009371");
 
     /// <summary>
     /// 将逻辑坐标的水平面 (x 横向, y 纵深) 夹取到地图边界内，返回撞墙事件

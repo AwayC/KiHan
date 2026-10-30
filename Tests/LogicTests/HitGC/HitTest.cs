@@ -47,8 +47,8 @@ static class Program
     static void Run(string tween, int frames, bool print, out long alloc, out int hits)
     {
         var world = new BattleWorld(new MapLogic());
-        var a = Make(1, 1, new FPVector3(FP.Parse("6.1"), FP.Zero, FP.Zero), false, tween);
-        var t = Make(2, 2, new FPVector3(FP.Parse("6.9"), FP.Zero, FP.Zero), false, tween);
+        var a = Make(1, 1, new FPVector3(FP.Parse("7.1"), FP.Zero, FP.Zero), false, tween);
+        var t = Make(2, 2, new FPVector3(FP.Parse("7.9"), FP.Zero, FP.Zero), false, tween);
         world.AddCharacter(a); world.AddCharacter(t);
         alloc = 0; hits = 0;
         var frame = new RoomFrame();
@@ -66,7 +66,7 @@ static class Program
 
     static int Main()
     {
-        Console.WriteLine("== 目标贴右墙(x=7)：Slowly 0.6 / 0.2s，每 0.2s 可再次命中 ==");
+        Console.WriteLine("== 目标贴右墙(x=8)：Slowly 0.6 / 0.2s，每 0.2s 可再次命中 ==");
         Run("Slowly", 12, true, out _, out _);
         Run("Slowly", 60, false, out _, out _); // 预热 JIT
         Run("Slowly", 1020, false, out long alloc, out int hits);

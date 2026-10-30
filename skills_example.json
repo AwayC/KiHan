@@ -30,7 +30,7 @@
       "stages": [
         {
           "actionId": "skill2_1",
-          "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"]   // 同一段的后续动作 (autoNext / 落地 / 命中派生进入，不受准入裁决)
+          "followActions": ["skill2_land", "skill2_2"]   // 同一段的后续动作 (autoNext / 落地 / 命中分支进入，不受准入裁决)
                                                                                          // 必须列全：处于这些动作期间都算"正在释放本段"，离开后才结算 CD，
                                                                                          // 这些动作及其生成物命中时也按本技能获得查克拉
         }

@@ -52,9 +52,9 @@ static class Program
                 id = "idle", animKey = "idle", keepPlayingAnim = true, autoNextActionId = "idle",
                 beCancelledTag = new[] { new BeCancelledTagData { frameRange = All, cancelTag = new[] { "skill", "attack" } } }
             },
-            new ActionData { id = "hurt_1", animKey = "hurt" }, new ActionData { id = "hurt_2", animKey = "hurt" },
-            new ActionData { id = "hurt_toair", animKey = "hurt" }, new ActionData { id = "hurt_inair", animKey = "hurt" },
-            new ActionData { id = "hurt_fall", animKey = "hurt" }, new ActionData { id = "lie", animKey = "lie" },
+            new ActionData { id = "hurt", animKey = "hurt" }, new ActionData { id = "grabbed", animKey = "hurt" },
+            new ActionData { id = "float", animKey = "hurt" }, new ActionData { id = "fall", animKey = "hurt" },
+            new ActionData { id = "lie", animKey = "lie" },
             new ActionData { id = "standup", animKey = "standup" },
             new ActionData
             {
@@ -436,7 +436,7 @@ static class Program
 
             t.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "atk", priority = 200 });
             Step(w, ButtonMask.None, 3);
-            Check(p.Hurt == HurtState.Stun && p.action.CurrentAction.id == "hurt_1", $"被普攻命中进入僵直: {p.Hurt} {p.action.CurrentAction.id}");
+            Check(p.Hurt == HurtState.Stun && p.action.CurrentAction.id == "hurt", $"被普攻命中进入僵直: {p.Hurt} {p.action.CurrentAction.id}");
             Step(w, ButtonMask.Substitution);
             Check(p.action.CurrentAction.id == "sub" && p.Hurt == HurtState.Standup && p.IsInvincible && p.StunTicks == 0,
                 $"僵直中按替身：进入替身动作、起身无敌: {p.action.CurrentAction.id} {p.Hurt} 无敌={p.IsInvincible}");
@@ -586,6 +586,67 @@ static class Program
                 $"窗口打开时接派生，仍算释放 s1，CD 从释放 s1 时起已倒计时 5 帧: 动作={p.action.CurrentAction.id} 释放中={p.Skills.CastingSkill} CD={p.Skills.GetCooldown(0)} (预期 25)");
             int n = UntilIdle(w, p);
             Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(0) == 25 - n, $"派生播完回到 idle，CD 不重新计算: 用时 {n} 帧, CD={p.Skills.GetCooldown(0)} (预期 25-{n})");
+        }
+
+        Console.WriteLine("== 13. 命中记录与命中分支：前一段的命中跨动作保留，后一段经过分支帧时命中过才切换，否则走 autoNext；记录窗口外的命中不计；clearHitRecord 清掉之前残留的记录 ==");
+        {
+            // s1 (空中段)：攻击 2~4 帧，记录窗口可调 -> s1_land (落地段) 第 3 帧命中分支 -> s1_next，未命中 -> idle
+            List<ActionInfo> Branch(int recFrom, int recTo, bool clear)
+            {
+                var actions = Actions("proj");
+                actions[actions.FindIndex(a => a.id == "s1")] = new ActionData
+                {
+                    id = "s1", animKey = "s1", autoNextActionId = "s1_land", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
+                    clearHitRecord = clear, recordHitFrames = new[] { new FrameRange(recFrom, recTo) },
+                    attackPhase = Box(2, 4), attacks = new[] { new AttackData { attack = "1", hitStun = "0.3", canHitSameTarget = 1 } }
+                }.ToRuntime();
+                actions[actions.FindIndex(a => a.id == "atk")] = new ActionData
+                {
+                    id = "atk", animKey = "atk", autoNextActionId = "idle", cancelTag = Tag("attack"), commands = Cmd("Attack"),
+                    recordHitFrames = new[] { All }, attackPhase = Box(1, 3), attacks = new[] { new AttackData { attack = "1", hitStun = "0.3", canHitSameTarget = 1 } }
+                }.ToRuntime();
+                actions.Add(new ActionData
+                {
+                    id = "s1_land", animKey = "standup", autoNextActionId = "idle",
+                    hitBranches = new[] { new HitBranch { frame = 3, actionId = "s1_next", priority = 50 } }
+                }.ToRuntime());
+                actions.Add(new ActionData { id = "s1_next", animKey = "vanish", autoNextActionId = "idle" }.ToRuntime());
+                return actions;
+            }
+
+            // 释放 s1 后记录经过的动作序列；staleHit：先用会写记录的普攻打中目标，再把目标移走后释放 s1
+            string Trace(List<ActionInfo> actions, bool targetInRange, bool staleHit = false)
+            {
+                var p = Player(actions);
+                var t = Make(2, 2, "0.9", actions, false);
+                var w = World(p, t);
+                if (staleHit)
+                {
+                    Step(w, ButtonMask.Attack);
+                    UntilIdle(w, p);
+                }
+                if (!targetInRange) t.motion.Reset(new FPVector3(FP.Parse("6"), FP.Zero, FP.Zero));
+                Step(w, ButtonMask.Skill1);
+                var seen = new List<string>();
+                for (int i = 0; i < 40; i++)
+                {
+                    string id = p.action.CurrentAction.id;
+                    if (seen.Count == 0 || seen[seen.Count - 1] != id) seen.Add(id);
+                    Step(w);
+                }
+                return string.Join(">", seen);
+            }
+
+            string hit = Trace(Branch(0, 9, true), true);
+            Check(hit == "s1>s1_land>s1_next>idle", $"空中段命中，落地段第 3 帧切到下一段: {hit}");
+            string miss = Trace(Branch(0, 9, true), false);
+            Check(miss == "s1>s1_land>idle", $"未命中：落地段播完回 idle: {miss}");
+            string outside = Trace(Branch(6, 9, true), true);
+            Check(outside == "s1>s1_land>idle", $"命中发生在记录窗口 (6~9 帧) 之外不计入: {outside}");
+            string cleared = Trace(Branch(0, 9, true), false, staleHit: true);
+            Check(cleared == "s1>s1_land>idle", $"普攻留下的命中记录被 s1 的 clearHitRecord 清空: {cleared}");
+            string stale = Trace(Branch(0, 9, false), false, staleHit: true);
+            Check(stale == "s1>s1_land>s1_next>idle", $"不清空时沿用之前的命中记录 (对照组): {stale}");
         }
 
         Console.WriteLine(_fail == 0 ? "\n全部通过" : $"\n失败 {_fail} 项");

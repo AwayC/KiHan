@@ -50,6 +50,18 @@ namespace KiHan.Logic
         [Tooltip("受击中可以凭指令强制进入 (替身术)：忽略被取消窗口，进入后解除受击状态并进入起身无敌")]
         public bool breakHurt;
 
+        [Tooltip("进入本动作时清空命中记录 (技能第一段)")]
+        public bool clearHitRecord;
+
+        [Tooltip("本动作的攻击在这些动画帧命中时写入命中记录 (跨动作保留，直到 clearHitRecord 的动作清空)")]
+        public FrameRange[] recordHitFrames;
+
+        [Tooltip("命中分支：经过 frame 且命中记录为真时切换到 actionId")]
+        public HitBranch[] hitBranches;
+
+        [Tooltip("浮空受击动作 (float) 专用：空中受击与触地弹起时从第几个切片步 (0 起) 开始播放")]
+        public int airHitStep;
+
         /// <summary>
         /// 全局通用确定性字符串 -> FP 解析器 (纯整型位移，0 浮点乘除法)
         /// </summary>
@@ -101,6 +113,10 @@ namespace KiHan.Logic
             info.priority = priority;
             info.onLand = onLand != null ? onLand.ToRuntime() : default;
             info.breakHurt = breakHurt;
+            info.clearHitRecord = clearHitRecord;
+            info.recordHitFrames = recordHitFrames ?? Array.Empty<FrameRange>();
+            info.hitBranches = hitBranches ?? Array.Empty<HitBranch>();
+            info.airHitStep = airHitStep;
 
             if (events != null)
             {
@@ -368,7 +384,7 @@ namespace KiHan.Logic
     }
 
     /// <summary>
-    /// 平推配置 DTO：x 攻击者面朝方向前方, y 纵深 (字符串，逻辑单位)，inSec 秒内按 tweenMethod 完成
+    /// 平推配置 DTO：x 攻击者面朝方向前方, y 纵深 (视觉单位) (字符串，逻辑单位)，inSec 秒内按 tweenMethod 完成
     /// </summary>
     [Serializable]
     public struct PushData
@@ -394,7 +410,7 @@ namespace KiHan.Logic
     }
 
     /// <summary>
-    /// 击飞速度配置 DTO：z 竖直初速度, x 攻击者面朝方向前方, y 纵深 (字符串，单位/秒)；三项都留空表示未配置
+    /// 击飞速度配置 DTO：z 竖直初速度, x 攻击者面朝方向前方, y 纵深 (视觉单位) (字符串，单位/秒)；三项都留空表示未配置
     /// </summary>
     [Serializable]
     public struct LaunchData
@@ -450,15 +466,35 @@ namespace KiHan.Logic
 
         public ActionChangeData releaseActionChange;
 
+        [Tooltip("被抓姿势：目标进入的动作、起始切片步 (0 起) 与是否定格；留空使用 hurtAction / grabbed")]
+        public GrabPoseData pose;
+
         public GrabInfo ToRuntime()
         {
             return new GrabInfo
             {
                 enabled = enabled,
                 anchor = string.IsNullOrEmpty(anchor) ? GrabInfo.DefaultAnchor : anchor,
-                releaseActionChange = releaseActionChange != null ? releaseActionChange.ToRuntime() : default
+                releaseActionChange = releaseActionChange != null ? releaseActionChange.ToRuntime() : default,
+                pose = new GrabPoseInfo { action = pose.action ?? string.Empty, step = pose.step, hold = pose.hold }
             };
         }
+    }
+
+    /// <summary>
+    /// 被抓姿势配置 DTO
+    /// </summary>
+    [Serializable]
+    public struct GrabPoseData
+    {
+        [Tooltip("目标进入的动作 id (如 float)")]
+        public string action;
+
+        [Tooltip("起始切片步 (0 起)")]
+        public int step;
+
+        [Tooltip("定格在该切片步，直到被释放或换姿势")]
+        public bool hold;
     }
 
     /// <summary>
@@ -467,7 +503,7 @@ namespace KiHan.Logic
     [Serializable]
     public struct SuctionData
     {
-        [Tooltip("吸附核心点本地偏移 (字符串，x 前方, y 纵深)")]
+        [Tooltip("吸附核心点本地偏移 (字符串，x 前方, y 纵深 (视觉单位))")]
         public string centerX;
         public string centerY;
 
@@ -500,7 +536,7 @@ namespace KiHan.Logic
         [Tooltip("本段水平总位移 x (字符串，面朝方向前方为正)")]
         public string moveX;
 
-        [Tooltip("本段水平总位移 y (字符串，纵深)")]
+        [Tooltip("本段水平总位移 y (字符串，纵深，视觉单位)")]
         public string moveY;
 
         [Tooltip("水平位移缓动：Linear / Slowly，留空为 Linear")]
@@ -515,7 +551,7 @@ namespace KiHan.Logic
         [Tooltip("在 frameRange.x 帧设置的水平惯性速度 x (字符串，单位/秒，面朝方向前方为正)，与 velocityY 都留空表示不设置")]
         public string velocityX;
 
-        [Tooltip("在 frameRange.x 帧设置的水平惯性速度 y (字符串，单位/秒，纵深)")]
+        [Tooltip("在 frameRange.x 帧设置的水平惯性速度 y (字符串，单位/秒，纵深，视觉单位)")]
         public string velocityY;
 
         public RootMotionSegment ToRuntime()

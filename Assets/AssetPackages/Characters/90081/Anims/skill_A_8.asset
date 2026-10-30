@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: skill_A_8
+  m_EditorClassIdentifier: 
+  AnimName: skill_A_8
+  Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
+  Steps:
+  - FrameIndex: 591
+    Duration: 4
+  - FrameIndex: 592
+    Duration: 4
+  - FrameIndex: 593
+    Duration: 4
+  - FrameIndex: 594
+    Duration: 4
+  - FrameIndex: 595
+    Duration: 4
+  - FrameIndex: 596
+    Duration: 4
+  - FrameIndex: 597
+    Duration: 4
+  - FrameIndex: 598
+    Duration: 4
+  - FrameIndex: 599
+    Duration: 4
+  - FrameIndex: 600
+    Duration: 4
+  - FrameIndex: 601
+    Duration: 4
+  - FrameIndex: 602
+    Duration: 4
+  - FrameIndex: 603
+    Duration: 4
+  - FrameIndex: 604
+    Duration: 4
+  - FrameIndex: 605
+    Duration: 4
+  - FrameIndex: 606
+    Duration: 4
+  - FrameIndex: 607
+    Duration: 4
+  - FrameIndex: 608
+    Duration: 3
+  - FrameIndex: 609
+    Duration: 1

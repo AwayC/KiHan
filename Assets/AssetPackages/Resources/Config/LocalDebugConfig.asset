@@ -18,5 +18,5 @@ MonoBehaviour:
     characterId: 90001
     summons: []
   player2:
-    characterId: 90001
+    characterId: 90003
     summons: []

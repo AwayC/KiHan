@@ -110,3 +110,5 @@ Assets/temp.meta
 !Tests/LogicTests/**/*.csproj
 Tests/LogicTests/**/bin/
 Tests/LogicTests/**/obj/
+# 原版逆向资料 (映射表、密钥、解包/解密产物)：仅本地使用，禁止提交
+/Reverse/

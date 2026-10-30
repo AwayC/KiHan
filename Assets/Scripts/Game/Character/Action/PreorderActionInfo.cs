@@ -29,12 +29,18 @@ namespace KiHan.Logic
         /// </summary>
         public bool KeepFrame;
 
-        public PreorderActionInfo(string actionId, int priority = 0, int fromFrame = 0, bool keepFrame = false)
+        /// <summary>
+        /// 切换后定格在起始帧 (不推进动画，如被抓姿势)
+        /// </summary>
+        public bool Hold;
+
+        public PreorderActionInfo(string actionId, int priority = 0, int fromFrame = 0, bool keepFrame = false, bool hold = false)
         {
             ActionId = actionId;
             Priority = priority;
             FromFrame = fromFrame;
             KeepFrame = keepFrame;
+            Hold = hold;
         }
     }
 }

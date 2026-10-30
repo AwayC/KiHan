@@ -10,6 +10,10 @@ namespace KiHan.Logic
     public class EffectLayerInfo
     {
         public Sprite Sprite;
+
+        /// <summary>
+        /// 图层中心相对主精灵中心的偏移 (像素，y 向上)：图层节点挂在主精灵节点下，渲染位置 = 脚底 + 帧 Offset + 本 Offset
+        /// </summary>
         public Vector2 Offset;
         public Color TintColor = Color.white;
         /// <summary>
@@ -30,7 +34,8 @@ namespace KiHan.Logic
         public Vector2Int Size;
 
         /// <summary>
-        /// 纵深厚度 (像素)
+        /// 纵深半轴 (像素，视觉单位，与原版判定盒 z 尺寸一致)：盒在纵深上覆盖 脚底纵深 ± Side，
+        /// 两盒纵深相交即 |Δ纵深| ≤ 双方 Side 之和
         /// </summary>
         public int Side;
 
@@ -60,7 +65,7 @@ namespace KiHan.Logic
             FP cz = rootPos.z + GameConfig.PixelToUnit(Center.y);
             FP halfW = GameConfig.PixelToUnit(Size.x) * FP.Half;
             FP halfH = GameConfig.PixelToUnit(Size.y) * FP.Half;
-            FP halfD = GameConfig.PixelToUnit(Side) * FP.Half;
+            FP halfD = GameConfig.PixelToUnit(Side);
 
             return new FPBox(
                 new FPVector3(cx - halfW, rootPos.y - halfD, cz - halfH),

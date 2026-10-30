@@ -76,7 +76,7 @@ namespace KiHan.Logic
         public ActionChangeInfo selfActionChange;
 
         /// <summary>
-        /// 地面受击动作 id (僵直 / 击飞 / 被抓)，留空使用 HurtActionIds 的默认动作；空中受击固定为 hurt_inair
+        /// 地面受击动作 id (僵直 / 击飞 / 被抓)，留空使用 HurtActionIds 的默认动作；空中受击固定为 float (从 airHitStep 切片步起)
         /// </summary>
         public string hurtAction;
 

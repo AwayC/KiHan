@@ -161,6 +161,17 @@ namespace KiHan.Logic
         private int _wasFrame = 0;
 
         /// <summary>
+        /// 进入当前动作时的起始帧 (受控锁定循环时从这里重播)
+        /// </summary>
+        private int _entryFrame = 0;
+
+        /// <summary>
+        /// 本逻辑帧推进经过的动画帧 [_tickFromFrame, _tickToFrame) (Tick 记录，FlushPreorders 检查命中分支用)
+        /// </summary>
+        private int _tickFromFrame = 0;
+        private int _tickToFrame = 0;
+
+        /// <summary>
         /// 核心驱动：由房间逻辑帧主循环显式调用 (纯确定性推进，严禁使用 Time.deltaTime)
         /// </summary>
         public void Tick()
@@ -217,16 +228,58 @@ namespace KiHan.Logic
 
             // 9. 动作切换不在此处执行：统一延迟到 FlushPreorders 裁决
             //    保证本逻辑帧的物理与命中检测使用的仍是实际推进了 [TickFromFrame, TickToFrame) 这些动画帧的动作
+            _tickFromFrame = _wasFrame;
+            _tickToFrame = _curFrame;
             _wasFrame = _curFrame;
         }
 
         /// <summary>
-        /// 裁决本逻辑帧的全部动作预约 (主动打断 / autoNext / 落地 / 命中)，按优先级当帧生效
-        /// 由 BattleWorld 在本帧物理与打击结算全部完成后调用
+        /// 裁决本逻辑帧的全部动作预约 (主动打断 / autoNext / 落地 / 命中 / 命中分支)，按优先级当帧生效
+        /// 由 BattleWorld 在本帧物理与打击结算全部完成后调用 (本帧的命中已写入命中记录，命中分支可以立即判断)
         /// </summary>
         public void FlushPreorders()
         {
+            PreorderHitBranches();
             ResolvePreorders();
+        }
+
+        /// <summary>
+        /// 命中记录：跨动作保留，进入 clearHitRecord 的动作时清空 (对应原版 1013 / 1014 / 1015)
+        /// </summary>
+        public bool HitRecorded { get; private set; }
+
+        /// <summary>
+        /// 本动作的攻击在动画帧 frame 命中 (含被霸体抵挡、目标被抓中)：落在 recordHitFrames 内则写入命中记录
+        /// </summary>
+        public void RecordHit(int frame)
+        {
+            FrameRange[] ranges = CurrentAction.recordHitFrames;
+            if (ranges == null) return;
+            for (int i = 0; i < ranges.Length; i++)
+            {
+                if (frame >= ranges[i].x && frame <= ranges[i].y)
+                {
+                    HitRecorded = true;
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 本逻辑帧推进经过的命中分支帧：命中记录为真时预约切换 (受控锁定时不切换)
+        /// </summary>
+        private void PreorderHitBranches()
+        {
+            HitBranch[] branches = CurrentAction.hitBranches;
+            if (!HitRecorded || ControlLocked || branches == null || _tickToFrame <= _tickFromFrame) return;
+
+            for (int i = 0; i < branches.Length; i++)
+            {
+                if (branches[i].frame >= _tickFromFrame && branches[i].frame < _tickToFrame)
+                {
+                    _preorderActions.Add(new PreorderActionInfo(branches[i].actionId, branches[i].priority + CurrentAction.priority, 0));
+                }
+            }
         }
 
         /// <summary>
@@ -248,7 +301,8 @@ namespace KiHan.Logic
         {
             if (_preorderActions.Count <= 0 && ControlLocked && _loopWhileLocked && anim != null && anim.IsFinished)
             {
-                RestartCurrentAnim();
+                // 锁定循环从进入时的起始帧重播 (如浮空动作从空中受击的切片步起播后循环)
+                RestartCurrentAnim(_entryFrame);
             }
             else if (_preorderActions.Count > 0)
             {
@@ -264,7 +318,7 @@ namespace KiHan.Logic
                 }
                 else
                 {
-                    ChangeAction(winner.ActionId, winner.FromFrame, winner.KeepFrame);
+                    ChangeAction(winner.ActionId, winner.FromFrame, winner.KeepFrame, winner.Hold);
                 }
             }
 
@@ -565,7 +619,7 @@ namespace KiHan.Logic
             return false;
         }
 
-        private void ChangeAction(string actionId, int fromFrame, bool keepFrame = false)
+        private void ChangeAction(string actionId, int fromFrame, bool keepFrame = false, bool hold = false)
         {
             ActionInfo aInfo = GetActionById(actionId, out bool foundAction);
             if (foundAction)
@@ -574,8 +628,11 @@ namespace KiHan.Logic
 
                 ActionInfo previous = CurrentAction;
                 anim?.CrossFade(aInfo.animKey, 0, fromFrame);
+                if (anim != null) anim.Held = hold;
+                _entryFrame = keepFrame ? 0 : fromFrame;
                 CurrentAction = aInfo;
                 ActionSerial++;
+                if (aInfo.clearHitRecord) HitRecorded = false;
 
                 CurrentBeCancelledTag.Clear();
                 if (aInfo.beCancelledTag != null)
@@ -597,6 +654,8 @@ namespace KiHan.Logic
                 RootMotionMove = FPVector3.zero;
                 _curFrame = fromFrame;
                 _wasFrame = fromFrame;
+                _tickFromFrame = fromFrame;
+                _tickToFrame = fromFrame;
 
                 // 面向翻转处理 (与是否挂有输入组件无关)
                 FacingLeft = aInfo.inverse ? !_facingLeft : _facingLeft;
@@ -612,6 +671,7 @@ namespace KiHan.Logic
         {
             _preorderActions.Clear();
             Unlock();
+            HitRecorded = false;
             ChangeAction(actionId, 0);
         }
 
@@ -624,13 +684,31 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 当前动作从第 0 帧重新播放 (同步重置帧游标，避免 RootMotion/区间判定以旧帧号计算出负增量)
+        /// 当前动作从指定帧 (默认第 0 帧) 重新播放 (同步重置帧游标，避免 RootMotion/区间判定以旧帧号计算出负增量)
         /// </summary>
-        private void RestartCurrentAnim()
+        private void RestartCurrentAnim(int fromFrame = 0)
         {
-            anim?.Play(CurrentAction.animKey, 0);
-            _curFrame = 0;
-            _wasFrame = 0;
+            anim?.Play(CurrentAction.animKey, fromFrame);
+            _curFrame = fromFrame;
+            _wasFrame = fromFrame;
+        }
+
+        /// <summary>
+        /// 解除动画定格 (如被抓姿势在释放时恢复播放)
+        /// </summary>
+        public void ReleaseHold()
+        {
+            if (anim != null) anim.Held = false;
+        }
+
+        /// <summary>
+        /// 动作 actionId 的动画第 step 个切片步 (0 起) 的起始帧号；动作或动画不存在时返回 0
+        /// </summary>
+        public int FirstFrameOfStep(string actionId, int step)
+        {
+            if (anim == null || step <= 0) return 0;
+            ActionInfo info = GetActionById(actionId, out bool found);
+            return found ? anim.FirstFrameOfStep(info.animKey, step) : 0;
         }
 
         private ActionInfo GetActionById(string actionId, out bool found)
@@ -659,6 +737,16 @@ namespace KiHan.Logic
             return -1;
         }
 
+        /// <summary>
+        /// 已配置的地面僵直变体 (hurt / hurt_1 / hurt_2 / hurt_3，SetAllActions 时收集)
+        /// </summary>
+        public List<string> StandHurtVariants { get; } = new List<string>(4);
+
+        /// <summary>
+        /// 浮空动作 float 在空中受击 / 触地弹起时的起播帧 (float.airHitStep 切片步的起始帧，SetAllActions 时计算)
+        /// </summary>
+        public int FloatAirHitFrame { get; private set; }
+
         public void SetAllActions(List<ActionInfo> actions, string defaultActionId)
         {
             // 直接替换引用：不能先 Clear 旧列表，否则传入的正是当前列表时会把动作库清空
@@ -672,7 +760,12 @@ namespace KiHan.Logic
                 Debug.LogError($"[ActionController] 缺少通用受击动作: {string.Join(", ", missing)}");
             }
 
+            HurtActionIds.CollectStandVariants(AllActions, StandHurtVariants);
+            ActionInfo floatInfo = GetActionById(HurtActionIds.Float, out bool hasFloat);
+            FloatAirHitFrame = hasFloat ? FirstFrameOfStep(HurtActionIds.Float, floatInfo.airHitStep) : 0;
+
             ValidateGrabAnchors();
+            HitRecorded = false;
             ChangeAction(defaultActionId, 0);
         }
 
@@ -728,7 +821,8 @@ namespace KiHan.Logic
                             picked.id,
                             acInfo.priority + picked.priority,
                             acInfo.keepFrame ? _curFrame : acInfo.fromFrame,
-                            acInfo.keepFrame
+                            acInfo.keepFrame,
+                            acInfo.hold
                         ));
                         break;
                     }
@@ -742,7 +836,8 @@ namespace KiHan.Logic
                             aInfo.id,
                             acInfo.priority + aInfo.priority,
                             acInfo.keepFrame ? _curFrame : acInfo.fromFrame,
-                            acInfo.keepFrame
+                            acInfo.keepFrame,
+                            acInfo.hold
                         ));
                     }
                     break;

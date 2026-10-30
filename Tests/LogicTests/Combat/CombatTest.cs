@@ -48,16 +48,16 @@ static class Program
     {
         var idle = Act("idle", "idle", true);
         // 通用受击动作：固定 id，只提供动画；autoNext / onLand / 霸体都不配置，流程与起身无敌由框架驱动
-        var hurt1 = Act("hurt_1", "");
-        var hurt2 = Act("hurt_2", "");
-        var toAir = Act("hurt_toair", "");
-        var inAir = Act("hurt_inair", "");
-        var fall = Act("hurt_fall", "");
+        var hurt = Act("hurt", "");
+        var grabbed = Act("grabbed", "");
+        var flt = Act("float", "");
+        flt.airHitStep = 2; // 空中受击 / 触地弹起从第 2 帧 (第 3 个切片步) 起播
+        var fall = Act("fall", "");
         var lie = Act("lie", "");
         var standup = Act("standup", "");
         var armored = Act("armored", "armored", true);
         armored.armorPhase = new[] { new ArmorPhaseInfo { range = new FrameRange(0, 99), level = ArmorLevel.Super } };
-        return new List<ActionInfo> { idle, hurt1, hurt2, toAir, inAir, fall, lie, standup, armored };
+        return new List<ActionInfo> { idle, hurt, grabbed, flt, fall, lie, standup, armored };
     }
 
     static CharacterObj Make(int id, int team, string x, string start, params ActionInfo[] extra)
@@ -67,7 +67,8 @@ static class Program
         actions.AddRange(extra);
         foreach (var a in actions)
         {
-            int frames = a.id == "lie" ? 20 : a.id == "standup" ? 6 : a.id.StartsWith("hurt") ? 3 : 8;
+            int frames = a.id == "lie" ? 20 : a.id == "standup" ? 6 : a.id == "float" ? 6 :
+                a.id.StartsWith("hurt") || a.id == "fall" || a.id == "grabbed" ? 3 : 8;
             if (a.id == "grab" || a.id == "carry") frames = 10;
             Anchors.TryGetValue(a.animKey, out var anchorOf);
             anim.RegisterAnim(a.animKey, Anim(frames, a.attacks != null && a.attacks.Length > 0, anchorOf));
@@ -104,7 +105,7 @@ static class Program
 
     static int Main()
     {
-        // 不配置 hurtAction：僵直默认进入 hurt_1
+        // 不配置 hurtAction：僵直默认进入 hurt (公共动作集只有一个僵直变体)
         var normal = new AttackData { attack = "50", canHitSameTarget = 1, hitStun = "0.3" };
 
         Console.WriteLine("== 1. 霸体：目标 Super 霸体，普通攻击只扣血；破霸 Super 的攻击完整受击 ==");
@@ -120,7 +121,7 @@ static class Program
             var a2 = Make(1, 1, "0", "atk", Attack("atk", breaker, 8));
             var t2 = Make(2, 2, "0.9", "armored");
             var w2 = World(a2, t2); Step(w2);
-            Check(t2.Hurt == HurtState.Stun && t2.action.CurrentAction.id == "hurt_1", $"破霸后完整受击: {t2.Hurt}, {t2.action.CurrentAction.id}");
+            Check(t2.Hurt == HurtState.Stun && t2.action.CurrentAction.id == "hurt", $"破霸后完整受击: {t2.Hurt}, {t2.action.CurrentAction.id}");
         }
 
         Console.WriteLine("== 1b. 生命值归零后不再受击；无限血 (训练场) 目标照常扣血，归零时立即回满，可持续被命中 ==");
@@ -169,18 +170,19 @@ static class Program
             Check(w2.HitEvents.Count == 1 && w2.HitEvents[0].Reaction == HitReaction.Lying, $"扫地命中, 反应={(w2.HitEvents.Count > 0 ? w2.HitEvents[0].Reaction.ToString() : "无")}");
             Check(t2.action.CurrentAction.id == "lie" && t2.Hurt == HurtState.Lying && F(t2.Hp) == 950f, $"保持倒地并扣血: {t2.action.CurrentAction.id}, Hp={F(t2.Hp)}");
 
-            var otgLaunch = otg; otgLaunch.launch = new LaunchData { z = "6" }; // 不配置 hurtAction：默认 hurt_toair
+            var otgLaunch = otg; otgLaunch.launch = new LaunchData { z = "6" }; // 不配置 hurtAction：默认 float 从头播放
             var a3 = Make(1, 1, "0", "atk", Attack("atk", otgLaunch, 8));
             var t3 = Make(2, 2, "0.9", "idle");
             var w3 = WorldLying(a3, t3); Step(w3, 2);
-            Check(t3.Hurt == HurtState.Launch && t3.action.CurrentAction.id == "hurt_toair" && F(t3.motion.Position.z) > 0, $"扫地挑起: {t3.Hurt}, {t3.action.CurrentAction.id}, z={F(t3.motion.Position.z):F3}");
+            Check(t3.Hurt == HurtState.Launch && t3.action.CurrentAction.id == "float" && t3.action.anim.ElapsedFrames <= 1 && F(t3.motion.Position.z) > 0,
+                $"扫地挑起从头播放 float: {t3.Hurt}, {t3.action.CurrentAction.id} 帧 {t3.action.anim.ElapsedFrames}, z={F(t3.motion.Position.z):F3}");
         }
 
         Console.WriteLine("== 4. 空中追击：空中目标被 air z=4 的攻击命中，竖直速度重置为 4；未配置 air 时使用全局默认 ==");
         {
             var juggle = normal; juggle.air = new LaunchData { z = "4" }; juggle.canHitSameTarget = 1;
             var a = Make(1, 1, "0", "idle", Attack("atk", juggle, 8));
-            var t = Make(2, 2, "0.9", "hurt_fall");
+            var t = Make(2, 2, "0.9", "fall");
             var w = World(a, t);
             t.motion.Position = new FPVector3(FP.Parse("0.9"), FP.Zero, FP.Parse("0.5"));
             t.motion.Launch(FP.Parse("-3"));
@@ -189,12 +191,13 @@ static class Program
             Step(w);
             Check(w.HitEvents.Count == 1 && w.HitEvents[0].Reaction == HitReaction.Launch, "空中命中 -> 击飞反应");
             Check(F(t.motion.VelocityZ) == 4f, $"竖直速度被重置为 4: vz={F(t.motion.VelocityZ):F3}");
-            Check(t.action.CurrentAction.id == "hurt_inair", $"空中受击默认 hurt_inair: {t.action.CurrentAction.id}");
+            Check(t.action.CurrentAction.id == "float" && t.action.anim.ElapsedFrames >= 2,
+                $"空中受击播 float 并从 airHitStep 2 起播: {t.action.CurrentAction.id} 帧 {t.action.anim.ElapsedFrames}");
 
             // 未配置 air 的普通攻击 (带 push) 命中浮空目标：按全局默认 z 5、向前 1 重设速度，push 不生效
             var plain = normal; plain.push = new PushData { x = "2", inSec = "0.2" };
             var a2 = Make(1, 1, "0", "idle", Attack("atk", plain, 8));
-            var t2 = Make(2, 2, "0.9", "hurt_fall");
+            var t2 = Make(2, 2, "0.9", "fall");
             var w2 = World(a2, t2);
             t2.motion.Position = new FPVector3(FP.Parse("0.9"), FP.Zero, FP.Parse("0.5"));
             t2.motion.Launch(FP.Parse("-3"));
@@ -217,7 +220,7 @@ static class Program
             Anchors["grab"] = f => new Vector2Int(60, 50);
             Anchors["carry"] = f => f <= 5 ? new Vector2Int(60 + 10 * f, 50 + 10 * f) : (Vector2Int?)null;
             var grabAtk = new AttackData { attack = "20", canHitSameTarget = 1,
-                grab = new GrabData { enabled = true, releaseActionChange = To("hurt_fall") } };
+                grab = new GrabData { enabled = true, releaseActionChange = To("fall") } };
             var grab = Attack("grab", grabAtk, 9, "carry");
             var carry = Act("carry", "idle");
             carry.rootMotion = new[] { new RootMotionSegmentData { frameRange = new FrameRange(0, 9), moveX = "1" }.ToRuntime() };
@@ -226,7 +229,7 @@ static class Program
             var t = Make(2, 2, "0.9", "idle");
             var w = World(a, t);
             Step(w);
-            Check(t.Hurt == HurtState.Grabbed && a.GrabTarget == t && t.action.CurrentAction.id == "hurt_2", $"抓取成功, 默认受击动作: {t.Hurt}, {t.action.CurrentAction.id}");
+            Check(t.Hurt == HurtState.Grabbed && a.GrabTarget == t && t.action.CurrentAction.id == "grabbed", $"抓取成功, 默认受击动作: {t.Hurt}, {t.action.CurrentAction.id}");
             Step(w, 9);
             Check(a.action.CurrentAction.id == "carry" && a.GrabTarget == t, $"切到 carry 后仍保持抓取 (无需 holdGrab): {a.action.CurrentAction.id}");
             bool follow = true; string trace = "";
@@ -241,7 +244,7 @@ static class Program
             }
             Check(follow && a.GrabTarget == t, $"逐帧跟随锚点:{trace}");
             Step(w);
-            Check(a.GrabTarget == null && t.GrabbedBy == null && t.Hurt == HurtState.Launch && t.action.CurrentAction.id == "hurt_fall",
+            Check(a.GrabTarget == null && t.GrabbedBy == null && t.Hurt == HurtState.Launch && t.action.CurrentAction.id == "fall",
                 $"carry 第 6 帧锚点消失 -> 释放, 空中转击飞: {t.Hurt}, {t.action.CurrentAction.id}");
             Step(w, 40);
             Check(F(t.motion.Position.z) == 0f && t.Hurt != HurtState.Launch, $"落地 (弹起后倒地/起身): {t.Hurt}, {t.action.CurrentAction.id}");
@@ -296,7 +299,7 @@ static class Program
             float hp0 = F(t.Hp);
             Step(w);
             bool grabbedHit = w.HitEvents.Exists(e => e.TargetId == 2 && e.Reaction == HitReaction.GrabbedHit);
-            Check(grabbedHit && t.Hurt == HurtState.Grabbed && t.GrabbedBy == a && F(t.Hp) == hp0 - 50f && t.action.CurrentAction.id == "hurt_2",
+            Check(grabbedHit && t.Hurt == HurtState.Grabbed && t.GrabbedBy == a && F(t.Hp) == hp0 - 50f && t.action.CurrentAction.id == "grabbed",
                 $"第三方命中只扣血: 反应 GrabbedHit={grabbedHit}, {t.Hurt}, Hp {hp0}->{F(t.Hp)}, 动作 {t.action.CurrentAction.id}");
 
             d.action.SetAllActions(d.action.AllActions, "dgrab");
@@ -378,9 +381,106 @@ static class Program
 
         Console.WriteLine("== 9. 通用受击动作缺失检查 ==");
         {
-            var missing = HurtActionIds.FindMissing(new List<ActionInfo> { Act("idle", "idle"), Act("hurt_1", "idle") });
-            Check(missing.Count == 6 && !missing.Contains("hurt_1"), $"缺失: {string.Join(",", missing)}");
+            var missing = HurtActionIds.FindMissing(new List<ActionInfo> { Act("idle", "idle"), Act("hurt", "idle") });
+            Check(missing.Count == 5 && !missing.Contains("hurt"), $"缺失: {string.Join(",", missing)}");
             Check(HurtActionIds.FindMissing(CommonActions()).Count == 0, "公共动作集完整");
+        }
+
+        Console.WriteLine("== 9b. 僵直变体：未配 hurtAction 时在已配置的 hurt / hurt_1..3 中确定性随机；同输入同结果 ==");
+        {
+            var variants = new List<string> { "hurt", "hurt_1", "hurt_2", "hurt_3" };
+            var seen = new HashSet<string>();
+            bool stable = true;
+            for (uint f = 1; f <= 64; f++)
+            {
+                string pick = HurtActionIds.PickStand(variants, f, 2, 1);
+                seen.Add(pick);
+                if (pick != HurtActionIds.PickStand(variants, f, 2, 1)) stable = false;
+            }
+            Check(stable && seen.Count == 4, $"64 帧内 4 个变体都出现且结果稳定: {string.Join(",", seen)}");
+            Check(HurtActionIds.PickStand(new List<string> { "hurt" }, 7, 2, 1) == "hurt", "只有 hurt 时固定 hurt");
+
+            // 实战：目标配置了 hurt_1 / hurt_2，多次命中都落在已配置的变体里
+            var a = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
+            var t = Make(2, 2, "0.9", "idle", Act("hurt_1", ""), Act("hurt_2", ""));
+            Check(t.action.StandHurtVariants.Count == 3, $"收集到 3 个僵直变体: {string.Join(",", t.action.StandHurtVariants)}");
+            var w = World(a, t);
+            Step(w);
+            Check(t.Hurt == HurtState.Stun && t.action.StandHurtVariants.Contains(t.action.CurrentAction.id), $"命中进入僵直变体: {t.action.CurrentAction.id}");
+        }
+
+        Console.WriteLine("== 9c. 倒地时长固定为 lieSec (0.5s = 15 帧)，与 lie 动画长度 (20 帧) 无关，期间循环播放 lie ==");
+        {
+            var t = Make(2, 2, "0.9", "idle");
+            var w = World(t);
+            t.EnterLying();
+            int steps = 0;
+            while (t.Hurt != HurtState.Standup && steps < 40)
+            {
+                Step(w);
+                steps++;
+            }
+            Check(steps == 15 && t.action.CurrentAction.id == "standup", $"进入倒地后第 {steps} 帧起身: {t.Hurt}, {t.action.CurrentAction.id}");
+
+            var t2 = Make(2, 2, "0.9", "idle");
+            t2.lieSec = FP.Parse("1");
+            var w2 = World(t2);
+            t2.EnterLying();
+            Step(w2, 25);
+            Check(t2.IsLying && t2.action.CurrentAction.id == "lie", $"lieSec 1s 时 25 帧仍倒地 (lie 动画 20 帧循环): {t2.Hurt}, {t2.action.CurrentAction.id}");
+        }
+
+        Console.WriteLine("== 9d. 被抓姿势：grab.pose 取 float 第 3 步定格；后续抓取段带 pose 换姿势；释放后恢复播放转 fall ==");
+        {
+            Anchors["pgrab"] = f => new Vector2Int(60, 60);
+            Anchors["pgrab2"] = Anchors["pgrab"];
+            var poseAtk = new AttackData { attack = "10", canHitSameTarget = 3, hitSameTargetDelay = "0.1",
+                grab = new GrabData { enabled = true, releaseActionChange = To("fall"), pose = new GrabPoseData { action = "float", step = 3, hold = true } } };
+            var pgrab = Attack("pgrab", poseAtk, 9, "idle");
+            var a = Make(1, 1, "0", "pgrab", pgrab);
+            var t = Make(2, 2, "0.9", "idle");
+            var w = World(a, t);
+            Step(w);
+            Check(t.Hurt == HurtState.Grabbed && t.action.CurrentAction.id == "float" && t.action.anim.ElapsedFrames == 3 && t.action.anim.Held,
+                $"被抓进入 float 第 3 帧并定格: {t.action.CurrentAction.id} 帧 {t.action.anim.ElapsedFrames} 定格={t.action.anim.Held}");
+            Step(w, 2);
+            Check(t.action.anim.ElapsedFrames == 3 && t.action.CurrentAction.id == "float", $"定格期间不推进: 帧 {t.action.anim.ElapsedFrames}");
+
+            // 抓取者第二段换姿势 (float 第 1 步，不定格)
+            var poseAtk2 = poseAtk; poseAtk2.grab.pose = new GrabPoseData { action = "float", step = 1 };
+            var a2 = Make(1, 1, "0", "pgrab", Attack("pgrab", poseAtk, 2, "pgrab2"), Attack("pgrab2", poseAtk2, 9, "idle"));
+            var t2 = Make(2, 2, "0.9", "idle");
+            var w2 = World(a2, t2);
+            int seenFrame = -1; bool sawUnheld = false;
+            for (int i = 0; i < 20; i++)
+            {
+                Step(w2);
+                if (a2.action.CurrentAction.id == "pgrab2" && t2.Hurt == HurtState.Grabbed && !t2.action.anim.Held)
+                {
+                    sawUnheld = true;
+                    seenFrame = t2.action.anim.ElapsedFrames;
+                    break;
+                }
+            }
+            Check(sawUnheld && seenFrame >= 1 && seenFrame <= 2, $"第二段抓取命中换成 float 第 1 步、不定格: 帧 {seenFrame}");
+
+            // 释放 (锚点消失) 时在空中：解除定格，float 播完转 fall
+            Anchors["rgrab"] = f => f <= 3 ? new Vector2Int(60, 80) : (Vector2Int?)null;
+            var rgrab = Attack("rgrab", new AttackData { attack = "10", canHitSameTarget = 1,
+                grab = new GrabData { enabled = true, pose = new GrabPoseData { action = "float", step = 2, hold = true } } }, 1, "rcarry");
+            var rcarry = Act("rcarry", "idle");
+            Anchors["rcarry"] = Anchors["rgrab"];
+            var a3 = Make(1, 1, "0", "rgrab", rgrab, rcarry);
+            var t3 = Make(2, 2, "0.9", "idle");
+            var w3 = World(a3, t3);
+            string flow3 = "";
+            for (int i = 0; i < 30 && t3.Hurt != HurtState.Lying; i++)
+            {
+                Step(w3);
+                string id = t3.action.CurrentAction.id + (t3.action.anim.Held ? "(定格)" : "");
+                if (!flow3.EndsWith(id)) flow3 += (flow3.Length > 0 ? " > " : "") + id;
+            }
+            Check(flow3.StartsWith("float(定格) > float > fall"), $"释放后恢复播放并转 fall: {flow3}");
         }
 
         Console.WriteLine("== 10. 多段 RootMotion：前冲两段重叠相加、停顿、后撤 (Slowly)、二段跳、朝向镜像 ==");
@@ -522,8 +622,9 @@ static class Program
             Check(s2 == "mmmmmmmmmm" && p.FacingLeft && flips == 1 && x2 < x1 - 0.8f, $"推左立即转向且不闪烁: {s2}, 翻转 {flips} 次, x {x1:F3}->{x2:F3}");
             float y2 = F(p.motion.Position.y);
             string s3 = Run(2, 5);
-            Check(s3 == "mmmmm" && p.FacingLeft && F(p.motion.Position.y) > y2 + 0.3f, $"推正上纵深移动、朝向不变: {s3}, 朝左={p.FacingLeft}");
-            // 斜向两轴各自全速 (不归一化)：右下 6 帧的横向位移 = 正右 6 帧，纵深位移 = 正下 6 帧 (纵深保持在边界内)
+            Check(s3 == "mmmmm" && p.FacingLeft && F(p.motion.Position.y) > y2 + 0.25f, $"推正上纵深移动、朝向不变: {s3}, 朝左={p.FacingLeft}");
+            // 斜向两轴各自全速 (不归一化)：右下 6 帧的横向位移 = 正右 6 帧，纵深位移 = 正下 6 帧 (纵深保持在边界内)；
+            // 纵深为视觉单位，纵深速度 = 横向速度 × 0.368
             float xa = F(p.motion.Position.x);
             Run(0, 6);
             float dxAxis = F(p.motion.Position.x) - xa;
@@ -533,15 +634,16 @@ static class Program
             float xc = F(p.motion.Position.x), yc = F(p.motion.Position.y);
             Run(7, 6);
             float dxDiag = F(p.motion.Position.x) - xc, dyDiag = F(p.motion.Position.y) - yc;
-            Check(dxAxis > 0.5f && dyAxis < -0.5f && System.Math.Abs(dxDiag - dxAxis) < 1e-4f && System.Math.Abs(dyDiag - dyAxis) < 1e-4f,
-                $"斜向两轴独立全速: 轴向 ({dxAxis:F3},{dyAxis:F3}) 斜向 ({dxDiag:F3},{dyDiag:F3})");
+            Check(dxAxis > 0.5f && System.Math.Abs(dyAxis + dxAxis * 0.368f) < 1e-3f
+                && System.Math.Abs(dxDiag - dxAxis) < 1e-4f && System.Math.Abs(dyDiag - dyAxis) < 1e-4f,
+                $"斜向两轴独立全速、纵深 = 横向 × 0.368: 轴向 ({dxAxis:F3},{dyAxis:F3}) 斜向 ({dxDiag:F3},{dyDiag:F3})");
             string s4 = Run(255, 5);
             float x4 = F(p.motion.Position.x);
             string s5 = Run(255, 3);
             Check(s4.EndsWith("iiii") && F(p.motion.Position.x) == x4, $"松开回 idle 且停止: {s4}");
         }
 
-        Console.WriteLine("== 13. 浮空完整流程：toair -> inair -> fall -> 触地弹起(inair) -> fall -> 弹不起倒地 -> lie -> standup(无敌) -> idle(追加无敌) ==");
+        Console.WriteLine("== 13. 浮空完整流程：float -> fall -> 触地弹起(float 从 airHitStep 起) -> fall -> 弹不起倒地 -> lie (固定 lieSec) -> standup(无敌) -> idle(追加无敌) ==");
         {
             var launcher = normal; launcher.launch = new LaunchData { z = "10" };
             var a = Make(1, 1, "0", "atk", Attack("atk", launcher, 8));
@@ -591,7 +693,7 @@ static class Program
                 }
             }
             string flow = string.Join(" > ", seq);
-            Check(flow.StartsWith("hurt_toair > hurt_inair > hurt_fall > hurt_inair > hurt_fall > lie > standup > idle"), $"动作流: {flow}");
+            Check(flow.StartsWith("float > fall > float > fall > lie > standup > idle"), $"动作流: {flow}");
             // 落地速度 = 起跳速度 10 + 落地帧内多积分的部分 (至多一帧 g×0.7/30)，弹起速度 = 落地速度 × 0.5
             float maxOver = 0.5f * F(t.gravity * t.launchGravityScale) / 30f;
             Check(bounces == 1 && impact1 >= 5f && impact1 <= 5f + maxOver, $"弹起 1 次，速度 10×0.5=5 (+至多 {maxOver:F3}，击飞重力 ×0.7): 弹起 {bounces} 次, 速度 {impact1:F3}");
@@ -605,10 +707,11 @@ static class Program
                 new System.Text.Json.JsonSerializerOptions { IncludeFields = true });
             var acts = new List<ActionInfo>();
             foreach (var d in container.data) acts.Add(d.ToRuntime());
-            Check(acts.Count == 9 && HurtActionIds.FindMissing(acts).Count == 0, $"加载 {acts.Count} 个动作，通用受击动作齐全");
+            Check(acts.Count == 8 && HurtActionIds.FindMissing(acts).Count == 0, $"加载 {acts.Count} 个动作，通用受击动作齐全");
 
             var anim = new FrameAnimator();
-            foreach (var act in acts) anim.RegisterAnim(act.animKey, Anim(act.id == "lie" ? 20 : act.id == "standup" ? 6 : act.id.StartsWith("hurt") ? 3 : 8, false));
+            foreach (var act in acts) anim.RegisterAnim(act.animKey, Anim(act.id == "lie" ? 20 : act.id == "standup" ? 6 : act.id == "float" ? 6 :
+                act.id.StartsWith("hurt") || act.id == "fall" || act.id == "grabbed" ? 3 : 8, false));
             var ac = new ActionController { anim = anim };
             var p = new CharacterObj { action = ac, EntityId = 2, TeamId = 2, InputSlot = 0 };
             int errors = Debug.ErrorCount;
@@ -645,7 +748,7 @@ static class Program
                 if (seq.Count > 1 && id == "idle") break;
             }
             string flow = string.Join(" > ", seq);
-            Check(flow == "hurt_toair > hurt_inair > hurt_fall > hurt_inair > hurt_fall > lie > standup > idle", $"受击流程: {flow}");
+            Check(flow == "float > fall > float > fall > lie > standup > idle", $"受击流程: {flow}");
         }
 
         Console.WriteLine("== 15. 按键事件：只配 press 的键按住不连发、release 触发、press + release 点按 ==");

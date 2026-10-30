@@ -34,11 +34,11 @@ namespace KiHan.Logic
 public class CharacterSpriteLibrary : ScriptableObject
 {
     [Header("判定盒模板 (整数像素单位)")]
-    public LogicBox DefaultHurtBox = new LogicBox(new Vector2Int(0, 60), new Vector2Int(60, 140), 80);
-    public LogicBox DefaultHitBox = new LogicBox(new Vector2Int(40, 60), new Vector2Int(60, 60), 80);
+    public LogicBox DefaultHurtBox = new LogicBox(new Vector2Int(0, 60), new Vector2Int(60, 140), 20);
+    public LogicBox DefaultHitBox = new LogicBox(new Vector2Int(40, 60), new Vector2Int(60, 60), 40);
 
-    [Header("厚度预设 (Side Presets，整数像素)")]
-    public List<int> SidePresets = new List<int> { 50, 80, 100, 150 };
+    [Header("纵深半轴预设 (Side Presets，视觉像素；原版受击 20、普攻 40、技能 50~120)")]
+    public List<int> SidePresets = new List<int> { 20, 40, 50, 60, 120 };
 
     public List<SpriteFrameData> AllFrames = new List<SpriteFrameData>();
 

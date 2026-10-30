@@ -94,7 +94,7 @@ public class SpriteLibraryEditor : Editor
 
         using (new EditorGUILayout.VerticalScope(GUI.skin.box))
         {
-            EditorGUILayout.LabelField("厚度预设与全局套用 (Side Presets)", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("纵深半轴预设与全局套用 (Side Presets，视觉像素)", EditorStyles.boldLabel);
             for (int i = 0; i < _presetsProp.arraySize; i++)
             {
                 using (new EditorGUILayout.HorizontalScope())
@@ -110,7 +110,7 @@ public class SpriteLibraryEditor : Editor
                     }
                 }
             }
-            if (GUILayout.Button("+ 添加新厚度预设")) _presetsProp.InsertArrayElementAtIndex(_presetsProp.arraySize);
+            if (GUILayout.Button("+ 添加新纵深半轴预设")) _presetsProp.InsertArrayElementAtIndex(_presetsProp.arraySize);
         }
 
         if (_framesProp.arraySize == 0)
@@ -310,7 +310,7 @@ public class SpriteLibraryEditor : Editor
                 _editMode = (e.button == 0) ? 1 : 2;
                 BeginDragUndo("Draw Box");
                 _dragStartPos = mouseLogicPos;
-                int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80;
+                int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 20;
                 var nb = new LogicBox(Vector2Int.RoundToInt(mouseLogicPos), new Vector2Int(4, 4), side);
 
                 if (_editMode == 1)
@@ -534,7 +534,7 @@ public class SpriteLibraryEditor : Editor
                 {
                     listProp.InsertArrayElementAtIndex(listProp.arraySize);
                     var newBox = listProp.GetArrayElementAtIndex(listProp.arraySize - 1);
-                    int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 80;
+                    int side = (_lib.SidePresets.Count > _activePresetIndex) ? _lib.SidePresets[_activePresetIndex] : 20;
                     newBox.FindPropertyRelative("Center").vector2IntValue = isHitBox ? new Vector2Int(30, 50) : new Vector2Int(0, 50);
                     newBox.FindPropertyRelative("Size").vector2IntValue = isHitBox ? new Vector2Int(50, 50) : new Vector2Int(50, 120);
                     newBox.FindPropertyRelative("Side").intValue = side;
@@ -556,9 +556,9 @@ public class SpriteLibraryEditor : Editor
                     EditorGUILayout.LabelField("Tag:", GUILayout.Width(28));
                     EditorGUILayout.PropertyField(boxProp.FindPropertyRelative("Tag"), GUIContent.none, GUILayout.Width(60));
 
-                    // 厚度：可直接输入 (最小 0)，右侧 ▼ 快速套用预设
+                    // 纵深半轴：可直接输入 (最小 0)，右侧 ▼ 快速套用预设
                     SerializedProperty sideProp = boxProp.FindPropertyRelative("Side");
-                    EditorGUILayout.LabelField("厚:", GUILayout.Width(20));
+                    EditorGUILayout.LabelField("深:", GUILayout.Width(20));
                     EditorGUI.BeginChangeCheck();
                     int side = EditorGUILayout.DelayedIntField(sideProp.intValue, GUILayout.Width(40));
                     if (EditorGUI.EndChangeCheck()) sideProp.intValue = Mathf.Max(0, side);
@@ -622,7 +622,7 @@ public class SpriteLibraryEditor : Editor
 
     private void ApplySideToAll(int side)
     {
-        if (!EditorUtility.DisplayDialog("批量更新厚度", $"确定将帧库内所有攻击盒与受击盒的纵深厚度统一设为 {side} 吗？", "确定", "取消")) return;
+        if (!EditorUtility.DisplayDialog("批量更新纵深半轴", $"确定将帧库内所有攻击盒与受击盒的纵深半轴统一设为 {side} 吗？", "确定", "取消")) return;
         Undo.RecordObject(_lib, "Global Apply Side");
         foreach (var f in _lib.AllFrames)
         {

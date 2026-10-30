@@ -12,11 +12,11 @@ namespace KiHan.Logic
     ///    投掷做法：抓取锚点在第 N 帧消失 (先于命中检测释放)，同一帧开启的攻击即按正常受击结算
     /// 3. 霸体裁决：攻击破霸等级 &lt; 受击者霸体等级 -> 只结算伤害，不产生任何受击反应
     /// 4. 受击反应 (按优先级)，未配置 hurtAction 时使用 HurtActionIds 中的固定动作：
-    ///    - 抓取：目标锁定到攻击者锚点 (默认 hurt_2)
-    ///    - 空中受击：目标已浮空时所有攻击都按 air (未配置用 GameConfig.DefaultAirLaunch) 重设速度，播 hurt_inair
-    ///    - 地面击飞：配置了 launch (默认 hurt_toair)；倒地目标被 canHitLying 的击飞攻击挑起
+    ///    - 抓取：目标锁定到攻击者锚点，按 grab.pose 进入被抓姿势 (未配置用 hurtAction，再没有则 grabbed)
+    ///    - 空中受击：目标已浮空时所有攻击都按 air (未配置用 GameConfig.DefaultAirLaunch) 重设速度，播 float (从 airHitStep 切片步起)
+    ///    - 地面击飞：配置了 launch (默认 float 从头播放)；倒地目标被 canHitLying 的击飞攻击挑起
     ///    - 倒地中被扫地且未挑起：保持倒地，只结算伤害
-    ///    - 僵直：地面受击 (默认 hurt_1)，附加平推 push
+    ///    - 僵直：地面受击 (默认在 hurt / hurt_1 / hurt_2 / hurt_3 中确定性随机)，附加平推 push
     ///    吸附 (suction) 在僵直 / 击飞 / 空中受击时生效
     /// 5. 双方动作变化与临时取消窗口 (动作切换在 BattleWorld 第 6 步统一裁决)
     /// </summary>
@@ -38,15 +38,21 @@ namespace KiHan.Logic
             if (target.Hurt == HurtState.Grabbed)
             {
                 reaction = HitReaction.GrabbedHit;
+                // 抓取者的后续抓取段带姿势：按新姿势切换 (只换动作，不改变抓取状态)
+                if (target.GrabbedBy == attacker && atk.grab.enabled && atk.grab.pose.Enabled)
+                {
+                    target.action.PreorderActionByActionChangeInfo(PoseChange(target, atk.grab.pose));
+                }
             }
             else
             {
                 reaction = atk.armorBreak >= target.action.CurrentArmor
-                    ? ApplyReaction(hit, attacker, target, atk)
+                    ? ApplyReaction(hit, attacker, target, atk, frameId)
                     : HitReaction.ArmorBlocked;
             }
 
             // 攻击方：命中即生效 (无论是否被霸体抵挡或目标处于被抓中)
+            attacker.action.RecordHit(hit.Frame);
             attacker.action.PreorderActionByActionChangeInfo(atk.selfActionChange);
             if (atk.tempBeCancelledTagTurnOn != null)
             {
@@ -66,7 +72,7 @@ namespace KiHan.Logic
             };
         }
 
-        private static HitReaction ApplyReaction(HitResult hit, CharacterObj attacker, CharacterObj target, AttackInfo atk)
+        private static HitReaction ApplyReaction(HitResult hit, CharacterObj attacker, CharacterObj target, AttackInfo atk, uint frameId)
         {
             HitReaction reaction;
             bool hasHurtAction = !string.IsNullOrEmpty(atk.hurtAction);
@@ -75,7 +81,9 @@ namespace KiHan.Logic
             if (atk.grab.enabled)
             {
                 attacker.StartGrab(target, atk.grab);
-                targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.Heavy);
+                targetChange = atk.grab.pose.Enabled
+                    ? PoseChange(target, atk.grab.pose)
+                    : HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.Grabbed);
                 reaction = HitReaction.Grab;
             }
             else
@@ -83,13 +91,13 @@ namespace KiHan.Logic
                 if (target.IsAirborne)
                 {
                     Launch(attacker, target, atk.air.enabled ? atk.air : GameConfig.DefaultAirLaunch);
-                    targetChange = HurtActionIds.ChangeTo(HurtActionIds.InAir);
+                    targetChange = HurtActionIds.ChangeTo(HurtActionIds.Float, fromFrame: target.action.FloatAirHitFrame);
                     reaction = HitReaction.Launch;
                 }
                 else if (atk.launch.enabled)
                 {
                     Launch(attacker, target, atk.launch);
-                    targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.ToAir);
+                    targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.Float);
                     reaction = HitReaction.Launch;
                 }
                 else if (target.IsLying)
@@ -101,7 +109,13 @@ namespace KiHan.Logic
                     // 未配置僵直时长与受击动作时不进入僵直，也不切换受击动作
                     int stunTicks = GameConfig.SecondsToTicks(atk.hitStun);
                     target.EnterStun(stunTicks);
-                    if (hasHurtAction || stunTicks > 0) targetChange = HurtActionIds.ChangeTo(hasHurtAction ? atk.hurtAction : HurtActionIds.Light);
+                    if (hasHurtAction || stunTicks > 0)
+                    {
+                        string stand = hasHurtAction
+                            ? atk.hurtAction
+                            : HurtActionIds.PickStand(target.action.StandHurtVariants, frameId, target.EntityId, attacker.EntityId);
+                        targetChange = HurtActionIds.ChangeTo(stand);
+                    }
                     if (atk.push.inSec > FP.Zero) target.SetForceMove(atk.push.ToWorld(attacker.FacingLeft));
                     reaction = HitReaction.Stun;
                 }
@@ -118,6 +132,14 @@ namespace KiHan.Logic
             }
 
             return reaction;
+        }
+
+        /// <summary>
+        /// 被抓姿势：切换到 pose.action，从其第 pose.step 个切片步开始，按 pose.hold 定格
+        /// </summary>
+        private static ActionChangeInfo PoseChange(CharacterObj target, GrabPoseInfo pose)
+        {
+            return HurtActionIds.ChangeTo(pose.action, fromFrame: target.action.FirstFrameOfStep(pose.action, pose.step), hold: pose.hold);
         }
 
         /// <summary>

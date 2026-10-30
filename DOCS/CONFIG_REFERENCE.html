@@ -133,6 +133,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a class="sub" href="#action-rootMotion">rootMotion</a>
   <a class="sub" href="#action-events">events</a>
   <a class="sub" href="#action-breakHurt">breakHurt</a>
+  <a class="sub" href="#action-hitRecord">clearHitRecord / recordHitFrames / hitBranches</a>
   <h4>actions.json · 子结构</h4>
   <a class="sub" href="#t-FrameRange">FrameRange</a>
   <a class="sub" href="#t-CancelTag" data-k="tag startFormFrame">CancelTag</a>
@@ -161,7 +162,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a class="sub" href="#t-ArmorPhase" data-k="range level None Skill Super KingKong Invincible">ArmorPhase / ArmorLevel</a>
   <a class="sub" href="#t-RootMotion" data-k="moveX moveY velocityZ accelerationZ velocityX velocityY tweenMethod">RootMotionSegment</a>
   <a class="sub" href="#t-Event" data-k="frame type asset spawnId anchor offset bind stopOnActionEnd loop Effect Camera Spawn Buff">ActionEvent</a>
-  <a class="sub" href="#t-HurtIds" data-k="hurt_1 hurt_2 hurt_toair hurt_inair hurt_fall lie standup">固定受击动作</a>
+  <a class="sub" href="#t-HurtIds" data-k="hurt hurt_1 hurt_2 hurt_3 grabbed float fall lie standup airHitStep lieSec">固定受击动作</a>
   <h4>skills.json</h4>
   <a href="#skill-root">SkillDataContainer</a>
   <a class="sub" href="#skill-chakraMax">chakraMax</a>
@@ -264,6 +265,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td>自然衔接</td><td>动画播完（或 <code>autoTerminate</code> 时每帧）</td><td><a href="#action-autoNextActionId"><code>autoNextActionId</code></a></td><td>否</td></tr>
 <tr><td>落地</td><td>物理落地事件</td><td><a href="#action-onLand"><code>onLand</code></a></td><td>否</td></tr>
 <tr><td>命中</td><td>本帧攻击命中</td><td><a href="#attack-selfActionChange"><code>attacks[].selfActionChange</code></a>（攻击方）、<a href="#attack-hurtAction"><code>hurtAction</code></a>（受击方）</td><td>否</td></tr>
+<tr><td>命中分支</td><td>经过指定帧时命中记录为真</td><td><a href="#action-hitRecord"><code>hitBranches</code></a>（命中记录由 <code>recordHitFrames</code> 写入、<code>clearHitRecord</code> 清空，可跨动作）</td><td>否</td></tr>
 <tr><td>受击流程</td><td>框架内置</td><td><a href="#t-HurtIds">固定受击动作 id</a></td><td>否</td></tr>
 <tr><td>替身破除受击</td><td>受击锁定中按键</td><td><a href="#action-breakHurt"><code>breakHurt</code></a></td><td>是</td></tr>
 <tr><td>生成物寿命到期</td><td>框架内置</td><td><a href="#spawn-despawnActionId"><code>despawnActionId</code></a></td><td>—</td></tr>
@@ -303,6 +305,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td>受击流程推进（toair→inair→fall、起身、僵直结束回 idle）</td><td><b>90</b> + 目标 priority</td><td>0</td></tr>
 <tr><td>主动取消</td><td>窗口 priority + 标签 priority + 动作 priority</td><td><code>startFormFrame</code></td></tr>
 <tr><td><code>onLand</code> / <code>selfActionChange</code> / <code>releaseActionChange</code></td><td>配置的 priority + 目标动作 priority</td><td><code>fromFrame</code>，或 <code>keepFrame</code> 时接着当前帧</td></tr>
+<tr><td><code>hitBranches</code></td><td>配置的 priority + <strong>当前</strong>动作 priority</td><td>0</td></tr>
 <tr><td><code>autoNextActionId</code></td><td><b>0</b>（不加动作 priority）</td><td>0</td></tr>
 </table>
 <div class="callout"><b>autoNext 是"兜底"</b>只有在本 tick 此前没有任何预约时才会加入。只要有按键取消、受击等预约，autoNext 就不会出现。</div>
@@ -350,11 +353,10 @@ tick 20：处理 attack2 的第 0 帧</div>
       "commands": [ { "hold": ["Move"] } ],
       "inputAcceptance": [ { "range": { "x": 0, "y": 999 }, "rateX": "1", "rateY": "1", "turn": true } ]
     },
-    { "id": "hurt_1",     "animKey": "Hurt_1",     "catalog": "Hurt" },
-    { "id": "hurt_2",     "animKey": "Hurt_2",     "catalog": "Hurt" },
-    { "id": "hurt_toair", "animKey": "Hurt_toair", "catalog": "Hurt" },
-    { "id": "hurt_inair", "animKey": "Hurt_inair", "catalog": "Hurt" },
-    { "id": "hurt_fall",  "animKey": "Hurt_fall",  "catalog": "Hurt" },
+    { "id": "hurt",       "animKey": "Hurt_1",     "catalog": "Hurt" },
+    { "id": "grabbed",    "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "float",      "animKey": "Hurt_float", "catalog": "Hurt", "airHitStep": 1 },
+    { "id": "fall",       "animKey": "Hurt_fall",  "catalog": "Hurt" },
     { "id": "lie",        "animKey": "Hurt_land",  "catalog": "Hurt" },
     { "id": "standup",    "animKey": "Land",       "catalog": "Hurt" }
   ]
@@ -442,17 +444,14 @@ tick 20：处理 attack2 的第 0 帧</div>
 <li><b>霸体 <code>Skill</code></b>：第 0~29 帧被普通攻击打中只扣血、不会被打断；对方攻击的 <code>armorBreak</code> 达到 <code>Skill</code> 才能打断。</li>
 </ul>
 
-<h2 id="tut-hitbranch">教程 4：命中派生（变体动作法）</h2>
+<h2 id="tut-hitbranch">教程 4：命中派生（命中记录法）</h2>
 <p>需求：鸣人技能 2 的第一段是<strong>起跳攻击</strong>。打中了，落地后接第二段；没打中，落地硬直后回 idle。</p>
-<p>难点在于"打中过"这个信息要<strong>跨两个动作</strong>（空中段 → 落地段）才能用上，而框架没有可查询的"命中过"状态。解决方法是<b>把分支编码进动作本身</b>：命中时切到一个"命中版"的同动画动作，后面的流程都走命中版。</p>
+<p>"打中过"要<strong>跨两个动作</strong>（空中段 → 落地段）才用得上。框架的<a href="#action-hitRecord">命中记录</a>属于角色、跨动作保留：空中段负责记，落地段到指定帧再判断（对应原版 1013 / 1014 / 1015）。</p>
 <div class="flow">
-  <span class="node">skill2_1</span><span class="arr">─ 落地 / 播完 →</span><span class="node alt">skill2_land</span><span class="arr">→</span><span class="node alt">idle</span>
+  <span class="node">skill2_1</span><span class="arr">─ 落地 / 播完 →</span><span class="node">skill2_land</span><span class="arr">─ 第 9 帧命中过 →</span><span class="node">skill2_2</span><span class="arr">→</span><span class="node alt">idle</span>
 </div>
 <div class="flow">
-  <span class="lab">命中（keepFrame）↓</span>
-</div>
-<div class="flow">
-  <span class="node">skill2_1_hit</span><span class="arr">─ 落地 / 播完 →</span><span class="node">skill2_land_hit</span><span class="arr">─ 播完 →</span><span class="node">skill2_2</span><span class="arr">→</span><span class="node alt">idle</span>
+  <span class="lab">没命中：skill2_land 播完 →</span><span class="node alt">idle</span>
 </div>
 <pre><code class="json">{
   "id": "skill2_1", "animKey": "Skill_B_1", "catalog": "Skill", "priority": 20,
@@ -460,36 +459,29 @@ tick 20：处理 attack2 的第 0 帧</div>
   "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 },
   "cancelTag": [ { "tag": "skill", "startFormFrame": 0, "priority": 20 } ],
   "commands":  [ { "press": ["Skill2"], "validInSec": "0.2" }, { "hold": ["Skill2"] } ],
-  "rootMotion": [ { "frameRange": { "x": 9, "y": 9 }, "velocityX": "8", "velocityZ": "5" } ],
+  "clearHitRecord": true,
+  "recordHitFrames": [{ "x": 19, "y": 26 }],
+  "rootMotion": [ { "frameRange": { "x": 19, "y": 19 }, "velocityX": "8", "velocityZ": "5" } ],
   "attackPhase": [ { "frameRanges": [{ "x": 19, "y": 26 }], "tag": [], "attackPhase": 0, "priority": 10 } ],
-  "attacks": [
-    { "attack": "100", "hitStun": "0.8", "armorBreak": "Skill", "canHitSameTarget": 1,
-      "selfActionChange": { "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true } }
-  ]
+  "attacks": [ { "attack": "100", "hitStun": "0.8", "armorBreak": "Skill", "canHitSameTarget": 1 } ]
 },
 {
-  "id": "skill2_1_hit", "animKey": "Skill_B_1", "catalog": "Skill", "priority": 20,
-  "autoNextActionId": "skill2_land_hit",
-  "onLand": { "changeType": 1, "param": "skill2_land_hit", "priority": 100 },
-  "armorPhase": [ { "range": { "x": 0, "y": 28 }, "level": "Skill" } ]
-},
-{ "id": "skill2_land", "animKey": "Skill_B_land", "catalog": "Skill", "priority": 20, "autoNextActionId": "idle" },
-{
-  "id": "skill2_land_hit", "animKey": "Skill_B_land", "catalog": "Skill", "priority": 20,
-  "autoNextActionId": "skill2_2",
+  "id": "skill2_land", "animKey": "Skill_B_land", "catalog": "Skill", "priority": 20,
+  "autoNextActionId": "idle",
+  "hitBranches": [ { "frame": 9, "actionId": "skill2_2", "priority": 50 } ],
   "armorPhase": [ { "range": { "x": 0, "y": 9 }, "level": "Skill" } ]
 }</code></pre>
 <h4>关键点逐条看</h4>
 <ol>
-<li><b><code>keepFrame: true</code></b>：切到 <code>skill2_1_hit</code> 时接着当前帧播（同一个动画 <code>Skill_B_1</code>），玩家看不出切换。同时<strong>保留水平惯性</strong>，第 9 帧设置的 <code>velocityX: 8</code> 不会被清掉，角色继续往前飞。</li>
-<li><b>命中版不配 <code>attackPhase</code></b>：已经打中了，不需要再打。也不配 <code>events</code>：从第 19 帧之后接着播，第 4 帧的生成事件本来就不会重放。</li>
-<li><b>命中版要把霸体抄过去</b>：变体是独立动作，<code>armorPhase</code> 不会继承。漏抄的话，命中后的下落过程会变成可被打断。</li>
+<li><b><code>clearHitRecord</code></b>：技能第一段进入时清掉之前残留的记录（比如普攻留下的），否则没打中也会接二段。</li>
+<li><b><code>recordHitFrames</code></b>：只有这些帧里的命中才算"打中过"。攻击判定照常保留，打中后同一动作里的后续攻击也能继续命中其他目标。</li>
+<li><b><code>hitBranches</code> 的帧</b>：落地动画共 10 帧，分支放在最后一帧 9，与 autoNext 同一 tick 触发且优先级更高（50 + 20 &gt; 0），命中过就接 <code>skill2_2</code>，否则 autoNext 回 idle。想更早接，就把 frame 调小。</li>
 <li><b><code>onLand</code> 与 <code>autoNextActionId</code> 都写</b>：先落地就由 <code>onLand</code> 切走（优先级 100+20）；如果动画先播完而角色还在空中，autoNext 会切到落地动作，避免停在最后一帧的空中姿势。</li>
-<li><b>空中动作兜底</b>：<code>skill2_1_hit</code> 配了 <code>onLand</code> 而自己没有起跳段，框架把它当成"空中动作"。如果命中那一刻角色恰好已经在地面上，进入后会立即视为落地，直接走 <code>skill2_land_hit</code>，不会卡在空中姿势。</li>
+<li><b>落地段的霸体</b>：命中与未命中共用 <code>skill2_land</code>，霸体两种情况都有。</li>
 </ol>
 <p>最后在 <code>skills.json</code> 里把整条链登记进同一段，CD 才会在 <code>skill2_2</code> 结束后开始：</p>
-<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"] }</code></pre>
-<div class="callout"><b>代价与取舍</b>每个"命中才接"的分支要多配 1~2 个变体动作，改霸体、位移时要两边一起改。好处是每条路径都是显式的动作链，编辑器和自动校验都能看见，不存在隐藏状态。</div>
+<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_land", "skill2_2"] }</code></pre>
+<div class="callout">需要"命中瞬间就切"（比如抓取成功立刻接投技）时仍用 <a href="#attack-selfActionChange"><code>selfActionChange</code></a>；"打中了，到某一帧再决定"用命中记录，不需要额外的变体动作。</div>
 
 <h2 id="tut-spawn">教程 5：投射物生成物</h2>
 <p>需求：技能 2 第 4 帧放出一个独立的踢击投射物，三段命中后落地消失。</p>
@@ -562,7 +554,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <p class="summary">播放的动画资源名，即角色目录下 <code>AnimationFrameData</code> 资产的文件名。</p>
 <table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code></td></tr><tr><th>匹配</th><td>不区分大小写</td></tr></table>
 <h4>说明</h4>
-<p>动画决定动作长度（总帧数）、每帧的受击盒/攻击盒/锚点，所以它影响逻辑，不只是表现。多个动作可以共用一个动画，例如 <code>skill2_1</code> 与 <code>skill2_1_hit</code> 都用 <code>Skill_B_1</code>，这是做变体动作的基础。</p>
+<p>动画决定动作长度（总帧数）、每帧的受击盒/攻击盒/锚点，所以它影响逻辑，不只是表现。多个动作可以共用一个动画（例如命中瞬间用 <code>selfActionChange</code> + <code>keepFrame</code> 切到同动画的变体动作），这是做变体动作的基础。</p>
 <h4>示例</h4>
 <pre><code class="json">"animKey": "Attack_1"</code></pre>
 <div class="callout bad"><b>动画不存在时</b>只输出警告，<code>CurrentAction</code> 已经换了，画面和判定却还是上一个动画，行为会非常奇怪。</div>
@@ -854,6 +846,29 @@ tick 20：处理 attack2 的第 0 帧</div>
   "commands": [ { "press": ["Substitution"], "validInSec": "0.2" } ] }</code></pre>
 <p class="see">参见：<a href="#tut-sub">教程 6</a>、<a href="#skill-requireHurt"><code>requireHurt</code></a></p>
 </section>
+
+<div class="crumb">actions.json › ActionData</div>
+<section class="field" id="action-hitRecord">
+<h3><code>clearHitRecord</code> / <code>recordHitFrames</code> / <code>hitBranches</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">命中记录：前一段打中了，后面某一段到指定帧再决定要不要接下一段（对应原版 1013 / 1014 / 1015）。</p>
+<table class="props">
+<tr><th><code>clearHitRecord</code></th><td>bool，默认 false。进入本动作时清空命中记录，配在技能第一段。</td></tr>
+<tr><th><code>recordHitFrames</code></th><td><a href="#t-FrameRange">FrameRange</a>[]。本动作的攻击命中时，命中所在的动画帧落在这些区间内就写入命中记录。被霸体抵挡、目标处于被抓中同样计入。</td></tr>
+<tr><th><code>hitBranches</code></th><td><code>{ frame, actionId, priority }</code>[]。本 tick 推进经过 <code>frame</code> 且命中记录为真时，以 priority + 当前动作 priority 预约 <code>actionId</code>（起始帧 0）；受控锁定（受击）中不触发。</td></tr>
+</table>
+<h4>说明</h4>
+<ol>
+<li>命中记录属于角色，<strong>跨动作保留</strong>，直到进入某个 <code>clearHitRecord</code> 的动作。所以"空中段命中、落地段再判断"只需要在落地段配分支，不用拆"命中 / 未命中"两套动作。</li>
+<li>分支在本 tick 的命中结算之后检查，本 tick 的命中也算数。</li>
+<li>没命中时分支不生效，动作照常走 <code>autoNextActionId</code>。</li>
+<li>分支目标与落地动作要登记在技能 <a href="#stage-followActions"><code>followActions</code></a> 里。</li>
+</ol>
+<h4>示例：鸣人 skill2（空中命中 → 落地 → 二段）</h4>
+<pre><code class="json">{ "id": "skill2_1", "clearHitRecord": true, "recordHitFrames": [{ "x": 19, "y": 26 }],
+  "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 }, ... },
+{ "id": "skill2_land", "autoNextActionId": "idle",
+  "hitBranches": [{ "frame": 9, "actionId": "skill2_2", "priority": 50 }] }</code></pre>
+</section>
 <!-- ============================== 子结构 ============================== -->
 <h2 id="t-FrameRange">FrameRange · 帧区间</h2>
 <p class="summary"><code>{ "x": 起始帧, "y": 结束帧 }</code>，整数，动画帧从 0 开始，<strong>两端都包含</strong>。</p>
@@ -951,7 +966,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
 <tr><td><code>range</code></td><td><a href="#t-FrameRange">FrameRange</a></td><td>{0,0}</td><td>生效帧区间。</td></tr>
 <tr><td><code>rateX</code></td><td>字符串倍率</td><td>0</td><td>横向速度 = 基础速度（5 单位/秒）× rateX × 摇杆方向。可以大于 1。</td></tr>
-<tr><td><code>rateY</code></td><td>字符串倍率</td><td>0</td><td>纵深速度，同上。斜向不归一化：两轴都是全速。</td></tr>
+<tr><td><code>rateY</code></td><td>字符串倍率</td><td>0</td><td>纵深速度 = 纵深基础速度（1.84 单位/秒 = 横向 5 × 地面透视压缩 0.368；纵深为视觉单位，即脚底在画面上的纵坐标）× rateY × 摇杆方向。斜向不归一化：两轴都是全速。</td></tr>
 <tr><td><code>turn</code></td><td>bool</td><td>false</td><td>允许按摇杆左右转身（纯上下不转）。</td></tr>
 </table>
 <pre><code class="json">{ "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }</code></pre>
@@ -967,7 +982,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td><code>fromFrame</code></td><td>int</td><td>0</td><td>目标动作从第几帧开始。<code>keepFrame</code> 为 true 时忽略。</td></tr>
 <tr><td><code>keepFrame</code></td><td>bool</td><td>false</td><td>从当前动作"下一帧"的帧号开始播目标动作。并且<strong>保留水平惯性</strong>（正常切动作会清除）。用于同动画的变体切换。</td></tr>
 </table>
-<pre><code class="json">{ "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true }</code></pre>
+<pre><code class="json">{ "changeType": 1, "param": "grab_hit", "priority": 50, "keepFrame": true }</code></pre>
 <div class="callout"><b>keepFrame 的帧号</b>第 1 帧命中（处理完第 1 帧），变体从第 2 帧继续播，画面无缝衔接。</div>
 
 <h2 id="t-AttackBoxTurnOn">AttackBoxTurnOn · 攻击段</h2>
@@ -1001,7 +1016,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <pre><code class="json">"attack": "50"</code></pre>
 
 <h3 id="attack-hitStun"><code>hitStun</code><span class="badge logic">逻辑</span></h3>
-<p>地面僵直秒数。只在第 7 个分支生效。&gt; 0 时目标进入僵直（循环播放 <code>hurt_1</code> 或 <code>hurtAction</code>），倒数结束回到 idle。新的僵直会<strong>覆盖</strong>剩余时间。为 0 且没配 <code>hurtAction</code> 时目标不僵直、不换动作，但击退仍然生效。</p>
+<p>地面僵直秒数。只在第 7 个分支生效。&gt; 0 时目标进入僵直（循环播放 <code>hurtAction</code>；没配时在已配置的 <code>hurt</code> / <code>hurt_1</code> / <code>hurt_2</code> / <code>hurt_3</code> 中随机一个，各客户端结果一致），倒数结束回到 idle。新的僵直会<strong>覆盖</strong>剩余时间。为 0 且没配 <code>hurtAction</code> 时目标不僵直、不换动作，但击退仍然生效。</p>
 <pre><code class="json">"hitStun": "0.6"   // 18 帧</code></pre>
 
 <h3 id="attack-push"><code>push</code> · 击退</h3>
@@ -1020,11 +1035,11 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
 <tr><td><code>z</code></td><td>字符串，单位/秒</td><td>0</td><td>竖直初速度，向上为正。</td></tr>
 <tr><td><code>x</code></td><td>字符串，单位/秒</td><td>0</td><td>沿攻击方面朝方向的水平惯性速度。</td></tr>
-<tr><td><code>y</code></td><td>字符串，单位/秒</td><td>0</td><td>纵深惯性速度。</td></tr>
+<tr><td><code>y</code></td><td>字符串，单位/秒</td><td>0</td><td>纵深惯性速度（视觉单位：画面纵向每秒移动量）。</td></tr>
 </table>
 <ul>
-<li><b><code>launch</code></b>：目标在地面（或倒地且 <code>canHitLying</code>）时把它打上天，进入 <code>hurt_toair</code>（或 <code>hurtAction</code>）。</li>
-<li><b><code>air</code></b>：目标<strong>已经在空中</strong>时使用，任何攻击都会按它重新击飞，动作固定为 <code>hurt_inair</code>。没配时使用全局默认 z=5、x=1。</li>
+<li><b><code>launch</code></b>：目标在地面（或倒地且 <code>canHitLying</code>）时把它打上天，进入 <code>float</code>（或 <code>hurtAction</code>），从头播放。</li>
+<li><b><code>air</code></b>：目标<strong>已经在空中</strong>时使用，任何攻击都会按它重新击飞，动作固定为 <code>float</code>，从它的 <code>airHitStep</code> 切片步开始播放（触地弹起同样如此）。没配时使用全局默认 z=5、x=1。</li>
 <li><b>是否启用</b>：z、x、y 任意一个写了就算启用，哪怕写的是 <code>"0"</code>。</li>
 <li>击飞期间重力 ×0.7（默认重力 30）；触地时 <code>落地速度 × 0.5 ≥ 3</code> 会弹起，否则倒地。</li>
 </ul>
@@ -1042,12 +1057,14 @@ tick 20：处理 attack2 的第 0 帧</div>
 <h3 id="attack-grab"><code>grab</code> · 抓取</h3>
 <table>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
-<tr><td><code>enabled</code></td><td>bool</td><td>false</td><td>命中即抓住目标（优先于空中判断）。目标进入 <code>hurt_2</code>（或 <code>hurtAction</code>）并循环播放。</td></tr>
+<tr><td><code>enabled</code></td><td>bool</td><td>false</td><td>命中即抓住目标（优先于空中判断）。目标进入 <code>pose</code> 指定的姿势；没配 pose 时进入 <code>hurtAction</code>，再没有则 <code>grabbed</code>，并循环播放。</td></tr>
 <tr><td><code>anchor</code></td><td>string</td><td><code>"grab"</code></td><td>帧库中的锚点名。每帧把目标放到抓取方该锚点的位置。<strong>锚点消失即释放</strong>，跨动作也保持抓取。</td></tr>
 <tr><td><code>releaseActionChange</code></td><td><a href="#t-ActionChange">ActionChange</a></td><td>不切换</td><td>释放（不是被投掷打飞）时给目标的动作切换。</td></tr>
+<tr><td><code>pose</code></td><td>{ action, step, hold }</td><td>不配置</td><td>被抓姿势：目标进入 <code>action</code>（如 <code>float</code>），从第 <code>step</code> 个切片步（0 起）开始；<code>hold</code> 为 true 时定格不动，直到释放或换姿势。抓取者后续抓取段带 pose 命中已被自己抓住的目标时，按新姿势切换。</td></tr>
 </table>
 <pre><code class="json">"grab": { "enabled": true, "anchor": "grab",
-          "releaseActionChange": { "changeType": 1, "param": "hurt_fall", "priority": 100 } }</code></pre>
+          "releaseActionChange": { "changeType": 1, "param": "fall", "priority": 100 },
+          "pose": { "action": "float", "step": 2, "hold": true } }</code></pre>
 <div class="callout"><b>投技写法</b>抓取段之后，在某一帧让锚点消失，同一帧打开一个带 <code>launch</code> 的攻击段，就是"抓住 → 甩出去"。加载时会检查：抓取段覆盖的帧（及下一帧）必须画了锚点，否则报错。</div>
 
 <h3 id="attack-suction"><code>suction</code> · 吸附</h3>
@@ -1070,13 +1087,13 @@ tick 20：处理 attack2 的第 0 帧</div>
 <pre><code class="json">"canHitSameTarget": 6, "hitSameTargetDelay": "0.06"   // 螺旋丸：最多 6 段，每段至少隔 2 帧</code></pre>
 
 <h3 id="attack-selfActionChange"><code>selfActionChange</code></h3>
-<p>命中时<strong>攻击方自己</strong>的动作切换（<a href="#t-ActionChange">ActionChange</a>）。每次命中都会触发，包括被霸体挡住的命中。命中派生、"打中才接"的核心字段。</p>
-<pre><code class="json">"selfActionChange": { "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true }</code></pre>
+<p>命中时<strong>攻击方自己</strong>的动作切换（<a href="#t-ActionChange">ActionChange</a>）。每次命中都会触发，包括被霸体挡住的命中。用于"命中瞬间就切"；"打中了，到某一帧再决定"用 <a href="#action-hitRecord">命中记录</a>。</p>
+<pre><code class="json">"selfActionChange": { "changeType": 1, "param": "grab_hit", "priority": 50, "keepFrame": true }</code></pre>
 <p class="see">参见：<a href="#tut-hitbranch">教程 4 命中派生</a></p>
 
 <h3 id="attack-hurtAction"><code>hurtAction</code></h3>
-<p>目标在地面被这段攻击打中时进入的动作 id，替换默认的 <code>hurt_1</code>（僵直）/ <code>hurt_2</code>（被抓）/ <code>hurt_toair</code>（击飞）。目标在空中时无效（固定 <code>hurt_inair</code>）。</p>
-<pre><code class="json">"hurtAction": "hurt_2"   // 普攻 3 打出重受击</code></pre>
+<p>目标在地面被这段攻击打中时进入的动作 id，替换默认的 <code>hurt</code> 随机变体（僵直）/ <code>grabbed</code>（被抓，<code>grab.pose</code> 优先）/ <code>float</code>（击飞）。目标在空中时无效（固定 <code>float</code>，从 <code>airHitStep</code> 起）。</p>
+<pre><code class="json">"hurtAction": "hurt_1"   // 普攻 3 固定用第 2 种僵直动画</code></pre>
 
 <h3 id="attack-tempOn"><code>tempBeCancelledTagTurnOn</code></h3>
 <p>string[]，命中时在攻击方<strong>当前动作</strong>里打开这些 id 的 <a href="#t-TempBeCancelledTag">临时窗口</a>。</p>
@@ -1164,15 +1181,15 @@ tick 20：处理 attack2 的第 0 帧</div>
 <p class="summary">这 7 个 id 由框架按名字调用，每个角色都<strong>必须</strong>配置，缺失会在加载时报错。它们只提供动画，流程由框架驱动，自己写的 <code>autoNextActionId</code> 不起作用。</p>
 <table>
 <tr><th>id</th><th>何时进入</th><th>播放方式</th><th>何时离开</th></tr>
-<tr><td><code>hurt_1</code></td><td>地面僵直（未配 hurtAction）</td><td>循环</td><td>僵直时间到 → idle</td></tr>
-<tr><td><code>hurt_2</code></td><td>被抓（未配 hurtAction）</td><td>循环</td><td>锚点消失 → 释放</td></tr>
-<tr><td><code>hurt_toair</code></td><td>地面被击飞</td><td>一次</td><td>播完 → hurt_inair</td></tr>
-<tr><td><code>hurt_inair</code></td><td>空中被打中 / 触地弹起</td><td>一次</td><td>播完 → hurt_fall</td></tr>
-<tr><td><code>hurt_fall</code></td><td>下落</td><td>循环直到触地</td><td>触地 → 弹起或倒地</td></tr>
-<tr><td><code>lie</code></td><td>弹不起来，倒地</td><td>一次（只受扫地攻击）</td><td>播完 → standup</td></tr>
+<tr><td><code>hurt</code> / <code>hurt_1..3</code></td><td>地面僵直（未配 hurtAction 时在已配置的变体中随机，hurt 必配、其余可选）</td><td>循环</td><td>僵直时间到 → idle</td></tr>
+<tr><td><code>grabbed</code></td><td>被抓（未配 grab.pose 与 hurtAction）</td><td>循环</td><td>锚点消失 → 释放</td></tr>
+<tr><td><code>float</code></td><td>地面被击飞（从头）/ 空中被打中、触地弹起（从 <code>airHitStep</code> 切片步）</td><td>一次</td><td>播完 → fall</td></tr>
+<tr><td><code>fall</code></td><td>下落</td><td>循环直到触地</td><td>触地 → 弹起或倒地</td></tr>
+<tr><td><code>lie</code></td><td>弹不起来，倒地</td><td>循环（只受扫地攻击）</td><td>固定 <code>lieSec</code>（0.5 秒）后 → standup</td></tr>
 <tr><td><code>standup</code></td><td>起身</td><td>一次，全程无敌</td><td>播完 → idle，并追加 0.5 秒无敌</td></tr>
 </table>
-<pre><code class="json">{ "id": "hurt_1", "animKey": "Hurt_1", "catalog": "Hurt" }</code></pre>
+<p>出入场动画 <code>jump_in</code> / <code>jump_in_1</code> / <code>jump_out</code> 只作为 <code>Show</code> 类动作配置，暂不接入框架。</p>
+<pre><code class="json">{ "id": "float", "animKey": "Float", "catalog": "Hurt", "airHitStep": 1 }</code></pre>
 <!-- ============================== skills.json ============================== -->
 <h2 id="skill-root">skills.json · SkillDataContainer</h2>
 <p class="summary">技能层：在动作层之上加 CD、多段、查克拉和按键 UI。<strong>技能不定义怎么出招</strong>，出招仍然是 actions.json 里入口动作的 <code>commands</code> 和取消窗口；技能只负责"现在能不能进"和"什么时候开始 CD"。</p>
@@ -1305,8 +1322,8 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <li><b>查克拉</b>：登记的动作（及其生成物）命中才算本技能的命中，会给查克拉。</li>
 <li><b>不受准入</b>：后续动作不检查 CD 和段号。</li>
 </ul>
-<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_1_hit", "skill2_land", "skill2_land_hit", "skill2_2"] }</code></pre>
-<div class="callout"><b>怎么找全</b>从入口动作出发，沿着 <code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、以及只在技能窗口里放行的派生动作，一直走到回 idle 为止，路上所有动作都要列进来。</div>
+<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_land", "skill2_2"] }</code></pre>
+<div class="callout"><b>怎么找全</b>从入口动作出发，沿着 <code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、<code>hitBranches[].actionId</code>、以及只在技能窗口里放行的派生动作，一直走到回 idle 为止，路上所有动作都要列进来。</div>
 </section>
 
 <div class="crumb">skills.json › data[] › stages[]</div>

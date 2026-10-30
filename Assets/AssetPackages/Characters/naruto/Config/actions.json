@@ -137,7 +137,7 @@
           "hitStun": "0.6",
           "push": { "x": "0.4", "inSec": "0.2", "tweenMethod": "Slowly" },
           "air": { "z": "5", "x": "3" },
-          "hurtAction": "hurt_2",
+          "hurtAction": "hurt_1",
           "canHitSameTarget": 1,
           "hitSameTargetDelay": "0"
         }
@@ -319,6 +319,8 @@
       "armorPhase": [
         { "range": { "x": 0, "y": 28 }, "level": "Skill" }
       ],
+      "clearHitRecord": true,
+      "recordHitFrames": [{ "x": 19, "y": 26 }],
       "events": [
         { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx" },
         { "frame": 4, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk" }
@@ -337,20 +339,8 @@
           "push": { "x": "0.8", "inSec": "0.2", "tweenMethod": "Slowly" },
           "armorBreak": "Skill",
           "canHitSameTarget": 1,
-          "hitSameTargetDelay": "0",
-          "selfActionChange": { "changeType": 1, "param": "skill2_1_hit", "priority": 50, "keepFrame": true }
+          "hitSameTargetDelay": "0"
         }
-      ]
-    },
-    {
-      "id": "skill2_1_hit",
-      "animKey": "Skill_B_1",
-      "catalog": "Skill",
-      "priority": 20,
-      "autoNextActionId": "skill2_land_hit",
-      "onLand": { "changeType": 1, "param": "skill2_land_hit", "priority": 100 },
-      "armorPhase": [
-        { "range": { "x": 0, "y": 28 }, "level": "Skill" }
       ]
     },
     {
@@ -358,14 +348,10 @@
       "animKey": "Skill_B_land",
       "catalog": "Skill",
       "priority": 20,
-      "autoNextActionId": "idle"
-    },
-    {
-      "id": "skill2_land_hit",
-      "animKey": "Skill_B_land",
-      "catalog": "Skill",
-      "priority": 20,
-      "autoNextActionId": "skill2_2",
+      "autoNextActionId": "idle",
+      "hitBranches": [
+        { "frame": 9, "actionId": "skill2_2", "priority": 50 }
+      ],
       "armorPhase": [
         { "range": { "x": 0, "y": 9 }, "level": "Skill" }
       ]
@@ -466,11 +452,13 @@
         { "press": ["Substitution"], "validInSec": "0.2" }
       ]
     },
-    { "id": "hurt_1",     "animKey": "Hurt_1",     "catalog": "Hurt" },
-    { "id": "hurt_2",     "animKey": "Hurt_2",     "catalog": "Hurt" },
-    { "id": "hurt_toair", "animKey": "Hurt_toair", "catalog": "Hurt" },
-    { "id": "hurt_inair", "animKey": "Hurt_inair", "catalog": "Hurt" },
-    { "id": "hurt_fall",  "animKey": "Hurt_fall",  "catalog": "Hurt" },
+    { "id": "hurt",       "animKey": "Hurt_1",     "catalog": "Hurt" },
+    { "id": "hurt_1",     "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "hurt_2",     "animKey": "Hurt_3",     "catalog": "Hurt" },
+    { "id": "hurt_3",     "animKey": "Hurt_4",     "catalog": "Hurt" },
+    { "id": "grabbed",    "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "float",      "animKey": "Hurt_float", "catalog": "Hurt", "airHitStep": 1 },
+    { "id": "fall",       "animKey": "Hurt_fall",  "catalog": "Hurt" },
     { "id": "lie",        "animKey": "Hurt_land",  "catalog": "Hurt" },
     { "id": "standup",    "animKey": "Land",       "catalog": "Hurt" }
   ]

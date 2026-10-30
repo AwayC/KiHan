@@ -26,6 +26,11 @@ namespace KiHan.Logic
         /// 从当前动作的当前帧继续播放 (忽略 fromFrame)：用于切换到同一段动画的变体动作 (如命中后改变后续流向)
         /// </summary>
         public bool keepFrame;
+
+        /// <summary>
+        /// 切换后定格在起始帧，不推进动画 (如被抓姿势)；再次切换动作时解除
+        /// </summary>
+        public bool hold;
     }
 
     [Serializable]

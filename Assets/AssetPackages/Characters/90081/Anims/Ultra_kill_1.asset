@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: Ultra_kill_1
+  m_EditorClassIdentifier: 
+  AnimName: Ultra_kill_1
+  Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
+  Steps:
+  - FrameIndex: 296
+    Duration: 1
+  - FrameIndex: 297
+    Duration: 1
+  - FrameIndex: 298
+    Duration: 2
+  - FrameIndex: 299
+    Duration: 2
+  - FrameIndex: 300
+    Duration: 7
+  - FrameIndex: 301
+    Duration: 2
+  - FrameIndex: 302
+    Duration: 2
+  - FrameIndex: 303
+    Duration: 2
+  - FrameIndex: 304
+    Duration: 2
+  - FrameIndex: 305
+    Duration: 2
+  - FrameIndex: 306
+    Duration: 2
+  - FrameIndex: 307
+    Duration: 2
+  - FrameIndex: 308
+    Duration: 2
+  - FrameIndex: 309
+    Duration: 2
+  - FrameIndex: 310
+    Duration: 2
+  - FrameIndex: 311
+    Duration: 2
+  - FrameIndex: 312
+    Duration: 2
+  - FrameIndex: 313
+    Duration: 2
+  - FrameIndex: 314
+    Duration: 2
+  - FrameIndex: 315
+    Duration: 1

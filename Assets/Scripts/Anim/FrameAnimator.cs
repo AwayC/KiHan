@@ -62,6 +62,11 @@ namespace KiHan.Logic
         public int TickFromFrame { get; private set; } = 0;
         public int TickToFrame { get; private set; } = 0;
 
+        /// <summary>
+        /// 定格：Tick 不再推进动画帧 (本逻辑帧处理区间为空)，判定盒停留在当前切片步；Play 切换动画时自动解除
+        /// </summary>
+        public bool Held { get; set; }
+
         #region 动画资源注册与管理
 
         /// <summary>
@@ -110,6 +115,7 @@ namespace KiHan.Logic
             }
 
             CurrentAnimKey = animKey;
+            Held = false;
             CurrentAnimData = animData;
             TotalFrames = CalculateTotalFrames(animData);
 
@@ -140,7 +146,7 @@ namespace KiHan.Logic
         public void Tick()
         {
             TickFromFrame = ElapsedFrames;
-            if (CurrentAnimData != null && TotalFrames > 0)
+            if (CurrentAnimData != null && TotalFrames > 0 && !Held)
             {
                 for (int i = 0; i < FRAMES_PER_TICK && !IsFinished; i++)
                 {
@@ -283,6 +289,20 @@ namespace KiHan.Logic
             return animKey != null && _animDict.TryGetValue(animKey, out AnimationFrameData animData) ? CalculateTotalFrames(animData) : 0;
         }
 
+        /// <summary>
+        /// 指定动画第 step 个切片步 (0 起) 的起始帧号，超出范围时夹取到首尾步；动画未注册时返回 0
+        /// </summary>
+        public int FirstFrameOfStep(string animKey, int step)
+        {
+            if (step <= 0 || animKey == null || !_animDict.TryGetValue(animKey, out AnimationFrameData animData) ||
+                animData.Steps == null || animData.Steps.Count == 0) return 0;
+
+            int last = Mathf.Min(step, animData.Steps.Count - 1);
+            int frame = 0;
+            for (int i = 0; i < last; i++) frame += Mathf.Max(1, animData.Steps[i].Duration);
+            return frame;
+        }
+
         private static bool TryGetAnchor(AnimationFrameData animData, int frame, string anchorName, out Vector2Int position)
         {
             position = Vector2Int.zero;
@@ -316,6 +336,7 @@ namespace KiHan.Logic
             CurrentStepElapsedTicks = 0;
             TickFromFrame = 0;
             TickToFrame = 0;
+            Held = false;
         }
 
         #endregion

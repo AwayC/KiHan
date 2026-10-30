@@ -20,9 +20,9 @@ MonoBehaviour:
   DefaultHitBox:
     Center: {x: 0, y: 0}
     Size: {x: 1, y: 1}
-    Side: 20
+    Side: 40
     Tag: 
-  SidePresets: 2800000050000000a0000000
+  SidePresets: 1400000028000000320000003c00000078000000
   AllFrames:
   - Name: 0idle_1nrtnut0_0002
     Sprite: {fileID: 21300000, guid: 88be031b32decc54299472ccacc772d1, type: 3}
@@ -31,7 +31,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 111, y: 162}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -42,7 +42,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 111, y: 162}
-      Side: 40
+      Side: 10
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -53,7 +53,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 111, y: 162}
-      Side: 40
+      Side: 10
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -64,7 +64,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 111, y: 162}
-      Side: 40
+      Side: 10
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -75,7 +75,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 111, y: 162}
-      Side: 40
+      Side: 10
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -86,7 +86,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 111, y: 162}
-      Side: 40
+      Side: 10
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -99,7 +99,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2, y: 66}
       Size: {x: 127, y: 127}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -112,7 +112,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 70}
       Size: {x: 138, y: 139}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -125,7 +125,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 7, y: 70}
       Size: {x: 130, y: 143}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -138,12 +138,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 20, y: 68}
       Size: {x: 152, y: 132}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 157, y: 78}
       Size: {x: 204, y: 156}
-      Side: 160
+      Side: 80
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: af0e2733854feb442acb71212608b43e, type: 3}
@@ -159,12 +159,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 27, y: 65}
       Size: {x: 154, y: 141}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 192, y: 76}
       Size: {x: 278, y: 154}
-      Side: 160
+      Side: 80
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 38dca5ccc94dae74ea027d2d08baf436, type: 3}
@@ -180,12 +180,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 23, y: 54}
       Size: {x: 170, y: 127}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 213, y: 84}
       Size: {x: 367, y: 225}
-      Side: 200
+      Side: 100
       Tag: 
     ExtraLayers: []
   - Name: akill_A_5_1nrtskl1_n_0029
@@ -197,7 +197,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 14, y: 55}
       Size: {x: 146, y: 109}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -210,7 +210,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 55}
       Size: {x: 147, y: 119}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -223,7 +223,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1, y: 62}
       Size: {x: 128, y: 128}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -234,12 +234,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 67}
       Size: {x: 138, y: 118}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 35, y: 96}
       Size: {x: 181, y: 48}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: attack_1_1nrtcmb00_0008
@@ -249,12 +249,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 28, y: 81}
       Size: {x: 84, y: 158}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 43, y: 115}
       Size: {x: 180, y: 44}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 8e0a17364ad90f848a289514079ce7a5, type: 3}
@@ -268,7 +268,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 44, y: 81}
       Size: {x: 108, y: 175}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers:
@@ -283,7 +283,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 28, y: 83}
       Size: {x: 88, y: 172}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -294,7 +294,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -2, y: 85}
       Size: {x: 92, y: 164}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -305,7 +305,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 81}
       Size: {x: 84, y: 176}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -316,12 +316,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 12, y: 84}
       Size: {x: 81, y: 180}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 24, y: 117}
       Size: {x: 137, y: 85}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0003
@@ -331,12 +331,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11, y: 71}
       Size: {x: 93, y: 154}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 45, y: 98}
       Size: {x: 151, y: 95}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 417afc66005a73a4c99e3d936b1d33a0, type: 3}
@@ -350,12 +350,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9, y: 67}
       Size: {x: 67, y: 149}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 31, y: 86}
       Size: {x: 133, y: 104}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: a5aca38aeb4904f438ca958bd692607e, type: 3}
@@ -369,12 +369,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 77}
       Size: {x: 90, y: 163}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 28, y: 82}
       Size: {x: 113, y: 72}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: attack_2_1nrtcmb01_0014
@@ -384,7 +384,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8, y: 71}
       Size: {x: 91, y: 136}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -395,7 +395,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 7, y: 80}
       Size: {x: 76, y: 164}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -406,7 +406,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 7, y: 74}
       Size: {x: 70, y: 133}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -417,12 +417,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 22, y: 84}
       Size: {x: 86, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 19, y: 107}
       Size: {x: 182, y: 85}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: b75c996d796095b40a10e538b6266640, type: 3}
@@ -436,7 +436,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 74}
       Size: {x: 67, y: 140}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers:
@@ -451,7 +451,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2, y: 73}
       Size: {x: 88, y: 150}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers:
@@ -466,7 +466,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2, y: 75}
       Size: {x: 88, y: 141}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -477,7 +477,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6, y: 81}
       Size: {x: 66, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -488,7 +488,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -2, y: 44}
       Size: {x: 115, y: 98}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -499,7 +499,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 112}
       Size: {x: 65, y: 210}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -510,12 +510,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -2, y: 115}
       Size: {x: 61, y: 211}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: -4, y: 126}
       Size: {x: 111, y: 230}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: attack_4B_1nrtcmb14_0019
@@ -525,7 +525,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -8, y: 113}
       Size: {x: 77, y: 212}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -536,7 +536,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -10, y: 126}
       Size: {x: 85, y: 218}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -547,7 +547,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -7, y: 119}
       Size: {x: 84, y: 196}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -558,7 +558,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 24, y: 60}
       Size: {x: 123, y: 130}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -569,12 +569,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11, y: 86}
       Size: {x: 78, y: 161}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 78, y: 108}
       Size: {x: 103, y: 72}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: attack_4B_1nrtsupcmbint01_0003
@@ -584,7 +584,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 15, y: 55}
       Size: {x: 109, y: 96}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -595,12 +595,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 17, y: 54}
       Size: {x: 129, y: 99}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 58, y: 59}
       Size: {x: 153, y: 113}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: attack_4B_1nrtsupcmbint01_0006
@@ -610,12 +610,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 16, y: 52}
       Size: {x: 136, y: 97}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 48, y: 52}
       Size: {x: 154, y: 108}
-      Side: 40
+      Side: 20
       Tag: 
     ExtraLayers: []
   - Name: hurt_1cmndmd0_0005
@@ -625,7 +625,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -6, y: 113}
       Size: {x: 78, y: 227}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -636,7 +636,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 15, y: -3}
       Size: {x: 201, y: 63}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -647,7 +647,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -18, y: 73}
       Size: {x: 113, y: 166}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -658,7 +658,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9, y: 86}
       Size: {x: 75, y: 166}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -669,7 +669,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2, y: 90}
       Size: {x: 71, y: 176}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -680,7 +680,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8, y: 79}
       Size: {x: 125, y: 139}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -691,7 +691,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -7, y: 97}
       Size: {x: 83, y: 172}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -702,7 +702,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -1, y: 100}
       Size: {x: 76, y: 188}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -713,7 +713,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 3, y: 48}
       Size: {x: 113, y: 83}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -724,7 +724,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 2, y: 30}
       Size: {x: 130, y: 71}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -735,7 +735,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13, y: 42}
       Size: {x: 180, y: 69}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -746,7 +746,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -2, y: 114}
       Size: {x: 96, y: 209}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -757,7 +757,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6, y: 37}
       Size: {x: 128, y: 84}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -768,7 +768,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 59}
       Size: {x: 92, y: 132}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -779,7 +779,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 44}
       Size: {x: 121, y: 95}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -790,7 +790,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 22, y: 78}
       Size: {x: 85, y: 166}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -801,7 +801,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 15, y: 74}
       Size: {x: 99, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -812,7 +812,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 11, y: 70}
       Size: {x: 116, y: 148}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -823,7 +823,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 10, y: 63}
       Size: {x: 115, y: 154}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -834,7 +834,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 27, y: 65}
       Size: {x: 86, y: 165}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -845,7 +845,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 23, y: 72}
       Size: {x: 88, y: 160}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -856,7 +856,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 17, y: 61}
       Size: {x: 124, y: 109}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -867,7 +867,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6, y: 72}
       Size: {x: 78, y: 172}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -878,7 +878,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 91, y: 180}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -889,7 +889,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6, y: 75}
       Size: {x: 84, y: 171}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -900,7 +900,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8, y: 77}
       Size: {x: 89, y: 168}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -911,7 +911,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 5, y: 78}
       Size: {x: 96, y: 169}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -922,7 +922,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 10, y: 73}
       Size: {x: 79, y: 167}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -933,7 +933,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 9, y: 73}
       Size: {x: 87, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -944,7 +944,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 8, y: 75}
       Size: {x: 81, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -955,7 +955,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 10, y: 76}
       Size: {x: 103, y: 160}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -966,7 +966,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13, y: 54}
       Size: {x: 88, y: 122}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -977,12 +977,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1, y: 85}
       Size: {x: 71, y: 176}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 13, y: 52}
       Size: {x: 101, y: 87}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: Skill_B_2_1nrtcmb03_0004
@@ -992,12 +992,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 6, y: 91}
       Size: {x: 86, y: 154}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 15, y: 72}
       Size: {x: 117, y: 143}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: a6a6996844a91ae43809aca904bc8b0e, type: 3}
@@ -1011,12 +1011,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13, y: 99}
       Size: {x: 108, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 37, y: 75}
       Size: {x: 100, y: 134}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 0}
@@ -1030,7 +1030,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 1, y: 94}
       Size: {x: 90, y: 173}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1041,7 +1041,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 12, y: 92}
       Size: {x: 105, y: 175}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1052,7 +1052,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 14, y: 116}
       Size: {x: 157, y: 99}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1063,7 +1063,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 20, y: 97}
       Size: {x: 131, y: 122}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers:
@@ -1078,7 +1078,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 13, y: 95}
       Size: {x: 113, y: 110}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1089,12 +1089,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: -13, y: 83}
       Size: {x: 128, y: 169}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 59, y: 109}
       Size: {x: 186, y: 76}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 223186aebb79e0d4292e2d62a5907d5e, type: 3}
@@ -1108,12 +1108,12 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 88}
       Size: {x: 122, y: 180}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 76, y: 111}
       Size: {x: 130, y: 84}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: Skill_B_3_1nrtcmb05_0019
@@ -1123,16 +1123,16 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 4, y: 101}
       Size: {x: 102, y: 200}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes:
     - Center: {x: 56, y: 107}
       Size: {x: 88, y: 92}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: Skill_B_4_1nrtcmb06_0000
@@ -1142,11 +1142,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 20, y: 95}
       Size: {x: 101, y: 182}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1157,11 +1157,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 12, y: 87}
       Size: {x: 90, y: 166}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1172,11 +1172,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 14, y: 64}
       Size: {x: 143, y: 120}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1187,11 +1187,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 13, y: 56}
       Size: {x: 147, y: 104}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1202,7 +1202,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 4, y: 54}
       Size: {x: 148, y: 100}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1221,7 +1221,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 44, y: 103}
       Size: {x: 130, y: 105}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0004
@@ -1232,7 +1232,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 31, y: 92}
       Size: {x: 151, y: 87}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0006
@@ -1243,7 +1243,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 27, y: 85}
       Size: {x: 151, y: 89}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_1_1nrtcmb01_0009
@@ -1254,7 +1254,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 29, y: 77}
       Size: {x: 116, y: 84}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0004
@@ -1265,7 +1265,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 27, y: 94}
       Size: {x: 179, y: 59}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0005
@@ -1276,7 +1276,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 33, y: 108}
       Size: {x: 177, y: 54}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0007
@@ -1287,7 +1287,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 31, y: 95}
       Size: {x: 153, y: 40}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0009
@@ -1298,7 +1298,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 22, y: 82}
       Size: {x: 170, y: 47}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: skill_B_fx_2_1nrtcmb02_0013
@@ -1337,7 +1337,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 49, y: 65}
       Size: {x: 110, y: 100}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 7378f3de731286f49b0371039b237d64, type: 3}
@@ -1352,7 +1352,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 24, y: 24}
       Size: {x: 129, y: 109}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 256ffdb3521a8224884b80da76c010e2, type: 3}
@@ -1367,7 +1367,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: 34, y: 12}
       Size: {x: 107, y: 84}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers:
     - Sprite: {fileID: 21300000, guid: 89df0717d49c83a449d07422c45b8832, type: 3}
@@ -1402,11 +1402,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 6, y: 90}
       Size: {x: 87, y: 183}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1417,11 +1417,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 14, y: 74}
       Size: {x: 67, y: 159}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1432,11 +1432,11 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     - Center: {x: 14, y: 65}
       Size: {x: 71, y: 157}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1447,7 +1447,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1458,7 +1458,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1469,7 +1469,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1480,7 +1480,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1491,7 +1491,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1502,7 +1502,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1513,7 +1513,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1524,7 +1524,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1536,7 +1536,7 @@ MonoBehaviour:
     HitBoxes:
     - Center: {x: -14, y: 215}
       Size: {x: 744, y: 453}
-      Side: 80
+      Side: 40
       Tag: 
     ExtraLayers: []
   - Name: Ultra_kill_fx_3_1nrtspl1_atk_1_0175
@@ -1546,7 +1546,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []
@@ -1557,7 +1557,7 @@ MonoBehaviour:
     HurtBoxes:
     - Center: {x: 0, y: 0}
       Size: {x: 1, y: 2}
-      Side: 80
+      Side: 20
       Tag: 
     HitBoxes: []
     ExtraLayers: []

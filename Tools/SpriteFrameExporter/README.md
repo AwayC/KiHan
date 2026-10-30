@@ -41,10 +41,12 @@ SpriteFrameExporter.exe <输入目录> [-o 输出目录] [--mode anim|global|fra
 
 Unity 菜单 `KiHan/资源/导入序列帧 (SpriteFrameExporter)`（`Assets/Editor/SequenceFrameImporter.cs`），选择导出目录、填写角色目录名，推荐使用 `--mode frame` 导出的结果：
 
-- 图片复制到 `Assets/AssetPackages/Characters/<角色>/<动作>/`，导入为 Sprite、中心 pivot、FullRect，与现有角色一致。
-- 帧写入 `Assets/AssetPackages/Resources/Characters/<角色>/frameLib.asset`，`Offset` 由 JSON 中的 pivot 算出（图片中心相对脚底），不需要手调。
-- 每个动作生成 `<动作>.asset`（`AnimationFrameData`，资源名即 animKey），步骤时长默认 1。
-- 重复导入按帧名匹配：只替换图片和 `Offset`，已画好的判定盒、锚点、额外图层以及步骤时长都保留。
+- 图片复制到 `Assets/AssetPackages/Characters/<角色>/<动作>/`，导入为 Sprite、中心 pivot、FullRect，与现有角色一致。`file` 带子目录时 (如 `sprites/x.png`) 相对导出根目录，复制到 `<角色>/sprites/`，供多个动作共用。
+- 帧写入角色包内已有的帧库 (没有时新建 `<角色>/Anims/<角色>FrameLib.asset`)，`Offset` 由 JSON 中的 pivot 算出（图片中心相对脚底），不需要手调。
+- 每个动作生成 `<角色>/Anims/<动作>.asset`（`AnimationFrameData`，资源名即 animKey）；帧带 `duration` 时作为步骤时长，否则默认 1。
+- 重复导入按帧名匹配：替换图片和 `Offset`，已画好的判定盒、锚点、额外图层以及步骤时长都保留。
+- `animation.json` 可选字段 (原版角色转换 `Reverse/tools/export_character.py` 使用)：帧的 `duration`、`hurtBoxes` / `hitBoxes` (`LogicBox`，像素；`Side` 为纵深半轴，视觉单位，原版判定盒 z × 100)、`layers` (额外图层，`{file,width,height,pivotX,pivotY,order}`)，`file` 为空表示该帧不显示本体；顶层 `replaceFrameData: true` 时判定盒与额外图层以 JSON 为准。
+- 外部工具可写入 `Temp/SequenceFrameImport.request` (第一行导出目录，第二行角色目录名)，编辑器下次加载脚本时自动导入一次。
 
 命令行（Unity 未打开工程时）：
 

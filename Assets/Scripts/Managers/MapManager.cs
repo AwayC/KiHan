@@ -17,10 +17,11 @@ public class MapManager : UnitySingleton<MapManager>
             Destroy(_mapInstance);
         }
 
-        // 地图为 2D 背景板：放到所有角色之后 (世界 Z = BackdropDistance)，屏幕布局与原 2D 版本一致
+        // 地图为 2D 背景板：放到所有角色之后 (世界 Z = BackdropDistance)，按 MapScale 放大 (见 BattleViewSpace.MapScale)
         _mapInstance = ResManager.Instance.Spawn(mapPath,
             new Vector3(0f, 0f, BattleViewSpace.BackdropDistance),
             Quaternion.identity);
+        _mapInstance.transform.localScale = new Vector3(BattleViewSpace.MapScale, BattleViewSpace.MapScale, 1f);
 
         // 背景板不写深度，必须在透明队列中最先绘制，否则会盖住同样不写深度的特效与阴影
         foreach (SpriteRenderer sr in _mapInstance.GetComponentsInChildren<SpriteRenderer>(true))

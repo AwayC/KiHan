@@ -1,0 +1,3097 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95f210864e3ce8a479f06198085e388a, type: 3}
+  m_Name: sasukeFrameLib
+  m_EditorClassIdentifier: 
+  DefaultHurtBox:
+    Center: {x: 0, y: 60}
+    Size: {x: 60, y: 140}
+    Side: 20
+    Tag: 
+  DefaultHitBox:
+    Center: {x: 40, y: 60}
+    Size: {x: 60, y: 60}
+    Side: 40
+    Tag: 
+  SidePresets: 1400000028000000320000003c00000078000000
+  AllFrames:
+  - Name: Float_000
+    Sprite: {fileID: 21300000, guid: 89fcbac4aa52ae84d9f01ef71b664881, type: 3}
+    Offset: {x: 39.5, y: 113.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 33, y: 119}
+      Size: {x: 47, y: 152}
+      Side: 20
+      Tag: 
+    - Center: {x: 5, y: 128}
+      Size: {x: 37, y: 81}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Float_001
+    Sprite: {fileID: 21300000, guid: 25cf6d21b4aa4bf448e85974d2810545, type: 3}
+    Offset: {x: -2.5, y: 96.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -15, y: 76}
+      Size: {x: 87, y: 43}
+      Side: 20
+      Tag: 
+    - Center: {x: -41, y: 127}
+      Size: {x: 51, y: 71}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Float_002
+    Sprite: {fileID: 21300000, guid: 6fb2e4963ee7f794eacab0ece114adfc, type: 3}
+    Offset: {x: 0.5, y: 73.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -9, y: 50}
+      Size: {x: 87, y: 64}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Float_003
+    Sprite: {fileID: 21300000, guid: 3c34700dcf96efa499fe88013dacd3f0, type: 3}
+    Offset: {x: 3.5, y: 67.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 44}
+      Size: {x: 129, y: 50}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Float_004
+    Sprite: {fileID: 21300000, guid: 3c34700dcf96efa499fe88013dacd3f0, type: 3}
+    Offset: {x: 3.5, y: 67.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 44}
+      Size: {x: 129, y: 50}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_000
+    Sprite: {fileID: 21300000, guid: e60cc1592a7e09f488cb2ede2411377e, type: 3}
+    Offset: {x: -1.5, y: 65.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_001
+    Sprite: {fileID: 21300000, guid: c5201e1e8f70f2a459ff464040cea242, type: 3}
+    Offset: {x: -12, y: 80.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 20, y: 75}
+      Size: {x: 130, y: 150}
+      Side: 60
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_002
+    Sprite: {fileID: 21300000, guid: 176c6a9e8fc04fb47bc83d94f6a37a9f, type: 3}
+    Offset: {x: 13.5, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 33, y: 75}
+      Size: {x: 127, y: 149}
+      Side: 60
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_003
+    Sprite: {fileID: 21300000, guid: 71fce6c7bb65df547b57b81c19d11d69, type: 3}
+    Offset: {x: -4, y: 77.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 33, y: 75}
+      Size: {x: 127, y: 149}
+      Side: 60
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_004
+    Sprite: {fileID: 21300000, guid: 24c8d652b00f6d949a1558165d5a17e5, type: 3}
+    Offset: {x: 12, y: 85.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 33, y: 75}
+      Size: {x: 127, y: 149}
+      Side: 60
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_005
+    Sprite: {fileID: 21300000, guid: 07361b89ef8657643b8f83e9a8256dfa, type: 3}
+    Offset: {x: 25.5, y: 81.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 43, y: 75}
+      Size: {x: 127, y: 149}
+      Side: 60
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_006
+    Sprite: {fileID: 21300000, guid: 07361b89ef8657643b8f83e9a8256dfa, type: 3}
+    Offset: {x: 25.5, y: 81.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 43, y: 75}
+      Size: {x: 127, y: 149}
+      Side: 60
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_000
+    Sprite: {fileID: 21300000, guid: 07361b89ef8657643b8f83e9a8256dfa, type: 3}
+    Offset: {x: 25.5, y: 81.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_2_001
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_002
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_003
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_004
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_005
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_006
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_007
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_008
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_009
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_010
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_011
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_012
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_013
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_2_014
+    Sprite: {fileID: 21300000, guid: 0402a4eb13a3fa44580b2fc44cae8414, type: 3}
+    Offset: {x: 63, y: 79.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 140}
+      Size: {x: 600, y: 450}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_3_000
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 200, y: 215}
+      Size: {x: 800, y: 600}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_3_001
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes:
+    - Center: {x: 373, y: 120}
+      Size: {x: 1006, y: 410}
+      Side: 120
+      Tag: 
+    ExtraLayers: []
+  - Name: Ultra_kill_3_002
+    Sprite: {fileID: 21300000, guid: 8d1f9f4ec66cb874880ea068d9d9b303, type: 3}
+    Offset: {x: 63.5, y: 79.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_3_003
+    Sprite: {fileID: 21300000, guid: 1729f8fbb01bd7d4fbaf0b7b52221fc1, type: 3}
+    Offset: {x: 63, y: 76.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_3_004
+    Sprite: {fileID: 21300000, guid: edf08014a746c87488c308e094995950, type: 3}
+    Offset: {x: 39, y: 86.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_3_005
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: Ultra_kill_3_006
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_1_000
+    Sprite: {fileID: 21300000, guid: 14fa18abaffd9914382374137a85c528, type: 3}
+    Offset: {x: 7.5, y: 106.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 9, y: 81}
+      Size: {x: 68, y: 162}
+      Side: 20
+      Tag: 
+    - Center: {x: 6, y: 174}
+      Size: {x: 37, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_1_001
+    Sprite: {fileID: 21300000, guid: 770f87c637bf064458ee4a9fbdbe6c5a, type: 3}
+    Offset: {x: 26.5, y: 89.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 24, y: 69}
+      Size: {x: 79, y: 139}
+      Side: 20
+      Tag: 
+    - Center: {x: 71, y: 145}
+      Size: {x: 37, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 56, y: 113}
+      Size: {x: 248, y: 97}
+      Side: 40
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: a1f2b7d5a04473b4d9bb374b7a7ef795, type: 3}
+      Offset: {x: 22.5, y: 32}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_1_002
+    Sprite: {fileID: 21300000, guid: 770f87c637bf064458ee4a9fbdbe6c5a, type: 3}
+    Offset: {x: 26.5, y: 89.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 24, y: 69}
+      Size: {x: 79, y: 139}
+      Side: 20
+      Tag: 
+    - Center: {x: 71, y: 145}
+      Size: {x: 37, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 56, y: 113}
+      Size: {x: 248, y: 97}
+      Side: 40
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: ff57fce99ece0ea4cb9b7b2e67ef7d7d, type: 3}
+      Offset: {x: 59.5, y: 32}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_1_003
+    Sprite: {fileID: 21300000, guid: 770f87c637bf064458ee4a9fbdbe6c5a, type: 3}
+    Offset: {x: 26.5, y: 89.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 24, y: 69}
+      Size: {x: 79, y: 139}
+      Side: 20
+      Tag: 
+    - Center: {x: 71, y: 145}
+      Size: {x: 37, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_1_004
+    Sprite: {fileID: 21300000, guid: a186cc7fff24c154485704c07a4a82d5, type: 3}
+    Offset: {x: 17, y: 90.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 31, y: 69}
+      Size: {x: 79, y: 139}
+      Side: 20
+      Tag: 
+    - Center: {x: 59, y: 144}
+      Size: {x: 37, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_1_005
+    Sprite: {fileID: 21300000, guid: df852440cc0713548a413bb608ace0f0, type: 3}
+    Offset: {x: 1.5, y: 93.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 69}
+      Size: {x: 61, y: 139}
+      Side: 20
+      Tag: 
+    - Center: {x: 23, y: 152}
+      Size: {x: 37, y: 42}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_1_006
+    Sprite: {fileID: 21300000, guid: df852440cc0713548a413bb608ace0f0, type: 3}
+    Offset: {x: 1.5, y: 93.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 69}
+      Size: {x: 61, y: 139}
+      Side: 20
+      Tag: 
+    - Center: {x: 23, y: 152}
+      Size: {x: 37, y: 42}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_2_000
+    Sprite: {fileID: 21300000, guid: 7bb5a07266adf9640a0df6d2772c21a7, type: 3}
+    Offset: {x: 0.5, y: 114.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 11, y: 56}
+      Size: {x: 77, y: 111}
+      Side: 20
+      Tag: 
+    - Center: {x: -6, y: 159}
+      Size: {x: 55, y: 106}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_2_001
+    Sprite: {fileID: 21300000, guid: c5b10ff1bce340a49ac135054923fdb3, type: 3}
+    Offset: {x: -2.5, y: 110.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 10, y: 50}
+      Size: {x: 80, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: 3, y: 155}
+      Size: {x: 60, y: 115}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_2_002
+    Sprite: {fileID: 21300000, guid: 42cb24f8496e9ab45864f6ad02155b6a, type: 3}
+    Offset: {x: 10.5, y: 106.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 12, y: 44}
+      Size: {x: 85, y: 88}
+      Side: 20
+      Tag: 
+    - Center: {x: 14, y: 139}
+      Size: {x: 64, y: 120}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 320c028bb17f82d4a88412d198dd096d, type: 3}
+      Offset: {x: 60, y: 78}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_2_003
+    Sprite: {fileID: 21300000, guid: 4e5310ea765e41f48bc10c505a703862, type: 3}
+    Offset: {x: 4, y: 94.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 21, y: 86}
+      Size: {x: 65, y: 172}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 65, y: 126}
+      Size: {x: 202, y: 180}
+      Side: 40
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: f19e0fe73f6e3d94a9632f77591af9cd, type: 3}
+      Offset: {x: 69, y: 37.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_2_004
+    Sprite: {fileID: 21300000, guid: f2a5965eabbc09e4bbf62dd438aa0776, type: 3}
+    Offset: {x: 4, y: 86.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 21, y: 86}
+      Size: {x: 65, y: 172}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 65, y: 126}
+      Size: {x: 202, y: 180}
+      Side: 40
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: f2799727544853a4183ee7638cbd6086, type: 3}
+      Offset: {x: 27.5, y: -6.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_2_005
+    Sprite: {fileID: 21300000, guid: f2a5965eabbc09e4bbf62dd438aa0776, type: 3}
+    Offset: {x: 4, y: 86.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 21, y: 77}
+      Size: {x: 64, y: 155}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_2_006
+    Sprite: {fileID: 21300000, guid: 06c83284b04ea944587814e5936f32bb, type: 3}
+    Offset: {x: 5.5, y: 88.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 16, y: 70}
+      Size: {x: 74, y: 141}
+      Side: 20
+      Tag: 
+    - Center: {x: 33, y: 150}
+      Size: {x: 41, y: 25}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_2_007
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 88}
+      Size: {x: 63, y: 175}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_2_008
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 88}
+      Size: {x: 63, y: 175}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_000
+    Sprite: {fileID: 21300000, guid: 9e6be13c30ca4a640a8f047de1fa82b8, type: 3}
+    Offset: {x: -31, y: 84.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -32, y: 65}
+      Size: {x: 50, y: 131}
+      Side: 20
+      Tag: 
+    - Center: {x: -5, y: 129}
+      Size: {x: 72, y: 42}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_001
+    Sprite: {fileID: 21300000, guid: eeb3a9ffd27144f4e8371114af6062b6, type: 3}
+    Offset: {x: -39.5, y: 68.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -32, y: 65}
+      Size: {x: 50, y: 131}
+      Side: 20
+      Tag: 
+    - Center: {x: -5, y: 129}
+      Size: {x: 72, y: 42}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_002
+    Sprite: {fileID: 21300000, guid: eeb3a9ffd27144f4e8371114af6062b6, type: 3}
+    Offset: {x: -39.5, y: 68.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -17, y: 60}
+      Size: {x: 110, y: 120}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_003
+    Sprite: {fileID: 21300000, guid: e28c6fba5f80f514480a8e61bfd84414, type: 3}
+    Offset: {x: -34, y: 42.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -40, y: 55}
+      Size: {x: 70, y: 110}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 6da00775c31d5ca4ea45a0eb2f8054a2, type: 3}
+      Offset: {x: -3.5, y: -52}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_3_004
+    Sprite: {fileID: 21300000, guid: 93c6d1b76de59df45842c7069ba268a6, type: 3}
+    Offset: {x: -9.5, y: 46.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -47, y: 45}
+      Size: {x: 124, y: 90}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 5bd6662852ac729408001316b4cac997, type: 3}
+      Offset: {x: 29.5, y: -51.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_3_005
+    Sprite: {fileID: 21300000, guid: 93c6d1b76de59df45842c7069ba268a6, type: 3}
+    Offset: {x: -9.5, y: 46.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -47, y: 45}
+      Size: {x: 124, y: 90}
+      Side: 20
+      Tag: 
+    - Center: {x: 35, y: 31}
+      Size: {x: 70, y: 61}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 10, y: 10}
+      Size: {x: 306, y: 120}
+      Side: 40
+      Tag: 
+    ExtraLayers: []
+  - Name: attack_3_006
+    Sprite: {fileID: 21300000, guid: a0fe9cbea246b8242ba52f9c85545527, type: 3}
+    Offset: {x: -18.5, y: 67.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 33}
+      Size: {x: 94, y: 66}
+      Side: 20
+      Tag: 
+    - Center: {x: -41, y: 85}
+      Size: {x: 84, y: 50}
+      Side: 20
+      Tag: 
+    - Center: {x: -70, y: 118}
+      Size: {x: 36, y: 36}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_007
+    Sprite: {fileID: 21300000, guid: c01d86300827a6241b9a3ee1e5ba79a9, type: 3}
+    Offset: {x: -13, y: 89.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 1, y: 41}
+      Size: {x: 76, y: 83}
+      Side: 20
+      Tag: 
+    - Center: {x: -22, y: 108}
+      Size: {x: 56, y: 76}
+      Side: 20
+      Tag: 
+    - Center: {x: -36, y: 156}
+      Size: {x: 29, y: 33}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_008
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 1, y: 41}
+      Size: {x: 76, y: 83}
+      Side: 20
+      Tag: 
+    - Center: {x: -22, y: 108}
+      Size: {x: 56, y: 76}
+      Side: 20
+      Tag: 
+    - Center: {x: -36, y: 156}
+      Size: {x: 29, y: 33}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_009
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 73}
+      Size: {x: 82, y: 146}
+      Side: 20
+      Tag: 
+    - Center: {x: 19, y: 160}
+      Size: {x: 39, y: 50}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_3_010
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 73}
+      Size: {x: 82, y: 146}
+      Side: 20
+      Tag: 
+    - Center: {x: 19, y: 160}
+      Size: {x: 39, y: 50}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_000
+    Sprite: {fileID: 21300000, guid: fb6bf0b17dd657d46855a61aa8502cdd, type: 3}
+    Offset: {x: 18.5, y: 95.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 18, y: 93}
+      Size: {x: 57, y: 185}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_001
+    Sprite: {fileID: 21300000, guid: 310af9fe979d17a46881d6722418af31, type: 3}
+    Offset: {x: -10.5, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 112}
+      Size: {x: 60, y: 97}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_002
+    Sprite: {fileID: 21300000, guid: 7244d51a8f0a9d34c87511c536e85be3, type: 3}
+    Offset: {x: -37, y: 115.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -30, y: 116}
+      Size: {x: 99, y: 94}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_003
+    Sprite: {fileID: 21300000, guid: 65323261ad757524e86131b5486b3b6b, type: 3}
+    Offset: {x: -42, y: 138.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 131}
+      Size: {x: 47, y: 99}
+      Side: 20
+      Tag: 
+    - Center: {x: -37, y: 167}
+      Size: {x: 78, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: f572568d91f216d43a07242d2b013879, type: 3}
+      Offset: {x: -3, y: -60}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_4_004
+    Sprite: {fileID: 21300000, guid: 65323261ad757524e86131b5486b3b6b, type: 3}
+    Offset: {x: -42, y: 138.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 131}
+      Size: {x: 47, y: 99}
+      Side: 20
+      Tag: 
+    - Center: {x: -37, y: 167}
+      Size: {x: 78, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_005
+    Sprite: {fileID: 21300000, guid: 071986fb36ec13445b9f2f4bfab36b08, type: 3}
+    Offset: {x: 9, y: 170.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: ba85788a896a4be42a9924870915f02a, type: 3}
+      Offset: {x: -1, y: -64.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_4_006
+    Sprite: {fileID: 21300000, guid: 071986fb36ec13445b9f2f4bfab36b08, type: 3}
+    Offset: {x: 9, y: 170.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 6b9f7819bb107004180ba7598feca525, type: 3}
+      Offset: {x: 84.5, y: -27}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: attack_4_007
+    Sprite: {fileID: 21300000, guid: 071986fb36ec13445b9f2f4bfab36b08, type: 3}
+    Offset: {x: 9, y: 170.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers: []
+  - Name: attack_4_008
+    Sprite: {fileID: 21300000, guid: 071986fb36ec13445b9f2f4bfab36b08, type: 3}
+    Offset: {x: 9, y: 170.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers: []
+  - Name: attack_4_009
+    Sprite: {fileID: 21300000, guid: a3a9bfb9fd19cb74786e8da60a3dc447, type: 3}
+    Offset: {x: 8, y: 169.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers: []
+  - Name: attack_4_010
+    Sprite: {fileID: 21300000, guid: 76d8c36366e909a4188fa8c4199f5a0b, type: 3}
+    Offset: {x: 7, y: 166.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers: []
+  - Name: attack_4_011
+    Sprite: {fileID: 21300000, guid: ab88cac67b1744a43b27429f99f9b09e, type: 3}
+    Offset: {x: 5.5, y: 154.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 142}
+      Size: {x: 89, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 181}
+      Size: {x: 65, y: 68}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 35, y: 145}
+      Size: {x: 237, y: 110}
+      Side: 40
+      Tag: 
+    ExtraLayers: []
+  - Name: attack_4_012
+    Sprite: {fileID: 21300000, guid: 11b0d05e26ea9eb45b59d871427f599c, type: 3}
+    Offset: {x: 0.5, y: 133.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 128}
+      Size: {x: 86, y: 66}
+      Side: 20
+      Tag: 
+    - Center: {x: -30, y: 179}
+      Size: {x: 61, y: 64}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_013
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 7, y: 61}
+      Size: {x: 83, y: 122}
+      Side: 20
+      Tag: 
+    - Center: {x: 30, y: 127}
+      Size: {x: 37, y: 36}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_014
+    Sprite: {fileID: 21300000, guid: 7f494deb39a3a8e4a997a5bedeb61f35, type: 3}
+    Offset: {x: -2, y: 87.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 0, y: 69}
+      Size: {x: 74, y: 138}
+      Side: 20
+      Tag: 
+    - Center: {x: 22, y: 150}
+      Size: {x: 36, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: attack_4_015
+    Sprite: {fileID: 21300000, guid: 7f494deb39a3a8e4a997a5bedeb61f35, type: 3}
+    Offset: {x: -2, y: 87.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 0, y: 69}
+      Size: {x: 74, y: 138}
+      Side: 20
+      Tag: 
+    - Center: {x: 22, y: 150}
+      Size: {x: 36, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: call_000
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: call_001
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 63}
+      Size: {x: 76, y: 126}
+      Side: 20
+      Tag: 
+    - Center: {x: 30, y: 122}
+      Size: {x: 40, y: 45}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: call_002
+    Sprite: {fileID: 21300000, guid: d6ec553acb800c14d87388867bed362d, type: 3}
+    Offset: {x: -12.5, y: 57.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 46}
+      Size: {x: 76, y: 92}
+      Side: 20
+      Tag: 
+    - Center: {x: 35, y: 90}
+      Size: {x: 40, y: 45}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: call_003
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 62}
+      Size: {x: 76, y: 124}
+      Side: 20
+      Tag: 
+    - Center: {x: 30, y: 129}
+      Size: {x: 30, y: 30}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: call_004
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 62}
+      Size: {x: 76, y: 124}
+      Side: 20
+      Tag: 
+    - Center: {x: 30, y: 129}
+      Size: {x: 30, y: 30}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: catch_000
+    Sprite: {fileID: 21300000, guid: 92883081ce863384ba5f92f29252450b, type: 3}
+    Offset: {x: -6, y: 131.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -2, y: 101}
+      Size: {x: 40, y: 203}
+      Side: 20
+      Tag: 
+    - Center: {x: -23, y: 212}
+      Size: {x: 34, y: 29}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: catch_001
+    Sprite: {fileID: 21300000, guid: 92883081ce863384ba5f92f29252450b, type: 3}
+    Offset: {x: -6, y: 131.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -9, y: -72}
+      Size: {x: 40, y: 203}
+      Side: 20
+      Tag: 
+    - Center: {x: -31, y: 36}
+      Size: {x: 34, y: 29}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: catch_002
+    Sprite: {fileID: 21300000, guid: 92883081ce863384ba5f92f29252450b, type: 3}
+    Offset: {x: -6, y: 131.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 4, y: -107}
+      Size: {x: 40, y: 203}
+      Side: 20
+      Tag: 
+    - Center: {x: -17, y: 0}
+      Size: {x: 34, y: 29}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: catch_003
+    Sprite: {fileID: 21300000, guid: 92883081ce863384ba5f92f29252450b, type: 3}
+    Offset: {x: -6, y: 131.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -21, y: 24}
+      Size: {x: 40, y: 203}
+      Side: 20
+      Tag: 
+    - Center: {x: -40, y: 132}
+      Size: {x: 34, y: 29}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: double 1_000
+    Sprite: {fileID: 21300000, guid: 697a96127d1220e478d93925f6a8a9b1, type: 3}
+    Offset: {x: 8, y: 48.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: double 1_001
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: double 1_002
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: get_hit_000
+    Sprite: {fileID: 21300000, guid: ef343dc466d08d645a1202963f268317, type: 3}
+    Offset: {x: -5.5, y: 111.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 57}
+      Size: {x: 45, y: 115}
+      Side: 20
+      Tag: 
+    - Center: {x: -13, y: 159}
+      Size: {x: 34, y: 98}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: get_hit_1_000
+    Sprite: {fileID: 21300000, guid: 76f1efda34a78964a931c30b873e25ff, type: 3}
+    Offset: {x: -8, y: 102.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -8, y: 41}
+      Size: {x: 57, y: 81}
+      Side: 20
+      Tag: 
+    - Center: {x: -16, y: 126}
+      Size: {x: 55, y: 105}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: get_hit_2_000
+    Sprite: {fileID: 21300000, guid: fde25702bd4062040ab242b0370ec461, type: 3}
+    Offset: {x: -11.5, y: 89.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -13, y: 40}
+      Size: {x: 70, y: 79}
+      Side: 20
+      Tag: 
+    - Center: {x: -38, y: 118}
+      Size: {x: 79, y: 81}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: get_hit_3_000
+    Sprite: {fileID: 21300000, guid: 491e566f8ae91bc4fb5455c9df58b1f4, type: 3}
+    Offset: {x: 5.5, y: 101.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 43}
+      Size: {x: 69, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -26, y: 137}
+      Size: {x: 38, y: 106}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle_000
+    Sprite: {fileID: 21300000, guid: 18296d0b031180d4f8f6fffa26de2ade, type: 3}
+    Offset: {x: 3, y: 97.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 80}
+      Size: {x: 71, y: 159}
+      Side: 20
+      Tag: 
+    - Center: {x: 17, y: 168}
+      Size: {x: 34, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle_001
+    Sprite: {fileID: 21300000, guid: 2004cf060f0866b44852af7fda3b06f0, type: 3}
+    Offset: {x: 2.5, y: 96.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 80}
+      Size: {x: 71, y: 159}
+      Side: 20
+      Tag: 
+    - Center: {x: 17, y: 168}
+      Size: {x: 34, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle_002
+    Sprite: {fileID: 21300000, guid: 00a580eb0c34a974689a241c93311fc8, type: 3}
+    Offset: {x: 2.5, y: 95.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 80}
+      Size: {x: 71, y: 159}
+      Side: 20
+      Tag: 
+    - Center: {x: 17, y: 168}
+      Size: {x: 34, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle_003
+    Sprite: {fileID: 21300000, guid: c852a0f51b63cde439d7c09447d74c41, type: 3}
+    Offset: {x: 2.5, y: 94.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 80}
+      Size: {x: 71, y: 159}
+      Side: 20
+      Tag: 
+    - Center: {x: 17, y: 168}
+      Size: {x: 34, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle_004
+    Sprite: {fileID: 21300000, guid: c260155e843521044801719090c40db3, type: 3}
+    Offset: {x: 2.5, y: 96.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 80}
+      Size: {x: 71, y: 159}
+      Side: 20
+      Tag: 
+    - Center: {x: 17, y: 168}
+      Size: {x: 34, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: idle_005
+    Sprite: {fileID: 21300000, guid: c260155e843521044801719090c40db3, type: 3}
+    Offset: {x: 2.5, y: 96.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 80}
+      Size: {x: 71, y: 159}
+      Side: 20
+      Tag: 
+    - Center: {x: 17, y: 168}
+      Size: {x: 34, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: lie_down_000
+    Sprite: {fileID: 21300000, guid: e8619042810a46844922f3e273961451, type: 3}
+    Offset: {x: 10.5, y: 27.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 10, y: -5}
+      Size: {x: 193, y: 10}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: lie_got_up_000
+    Sprite: {fileID: 21300000, guid: e8619042810a46844922f3e273961451, type: 3}
+    Offset: {x: 10.5, y: 27.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: lie_got_up_001
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: lie_got_up_002
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: reel_000
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: reel_001
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 58}
+      Size: {x: 79, y: 117}
+      Side: 20
+      Tag: 
+    - Center: {x: 32, y: 124}
+      Size: {x: 39, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: reel_002
+    Sprite: {fileID: 21300000, guid: d6ec553acb800c14d87388867bed362d, type: 3}
+    Offset: {x: -12.5, y: 57.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 49}
+      Size: {x: 79, y: 97}
+      Side: 20
+      Tag: 
+    - Center: {x: 32, y: 83}
+      Size: {x: 39, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: reel_003
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 62}
+      Size: {x: 79, y: 123}
+      Side: 20
+      Tag: 
+    - Center: {x: 32, y: 130}
+      Size: {x: 39, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: reel_004
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -1, y: 62}
+      Size: {x: 79, y: 123}
+      Side: 20
+      Tag: 
+    - Center: {x: 32, y: 130}
+      Size: {x: 39, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_000
+    Sprite: {fileID: 21300000, guid: 545caed79f494974eb87799d41d12eab, type: 3}
+    Offset: {x: -6, y: 84.240005}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_001
+    Sprite: {fileID: 21300000, guid: 545caed79f494974eb87799d41d12eab, type: 3}
+    Offset: {x: -6, y: 84.240005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 16, y: 70}
+      Size: {x: 78, y: 140}
+      Side: 20
+      Tag: 
+    - Center: {x: 38, y: 141}
+      Size: {x: 34, y: 43}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_002
+    Sprite: {fileID: 21300000, guid: dbb913538fff01f4ea96aa0ea270a99e, type: 3}
+    Offset: {x: 12.5, y: 95.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 10, y: 73}
+      Size: {x: 62, y: 146}
+      Side: 20
+      Tag: 
+    - Center: {x: 48, y: 160}
+      Size: {x: 35, y: 43}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_003
+    Sprite: {fileID: 21300000, guid: 03ad47a3e9b227e4eb40095cab6c27cc, type: 3}
+    Offset: {x: -18, y: 76.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 13, y: 45}
+      Size: {x: 124, y: 90}
+      Side: 20
+      Tag: 
+    - Center: {x: 5, y: 101}
+      Size: {x: 106, y: 43}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_004
+    Sprite: {fileID: 21300000, guid: c2be1b880fe6c6246921db8122df2cf9, type: 3}
+    Offset: {x: -37, y: 81.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 8, y: 62}
+      Size: {x: 74, y: 125}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_005
+    Sprite: {fileID: 21300000, guid: 91d63b67425af184eb9fb8d8a16826ba, type: 3}
+    Offset: {x: -39, y: 101.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -28, y: 76}
+      Size: {x: 55, y: 152}
+      Side: 20
+      Tag: 
+    - Center: {x: -58, y: 84}
+      Size: {x: 63, y: 32}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: de7f406fdd2724d4bb2ba73a96737f8c, type: 3}
+      Offset: {x: -34, y: 78.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_1_006
+    Sprite: {fileID: 21300000, guid: 4824418f0fd12194ab00b381828654a3, type: 3}
+    Offset: {x: -25, y: 92.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 68}
+      Size: {x: 100, y: 135}
+      Side: 20
+      Tag: 
+    - Center: {x: -46, y: 127}
+      Size: {x: 144, y: 31}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: -8, y: 156}
+      Size: {x: 260, y: 200}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: cc2e2a0b155021946a8cf8f882244fb4, type: 3}
+      Offset: {x: 23, y: 76}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_1_007
+    Sprite: {fileID: 21300000, guid: 4824418f0fd12194ab00b381828654a3, type: 3}
+    Offset: {x: -25, y: 92.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 68}
+      Size: {x: 100, y: 135}
+      Side: 20
+      Tag: 
+    - Center: {x: -46, y: 127}
+      Size: {x: 144, y: 31}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: -8, y: 156}
+      Size: {x: 260, y: 200}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 74b87acc32194fc4ab210addce1fd445, type: 3}
+      Offset: {x: 75, y: 73.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_1_008
+    Sprite: {fileID: 21300000, guid: 857ed3340fb01c645b514cec830a9754, type: 3}
+    Offset: {x: -49.5, y: 104.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 68}
+      Size: {x: 100, y: 135}
+      Side: 20
+      Tag: 
+    - Center: {x: -46, y: 127}
+      Size: {x: 144, y: 31}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: -8, y: 156}
+      Size: {x: 260, y: 200}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: bcac92cf1d562b347b51bc2571237b38, type: 3}
+      Offset: {x: 97.5, y: 20}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_1_009
+    Sprite: {fileID: 21300000, guid: 857ed3340fb01c645b514cec830a9754, type: 3}
+    Offset: {x: -49.5, y: 104.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 68}
+      Size: {x: 100, y: 135}
+      Side: 20
+      Tag: 
+    - Center: {x: -46, y: 127}
+      Size: {x: 144, y: 31}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 50, y: 100}
+      Size: {x: 300, y: 300}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: f6b2bd4d2aa08f44f8b62aca30eb072e, type: 3}
+      Offset: {x: 85.5, y: -14}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_1_010
+    Sprite: {fileID: 21300000, guid: d3cece867c08ca54b9e0f46674afa173, type: 3}
+    Offset: {x: -59, y: 109.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 68}
+      Size: {x: 100, y: 135}
+      Side: 20
+      Tag: 
+    - Center: {x: -46, y: 127}
+      Size: {x: 144, y: 31}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 50, y: 100}
+      Size: {x: 300, y: 300}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_A_1_011
+    Sprite: {fileID: 21300000, guid: d3cece867c08ca54b9e0f46674afa173, type: 3}
+    Offset: {x: -59, y: 109.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -24, y: 64}
+      Size: {x: 82, y: 129}
+      Side: 20
+      Tag: 
+    - Center: {x: -59, y: 159}
+      Size: {x: 46, y: 98}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_012
+    Sprite: {fileID: 21300000, guid: 5709aa7303058bf4aa7e6e4e93c6be5e, type: 3}
+    Offset: {x: -31, y: 110.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -15, y: 50}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: -34, y: 147}
+      Size: {x: 46, y: 114}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_1_013
+    Sprite: {fileID: 21300000, guid: 5709aa7303058bf4aa7e6e4e93c6be5e, type: 3}
+    Offset: {x: -31, y: 110.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -15, y: 50}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: -34, y: 147}
+      Size: {x: 46, y: 114}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_000
+    Sprite: {fileID: 21300000, guid: 5709aa7303058bf4aa7e6e4e93c6be5e, type: 3}
+    Offset: {x: -31, y: 110.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -15, y: 50}
+      Size: {x: 70, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: -35, y: 147}
+      Size: {x: 50, y: 120}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_001
+    Sprite: {fileID: 21300000, guid: 4786c9d12e059024f9ae1fdc6b8e1bed, type: 3}
+    Offset: {x: 3.5, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 17, y: 56}
+      Size: {x: 77, y: 113}
+      Side: 20
+      Tag: 
+    - Center: {x: 44, y: 118}
+      Size: {x: 70, y: 31}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_002
+    Sprite: {fileID: 21300000, guid: 3e9c0ab04c5ccbc47948278cd9ccae39, type: 3}
+    Offset: {x: 1.5, y: 67.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 15, y: 55}
+      Size: {x: 86, y: 110}
+      Side: 20
+      Tag: 
+    - Center: {x: 64, y: 100}
+      Size: {x: 35, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_003
+    Sprite: {fileID: 21300000, guid: 770270e7467c8034a9c37a87d3211bcd, type: 3}
+    Offset: {x: -1, y: 67.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 22, y: 50}
+      Size: {x: 85, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: 60, y: 105}
+      Size: {x: 30, y: 43}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_004
+    Sprite: {fileID: 21300000, guid: d02da91721eac8b419f8b3535c616ab2, type: 3}
+    Offset: {x: -9.5, y: 111.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 18, y: 43}
+      Size: {x: 93, y: 85}
+      Side: 20
+      Tag: 
+    - Center: {x: 16, y: 136}
+      Size: {x: 55, y: 130}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 44, y: 148}
+      Size: {x: 220, y: 213}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 94b641fe590249b40af1fc5c4223963d, type: 3}
+      Offset: {x: 66.5, y: 46}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_2_005
+    Sprite: {fileID: 21300000, guid: 102d77aacc986954c9757b7445cba436, type: 3}
+    Offset: {x: -11, y: 111.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 18, y: 43}
+      Size: {x: 93, y: 85}
+      Side: 20
+      Tag: 
+    - Center: {x: 16, y: 136}
+      Size: {x: 55, y: 130}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 44, y: 148}
+      Size: {x: 220, y: 213}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: b1d4af9d7e21c2c4e9f2198f70da3c06, type: 3}
+      Offset: {x: 59.5, y: 91}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_2_006
+    Sprite: {fileID: 21300000, guid: 102d77aacc986954c9757b7445cba436, type: 3}
+    Offset: {x: -11, y: 111.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 14, y: 44}
+      Size: {x: 90, y: 89}
+      Side: 20
+      Tag: 
+    - Center: {x: 10, y: 142}
+      Size: {x: 48, y: 122}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 44, y: 166}
+      Size: {x: 220, y: 250}
+      Side: 50
+      Tag: 
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: ab6980bd88b70c245870f420677fea81, type: 3}
+      Offset: {x: 35, y: 102}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_2_007
+    Sprite: {fileID: 21300000, guid: 102d77aacc986954c9757b7445cba436, type: 3}
+    Offset: {x: -11, y: 111.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 16, y: 44}
+      Size: {x: 87, y: 88}
+      Side: 20
+      Tag: 
+    - Center: {x: 9, y: 142}
+      Size: {x: 51, y: 119}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_008
+    Sprite: {fileID: 21300000, guid: 9d3edfda7699e57459a817933263d813, type: 3}
+    Offset: {x: -11.5, y: 102.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 13, y: 41}
+      Size: {x: 96, y: 83}
+      Side: 20
+      Tag: 
+    - Center: {x: 9, y: 134}
+      Size: {x: 55, y: 115}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_2_009
+    Sprite: {fileID: 21300000, guid: 9d3edfda7699e57459a817933263d813, type: 3}
+    Offset: {x: -11.5, y: 102.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 13, y: 41}
+      Size: {x: 96, y: 83}
+      Side: 20
+      Tag: 
+    - Center: {x: 9, y: 134}
+      Size: {x: 55, y: 115}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_000
+    Sprite: {fileID: 21300000, guid: fb040c3037335194891731f7c7650aa7, type: 3}
+    Offset: {x: 1.0800018, y: 101.880005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 60}
+      Size: {x: 67, y: 120}
+      Side: 20
+      Tag: 
+    - Center: {x: -12, y: 150}
+      Size: {x: 51, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_001
+    Sprite: {fileID: 21300000, guid: eb20a28b849eb334588df9536148a737, type: 3}
+    Offset: {x: 10.32, y: 106.740005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 60}
+      Size: {x: 67, y: 120}
+      Side: 20
+      Tag: 
+    - Center: {x: -12, y: 150}
+      Size: {x: 51, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_002
+    Sprite: {fileID: 21300000, guid: 2ee609a8854ae564487bf7edc7a30717, type: 3}
+    Offset: {x: -1.2999992, y: 99.740005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -9, y: 81}
+      Size: {x: 60, y: 163}
+      Side: 20
+      Tag: 
+    - Center: {x: -25, y: 176}
+      Size: {x: 49, y: 37}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_003
+    Sprite: {fileID: 21300000, guid: 2ee609a8854ae564487bf7edc7a30717, type: 3}
+    Offset: {x: -1.2999992, y: 99.740005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -10, y: 50}
+      Size: {x: 70, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: 5, y: 143}
+      Size: {x: 51, y: 95}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_004
+    Sprite: {fileID: 21300000, guid: 6e818c0e2254b96419e112c2b830061e, type: 3}
+    Offset: {x: -2.800003, y: 99.240005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -10, y: 50}
+      Size: {x: 70, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: 5, y: 143}
+      Size: {x: 51, y: 95}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_005
+    Sprite: {fileID: 21300000, guid: 1ed26b21341c96841b0e1cce8b1ac93a, type: 3}
+    Offset: {x: -3.540001, y: 134.5}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -15, y: 77}
+      Size: {x: 59, y: 155}
+      Side: 20
+      Tag: 
+    - Center: {x: 22, y: 126}
+      Size: {x: 39, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: 42, y: 165}
+      Size: {x: 34, y: 45}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_006
+    Sprite: {fileID: 21300000, guid: f5e2520e681a39745b8632e4298b692e, type: 3}
+    Offset: {x: -1.2799988, y: 157.02}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 179}
+      Size: {x: 68, y: 115}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_007
+    Sprite: {fileID: 21300000, guid: b63a0faffac67e14d8806854a576d917, type: 3}
+    Offset: {x: -29.279999, y: 167.52}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 179}
+      Size: {x: 68, y: 115}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_008
+    Sprite: {fileID: 21300000, guid: fbc738b5b4918714fbddb5d92cd072e8, type: 3}
+    Offset: {x: -20.779999, y: 191.51999}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -5, y: 179}
+      Size: {x: 68, y: 115}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_009
+    Sprite: {fileID: 21300000, guid: fbc738b5b4918714fbddb5d92cd072e8, type: 3}
+    Offset: {x: -20.779999, y: 191.51999}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -26, y: 188}
+      Size: {x: 72, y: 110}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_010
+    Sprite: {fileID: 21300000, guid: 1365e560d34665a4c9065fdac032288a, type: 3}
+    Offset: {x: -20.900002, y: 184.01999}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -26, y: 188}
+      Size: {x: 72, y: 110}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_011
+    Sprite: {fileID: 21300000, guid: a0d4037e3bad36b40a93a844c7988d5c, type: 3}
+    Offset: {x: -8.400002, y: 196.01999}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -16, y: 184}
+      Size: {x: 72, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: -33, y: 244}
+      Size: {x: 33, y: 40}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_012
+    Sprite: {fileID: 21300000, guid: a0d4037e3bad36b40a93a844c7988d5c, type: 3}
+    Offset: {x: -8.400002, y: 196.01999}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 207}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_013
+    Sprite: {fileID: 21300000, guid: 5d5a84a275cd5f9438046cd72dfd846e, type: 3}
+    Offset: {x: -7.5199966, y: 207.01999}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 207}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_014
+    Sprite: {fileID: 21300000, guid: d771cecfdef2bee45bdf726b4f4f5498, type: 3}
+    Offset: {x: -10.139999, y: 188.26001}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 207}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: b4fe054fe70bb484dbe36d8f3b80834b, type: 3}
+      Offset: {x: 26.5, y: 66}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_3_015
+    Sprite: {fileID: 21300000, guid: 34296c8f82ce3974187283e3be917c0a, type: 3}
+    Offset: {x: 27.980003, y: 162.5}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 207}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 1f0ee3e1d03d8ce4198af51d3332ae98, type: 3}
+      Offset: {x: 64.99999, y: 74}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_3_016
+    Sprite: {fileID: 21300000, guid: 7dbcf33c8ce6d454694a6675b2296c19, type: 3}
+    Offset: {x: 21.220001, y: 94.8}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 171}
+      Size: {x: 48, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: 5, y: 202}
+      Size: {x: 124, y: 62}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 37245d2bb1e682a48a263d8d573a707a, type: 3}
+      Offset: {x: 79, y: 29.5}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_3_017
+    Sprite: {fileID: 21300000, guid: b478355b82e45834a9c1233bf769994e, type: 3}
+    Offset: {x: 23.080002, y: 58.300003}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 16, y: 50}
+      Size: {x: 91, y: 100}
+      Side: 20
+      Tag: 
+    - Center: {x: -21, y: 120}
+      Size: {x: 67, y: 75}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: 092579e27bcbf874c8a0fcef1c603e52, type: 3}
+      Offset: {x: 69, y: 12}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_3_018
+    Sprite: {fileID: 21300000, guid: 4bde9c26b971280498ff04f47064988e, type: 3}
+    Offset: {x: 21.580002, y: 53.800003}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 50}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers:
+    - Sprite: {fileID: 21300000, guid: b57ebce6679518347ae5dd6885578dc6, type: 3}
+      Offset: {x: 71, y: -41.000004}
+      TintColor: {r: 1, g: 1, b: 1, a: 1}
+      OrderOffset: 1
+  - Name: skill_A_3_019
+    Sprite: {fileID: 21300000, guid: 50f14fac51c580143958160391be1792, type: 3}
+    Offset: {x: 18.080002, y: 59.300003}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 50}
+      Size: {x: 79, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_020
+    Sprite: {fileID: 21300000, guid: 50f14fac51c580143958160391be1792, type: 3}
+    Offset: {x: 18.080002, y: 59.300003}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 43}
+      Size: {x: 76, y: 85}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_021
+    Sprite: {fileID: 21300000, guid: 14fd4a84eaa6c5845981332ffae64cbe, type: 3}
+    Offset: {x: -0.66000366, y: 54.800003}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 6, y: 43}
+      Size: {x: 76, y: 85}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_022
+    Sprite: {fileID: 21300000, guid: 14fd4a84eaa6c5845981332ffae64cbe, type: 3}
+    Offset: {x: -0.66000366, y: 54.800003}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 50}
+      Size: {x: 75, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_023
+    Sprite: {fileID: 21300000, guid: 07e4aec27270f4d49b3f44a651087e3e, type: 3}
+    Offset: {x: -5.779999, y: 65.8}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 50}
+      Size: {x: 75, y: 100}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_024
+    Sprite: {fileID: 21300000, guid: 07e4aec27270f4d49b3f44a651087e3e, type: 3}
+    Offset: {x: -5.779999, y: 65.8}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -12, y: 60}
+      Size: {x: 75, y: 119}
+      Side: 20
+      Tag: 
+    - Center: {x: 28, y: 27}
+      Size: {x: 57, y: 54}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_025
+    Sprite: {fileID: 21300000, guid: 950e5171760d33e4ba02763c2747ee52, type: 3}
+    Offset: {x: 6.003998, y: 85.3}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 35}
+      Size: {x: 91, y: 71}
+      Side: 20
+      Tag: 
+    - Center: {x: -5, y: 101}
+      Size: {x: 65, y: 70}
+      Side: 20
+      Tag: 
+    - Center: {x: 16, y: 147}
+      Size: {x: 34, y: 36}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_026
+    Sprite: {fileID: 21300000, guid: 91d356133cd18974994ac6a271eec9c2, type: 3}
+    Offset: {x: 3.5039978, y: 93.3}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -6, y: 35}
+      Size: {x: 91, y: 71}
+      Side: 20
+      Tag: 
+    - Center: {x: -5, y: 101}
+      Size: {x: 65, y: 70}
+      Side: 20
+      Tag: 
+    - Center: {x: 16, y: 147}
+      Size: {x: 34, y: 36}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_027
+    Sprite: {fileID: 21300000, guid: 91d356133cd18974994ac6a271eec9c2, type: 3}
+    Offset: {x: 3.5039978, y: 93.3}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -4, y: 52}
+      Size: {x: 79, y: 105}
+      Side: 20
+      Tag: 
+    - Center: {x: -11, y: 121}
+      Size: {x: 78, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: 16, y: 158}
+      Size: {x: 32, y: 41}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_A_3_028
+    Sprite: {fileID: 21300000, guid: 91d356133cd18974994ac6a271eec9c2, type: 3}
+    Offset: {x: 3.5039978, y: 93.3}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -4, y: 52}
+      Size: {x: 79, y: 105}
+      Side: 20
+      Tag: 
+    - Center: {x: -11, y: 121}
+      Size: {x: 78, y: 60}
+      Side: 20
+      Tag: 
+    - Center: {x: 16, y: 158}
+      Size: {x: 32, y: 41}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_000
+    Sprite: {fileID: 21300000, guid: 6973faa8accc2404a9e1b2d82fe8bead, type: 3}
+    Offset: {x: -18, y: 93.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_001
+    Sprite: {fileID: 21300000, guid: 6973faa8accc2404a9e1b2d82fe8bead, type: 3}
+    Offset: {x: -18, y: 93.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -28, y: 86}
+      Size: {x: 56, y: 172}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_002
+    Sprite: {fileID: 21300000, guid: 655ef08616751c1478d186320970aa52, type: 3}
+    Offset: {x: -24, y: 90.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -28, y: 86}
+      Size: {x: 56, y: 172}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_003
+    Sprite: {fileID: 21300000, guid: 655ef08616751c1478d186320970aa52, type: 3}
+    Offset: {x: -24, y: 90.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -33, y: 43}
+      Size: {x: 76, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -50, y: 118}
+      Size: {x: 51, y: 92}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_004
+    Sprite: {fileID: 21300000, guid: f6c65a9e952d7f346a289e3e0c3f74fe, type: 3}
+    Offset: {x: -26.5, y: 93.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -33, y: 43}
+      Size: {x: 76, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -50, y: 118}
+      Size: {x: 51, y: 92}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_005
+    Sprite: {fileID: 21300000, guid: 4a1307d35979c6548bf54f8fa28a5921, type: 3}
+    Offset: {x: -24.5, y: 97.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 43}
+      Size: {x: 76, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -50, y: 126}
+      Size: {x: 51, y: 108}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_006
+    Sprite: {fileID: 21300000, guid: 274fe3ddd87026749a84c2bc06c6da6b, type: 3}
+    Offset: {x: -24, y: 98.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 43}
+      Size: {x: 76, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -44, y: 126}
+      Size: {x: 51, y: 108}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_007
+    Sprite: {fileID: 21300000, guid: 26508e03287501d46a5511923ea94d43, type: 3}
+    Offset: {x: -29, y: 93.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -41, y: 43}
+      Size: {x: 76, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -44, y: 126}
+      Size: {x: 51, y: 108}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_008
+    Sprite: {fileID: 21300000, guid: 26508e03287501d46a5511923ea94d43, type: 3}
+    Offset: {x: -29, y: 93.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -26, y: 43}
+      Size: {x: 82, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -30, y: 121}
+      Size: {x: 62, y: 98}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_009
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -26, y: 43}
+      Size: {x: 82, y: 86}
+      Side: 20
+      Tag: 
+    - Center: {x: -30, y: 121}
+      Size: {x: 62, y: 98}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_010
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 56, y: 125}
+      Size: {x: 111, y: 101}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_011
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 56, y: 125}
+      Size: {x: 111, y: 101}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_012
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 130, y: 129}
+      Size: {x: 260, y: 109}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_013
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 130, y: 129}
+      Size: {x: 260, y: 109}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_014
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 143, y: 140}
+      Size: {x: 286, y: 204}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_015
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 143, y: 140}
+      Size: {x: 286, y: 204}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_016
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 180, y: 165}
+      Size: {x: 361, y: 254}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_017
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 180, y: 165}
+      Size: {x: 361, y: 254}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_018
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 180, y: 165}
+      Size: {x: 361, y: 254}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_019
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_020
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_021
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_022
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_023
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_024
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_025
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_026
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_027
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_028
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_029
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_030
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_031
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_032
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_033
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_034
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_035
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_036
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_037
+    Sprite: {fileID: 21300000, guid: 63087fe8e5283c14b883e112efe402c2, type: 3}
+    Offset: {x: -13, y: 83.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_038
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 74}
+      Size: {x: 97, y: 147}
+      Side: 20
+      Tag: 
+    HitBoxes:
+    - Center: {x: 361, y: 212}
+      Size: {x: 722, y: 347}
+      Side: 50
+      Tag: 
+    ExtraLayers: []
+  - Name: skill_B_039
+    Sprite: {fileID: 21300000, guid: a562adf25b4926a468755daf4a8560c5, type: 3}
+    Offset: {x: -14, y: 82.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 76}
+      Size: {x: 93, y: 152}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_040
+    Sprite: {fileID: 21300000, guid: 6d94ff27e69fb4047a6a88320eb838fc, type: 3}
+    Offset: {x: -4, y: 87.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 76}
+      Size: {x: 93, y: 152}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_041
+    Sprite: {fileID: 21300000, guid: 6d94ff27e69fb4047a6a88320eb838fc, type: 3}
+    Offset: {x: -4, y: 87.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 77}
+      Size: {x: 97, y: 155}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_042
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 85}
+      Size: {x: 68, y: 170}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: skill_B_043
+    Sprite: {fileID: 21300000, guid: db75a674d2d7f714f840f53a7f518116, type: 3}
+    Offset: {x: 3, y: 95.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 3, y: 85}
+      Size: {x: 68, y: 170}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_in_000
+    Sprite: {fileID: 21300000, guid: 846b7d2a82955ef4983e02d4b3154f11, type: 3}
+    Offset: {x: -11, y: 127.34}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_in_001
+    Sprite: {fileID: 21300000, guid: 846b7d2a82955ef4983e02d4b3154f11, type: 3}
+    Offset: {x: -11, y: 127.34}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_in_1_000
+    Sprite: {fileID: 21300000, guid: 697a96127d1220e478d93925f6a8a9b1, type: 3}
+    Offset: {x: 8, y: 48.36}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_in_1_001
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_in_1_002
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_out_000
+    Sprite: {fileID: 21300000, guid: 2c5a6847814822f4ba33fd0037afe7ef, type: 3}
+    Offset: {x: -3, y: 76.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_out_001
+    Sprite: {fileID: 21300000, guid: d6ec553acb800c14d87388867bed362d, type: 3}
+    Offset: {x: -12.5, y: 57.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_out_002
+    Sprite: {fileID: 21300000, guid: 0333c10bcb347ac4f9e2afbdd6f7b22b, type: 3}
+    Offset: {x: 9, y: 96.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_Jump_out_003
+    Sprite: {fileID: 21300000, guid: 0333c10bcb347ac4f9e2afbdd6f7b22b, type: 3}
+    Offset: {x: 9, y: 96.86}
+    EffectAnchors: []
+    HurtBoxes: []
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_000
+    Sprite: {fileID: 21300000, guid: 95bdf9b41c6effb49978a4734995bf92, type: 3}
+    Offset: {x: -1.2399979, y: 93.119995}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 7, y: 51}
+      Size: {x: 88, y: 103}
+      Side: 20
+      Tag: 
+    - Center: {x: 28, y: 135}
+      Size: {x: 87, y: 66}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_001
+    Sprite: {fileID: 21300000, guid: 3574554ffbe9a904aa0bf59b20f8363a, type: 3}
+    Offset: {x: -5, y: 90.86}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -3, y: 51}
+      Size: {x: 67, y: 103}
+      Side: 20
+      Tag: 
+    - Center: {x: 27, y: 130}
+      Size: {x: 80, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_002
+    Sprite: {fileID: 21300000, guid: 9d98081989bdf14479fa0eb16fb3d907, type: 3}
+    Offset: {x: 12.5, y: 103.240005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 5, y: 106}
+      Size: {x: 64, y: 112}
+      Side: 20
+      Tag: 
+    - Center: {x: 36, y: 139}
+      Size: {x: 80, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_003
+    Sprite: {fileID: 21300000, guid: c9cb98252bf32754c9d2eaa831e03904, type: 3}
+    Offset: {x: -5.6200027, y: 93.240005}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: 5, y: 56}
+      Size: {x: 64, y: 112}
+      Side: 20
+      Tag: 
+    - Center: {x: 36, y: 139}
+      Size: {x: 80, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_004
+    Sprite: {fileID: 21300000, guid: ddac82802c62ecd458cac76d12f45516, type: 3}
+    Offset: {x: 0.62000275, y: 90.36}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -2, y: 68}
+      Size: {x: 43, y: 136}
+      Side: 20
+      Tag: 
+    - Center: {x: 31, y: 133}
+      Size: {x: 71, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_005
+    Sprite: {fileID: 21300000, guid: 2f589eee3b432a2478d6b11d97eda830, type: 3}
+    Offset: {x: 5.5, y: 88.619995}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -2, y: 68}
+      Size: {x: 43, y: 136}
+      Side: 20
+      Tag: 
+    - Center: {x: 35, y: 133}
+      Size: {x: 71, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []
+  - Name: zz_move_006
+    Sprite: {fileID: 21300000, guid: 2f589eee3b432a2478d6b11d97eda830, type: 3}
+    Offset: {x: 5.5, y: 88.619995}
+    EffectAnchors: []
+    HurtBoxes:
+    - Center: {x: -2, y: 68}
+      Size: {x: 43, y: 136}
+      Side: 20
+      Tag: 
+    - Center: {x: 35, y: 133}
+      Size: {x: 71, y: 56}
+      Side: 20
+      Tag: 
+    HitBoxes: []
+    ExtraLayers: []

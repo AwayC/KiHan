@@ -11,14 +11,14 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     public float smoothSpeed = 2.5f;
 
     /// <summary>
-    /// 画面中心的屏幕纵坐标 (世界 Y，见 BattleViewSpace.ToWorld)
+    /// 画面中心的屏幕纵坐标 (世界 Y，见 BattleViewSpace.ToWorld)；取景参数随地图按 BattleViewSpace.MapScale 放大
     /// </summary>
-    public float yOffset = 1.47f;
-    public float lookAheadDistance = 3.0f;
+    public float yOffset = 1.47f * BattleViewSpace.MapScale;
+    public float lookAheadDistance = 3.0f * BattleViewSpace.MapScale;
 
     [Header("Boundaries")]
-    public float minX = -4.5f;
-    public float maxX = 4.5f;
+    public float minX = -4.5f * BattleViewSpace.MapScale;
+    public float maxX = 4.5f * BattleViewSpace.MapScale;
 
     private Camera _cam;
     private float _originalSize;
@@ -38,7 +38,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         gameObject.tag = "MainCamera";
 
         _cam.orthographic = true;
-        _cam.orthographicSize = 2.8f;
+        _cam.orthographicSize = 2.8f * BattleViewSpace.MapScale;
         _originalSize = _cam.orthographicSize;
         _cam.backgroundColor = Color.black;
         _cam.nearClipPlane = 0.1f;

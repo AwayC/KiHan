@@ -1,0 +1,3305 @@
+{
+  "data": [
+    {
+      "id": "idle",
+      "animKey": "idle",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "move",
+            "attack1",
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 999
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "move",
+      "animKey": "run",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "move",
+            "attack1",
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 999
+          },
+          "rateX": "1",
+          "rateY": "1",
+          "turn": true
+        }
+      ],
+      "autoTerminate": true,
+      "cancelTag": [
+        {
+          "tag": "move",
+          "startFormFrame": 0,
+          "priority": 0
+        }
+      ],
+      "commands": [
+        {
+          "hold": [
+            "Move"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "attack1",
+      "animKey": "attack1",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack1",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 12,
+            "y": 17
+          },
+          "cancelTag": [
+            "attack2"
+          ],
+          "priority": 0
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 5,
+          "y": 7
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 5,
+              "y": 7
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 10
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "50",
+          "hitStun": "0.6",
+          "push": {
+            "x": "0.6",
+            "inSec": "0.15",
+            "tweenMethod": "Slowly"
+          },
+          "air": {
+            "z": "5",
+            "x": "1"
+          },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081101",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 12,
+          "type": "Effect",
+          "asset": "Effect/90081101",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack2",
+      "animKey": "attack2",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack2",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 21,
+            "y": 26
+          },
+          "cancelTag": [
+            "attack3"
+          ],
+          "priority": 0
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 4,
+          "y": 7
+        },
+        {
+          "x": 10,
+          "y": 14
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 5,
+              "y": 7
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 10
+        },
+        {
+          "frameRanges": [
+            {
+              "x": 11,
+              "y": 14
+            }
+          ],
+          "tag": [],
+          "attackPhase": 1,
+          "priority": 10
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "50",
+          "hitStun": "0.6",
+          "push": {
+            "x": "0.6",
+            "inSec": "0.15",
+            "tweenMethod": "Slowly"
+          },
+          "air": {
+            "z": "5",
+            "x": "1"
+          },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        },
+        {
+          "phase": 1,
+          "attack": "50",
+          "hitStun": "0.6",
+          "push": {
+            "x": "0.6",
+            "inSec": "0.15",
+            "tweenMethod": "Slowly"
+          },
+          "air": {
+            "z": "5",
+            "x": "1"
+          },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081103",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081103",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081104",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081105",
+          "offset": {
+            "x": -60,
+            "y": 5
+          },
+          "bind": true
+        },
+        {
+          "frame": 12,
+          "type": "Effect",
+          "asset": "Effect/90081105",
+          "offset": {
+            "x": -60,
+            "y": 5
+          },
+          "bind": false
+        },
+        {
+          "frame": 12,
+          "type": "Effect",
+          "asset": "Effect/90081106",
+          "offset": {
+            "x": 120,
+            "y": -20
+          },
+          "bind": false
+        },
+        {
+          "frame": 21,
+          "type": "Effect",
+          "asset": "Effect/90081104",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack3",
+      "animKey": "attack3",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack3",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 16,
+            "y": 21
+          },
+          "cancelTag": [
+            "attack4"
+          ],
+          "priority": 0
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 9,
+          "y": 13
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 10,
+              "y": 13
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 10
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "50",
+          "hitStun": "0.6",
+          "push": {
+            "x": "0.6",
+            "inSec": "0.15",
+            "tweenMethod": "Slowly"
+          },
+          "air": {
+            "z": "5",
+            "x": "1"
+          },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081107",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081108",
+          "offset": {
+            "x": 40,
+            "y": 6
+          },
+          "bind": true
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081107",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 14,
+          "type": "Effect",
+          "asset": "Effect/90081108",
+          "offset": {
+            "x": 40,
+            "y": 6
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack4",
+      "animKey": "attack4",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack4",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 25,
+            "y": 30
+          },
+          "cancelTag": [
+            "attack6"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081120",
+          "offset": {
+            "x": 40,
+            "y": 110
+          },
+          "bind": false
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081121",
+          "offset": {
+            "x": -15,
+            "y": 130
+          },
+          "bind": true
+        },
+        {
+          "frame": 17,
+          "type": "Effect",
+          "asset": "Effect/90081121",
+          "offset": {
+            "x": -20,
+            "y": 150
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack5",
+      "animKey": "attack5",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack5",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack6",
+      "animKey": "attack6",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack6",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 25,
+          "y": 29
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 26,
+              "y": 29
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 10
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "70",
+          "launch": {
+            "z": "11",
+            "x": "3"
+          },
+          "air": {
+            "z": "10",
+            "x": "3"
+          },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081120",
+          "offset": {
+            "x": -30,
+            "y": 160
+          },
+          "bind": false
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081121",
+          "offset": {
+            "x": -10,
+            "y": 90
+          },
+          "bind": true
+        },
+        {
+          "frame": 16,
+          "type": "Effect",
+          "asset": "Effect/90081115",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 25,
+          "type": "Effect",
+          "asset": "Effect/90081117",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 25,
+          "type": "Effect",
+          "asset": "Effect/90081118",
+          "offset": {
+            "x": 0,
+            "y": 5
+          },
+          "bind": false
+        },
+        {
+          "frame": 25,
+          "type": "Camera",
+          "asset": "impact"
+        },
+        {
+          "frame": 26,
+          "type": "Effect",
+          "asset": "Effect/90081119",
+          "offset": {
+            "x": 500,
+            "y": -32
+          },
+          "bind": false
+        },
+        {
+          "frame": 27,
+          "type": "Effect",
+          "asset": "Effect/90081119",
+          "offset": {
+            "x": 500,
+            "y": -32
+          },
+          "bind": false
+        },
+        {
+          "frame": 44,
+          "type": "Effect",
+          "asset": "Effect/90081116",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack7",
+      "animKey": "attack_skillA1",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack7",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 50,
+            "y": 162
+          },
+          "bind": false
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081209",
+          "offset": {
+            "x": -40,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 13,
+          "type": "Effect",
+          "asset": "Effect/90081205",
+          "offset": {
+            "x": 160,
+            "y": 150
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack8",
+      "animKey": "attack_skillA2",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack8",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack9",
+      "animKey": "attack_skillA3",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack9",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 50,
+            "y": 162
+          },
+          "bind": false
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081209",
+          "offset": {
+            "x": -40,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 13,
+          "type": "Effect",
+          "asset": "Effect/90081205",
+          "offset": {
+            "x": 160,
+            "y": 150
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack10",
+      "animKey": "attack_skillA4",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack10",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "attack11",
+      "animKey": "attack7",
+      "catalog": "Attack",
+      "priority": 10,
+      "cancelTag": [
+        {
+          "tag": "attack11",
+          "startFormFrame": 0,
+          "priority": 10
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Attack"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Attack"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1",
+      "animKey": "skill_A_1",
+      "catalog": "Skill",
+      "priority": 20,
+      "cancelTag": [
+        {
+          "tag": "skill1",
+          "startFormFrame": 0,
+          "priority": 20
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Skill1"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Skill1"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 19,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 8,
+          "type": "Effect",
+          "asset": "Effect/90081213",
+          "offset": {
+            "x": -80,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081202",
+          "offset": {
+            "x": -350,
+            "y": 5
+          },
+          "bind": true
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081203",
+          "offset": {
+            "x": 50,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 11,
+          "type": "Effect",
+          "asset": "Effect/90081203",
+          "offset": {
+            "x": 200,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 16,
+          "type": "Effect",
+          "asset": "Effect/90081211",
+          "offset": {
+            "x": 105,
+            "y": -3
+          },
+          "bind": true
+        },
+        {
+          "frame": 18,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 62,
+            "y": 140
+          },
+          "bind": true
+        },
+        {
+          "frame": 25,
+          "type": "Effect",
+          "asset": "Effect/90081211",
+          "offset": {
+            "x": 105,
+            "y": -3
+          },
+          "bind": true
+        },
+        {
+          "frame": 28,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 50,
+            "y": 162
+          },
+          "bind": true
+        },
+        {
+          "frame": 31,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 15,
+            "y": 220
+          },
+          "bind": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_2",
+      "animKey": "skill_A_2",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 50,
+            "y": 162
+          },
+          "bind": false
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081209",
+          "offset": {
+            "x": -40,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 13,
+          "type": "Effect",
+          "asset": "Effect/90081205",
+          "offset": {
+            "x": 160,
+            "y": 150
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill1_3",
+      "animKey": "skill_A_3",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill1_4",
+      "animKey": "skill_A_4",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_5",
+      "animKey": "skill_A_5",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_6",
+      "animKey": "skill_A_6",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_7",
+      "animKey": "skill_A_7",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_8",
+      "animKey": "skill_A_8",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 0
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 1,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 2,
+            "y": 7
+          },
+          "cancelTag": [
+            "skill1_10"
+          ],
+          "priority": 0
+        }
+      ]
+    },
+    {
+      "id": "skill1_9",
+      "animKey": "skill_A_9",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 0
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 1,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 2,
+            "y": 7
+          },
+          "cancelTag": [
+            "skill1_10"
+          ],
+          "priority": 0
+        }
+      ]
+    },
+    {
+      "id": "skill1_10",
+      "animKey": "skill_A_10",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 13,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 2,
+          "type": "Effect",
+          "asset": "Effect/90081213",
+          "offset": {
+            "x": -80,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081202",
+          "offset": {
+            "x": -350,
+            "y": 5
+          },
+          "bind": true
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081203",
+          "offset": {
+            "x": 50,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 5,
+          "type": "Effect",
+          "asset": "Effect/90081203",
+          "offset": {
+            "x": 200,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081211",
+          "offset": {
+            "x": 105,
+            "y": -3
+          },
+          "bind": true
+        },
+        {
+          "frame": 19,
+          "type": "Effect",
+          "asset": "Effect/90081211",
+          "offset": {
+            "x": 105,
+            "y": -3
+          },
+          "bind": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_11",
+      "animKey": "skill_A_11",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081001",
+          "offset": {
+            "x": 50,
+            "y": 162
+          },
+          "bind": false
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081209",
+          "offset": {
+            "x": -40,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 13,
+          "type": "Effect",
+          "asset": "Effect/90081205",
+          "offset": {
+            "x": 160,
+            "y": 150
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill1_12",
+      "animKey": "skill_A_12",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill1_13",
+      "animKey": "skill_A_13",
+      "catalog": "Skill",
+      "autoNextActionId": "skill1_8",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_14",
+      "animKey": "skill_A_14",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_15",
+      "animKey": "skill_A_15",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_16",
+      "animKey": "skill_A_16",
+      "catalog": "Skill",
+      "autoNextActionId": "skill1_9",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill1_17",
+      "animKey": "skill_A_17",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 12,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill2",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081213",
+          "offset": {
+            "x": -80,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 2,
+          "type": "Effect",
+          "asset": "Effect/90081202",
+          "offset": {
+            "x": -350,
+            "y": 5
+          },
+          "bind": true
+        },
+        {
+          "frame": 2,
+          "type": "Effect",
+          "asset": "Effect/90081203",
+          "offset": {
+            "x": 50,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081203",
+          "offset": {
+            "x": 200,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081211",
+          "offset": {
+            "x": 105,
+            "y": -3
+          },
+          "bind": true
+        },
+        {
+          "frame": 18,
+          "type": "Effect",
+          "asset": "Effect/90081211",
+          "offset": {
+            "x": 105,
+            "y": -3
+          },
+          "bind": true
+        }
+      ]
+    },
+    {
+      "id": "skill2",
+      "animKey": "skill_B_1",
+      "catalog": "Skill",
+      "priority": 20,
+      "cancelTag": [
+        {
+          "tag": "skill2",
+          "startFormFrame": 0,
+          "priority": 20
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Skill2"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Skill2"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 5,
+          "y": 999
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 6,
+              "y": 8
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 20
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "100",
+          "launch": {
+            "z": "10",
+            "x": "3"
+          },
+          "air": {
+            "z": "10",
+            "x": "3"
+          },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081301",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081302",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 5,
+          "type": "Effect",
+          "asset": "Effect/90081303",
+          "offset": {
+            "x": 70,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 9,
+          "type": "Effect",
+          "asset": "Effect/90081304",
+          "offset": {
+            "x": 50,
+            "y": 130
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill2_2",
+      "animKey": "skill_B_2",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill2_3",
+      "animKey": "skill_B_3",
+      "catalog": "Skill",
+      "autoNextActionId": "skill2_4",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "skill2_4",
+      "animKey": "skill_B_4",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 37,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081301",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081302",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 20,
+          "type": "Effect",
+          "asset": "Effect/90081317",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        }
+      ]
+    },
+    {
+      "id": "skill2_5",
+      "animKey": "skill_B_5",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 4,
+          "y": 7
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 5,
+              "y": 7
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 20
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "100",
+          "launch": {
+            "z": "10",
+            "x": "3"
+          },
+          "air": {
+            "z": "10",
+            "x": "3"
+          },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081301",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081302",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081307",
+          "offset": {
+            "x": 70,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 8,
+          "type": "Effect",
+          "asset": "Effect/90081304",
+          "offset": {
+            "x": 50,
+            "y": 130
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill2_6",
+      "animKey": "skill_B_6",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "ultimate",
+            "secret",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081210",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill2_7",
+      "animKey": "skill_B_7",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 1,
+          "y": 999
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 2,
+              "y": 4
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 20
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "100",
+          "launch": {
+            "z": "10",
+            "x": "3"
+          },
+          "air": {
+            "z": "10",
+            "x": "3"
+          },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081303",
+          "offset": {
+            "x": 70,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 5,
+          "type": "Effect",
+          "asset": "Effect/90081304",
+          "offset": {
+            "x": 50,
+            "y": 130
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "skill2_8",
+      "animKey": "skill_B_8",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "recordHitFrames": [
+        {
+          "x": 0,
+          "y": 3
+        }
+      ],
+      "attackPhase": [
+        {
+          "frameRanges": [
+            {
+              "x": 1,
+              "y": 3
+            }
+          ],
+          "tag": [],
+          "attackPhase": 0,
+          "priority": 20
+        }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "100",
+          "launch": {
+            "z": "10",
+            "x": "3"
+          },
+          "air": {
+            "z": "10",
+            "x": "3"
+          },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081307",
+          "offset": {
+            "x": 70,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081304",
+          "offset": {
+            "x": 50,
+            "y": 130
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "ultimate",
+      "animKey": "Ultra_kill_1",
+      "catalog": "Ultimate",
+      "priority": 30,
+      "cancelTag": [
+        {
+          "tag": "ultimate",
+          "startFormFrame": 0,
+          "priority": 30
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Ultimate"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Ultimate"
+          ]
+        }
+      ],
+      "autoNextActionId": "ultimate_2",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081401",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081403",
+          "offset": {
+            "x": 46,
+            "y": 600
+          },
+          "bind": false
+        },
+        {
+          "frame": 12,
+          "type": "Effect",
+          "asset": "Effect/90081402",
+          "offset": {
+            "x": 0,
+            "y": -8
+          },
+          "bind": false
+        },
+        {
+          "frame": 12,
+          "type": "Effect",
+          "asset": "Effect/90081421",
+          "offset": {
+            "x": -2,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 12,
+          "type": "Camera",
+          "asset": "impact"
+        },
+        {
+          "frame": 25,
+          "type": "Effect",
+          "asset": "Effect/90081404",
+          "offset": {
+            "x": 0,
+            "y": 58
+          },
+          "bind": true
+        },
+        {
+          "frame": 25,
+          "type": "Effect",
+          "asset": "Effect/90081405",
+          "offset": {
+            "x": -100,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 38,
+          "type": "Effect",
+          "asset": "Effect/90081120",
+          "offset": {
+            "x": 0,
+            "y": 60
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "ultimate_2",
+      "animKey": "Ultra_kill_2",
+      "catalog": "Ultimate",
+      "autoNextActionId": "ultimate_3",
+      "priority": 30,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Camera",
+          "asset": "impact_heavy"
+        },
+        {
+          "frame": 20,
+          "type": "Effect",
+          "asset": "Effect/90081407",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 25,
+          "type": "Camera",
+          "asset": "impact"
+        },
+        {
+          "frame": 29,
+          "type": "Camera",
+          "asset": "impact"
+        },
+        {
+          "frame": 62,
+          "type": "Effect",
+          "asset": "Effect/90081406",
+          "offset": {
+            "x": -67,
+            "y": -26
+          },
+          "bind": false
+        },
+        {
+          "frame": 66,
+          "type": "Effect",
+          "asset": "Effect/90081405",
+          "offset": {
+            "x": -100,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 66,
+          "type": "Effect",
+          "asset": "Effect/90081409",
+          "offset": {
+            "x": -67,
+            "y": -26
+          },
+          "bind": false
+        },
+        {
+          "frame": 66,
+          "type": "Effect",
+          "asset": "Effect/90081414",
+          "offset": {
+            "x": -10,
+            "y": 70
+          },
+          "bind": true
+        },
+        {
+          "frame": 89,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": true
+        },
+        {
+          "frame": 90,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 90,
+          "type": "Effect",
+          "asset": "Effect/90081415",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 90,
+          "type": "Camera",
+          "asset": "impact_heavy"
+        },
+        {
+          "frame": 100,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 110,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 120,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 130,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 140,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 150,
+          "type": "Effect",
+          "asset": "Effect/90081408",
+          "offset": {
+            "x": 0,
+            "y": -4400
+          },
+          "bind": false
+        },
+        {
+          "frame": 165,
+          "type": "Camera",
+          "asset": "impact_heavy"
+        },
+        {
+          "frame": 170,
+          "type": "Effect",
+          "asset": "Effect/90081416",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 200,
+          "type": "Effect",
+          "asset": "Effect/90081417",
+          "offset": {
+            "x": 400,
+            "y": 10
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "ultimate_3",
+      "animKey": "Ultra_kill_3",
+      "catalog": "Ultimate",
+      "autoNextActionId": "idle",
+      "priority": 30,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081412",
+          "offset": {
+            "x": 5,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "secret",
+      "animKey": "reel",
+      "catalog": "Skill",
+      "priority": 20,
+      "cancelTag": [
+        {
+          "tag": "secret",
+          "startFormFrame": 0,
+          "priority": 20
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Secret"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Secret"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "secret_2",
+      "animKey": "skill_C_1",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 19,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081501",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "secret_3",
+      "animKey": "skill_C_2",
+      "catalog": "Skill",
+      "autoNextActionId": "secret_5",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081502",
+          "offset": {
+            "x": 3,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081505",
+          "offset": {
+            "x": 0,
+            "y": 28
+          },
+          "bind": false
+        },
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081506",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081504",
+          "offset": {
+            "x": 70,
+            "y": 150
+          },
+          "bind": false
+        },
+        {
+          "frame": 3,
+          "type": "Effect",
+          "asset": "Effect/90081206",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": false
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081502",
+          "offset": {
+            "x": 3,
+            "y": 0
+          },
+          "bind": true
+        }
+      ]
+    },
+    {
+      "id": "secret_4",
+      "animKey": "skill_C_3",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 15,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2",
+            "ultimate",
+            "summon"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 1,
+          "type": "Effect",
+          "asset": "Effect/90081503",
+          "offset": {
+            "x": 0,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 2,
+          "type": "Effect",
+          "asset": "Effect/90081508",
+          "offset": {
+            "x": -100,
+            "y": 0
+          },
+          "bind": true
+        },
+        {
+          "frame": 5,
+          "type": "Effect",
+          "asset": "Effect/90081508",
+          "offset": {
+            "x": -100,
+            "y": 0
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "secret_5",
+      "animKey": "skill_C_4",
+      "catalog": "Skill",
+      "autoNextActionId": "secret_4",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 0,
+            "y": 999
+          },
+          "cancelTag": [],
+          "priority": 0
+        },
+        {
+          "frameRange": {
+            "x": 3,
+            "y": 8
+          },
+          "cancelTag": [
+            "secret_6"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "type": "Effect",
+          "asset": "Effect/90081120",
+          "offset": {
+            "x": 0,
+            "y": 150
+          },
+          "bind": false
+        },
+        {
+          "frame": 10,
+          "type": "Effect",
+          "asset": "Effect/90081121",
+          "offset": {
+            "x": -15,
+            "y": 130
+          },
+          "bind": true
+        }
+      ]
+    },
+    {
+      "id": "secret_6",
+      "animKey": "skill_C_5",
+      "catalog": "Skill",
+      "autoNextActionId": "idle",
+      "priority": 20,
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ],
+      "beCancelledTag": [
+        {
+          "frameRange": {
+            "x": 4,
+            "y": 999
+          },
+          "cancelTag": [
+            "skill1",
+            "skill2"
+          ],
+          "priority": 0
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "type": "Effect",
+          "asset": "Effect/90081121",
+          "offset": {
+            "x": 20,
+            "y": 130
+          },
+          "bind": false
+        }
+      ]
+    },
+    {
+      "id": "summon",
+      "animKey": "Call",
+      "catalog": "Skill",
+      "priority": 20,
+      "cancelTag": [
+        {
+          "tag": "summon",
+          "startFormFrame": 0,
+          "priority": 20
+        }
+      ],
+      "commands": [
+        {
+          "press": [
+            "Summon"
+          ],
+          "validInSec": "0.2"
+        },
+        {
+          "hold": [
+            "Summon"
+          ]
+        }
+      ],
+      "autoNextActionId": "idle",
+      "inputAcceptance": [
+        {
+          "range": {
+            "x": 0,
+            "y": 0
+          },
+          "rateX": "0",
+          "rateY": "0",
+          "turn": true
+        }
+      ]
+    },
+    {
+      "id": "substitution",
+      "animKey": "lie_got_up",
+      "catalog": "Hurt",
+      "breakHurt": true,
+      "commands": [
+        {
+          "press": [
+            "Substitution"
+          ],
+          "validInSec": "0.2"
+        }
+      ]
+    },
+    {
+      "id": "hurt",
+      "animKey": "get_hit",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "hurt_1",
+      "animKey": "get_hit_1",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "hurt_2",
+      "animKey": "get_hit_2",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "hurt_3",
+      "animKey": "get_hit_3",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "grabbed",
+      "animKey": "catch",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "float",
+      "animKey": "float",
+      "catalog": "Hurt",
+      "airHitStep": 1
+    },
+    {
+      "id": "fall",
+      "animKey": "Float_air",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "lie",
+      "animKey": "lie_down",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "standup",
+      "animKey": "lie_got_up",
+      "catalog": "Hurt"
+    },
+    {
+      "id": "jump_in",
+      "animKey": "Jump_in",
+      "catalog": "Show"
+    },
+    {
+      "id": "jump_in_1",
+      "animKey": "Jump_in_1",
+      "catalog": "Show"
+    },
+    {
+      "id": "jump_out",
+      "animKey": "Jump_out",
+      "catalog": "Show"
+    }
+  ]
+}

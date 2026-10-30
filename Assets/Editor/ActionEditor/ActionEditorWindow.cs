@@ -222,7 +222,8 @@ namespace KiHan.Editor
             sb.Append("    }\n  ]\n}\n");
             File.WriteAllText(path, sb.ToString(), new UTF8Encoding(false));
             AssetDatabase.ImportAsset(path);
-            var manifest = AssetDatabase.LoadAssetAtPath<CharacterManifest>($"{_characterDir}/{CharacterManifest.FileName}.asset");
+            string manifestPath = CharacterPackages.FindManifestPath($"{_characterDir}/x");
+            var manifest = manifestPath != null ? AssetDatabase.LoadAssetAtPath<CharacterManifest>(manifestPath) : null;
             if (manifest != null) CharacterPackages.Refresh(manifest);
             LoadCharacter(_characterDir);
         }
@@ -637,6 +638,7 @@ namespace KiHan.Editor
                     AddChange(refs, $"命中#{i}", atk.selfActionChange?.changeType ?? 0, atk.selfActionChange?.param);
                     AddChange(refs, $"抓取释放#{i}", atk.grab.releaseActionChange?.changeType ?? 0, atk.grab.releaseActionChange?.param);
                     if (!string.IsNullOrEmpty(atk.hurtAction)) refs.Add(new KeyValuePair<string, string>($"对手受击#{i}", atk.hurtAction));
+                    if (!string.IsNullOrEmpty(atk.grab.pose.action)) refs.Add(new KeyValuePair<string, string>($"被抓姿势#{i}", atk.grab.pose.action));
                 }
             }
             if (a.defensePhase != null)
@@ -682,6 +684,7 @@ namespace KiHan.Editor
             { "armorPhase", "armorPhase 霸体" },
             { "events", "events 事件" },
             { "breakHurt", "breakHurt 受击中可用" },
+            { "airHitStep", "airHitStep 空中受击起播步" },
         };
 
         private void DrawInspector()

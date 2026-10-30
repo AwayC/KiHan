@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace KiHan.Editor
 {
     /// <summary>
-    /// 角色包工具：按目录约定收集清单 (Character.asset) 的配置、动画与资源表，并提供注册 / 校验菜单
+    /// 角色包工具：按目录约定收集清单 (包根目录下的 CharacterManifest，新建时命名为 Character.asset) 的配置、动画与资源表，并提供注册 / 校验菜单
     ///
     /// 收集规则 (以清单所在目录为包根目录)：
     /// - Config/actions.json、skills.json、spawns.json、buffs.json
@@ -145,15 +145,21 @@ namespace KiHan.Editor
         }
 
         /// <summary>
-        /// 资源路径所属的角色包清单 (向上查找最近的 Character.asset)，不属于任何包返回 null
+        /// 资源路径所属的角色包清单 (向上查找最近一个直接含 CharacterManifest 的目录，清单文件名不限)，不属于任何包返回 null
         /// </summary>
         public static string FindManifestPath(string assetPath)
         {
             string dir = Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
             while (!string.IsNullOrEmpty(dir) && dir.StartsWith("Assets", StringComparison.Ordinal))
             {
-                string candidate = $"{dir}/{CharacterManifest.FileName}.asset";
-                if (File.Exists(candidate)) return candidate;
+                if (Directory.Exists(dir))
+                {
+                    foreach (string file in Directory.GetFiles(dir, "*.asset"))
+                    {
+                        string candidate = file.Replace('\\', '/');
+                        if (AssetDatabase.GetMainAssetTypeAtPath(candidate) == typeof(CharacterManifest)) return candidate;
+                    }
+                }
                 dir = Path.GetDirectoryName(dir)?.Replace('\\', '/');
             }
             return null;
@@ -207,12 +213,14 @@ namespace KiHan.Editor
             if (string.IsNullOrEmpty(folder)) return;
             if (!AssetDatabase.IsValidFolder(folder)) folder = Path.GetDirectoryName(folder)?.Replace('\\', '/');
 
-            string path = $"{folder}/{CharacterManifest.FileName}.asset";
-            if (File.Exists(path))
+            string existing = FindManifestPath($"{folder}/x");
+            if (existing != null && Path.GetDirectoryName(existing)?.Replace('\\', '/') == folder)
             {
-                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<CharacterManifest>(path));
+                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<CharacterManifest>(existing));
                 return;
             }
+
+            string path = $"{folder}/{CharacterManifest.FileName}.asset";
 
             if (!AssetDatabase.IsValidFolder($"{folder}/{ConfigFolder}")) AssetDatabase.CreateFolder(folder, ConfigFolder);
             var manifest = ScriptableObject.CreateInstance<CharacterManifest>();
@@ -265,7 +273,7 @@ namespace KiHan.Editor
         {
             foreach (string path in paths)
             {
-                string manifestPath = path.EndsWith($"/{CharacterManifest.FileName}.asset", StringComparison.Ordinal)
+                string manifestPath = AssetDatabase.GetMainAssetTypeAtPath(path) == typeof(CharacterManifest)
                     ? path
                     : CharacterPackages.FindManifestPath(path);
                 if (manifestPath != null) Pending.Add(manifestPath);

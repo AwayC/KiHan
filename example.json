@@ -7,9 +7,10 @@
 //   - 枚举字段写名称字符串 ("Ground", "Super", "Attack")，忽略大小写
 //   - 坐标轴：x 横向 (面朝方向为正), y 纵深, z 高度；距离单位为逻辑单位 (100 像素 = 1)
 //   - changeType：0 = Keep (不变), 1 = ChangeToActionId (param 为动作 id), 2 = ChangeByCatalog (param 为 catalog)
-//   - 通用受击动作 id 固定且必须配置：hurt_1 hurt_2 hurt_toair hurt_inair hurt_fall lie standup (最小配置见 action_template.json)
-//     受击流程由框架驱动 (toair -> inair -> fall -> 触地弹起或倒地 -> lie -> standup 无敌 -> 默认动作)，受击动作无需配置 autoNext
-//     攻击不配置 hurtAction 时：僵直默认 hurt_1，抓取默认 hurt_2，地面击飞默认 hurt_toair；空中受击固定 hurt_inair
+//   - 通用受击动作 id 固定且必须配置：hurt grabbed float fall lie standup (最小配置见 action_template.json)；hurt_1 hurt_2 hurt_3 为可选的僵直变体
+//     受击流程由框架驱动 (float -> fall -> 触地弹起或倒地 -> lie 固定 lieSec 秒 -> standup 无敌 -> 默认动作)，受击动作无需配置 autoNext
+//     攻击不配置 hurtAction 时：僵直在 hurt / hurt_1..3 中确定性随机，抓取默认 grabbed (或 grab.pose)，地面击飞默认 float；
+//     空中受击与触地弹起固定 float，从其 airHitStep 切片步开始播放
 //   - 受击反应按目标状态决定 (每次命中只出一种)：
 //       被抓中 -> 只扣血；霸体 (armorBreak 不足) -> 只扣血；grab -> 抓取
 //       目标浮空 -> 所有攻击都按 air 重设速度 (未配置用全局默认 GameConfig.DefaultAirLaunch：z 5, x 1)
@@ -112,7 +113,7 @@
           "canHitLying": true,                           // 能否命中倒地目标 (扫地)；有 launch 时把倒地目标挑起
           "canHitSameTarget": 1,                         // 同一目标最多命中次数
           "hitSameTargetDelay": "0",                     // 同一目标两次命中的间隔秒数
-          "hurtAction": "hurt_toair",                    // 地面受击动作 (僵直 / 击飞 / 被抓)，可省略
+          "hurtAction": "float",                         // 地面受击动作 (僵直 / 击飞 / 被抓)，可省略
           "tempBeCancelledTagTurnOn": ["atk4_hit"]       // 命中后为自己开启的临时取消窗口 id
         }
       ]
@@ -243,7 +244,7 @@
           },
           "canHitSameTarget": 3,                         // 最多命中 3 次
           "hitSameTargetDelay": "0.1",                   // 每 0.1 秒一次
-          "hurtAction": "hurt_1"
+          "hurtAction": "hurt"
         },
         {
           "phase": 1,                                    // 第二段：抓取 (被抓期间任何命中只扣血、保持抓取，可在此期间打多段)
@@ -252,10 +253,11 @@
           "grab": {                                      // 抓取：目标逐帧锁定在攻击者帧锚点上，不受重力与外力影响
             "enabled": true,
             "anchor": "grab",                            // 帧库 EffectAnchors 中的锚点名 (可省略，默认 "grab")；帧上有锚点 = 保持抓取，锚点消失 = 释放
-            "releaseActionChange": { "changeType": 1, "param": "hurt_fall", "priority": 100 }   // 锚点消失释放 (主动松手/被打断/播完) 时目标的动作
+            "releaseActionChange": { "changeType": 1, "param": "fall", "priority": 100 },   // 锚点消失释放 (主动松手/被打断/播完) 时目标的动作
+            "pose": { "action": "float", "step": 2, "hold": true }   // 被抓姿势：取 float 第 3 个切片步 (0 起) 定格；后续抓取段带 pose 时换姿势 (可省略)
           },
           "canHitSameTarget": 1,
-          "hurtAction": "hurt_2"                         // 被抓期间循环播放 (可省略，默认 hurt_2)
+          "hurtAction": "grabbed"                        // 未配置 pose 时被抓期间循环播放 (可省略，默认 grabbed)
         },
         {
           "phase": 2,                                    // 第三段：爆发击飞

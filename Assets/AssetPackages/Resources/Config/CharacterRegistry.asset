@@ -15,3 +15,7 @@ MonoBehaviour:
   characters:
   - enabled: 1
     manifest: {fileID: 11400000, guid: d7f311bc520b425e998f5c44179bff61, type: 2}
+  - enabled: 1
+    manifest: {fileID: 11400000, guid: 72767eca5b038784690f08f90a22b1f9, type: 2}
+  - enabled: 1
+    manifest: {fileID: 11400000, guid: 46beaf1d1bed4b16849262a310ce8dfe, type: 2}

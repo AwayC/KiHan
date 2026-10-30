@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: attack4
+  m_EditorClassIdentifier: 
+  AnimName: attack4
+  Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
+  Steps:
+  - FrameIndex: 367
+    Duration: 4
+  - FrameIndex: 368
+    Duration: 1
+  - FrameIndex: 369
+    Duration: 5
+  - FrameIndex: 370
+    Duration: 1
+  - FrameIndex: 371
+    Duration: 2
+  - FrameIndex: 372
+    Duration: 1
+  - FrameIndex: 373
+    Duration: 1
+  - FrameIndex: 374
+    Duration: 1
+  - FrameIndex: 375
+    Duration: 2
+  - FrameIndex: 376
+    Duration: 1
+  - FrameIndex: 377
+    Duration: 4
+  - FrameIndex: 378
+    Duration: 3
+  - FrameIndex: 379
+    Duration: 1
+  - FrameIndex: 380
+    Duration: 1
+  - FrameIndex: 381
+    Duration: 1
+  - FrameIndex: 382
+    Duration: 1
+  - FrameIndex: 383
+    Duration: 1

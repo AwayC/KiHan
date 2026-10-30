@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b90f41bd9e4a4988f658c6e56d138, type: 3}
+  m_Name: skill_A_9
+  m_EditorClassIdentifier: 
+  AnimName: skill_A_9
+  Library: {fileID: 11400000, guid: 78de37e879796314186e9047d4b12bfd, type: 2}
+  Steps:
+  - FrameIndex: 610
+    Duration: 1
+  - FrameIndex: 611
+    Duration: 2
+  - FrameIndex: 612
+    Duration: 2
+  - FrameIndex: 613
+    Duration: 3
+  - FrameIndex: 614
+    Duration: 1
+  - FrameIndex: 615
+    Duration: 2
+  - FrameIndex: 616
+    Duration: 2
+  - FrameIndex: 617
+    Duration: 2
+  - FrameIndex: 618
+    Duration: 1
+  - FrameIndex: 619
+    Duration: 2
+  - FrameIndex: 620
+    Duration: 2
+  - FrameIndex: 621
+    Duration: 3
+  - FrameIndex: 622
+    Duration: 1
+  - FrameIndex: 623
+    Duration: 2
+  - FrameIndex: 624
+    Duration: 2
+  - FrameIndex: 625
+    Duration: 2
+  - FrameIndex: 626
+    Duration: 1
+  - FrameIndex: 627
+    Duration: 2
+  - FrameIndex: 628
+    Duration: 2
+  - FrameIndex: 629
+    Duration: 3
+  - FrameIndex: 630
+    Duration: 1
+  - FrameIndex: 631
+    Duration: 2
+  - FrameIndex: 632
+    Duration: 2
+  - FrameIndex: 633
+    Duration: 2
+  - FrameIndex: 634
+    Duration: 1
+  - FrameIndex: 635
+    Duration: 2
+  - FrameIndex: 636
+    Duration: 2
+  - FrameIndex: 637
+    Duration: 3
+  - FrameIndex: 638
+    Duration: 1
+  - FrameIndex: 639
+    Duration: 2
+  - FrameIndex: 640
+    Duration: 2
+  - FrameIndex: 641
+    Duration: 2
+  - FrameIndex: 642
+    Duration: 1

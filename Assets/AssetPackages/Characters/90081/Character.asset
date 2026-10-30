@@ -14,36 +14,252 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 90081
   displayName: 90081
-  headshot: {fileID: 0}
-  actions: {fileID: 0}
-  skills: {fileID: 0}
+  headshot: {fileID: 21300000, guid: a3118fad79f64192a3fda10c089ff2ab, type: 3}
+  actions: {fileID: 4900000, guid: cde1f67e1a5932144be9cdd10176374b, type: 3}
+  skills: {fileID: 4900000, guid: 42ff887113778484287bb2870a0de425, type: 3}
   spawns: {fileID: 0}
   buffs: {fileID: 0}
   animations:
-  - {fileID: 11400000, guid: 6ca33a7e93fb979459bbb4e673b8f012, type: 2}
-  - {fileID: 11400000, guid: 6fb9f2d97e1de7f4196cdab2d0fee09a, type: 2}
-  - {fileID: 11400000, guid: 806bfd4f7fce7da41ba44f9e424dcf72, type: 2}
-  - {fileID: 11400000, guid: 3c38a90c293ef9042b854404e82ac43c, type: 2}
-  - {fileID: 11400000, guid: 9d184deb2c46b324c9a4fe8ba232e78c, type: 2}
-  - {fileID: 11400000, guid: ef2f9fb439085384da1d55d3e1b705e7, type: 2}
-  - {fileID: 11400000, guid: 15c63bd8118e482419b00fa9119e2bb4, type: 2}
-  - {fileID: 11400000, guid: dac3a0e2b3230534c93533a2b104c9c3, type: 2}
-  - {fileID: 11400000, guid: c0ded438b81ca76448c16fe1e97b69ca, type: 2}
-  - {fileID: 11400000, guid: 00116f56b68b1ae4390d1fdb05441de2, type: 2}
-  - {fileID: 11400000, guid: e946b302679a77345bb50dc0c2f53e9b, type: 2}
-  - {fileID: 11400000, guid: 19026bb123d447444b2290dfeb18cecd, type: 2}
-  - {fileID: 11400000, guid: a634d6df86dcf954fb242fcfc88c1777, type: 2}
-  - {fileID: 11400000, guid: 9e86562e651e0fd4fb1ba3d594b3370e, type: 2}
-  - {fileID: 11400000, guid: 7b2bc0a1d85e0a247b4075a1a11c9997, type: 2}
-  - {fileID: 11400000, guid: df3936cf93fae1647a003de173668247, type: 2}
-  - {fileID: 11400000, guid: a47ee25eb8891d54cbd877658e2e2526, type: 2}
-  - {fileID: 11400000, guid: ab992fe8a52de914aaafcccddb8d119d, type: 2}
-  - {fileID: 11400000, guid: 8bfae762938fe0146b80f357343ec926, type: 2}
-  - {fileID: 11400000, guid: dbc27e8a73824884e8c8911df2516bf6, type: 2}
-  - {fileID: 11400000, guid: 08ee6197e4924b2408def798aa387fbc, type: 2}
-  - {fileID: 11400000, guid: d863990e9dbcc6f44824cbc8f7a444a3, type: 2}
-  - {fileID: 11400000, guid: f0cdaefd0ec6b8143af752474ac011c8, type: 2}
-  - {fileID: 11400000, guid: a583b6f7cf777f3418baaba6b3f62964, type: 2}
+  - {fileID: 11400000, guid: 53a46badf4bcbc24d925ae565297c9c8, type: 2}
+  - {fileID: 11400000, guid: 45e24f5f88b621e4cb479b89862d1508, type: 2}
+  - {fileID: 11400000, guid: 0c5c39e95a2ba7d4e858385be1f6f180, type: 2}
+  - {fileID: 11400000, guid: f3e8e55395d0d7045b1f40e4ddf59953, type: 2}
+  - {fileID: 11400000, guid: dfef51395f545134d96077308a9eee3c, type: 2}
+  - {fileID: 11400000, guid: 2ca986b30e6d1a749ab3368b60245a2e, type: 2}
+  - {fileID: 11400000, guid: d1cd0503cca306a438d10a37569a2598, type: 2}
+  - {fileID: 11400000, guid: a3583315f12ef504f9309fbba84d1df0, type: 2}
+  - {fileID: 11400000, guid: 849c25014e57e9b4da297faceba90835, type: 2}
+  - {fileID: 11400000, guid: 512ed9bc16f179843b1e7538fb0d1a58, type: 2}
+  - {fileID: 11400000, guid: b2dede9cd5ddfbb4aa66cd500a1b4ac4, type: 2}
+  - {fileID: 11400000, guid: aff63d1af43a54b4fb73513c2a840e15, type: 2}
+  - {fileID: 11400000, guid: 92847a09487e3e24cbb7b5d937033dd7, type: 2}
+  - {fileID: 11400000, guid: 40d9d4d44eb768c4a8478d28fd8aadaf, type: 2}
+  - {fileID: 11400000, guid: bffc55c19f206e144949ba5a67414b0c, type: 2}
+  - {fileID: 11400000, guid: 884b16c717d8a734aabb899f2af9a72a, type: 2}
+  - {fileID: 11400000, guid: c3b9437454452b94fb1a74a29c3e3797, type: 2}
+  - {fileID: 11400000, guid: d2b23411d5e435e4b9b62a89c05a3ebe, type: 2}
+  - {fileID: 11400000, guid: b28a37946a9566d43a327075903d6011, type: 2}
+  - {fileID: 11400000, guid: 4c47bd5a0bf611744aff71aa6c3402c1, type: 2}
+  - {fileID: 11400000, guid: 5b9e74d09c7177946883cc9bbcded2c1, type: 2}
+  - {fileID: 11400000, guid: c348e877b7d8e304493246a4ef9e5b40, type: 2}
+  - {fileID: 11400000, guid: feda715e05a92be428d653a5001c6d69, type: 2}
+  - {fileID: 11400000, guid: d89c62c5672818f4db2b5a9d185a5835, type: 2}
+  - {fileID: 11400000, guid: 1dca91d500e12d348ac78239720bed0b, type: 2}
+  - {fileID: 11400000, guid: 2781a676b4a5da2458cf32ad08433e64, type: 2}
+  - {fileID: 11400000, guid: 6afd054f28014cf499be266cc8f1d505, type: 2}
   - {fileID: 11400000, guid: b5b353c741ecdd245a17ebb61738e093, type: 2}
   - {fileID: 11400000, guid: 70097f7a87e333342a7ce5b0f7b835b7, type: 2}
-  resources: []
+  - {fileID: 11400000, guid: b4a4d58fa9cb2d64ba1476f9d2efe01c, type: 2}
+  - {fileID: 11400000, guid: 6f2f5cee4b5f28e488a4d023c8577a9d, type: 2}
+  - {fileID: 11400000, guid: ce00d3f4f28ff614c9731ca19eaf6492, type: 2}
+  - {fileID: 11400000, guid: 785f2e4ad72516741b6f3e75915e8d42, type: 2}
+  - {fileID: 11400000, guid: 58f86803c03f29648aede97442ae227a, type: 2}
+  - {fileID: 11400000, guid: eaa7f95b6d9e52b4c9a7414d18efa08c, type: 2}
+  - {fileID: 11400000, guid: e92137274969d8d40bbb85c1e11d76ea, type: 2}
+  - {fileID: 11400000, guid: 76180635512d63a479ed596b2ff36554, type: 2}
+  - {fileID: 11400000, guid: b83df101313ce374d8ec20ec0c7fb494, type: 2}
+  - {fileID: 11400000, guid: 1de31dfb1567c014d85f5d1c270a68ec, type: 2}
+  - {fileID: 11400000, guid: eaa285ab98ecc864784a81d6538d35e8, type: 2}
+  - {fileID: 11400000, guid: 400e4492122918043846c0a43014d286, type: 2}
+  - {fileID: 11400000, guid: bf576c481b52c214caf344a2ffa6d0b6, type: 2}
+  - {fileID: 11400000, guid: 093ca3a3e812d5e45b12163e27a05b98, type: 2}
+  - {fileID: 11400000, guid: 99cf25594abac04429bfbc394314fa79, type: 2}
+  - {fileID: 11400000, guid: 5c6497023d883eb4aae91d42b2878e16, type: 2}
+  - {fileID: 11400000, guid: 17f4cf4e23eb4f243a02a3263eae0841, type: 2}
+  - {fileID: 11400000, guid: 3faabd388b6a0994582248a19f673250, type: 2}
+  - {fileID: 11400000, guid: 1e8bac19d1defa24fab161568112729f, type: 2}
+  - {fileID: 11400000, guid: bc70dd14267640848b27311f63df12c1, type: 2}
+  - {fileID: 11400000, guid: d25c66137c43bad4eb90285aa2d91060, type: 2}
+  - {fileID: 11400000, guid: e88aaaac808b2054aafa2becf54c0004, type: 2}
+  - {fileID: 11400000, guid: f9f071e353dc2fe439239295674e183e, type: 2}
+  - {fileID: 11400000, guid: 2f7521c5cdbe5fb4983a794219573e9f, type: 2}
+  - {fileID: 11400000, guid: 792a3825e47aa094c81f80d8966f3043, type: 2}
+  - {fileID: 11400000, guid: ca84070cafb01814bb9b33371ed02171, type: 2}
+  - {fileID: 11400000, guid: 8b1a7d91f6f351d4e91d77d3927a082e, type: 2}
+  - {fileID: 11400000, guid: 490f647448148a54381700afc5eb43e2, type: 2}
+  - {fileID: 11400000, guid: 13ee8fd312138c649b206a5e176fe46b, type: 2}
+  - {fileID: 11400000, guid: ec575ba8469a16f41b301242cdce1e2b, type: 2}
+  - {fileID: 11400000, guid: aa5e8d723c91576468166303e7c37160, type: 2}
+  - {fileID: 11400000, guid: 873706fafc0e7af4e872de0b28ef6f7f, type: 2}
+  - {fileID: 11400000, guid: 33bf337113f49e047bee33ff6b4ad7e5, type: 2}
+  - {fileID: 11400000, guid: fad75178d7fbd024cb403b2d66c03bd8, type: 2}
+  - {fileID: 11400000, guid: 2a23454155c739347b63c10bb2cd87e4, type: 2}
+  - {fileID: 11400000, guid: bba8cffdfa42ba24fa56c92da69ea032, type: 2}
+  - {fileID: 11400000, guid: d994fd8c912ab404f927dc09e49ece28, type: 2}
+  resources:
+  - key: Effect/90081
+    asset: {fileID: 5440989454706513998, guid: fe75a36687ffa5941b092b164bf753a1, type: 3}
+  - key: Effect/90081001
+    asset: {fileID: 6028986056711797219, guid: 49a88a7c007c60546860802f24fd78bd, type: 3}
+  - key: Effect/90081002
+    asset: {fileID: 3599929706934064251, guid: 11014abe14541c04bae50d4485e5c8cc, type: 3}
+  - key: Effect/90081003
+    asset: {fileID: 1119057762661905175, guid: a5c70ca70a3db6c48884ed7e4f685fdb, type: 3}
+  - key: Effect/90081101
+    asset: {fileID: 1442108086709713404, guid: 853804d5b362ba74e86d0f214d3414ef, type: 3}
+  - key: Effect/90081103
+    asset: {fileID: 3695561549550974529, guid: 6a0c921d4c022d54db110bbc787d1ff5, type: 3}
+  - key: Effect/90081104
+    asset: {fileID: 6764682227054388235, guid: f5da4aabd2651f8458157eed59f0b19f, type: 3}
+  - key: Effect/90081105
+    asset: {fileID: 6192656920070530405, guid: 5fe3d2f5f133b5b48b8f208b8dfdfa94, type: 3}
+  - key: Effect/90081106
+    asset: {fileID: 2735560275536179480, guid: 6a805d63b6c28ec4cbcfa502a4a048ca, type: 3}
+  - key: Effect/90081107
+    asset: {fileID: 1592244134584138970, guid: c25cdab537f7ee949a5db1ca56873c00, type: 3}
+  - key: Effect/90081108
+    asset: {fileID: 1009355438983237976, guid: 47ee0435f6107c546a8d158a752d2ffc, type: 3}
+  - key: Effect/90081109
+    asset: {fileID: 3929892574674132250, guid: f505b3fa7b00e4345a082d993c899d2f, type: 3}
+  - key: Effect/90081110
+    asset: {fileID: 427699033735893654, guid: b510747d9ff76e74d9992d9688ccafa0, type: 3}
+  - key: Effect/90081111
+    asset: {fileID: 3587002555567796419, guid: 41b3828fdf8ceba4599b4446be715e55, type: 3}
+  - key: Effect/90081112
+    asset: {fileID: 2144411259895259567, guid: 0eb6fa1176fe9e64ba9288a1e2140335, type: 3}
+  - key: Effect/90081113
+    asset: {fileID: 6608464009556774723, guid: e98a519b0fe605d4bad343c4cbac5713, type: 3}
+  - key: Effect/90081114
+    asset: {fileID: 555076651206221627, guid: 5a365e450f42cdf418b2a7668abcab10, type: 3}
+  - key: Effect/90081115
+    asset: {fileID: 5855228981276206314, guid: 17bccdbab4c4fd045899e248af4532f8, type: 3}
+  - key: Effect/90081116
+    asset: {fileID: 5804247523789688479, guid: 19afa3d34000ab646a738a46cbeca37c, type: 3}
+  - key: Effect/90081117
+    asset: {fileID: 6633849570332801902, guid: 2aa676c0a37de3b4783554d44e0789a6, type: 3}
+  - key: Effect/90081118
+    asset: {fileID: 6803960232392206275, guid: 9a355d5aaf70093438ff30077dcf64d1, type: 3}
+  - key: Effect/90081119
+    asset: {fileID: 2131061205933783252, guid: 9f04bf38f09f2154aae7f838274926fc, type: 3}
+  - key: Effect/90081120
+    asset: {fileID: 6990349330868898447, guid: c7b3b16bd54e3f74abfa9ce6ea2f76c3, type: 3}
+  - key: Effect/90081121
+    asset: {fileID: 1331912031630915986, guid: 72b7dfe0cad59b84db7a6e130091ace7, type: 3}
+  - key: Effect/90081201
+    asset: {fileID: 1228130287122732110, guid: c83724e3888665941a9c6400c2e83c85, type: 3}
+  - key: Effect/90081202
+    asset: {fileID: 8985197369920237244, guid: b96de233ea003e144a29a27f33b4b944, type: 3}
+  - key: Effect/90081203
+    asset: {fileID: 7378139668984783943, guid: 4cb7f13562ef4c0449ed4a94fe5f67bb, type: 3}
+  - key: Effect/90081204
+    asset: {fileID: 4520787938431132083, guid: 9d5f3c9e80924fd4586d5dc7dc2b317f, type: 3}
+  - key: Effect/90081205
+    asset: {fileID: 6008292230233388703, guid: cc489fb7f50da5f4387a76ef568ecbf5, type: 3}
+  - key: Effect/90081206
+    asset: {fileID: 565894657348914608, guid: c0cc447edcb17064887c68e41eae8e3f, type: 3}
+  - key: Effect/90081208
+    asset: {fileID: 3072002213588328603, guid: 27e500f0c474bec4ab88d5e69a105248, type: 3}
+  - key: Effect/90081209
+    asset: {fileID: 4130218813053404042, guid: 3e363ccfdfc59a04d8b988ae8e6fb90a, type: 3}
+  - key: Effect/90081210
+    asset: {fileID: 6886530415404244136, guid: 36ae56443f36cbb4bacfc54df357b05e, type: 3}
+  - key: Effect/90081211
+    asset: {fileID: 2438825800880039430, guid: 59bc26b4749aec246b692229722bd550, type: 3}
+  - key: Effect/90081212
+    asset: {fileID: 1482018650665626008, guid: ab1b0bc6bbceceb438ac63405733482d, type: 3}
+  - key: Effect/90081213
+    asset: {fileID: 2574405454044400624, guid: 097364158cef90a488f6e67642cc1de6, type: 3}
+  - key: Effect/90081215
+    asset: {fileID: 5184401350337571062, guid: 0c63f5434767a9148a57e99d0e6c1936, type: 3}
+  - key: Effect/90081217
+    asset: {fileID: 3134357044607373889, guid: 017fafeb0f46f20469edb35850d0ed0c, type: 3}
+  - key: Effect/90081218
+    asset: {fileID: 555205162997633144, guid: ae4609fce7c07d040bca692b3e0f4c76, type: 3}
+  - key: Effect/90081301
+    asset: {fileID: 4895001657671354134, guid: 863be4995fec23a46b87d1d03cc93507, type: 3}
+  - key: Effect/90081302
+    asset: {fileID: 1771939692876847137, guid: d6ea4de48f7d985449437f2785a94446, type: 3}
+  - key: Effect/90081303
+    asset: {fileID: 2393947848151024403, guid: 9cb325e88973a604582743075258ad1f, type: 3}
+  - key: Effect/90081304
+    asset: {fileID: 3619213889108665877, guid: 59113d92c516a4f40b8b128eb8f55959, type: 3}
+  - key: Effect/90081305
+    asset: {fileID: 7254607698230453059, guid: 9ff6058e5c2e8dc4582e42a34c486154, type: 3}
+  - key: Effect/90081306
+    asset: {fileID: 1570694562339075912, guid: 09fbb36419ebe594194df4ebfa10cd45, type: 3}
+  - key: Effect/90081307
+    asset: {fileID: 529618002720772188, guid: 1d2c928754347b643a761e4bcb0436b9, type: 3}
+  - key: Effect/90081308
+    asset: {fileID: 6566223525527080227, guid: 10636a318ac7eb14f8c551a332db0c61, type: 3}
+  - key: Effect/90081309
+    asset: {fileID: 4024500861339794160, guid: 5ded433e0d3dd244d8bd08e6b9ccee68, type: 3}
+  - key: Effect/90081310
+    asset: {fileID: 7713697394269660053, guid: d0cc8de284d70b6458131364f145b444, type: 3}
+  - key: Effect/90081311
+    asset: {fileID: 6018238716040893433, guid: d800a826211c2f044a409a1d94684f21, type: 3}
+  - key: Effect/90081312
+    asset: {fileID: 6445948876860589521, guid: 8c5288ca4bc61334b9e31e556d546994, type: 3}
+  - key: Effect/90081313
+    asset: {fileID: 9101557350067097253, guid: a76f5a2bd1008f74fa95c175bb6e2b4e, type: 3}
+  - key: Effect/90081314
+    asset: {fileID: 4583124209982103336, guid: 0502ee36acf413e4c8228312a51b4545, type: 3}
+  - key: Effect/90081315
+    asset: {fileID: 7663714053390735450, guid: 44f06bb9dfed19a4b920bfd3809485b4, type: 3}
+  - key: Effect/90081316
+    asset: {fileID: 4652645740954822175, guid: 0bd9ea3492d5bcf449a7c0a8ef509623, type: 3}
+  - key: Effect/90081317
+    asset: {fileID: 2793977376791496254, guid: a3a950476885c3e449ace78a1e58ed2d, type: 3}
+  - key: Effect/90081318
+    asset: {fileID: 7635956768444008573, guid: d808a9c8d3310f946b2053936ffa155c, type: 3}
+  - key: Effect/90081319
+    asset: {fileID: 30697413404124702, guid: 0a01138bdaae90941afc40f646db9ffa, type: 3}
+  - key: Effect/90081401
+    asset: {fileID: 4062340069131742512, guid: 55a0a8b744254ce4da3a2284b5b5a67c, type: 3}
+  - key: Effect/90081402
+    asset: {fileID: 7372170878522007158, guid: 063f304db9dbc8b419ae81af59d93c1b, type: 3}
+  - key: Effect/90081403
+    asset: {fileID: 1525784161156561794, guid: 3b7f39ffc870e334b849ec9427f7430f, type: 3}
+  - key: Effect/90081404
+    asset: {fileID: 1107403843948925366, guid: 9f715b0e93a54c643bade3ae096094c5, type: 3}
+  - key: Effect/90081405
+    asset: {fileID: 4227278728333782590, guid: dc1ff9480bbb70c4c98e98c622b17237, type: 3}
+  - key: Effect/90081406
+    asset: {fileID: 8987536467800277564, guid: 327d5a464f9f9964c93adcda06b49cf2, type: 3}
+  - key: Effect/90081407
+    asset: {fileID: 820235266888303857, guid: d1135c25467961146b1d68e465e3c9d8, type: 3}
+  - key: Effect/90081408
+    asset: {fileID: 6274929792024005651, guid: 9d8d5b431d5e670449bd06a6e72db95f, type: 3}
+  - key: Effect/90081409
+    asset: {fileID: 7175598794694804907, guid: c272f02ad79ee634aa1ec4af21833574, type: 3}
+  - key: Effect/90081410
+    asset: {fileID: 8553958140589897039, guid: 076ddcc2444c85c4fa8a6e3bd52cb56d, type: 3}
+  - key: Effect/90081411
+    asset: {fileID: 7986857728870079858, guid: c49956c0a6d501549b0fa01cf6e7077b, type: 3}
+  - key: Effect/90081412
+    asset: {fileID: 5210803133580468614, guid: 5d8c6d3afa7f3f749aac4d4b2dc3f49a, type: 3}
+  - key: Effect/90081413
+    asset: {fileID: 2817576103762611223, guid: 7694c1edf6ee8d647a0a879faea32ab2, type: 3}
+  - key: Effect/90081414
+    asset: {fileID: 8790374579011966648, guid: 0638d43f5f1b67045a80ca79703a1877, type: 3}
+  - key: Effect/90081415
+    asset: {fileID: 7168264585001365766, guid: f28d5de32fa4e89429a241daf5381299, type: 3}
+  - key: Effect/90081416
+    asset: {fileID: 777324061310313520, guid: 73216a00c4a30cc4a848366e6b9e06b0, type: 3}
+  - key: Effect/90081417
+    asset: {fileID: 1820022085513663584, guid: 50f7cd3bdcc12fb4f8b1e98fc7196183, type: 3}
+  - key: Effect/90081418
+    asset: {fileID: 7977169502420098969, guid: b16715e980163204fba89c05e98d42c1, type: 3}
+  - key: Effect/90081419
+    asset: {fileID: 7191008095355339907, guid: c6900a461ab81104db2e56a820cd95a2, type: 3}
+  - key: Effect/90081420
+    asset: {fileID: 7426315965377898845, guid: b1ac8665182c75d4191f9f741d4ba354, type: 3}
+  - key: Effect/90081421
+    asset: {fileID: 5640349016127403517, guid: 8fac4d4a2752216419949e265fe3b8ba, type: 3}
+  - key: Effect/90081501
+    asset: {fileID: 7186464539516322679, guid: 4a89d66c71986c8418bb57690cf9bb21, type: 3}
+  - key: Effect/90081502
+    asset: {fileID: 7136191034321839495, guid: cea43fb98409070419f2cf1922ff7ba9, type: 3}
+  - key: Effect/90081503
+    asset: {fileID: 3043240851016889340, guid: 6072260dd3677a64687740a601e51740, type: 3}
+  - key: Effect/90081504
+    asset: {fileID: 4890834354978581294, guid: 813fa02ba67d06f48a6a4fed142a6414, type: 3}
+  - key: Effect/90081505
+    asset: {fileID: 1072041213079625635, guid: 9308662c9a093e543999cdabcba63977, type: 3}
+  - key: Effect/90081506
+    asset: {fileID: 6168244210880311759, guid: 5f02431d2ecbcbe45aa9640997e52e06, type: 3}
+  - key: Effect/90081507
+    asset: {fileID: 5980826210013041274, guid: 1360d0b004bdaa84ba1cca2cc0215963, type: 3}
+  - key: Effect/90081508
+    asset: {fileID: 139410684320635511, guid: ceec6433c6266334d8f7e73f9fd761f2, type: 3}
+  - key: Effect/90081509
+    asset: {fileID: 2349573920467901636, guid: 2886df90b0429a54c89c04bdf2343665, type: 3}
