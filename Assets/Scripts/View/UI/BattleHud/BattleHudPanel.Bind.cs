@@ -13,5 +13,6 @@ namespace KiHan.UI
         [SerializeField] private global::UnityEngine.UI.Button _backButton;
         [SerializeField] private global::View.UI.FighterStatusView _p1Status;
         [SerializeField] private global::View.UI.FighterStatusView _p2Status;
+        [SerializeField] private global::UnityEngine.UI.Button _mapSelectBtn;
     }
 }

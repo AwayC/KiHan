@@ -31,13 +31,13 @@ UIRoot (代码构建，常驻)
 Assets/Scripts/View/UI/
 ├─ Framework/            UIManager、UIPanel、UIView、UILayer、UITransition、SafeArea、UIPressBounce
 ├─ Common/               通用面板：ConfirmPopup、ToastPanel、LoadingPanel
-│  └─ Widgets/           通用部件：UIDigitRow、DigitFont、UIRotator
+│  └─ Widgets/           通用部件：UIScrollList (滑动列表)、UIDigitRow、DigitFont、UIRotator
 ├─ Login/                LoginPanel、LoginPopup、RegisterPopup、PasswordVisibility
 ├─ Lobby/                LobbyPanel、CreateRolePopup、MatchingPopup
 └─ BattleHud/            BattleHudPanel
    ├─ Widgets/           HUD 部件：FighterStatusView、HpBarView、BeanListView、LightIcon、技能 / 替身 / 通灵按键、SkillIconCache
    ├─ Input/             VirtualButton、VirtualJoystick (直接写入 InputManager)
-   └─ Training/          训练场设置面板 (新增时放这里)
+   └─ Training/          训练场：MapSelectPopup (选图)、MapItemView
 
 Assets/AssetPackages/Resources/UI/
 ├─ Panels/<模块>/        面板 / 弹窗预制体，目录与脚本模块一一对应 (训练场：Panels/BattleHud/Training/)
@@ -92,6 +92,33 @@ public partial class ConfirmPopup : UIPanel<ConfirmPopup.Args> { ... }
 - 可复用部件继承 `UIView`，对外只提供 `Bind` / `Refresh` 等少量入口 (如 `FighterStatusView`、`SkillButtonView`)。
 - `UIView` 是绑定的边界：面板生成绑定时不深入部件内部，部件自己的节点由部件自己绑定。
 
+### 滑动列表 (`UIScrollList`)
+
+通用横向 / 纵向列表：拖动跟手，松手惯性减速，越界橡皮筋阻尼并弹性回弹；可选停靠 (松手停在最近一项并居中，轻甩翻一项)；只创建可见项并循环复用。
+
+```
+@MapList            ← UIScrollList + RectMask2D (裁剪) + 透明 Image (空白处也能拖)
+└─ Content          ← 铺满视口 (_content)
+   └─ Template      ← 项模板，隐藏 (_template)，根节点挂项部件 (如 MapItemView)，大小即项大小
+```
+
+```csharp
+_mapList.SetCount<MapItemView>(_maps.Count, (view, index) => view.Bind(_maps[index]));   // 项进入可见范围时回调
+_mapList.ScrollTo(current, animated: false);
+_mapList.RefreshItems();                                                                // 数据变化、数量不变
+```
+
+| 参数 | 说明 |
+| :--- | :--- |
+| `Direction` | 横向 / 纵向 |
+| `Spacing` / `Padding` | 项间距 / 首尾留白 |
+| `Snap` | 停靠模式；`CenterChanged` 事件 / `CenterIndex` 给出居中项 |
+| `Deceleration Rate` | 惯性每秒保留的速度比例 (默认 0.135，同原生 ScrollRect) |
+| `Spring Time` | 回弹 / 停靠 / 动画定位的平滑时间 |
+| `Side Scale` | 离开中心一项距离时的缩放 (停靠模式下做轮播效果) |
+
+内容不足一屏时整体居中，仍可拖动并回弹。绑定回调建议缓存为字段 (`_bindItem = BindItem`)，避免每次打开分配委托。
+
 ## 5. 自动绑定 (`@` 前缀)
 
 1. 在预制体里把需要被代码引用的节点改名为 `@名字` (如 `@StartBtn`)。
@@ -137,6 +164,7 @@ public partial class ConfirmPopup : UIPanel<ConfirmPopup.Args> { ... }
 | Lobby | `CreateRolePopup` | Popup | `Lobby/Canvas` 的 `CreatePlayerPanel` 节点 |
 | Lobby | `MatchingPopup` | Popup | `Lobby/MatchPanel` |
 | BattleHud | `BattleHudPanel` | Hud | `Button/Canvas` (返回确认改用 `ConfirmPopup`) |
+| BattleHud/Training | `MapSelectPopup` | Popup | 新增：HUD 场景按钮打开，列出 `MapRegistry` 中已启用的地图，局内切换背景板 |
 
 战斗伤害跳字为世界空间 `SpriteRenderer`，不属于 UGUI，不在本框架内。
 

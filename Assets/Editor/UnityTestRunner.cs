@@ -14,6 +14,7 @@ namespace KiHan.Editor
     public static class UnityTestRunner
     {
         private static bool _hasRun = false;
+        private const string MapRegistryPath = "Assets/AssetPackages/Resources/Config/MapRegistry.asset";
 
         static UnityTestRunner()
         {
@@ -56,7 +57,7 @@ namespace KiHan.Editor
             // 1. 定点数数学测试 (FixedMathTests)
             try
             {
-                Log("\n--- [1/5] 定点数确定性与数学库测试 (FixedMathTests) ---");
+                Log("\n--- [1/7] 定点数确定性与数学库测试 (FixedMathTests) ---");
                 bool mathOk = FixedMathTests.RunAllTests();
                 if (mathOk)
                 {
@@ -75,7 +76,7 @@ namespace KiHan.Editor
             // 2. 资源管理系统与分级对象池测试 (AssetTests)
             try
             {
-                Log("\n--- [2/5] 资源管理与对象池测试 (AssetTests) ---");
+                Log("\n--- [2/7] 资源管理与对象池测试 (AssetTests) ---");
                 bool assetOk = AssetTests.RunAllTests();
                 if (assetOk)
                 {
@@ -94,7 +95,7 @@ namespace KiHan.Editor
             // 3. Unity JsonUtility 配置加载复核 (.agents/testing.md L2.3)
             try
             {
-                Log("\n--- [3/5] Unity JsonUtility 配置加载测试 (.agents/testing.md L2.3) ---");
+                Log("\n--- [3/7] Unity JsonUtility 配置加载测试 (.agents/testing.md L2.3) ---");
 
                 // 3.1 验证 action_template.json
                 string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "action_template.json");
@@ -184,7 +185,7 @@ namespace KiHan.Editor
             // 5. 角色配置交叉引用 (动作 / 技能 / 生成物 / 动作事件 / 动画 / 包内资源)
             try
             {
-                Log("\n--- [4/5] 帧库与判定盒资产检查 / [5/5] 角色包配置交叉引用检查 (注册表全部角色) ---");
+                Log("\n--- [4/7] 帧库与判定盒资产检查 / [5/7] 角色包配置交叉引用检查 (注册表全部角色) ---");
                 CharacterRegistry registry = CharacterPackages.LoadRegistry();
                 if (registry == null)
                 {
@@ -230,7 +231,7 @@ namespace KiHan.Editor
             // 6. UI 面板与自动绑定 (DOCS/UI_FRAMEWORK.md)
             try
             {
-                Log("\n--- [6/6] UI 面板预制体与 @ 绑定检查 ---");
+                Log("\n--- [6/7] UI 面板预制体与 @ 绑定检查 ---");
                 List<string> uiProblems = UIBindGenerator.Validate();
                 foreach (string p in uiProblems) LogError($"UI 配置错误: {p}");
                 if (uiProblems.Count == 0) Log("  [OK] 全部面板预制体、绑定文件与字段赋值一致");
@@ -238,6 +239,43 @@ namespace KiHan.Editor
             catch (Exception ex)
             {
                 LogError($"UI 检查异常: {ex.Message}\n{ex.StackTrace}");
+            }
+
+            // 7. 地图注册表 (Resources/Config/MapRegistry.asset)：每张地图的 ID、名称、场景与截图
+            try
+            {
+                Log("\n--- [7/7] 地图注册表检查 ---");
+                MapRegistry mapRegistry = AssetDatabase.LoadAssetAtPath<MapRegistry>(MapRegistryPath);
+                if (mapRegistry == null)
+                {
+                    LogError($"找不到地图注册表 {MapRegistryPath}");
+                }
+                else
+                {
+                    var mapIds = new HashSet<string>();
+                    foreach (MapRegistryEntry entry in mapRegistry.maps)
+                    {
+                        MapConfig map = entry.map;
+                        if (map == null)
+                        {
+                            LogError("地图注册表中有丢失的地图");
+                            continue;
+                        }
+
+                        int errors = 0;
+                        void MapError(string msg) { errors++; LogError($"地图 {map.name} 配置错误: {msg}"); }
+                        if (string.IsNullOrEmpty(map.id)) MapError("未填写 id");
+                        else if (!mapIds.Add(map.id)) MapError($"id {map.id} 重复");
+                        if (string.IsNullOrEmpty(map.displayName)) MapError("未填写地图名");
+                        if (map.scene == null) MapError("未引用场景预制体");
+                        if (map.shot == null) MapError("未引用截图");
+                        if (errors == 0) Log($"  [OK] 地图 {map.id} {map.displayName}{(entry.enabled ? string.Empty : " (未启用)")}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"地图注册表检查异常: {ex.Message}\n{ex.StackTrace}");
             }
 
             // 总结报告

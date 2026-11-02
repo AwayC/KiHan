@@ -54,7 +54,6 @@ public class OnlineBattleFactory : IBattleFactory
 /// </summary>
 public class BattleManager : UnitySingleton<BattleManager>
 {
-    private const string MapPath = "Maps/01/scen";
     private const int DefaultCharacterId = 90001; // 鸣人
 
     // 双方出生点与槽位 (槽位即 RoomFrame.InputFrames 的 gameId)
@@ -121,7 +120,7 @@ public class BattleManager : UnitySingleton<BattleManager>
 
     private void LoadBattle()
     {
-        MapManager.Instance.LoadMap(MapPath);
+        MapManager.Instance.LoadMap(MapRegistry.Default);
         World = new BattleWorld(MapManager.Instance.CurrentMapLogic);
         _spawnPool = new SpawnPool();
         World.Spawner = _spawnPool;

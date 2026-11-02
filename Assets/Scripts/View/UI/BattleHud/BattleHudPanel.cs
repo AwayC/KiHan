@@ -9,6 +9,7 @@ namespace KiHan.UI
     /// - 顶部：双方角色状态 (按槽位 P1 / P2)
     /// - 本机按键：技能 CD / 接段、替身可用次数、通灵数量；按键输入由各按键上的 VirtualButton / VirtualJoystick 直接写入 InputManager
     /// - 返回：通用确认弹窗，确认后 GameFlow.ExitBattle
+    /// - 场景：打开训练场选图弹窗 (MapSelectPopup)
     /// 之后每帧只读角色状态，各部件只在数值变化时修改 UI
     /// </summary>
     [UIPanel("UI/Panels/BattleHud/BattleHudPanel", UILayer.Hud)]
@@ -41,6 +42,7 @@ namespace KiHan.UI
         protected override void OnCreate()
         {
             _backButton.onClick.AddListener(() => UIManager.Instance.Confirm(ExitConfirmText, GameFlow.Instance.ExitBattle));
+            _mapSelectBtn.onClick.AddListener(() => UIManager.Instance.Open<MapSelectPopup>());
         }
 
         protected override void OnOpen(Args args)

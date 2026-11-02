@@ -76,17 +76,26 @@ Assets/AssetPackages/Resources/
 │   └── Scene/                       # 烟尘、地裂、落叶 (支持 3D 粒子系统)
 │       └── Dust_Run.prefab
 │
-├── Maps/                            # 场景地图
-│   └── Map_01/
-│       ├── MapConfig.asset          # 逻辑边界与碰撞阻挡
-│       └── Map_01.prefab            # 地面、多层视差背景、3D 场景模型
+├── Config/
+│   ├── CharacterRegistry.asset      # 角色注册表
+│   └── MapRegistry.asset            # 地图注册表：登记顺序即选图顺序，第一张已启用的为开局默认地图
+│
+├── Maps/<id>/                       # 场景背景板预制体 (由地图清单 MapConfig.scene 直接引用)
 │
 └── UI/                              # UI (框架与规则见 DOCS/UI_FRAMEWORK.md)
     ├── Panels/<模块>/<类名>.prefab   # 面板 / 弹窗 (根节点挂同名 UIPanel 脚本，不带 Canvas)
     │   ├── Common/                  # ToastPanel / ConfirmPopup / LoadingPanel
     │   ├── Login/  Lobby/  BattleHud/
     ├── Number/                      # 图片数字 DigitFont (伤害跳字为世界空间 SpriteRenderer)
-    └── Loading/  Slider/  Shadow/   # 美术子预制体
+    ├── Widgets/                     # 被面板嵌套引用的通用预制体 (Slider、Loading)
+    └── Shadow/                      # 角色脚下阴影
+
+Assets/AssetPackages/Maps/<id>/      # 地图清单 (不在 Resources 下，随注册表引用打包)
+├── Map.asset                        # MapConfig：id、displayName (选图显示名)、scene (背景板预制体)、shot (选图截图)
+└── shot.png                         # 选图截图 (Sprite)
+
+新增地图：建 Maps/<id>/ 放截图 → Create/KiHan/Map Config 填写四项 → 登记到 MapRegistry。
+全部地图共用 MapLogic 边界，局内切换地图只换背景板 (MapManager.ChangeScene)；Unity 测试检查注册表中每张地图的四项是否齐全。
 ```
 
 ---
