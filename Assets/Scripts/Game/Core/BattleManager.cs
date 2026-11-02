@@ -55,7 +55,6 @@ public class OnlineBattleFactory : IBattleFactory
 public class BattleManager : UnitySingleton<BattleManager>
 {
     private const string MapPath = "Maps/01/scen";
-    private const string CombatUIPath = "UI/Button/Canvas";
     private const int DefaultCharacterId = 90001; // 鸣人
 
     // 双方出生点与槽位 (槽位即 RoomFrame.InputFrames 的 gameId)
@@ -76,7 +75,6 @@ public class BattleManager : UnitySingleton<BattleManager>
 
     private readonly List<CharacterObj> _characters = new List<CharacterObj>();
     private SpawnPool _spawnPool;
-    private GameObject _combatUIGo;
     private PlayerLoadout _p1Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
     private PlayerLoadout _p2Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
     private CharacterObj _p1;
@@ -142,9 +140,8 @@ public class BattleManager : UnitySingleton<BattleManager>
         // 生成物实例与视图、动作事件特效全部在加载阶段预建 (局内不再 Load / 新建实例)
         SceneManager.Instance.PrewarmSpawnViews(_spawnPool.Instances);
 
-        InitCombatUI(localSlot == P2Slot ? _p2Loadout : _p1Loadout);
-        UIManager.Instance.ClosePanel(UIConst.LobbyPanel);
-        GameApp.Instance.SetGameRunning(true);
+        PlayerLoadout localLoadout = localSlot == P2Slot ? _p2Loadout : _p1Loadout;
+        GameFlow.Instance.OnBattleLoaded(new KiHan.UI.BattleHudPanel.Args { P1 = _p1, P2 = _p2, Local = LocalCharacter, LocalLoadout = localLoadout });
     }
 
     /// <summary>
@@ -174,39 +171,21 @@ public class BattleManager : UnitySingleton<BattleManager>
         return SceneManager.Instance.SpawnView(character);
     }
 
-    private void InitCombatUI(PlayerLoadout localLoadout)
-    {
-        GameObject uiPrefab = AssetManager.Instance.Load<GameObject>(CombatUIPath);
-        if (uiPrefab == null) return;
-
-        _combatUIGo = Instantiate(uiPrefab);
-        _combatUIGo.name = "Battle_UI";
-        var hud = _combatUIGo.GetComponent<View.UI.BattleHudPanel>();
-        if (hud == null)
-        {
-            Debug.LogError($"[BattleManager] 战斗 HUD 预制体 {CombatUIPath} 根节点缺少 BattleHudPanel");
-            return;
-        }
-        hud.Bind(_p1, _p2, LocalCharacter, localLoadout);
-    }
-
     public void OnBattleTick(RoomFrame frame)
     {
-        if (!GameApp.Instance.IsGameRunning || World == null) return;
+        if (!GameFlow.Instance.IsGameRunning || World == null) return;
 
         World.Tick(frame);
         SceneManager.Instance.OnLogicTick(World);
     }
 
-    public void ExitBattle(Action onComplete)
-    {
-        GameApp.Instance.PerformTransitionAsync(ExitBattleRoutine(onComplete));
-    }
-
-    private IEnumerator ExitBattleRoutine(Action onFinished)
+    /// <summary>
+    /// 清理战斗 (GameFlow.ExitBattle 在 Loading 中执行)：停止帧同步与网络，销毁角色、场景视图、地图与特效
+    /// </summary>
+    public IEnumerator CleanupRoutine()
     {
         Debug.Log("[BattleManager] 正在清理战斗资源...");
-        GameApp.Instance.SetGameRunning(false);
+        GameFlow.Instance.SetGameRunning(false);
         LockstepManager.Instance.OnExecuteFrame = null;
         LockstepManager.Instance.StopGame();
 
@@ -231,17 +210,10 @@ public class BattleManager : UnitySingleton<BattleManager>
         _spawnPool = null;
         CharacterFactory.ClearTemplates();
 
-        if (_combatUIGo != null)
-        {
-            Destroy(_combatUIGo);
-            _combatUIGo = null;
-        }
-
         MapManager.Instance.ClearMap();
         EffectManager.Instance.Clear();
         ResManager.Instance.Clear();
 
         yield return new WaitForSecondsRealtime(0.3f);
-        onFinished?.Invoke();
     }
 }

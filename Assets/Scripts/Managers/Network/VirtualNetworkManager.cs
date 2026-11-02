@@ -113,7 +113,7 @@ public class VirtualNetworkManager : UnitySingleton<VirtualNetworkManager>, INet
         OnMessageReceived?.Invoke(2003, startData);
 
         // 等待前端加载完成
-        while (GameApp.Instance == null || !GameApp.Instance.IsGameRunning)
+        while (GameFlow.Instance == null || !GameFlow.Instance.IsGameRunning)
         {
             yield return null;
         }

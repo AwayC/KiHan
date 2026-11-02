@@ -5,6 +5,7 @@
 ---
 
 ## 目录
+- [进度总览 (2026-10-30)](#进度总览-2026-10-30)
 - [一、 重构核心目标与设计原则](#一-重构核心目标与设计原则)
 - [二、 架构演进：现状 vs 目标架构](#二-架构演进现状-vs-目标架构)
 - [三、 核心子系统详细改造方案](#三-核心子系统详细改造方案)
@@ -19,6 +20,20 @@
 - [四、 重构里程碑与任务清单 (Milestones 1 ~ 8)](#四-重构里程碑与任务清单-milestones-1--8)
 - [五、 鸣人 (Naruto) 动作规格设计表 (参照 naruto.md)](#五-鸣人-naruto-动作规格设计表-参照-narutomd)
 - [六、 质量验收、Desync 自动化校验与风险策略](#六-质量验收desync-自动化校验与风险策略)
+
+## 进度总览 (2026-10-30)
+
+| 里程碑 | 状态 | 已完成 | 未完成 |
+| :--- | :--- | :--- | :--- |
+| M1 定点数与动力学 | 功能完成，验收未做 | 逻辑层全部 `FP` / `FPVector3`，`MotionBody` 竖直速度模型，定点判定盒 | 10000 次物理模拟跨平台哈希一致性测试 |
+| M2 资源与对象池 | 基本完成 | `IAssetProvider` / `ResourcesAssetProvider` / `AssetManager`，`ObjectPoolManager` 分类池 + `IPoolable` + `PoolItemTracker`，`EffectView`；加载阶段预热打击火花、动作事件特效、生成物实例与视图；角色包 (`CharacterManifest` 资源表) | `AddressablesAssetProvider`；连续对战 5 分钟 GC 实测 |
+| M3 3D 纵深渲染 | 已完成 | 见第三章第 2 节 | 原版特效 Shader (`KiHan/Effect/Particle`) 为 ZTest Always，总在角色之上，身后特效需另加层级 |
+| M4 ACT 动作与输入 | 已完成 | `ActionController`、`InputToCommand` (press / hold / release)、`ForceMove`、多段 RootMotion 与水平惯性 | — |
+| M5 5 维打击与受击 | 已完成 | 平推 / 击飞 / 吸附 / 抓取 (含被抓姿势) / 扫地，受击状态按原版基础动画重整，霸体裁决 | Combat 测试 2 项长期失败 (落地触发 onLand、落地惯性清零) |
+| M6 技能 / 查克拉 / 生成物 | 框架完成 | `SkillController` 多段 / CD / 查克拉 / 替身，Simple / Actor 生成物与预建池，Buff | CD 与查克拉数值按原版校准；秘卷、通灵玩法 |
+| M7 动作编辑器 | 部分完成 | `KiHan/动作编辑器`：多轨时间轴 (攻击阶段 / 受击阶段 / 霸体 / 可被取消 / 移动输入等，可拖动与拉伸)、帧预览与判定盒高亮、引用跳转、配置校验、保持排版的最小改动写回；特效预览窗口 | 视口内拖拽编辑判定盒；事件轨与位移曲线轨；死循环检测 |
+| M8 角色迁移与联机验收 | 迁移完成，验收未做 | 旧状态机已删除，鸣人全部配表；原版佐助 (90003) / 90081 动作与特效由 `Reverse/tools` 导出导入 | 双端 KCP 联机 1000 帧校验和一致 (依赖第六章 Desync 校验) |
+| 第六章 Desync 校验 | 未开始 | — | 帧校验和计算、上报比对、分歧录制 |
 
 ---
 
@@ -115,33 +130,21 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - 跟随型特效挂到 `ActorView.Body`；Gizmos 按逻辑判定盒 (`LogicBox.ToWorld`) 绘制。
 - **逻辑 -> 表现事件**：`BattleManager.OnBattleTick` 驱动 `BattleWorld.Tick` 后调用 `SceneManager.OnLogicTick`：推进视图快照，并把本帧 `HitEvents` 转为火花 / 伤害跳字 / 震屏 (`HitEvents` 每帧清空，必须逐帧消费)。
 
-### 3. 统一资源管理与分级对象池体系
-- **资源路径解耦与提供器模式 (`IAssetProvider`)**：
-  ```csharp
-  public interface IAssetProvider
-  {
-      T LoadAsset<T>(string address) where T : UnityEngine.Object;
-      UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object;
-      void ReleaseAsset(string address);
-  }
-  ```
-  - 初期实现：`ResourcesAssetProvider`（平滑兼容本地工程）。
-  - 远期实现：`AddressablesAssetProvider`（无需修改上层业务即可开启热更分包）。
-- **分级生命周期对象池 (`EnhancedObjectPool`)**：
-  - 契约接口：`IPoolable`（`OnSpawn()` 初始化粒子状态；`OnRecycle()` 还原速度、停止音频）。
-  - 对象池分类隔离：
-    1. **特效池 (`FXPool`)**：打击火花（`Spark1`~`Spark5`）、刀光贴花、3D 粒子，绑定自动回收组件。
-    2. **实体表现池 (`EntityViewPool`)**：火球、苦无等简单投射物预制体；影分身预制体。
-    3. **UI 元素池 (`UIPool`)**：伤害跳字文本（`DamageTextNode`）、血条飘字。
-- **局内加载管线**：
-  - 选人结算完毕进入对局 Loading：解析双方角色 Action 配置表引用的全部资源，预先实例化灌入对象池（Prewarm），战斗期间保持 0 磁盘 IO 与 0 GC 发生。
+### 3. 统一资源管理与分级对象池体系 (M2 基本完成)
+- **资源提供器 (`Managers/Asset/IAssetProvider.cs`)**：同步 / 异步加载与按地址释放；`AssetManager` 统一入口，`SetProvider` 可切换实现。
+  - 已实现：`ResourcesAssetProvider` (引用计数缓存)。
+  - 未实现：`AddressablesAssetProvider` (热更分包)。
+- **角色包 (`Config/CharacterManifest.cs` + `CharacterRegistry`)**：每个角色一个目录 (清单 + `Config/*.json` + 动画 + 包内 prefab 资源表，key 为相对路径)，编辑器自动收集与校验 (`Editor/Characters/CharacterPackages.cs` / `CharacterValidator.cs`)；包内特效以 `pkg/{角色}/{key}` 地址进池。
+- **对象池 (`ObjectPoolManager`)**：按 `PoolCategory` (FX / Entity / UI / Default) 分桶，`Prewarm` 预建，`PoolItemTracker` 记录归属 (回收不需传地址)，`IPoolable` 的 `OnSpawn` / `OnRecycle` 在取出 / 归还时调用 (缓存组件，0 GC)。
+  - 特效：`EffectView` (粒子 / 序列帧 / Timeline，到时自动回收，`fallbackDuration` 保底) 与 `AutoRecycleEffect`，由 `EffectManager` 管理。
+  - 伤害跳字：`DamageTextPool` (固定容量)。
+- **局内加载管线 (`BattleManager` 加载阶段)**：预热打击火花、角色动作事件与 Buff 引用的特效、生成物实例与视图 (`SpawnPool` 按 `spawns.json` 的 `prewarm`)；局内只做池内复用，预建不足时报警告后补建。
 
 ### 4. ACT 数据驱动动作框架与确定性输入流
 - **动作数据结构 (`ActionInfo`) 字段规范**：
   - `id` (string)：动作唯一标识符。
-  - `animKey` (string)：表现层关联动画名。
-  - `catalog` (string)：动作类别（如 `Hurt_Ground`, `Hurt_Air`, `Attack`）。
-  - `durationTicks` (int)：动作持续的固定逻辑帧数。
+  - `animKey` (string)：表现层关联动画名 (帧库中的动画)，动作时长由动画切片步时长决定。
+  - `catalog` (string)：动作类别 (`Base` / `Attack` / `Skill` / `Ultimate` / `Hurt` / `Show`)，供 `ChangeByCatalog` 使用。
   - `autoNextActionId` (string)：自然播放结束后的流向动作。
   - `keepPlayingAnim` (bool)：循环或打断自身时是否维持当前播放进度。
   - `autoTerminate` (bool)：未持续接收到输入时是否提前终止。
@@ -211,7 +214,7 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
 - **3D 角色驱动 (未开始)**：`Animator3DDriver` 根据 ActionId 执行 `CrossFadeInFixedTime`，届时与 `ActorView` 的 2D 精灵绘制并列。
 - **挂点 (部分完成)**：动作事件 / Buff 的跟随特效由 `ActorView` 按当前帧 `EffectAnchors` 逐帧定位并随朝向镜像；逻辑抓取同样读取锚点。
 
-### 8. ACT 可视化动作时间轴编辑器 (Action Timeline Editor)
+### 8. ACT 可视化动作时间轴编辑器 (M7 部分完成：时间轴、帧预览、校验已实现；视口拖拽判定盒、事件轨、位移曲线轨未做)
 - **编辑器界面核心布局**：
   - **多轨道时间轴 (Multi-Track Timeline)**：
     - **帧序列轨 (Frame Track)**：直观拖拽帧长度（Ticks）。
@@ -249,14 +252,14 @@ gantt
 
 | 里程碑 | 核心产出文件 | 重点改造内容 | 验收标准 |
 | :--- | :--- | :--- | :--- |
-| **M1: 定点数数学库与物理改造** | `Math/FP.cs`<br>`Math/FPVector2.cs`<br>`Physics/MotionBody.cs`<br>`LogicCommon.cs` | 1. 建立纯定点数数学运算库<br>2. 实体坐标、速度、高度、重力定点数化<br>3. 判定盒 `LogicBox` 切换为定点数碰撞 | 编写纯单元测试：跨平台运行 10000 次复杂物理模拟运算，哈希值绝对一致。 |
-| **M2: 资源管理与对象池** | `Managers/Asset/IAssetProvider.cs`<br>`Managers/Asset/ObjectPoolManager.cs`<br>`View/Component/AutoRecycleFX.cs` | 1. 抽象资源提供器接口<br>2. 实现按类型隔离的分级对象池<br>3. 改造战斗前加载预热流程 | 连续对战 5 分钟，战斗运行时无任何 `Resources.Load` 与新实例分配产生的 GC Spike。 |
+| **M1: 定点数数学库与物理改造 (功能完成，验收未做)** | `Math/FP.cs`<br>`Math/FPVector2.cs`<br>`Physics/MotionBody.cs`<br>`LogicCommon.cs` | 1. 建立纯定点数数学运算库<br>2. 实体坐标、速度、高度、重力定点数化<br>3. 判定盒 `LogicBox` 切换为定点数碰撞 | 编写纯单元测试：跨平台运行 10000 次复杂物理模拟运算，哈希值绝对一致。 |
+| **M2: 资源管理与对象池 (基本完成)** | `Managers/Asset/IAssetProvider.cs`<br>`Managers/Asset/AssetManager.cs`<br>`Managers/Asset/ObjectPoolManager.cs`<br>`Managers/Asset/AutoRecycleEffect.cs`<br>`View/Render/EffectView.cs` | 1. 抽象资源提供器接口<br>2. 实现按类型隔离的分级对象池<br>3. 改造战斗前加载预热流程 | 连续对战 5 分钟，战斗运行时无任何 `Resources.Load` 与新实例分配产生的 GC Spike。 |
 | **M3: 3D 纵深渲染与穿插 (已完成)** | `View/Render/BattleViewSpace.cs`<br>`View/Render/ActorView.cs`<br>`View/Render/Shaders/SpriteZWriteAlphaTest.shader`<br>`Game/Core/BattleManager.cs`<br>`Game/Core/CharacterFactory.cs`<br>`Game/SceneManager.cs` | 1. `BattleViewSpace` 统一映射 `World = (x, y + z, y / k)` (`DepthToScreenY`)：纵深为视觉单位 (屏幕纵坐标)，世界 Z 换算回地面距离用于深度裁决<br>2. 相机与素材均不旋转 (正交，沿 +Z 观察)，地图为放在最远处的背景板<br>3. 角色材质 Alpha-Test ZWrite (透明队列)<br>4. `ActorView` 只读绑定 `CharacterObj`，`BattleManager` 驱动 `BattleWorld`，`HitEvents` 转火花/跳字/震屏<br>5. 删除旧表现链路 `LogicEntity` / `EntityView` / `EffectNode` / `HitData` | 3D 粒子特效在角色身前身后穿梭时产生自然的前后遮挡，彻底移除手算 sortingOrder。 |
-| **M4: ACT 动作核心与输入** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`InputToCommand.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 按下 / 按住 / 松开指令 (含预输入) 与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
-| **M5: 5 维打击与受击状态** | `Game/Core/BattleWorld.cs`<br>`Game/Physics/MotionBody.cs`<br>`Character/Fight/HitResolver.cs`<br>`Character/Fight/CombatTypes.cs`<br>`Character/Fight/HurtState.cs`<br>`Character/Fight/HiRecord.cs` | 1. 平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 僵直/击飞/被抓/倒地受击状态<br>3. 霸体等级判定 | 僵直期间不能行动且循环受击动画；击飞落地转倒地；霸体只扣血不打断；抓取逐帧跟随帧锚点、锚点消失即释放；整条命中链路 0 GC。（停帧与保护机制已移出计划） |
+| **M4: ACT 动作核心与输入 (已完成)** | `Characters/Action/ActionInfo.cs`<br>`ActionController.cs`<br>`InputToCommand.cs`<br>`ForceMove.cs` | 1. 动作配置数据结构定点数化<br>2. 逻辑帧驱动的 `ActionController`<br>3. 按下 / 按住 / 松开指令 (含预输入) 与打断窗口决策 | 动作可由 JSON 表驱动，普攻 1~4 段可通过 `CancelTag` 流畅打断与自然衔接。 |
+| **M5: 5 维打击与受击状态 (已完成)** | `Game/Core/BattleWorld.cs`<br>`Game/Physics/MotionBody.cs`<br>`Character/Fight/HitResolver.cs`<br>`Character/Fight/CombatTypes.cs`<br>`Character/Fight/HurtState.cs`<br>`Character/Fight/HurtActionIds.cs`<br>`Character/Fight/HiRecord.cs` | 1. 平推、击飞、吸附、抓取、扫地 5 种受击物理<br>2. 僵直/击飞/被抓/倒地受击状态<br>3. 霸体等级判定 | 僵直期间不能行动且循环受击动画；击飞落地转倒地；霸体只扣血不打断；抓取逐帧跟随帧锚点、锚点消失即释放；整条命中链路 0 GC。（停帧与保护机制已移出计划） |
 | **M6: 技能/查克拉/分身系统 (框架已完成)** | `Character/Skill/SkillController.cs`<br>`Character/Spawn/SpawnInfo.cs` / `CloneBrain.cs`<br>`Character/Buff/BuffController.cs`<br>`Character/Action/ActionEventInfo.cs`<br>`Game/Core/CharacterFactory.cs` (`SpawnPool`) | 1. 动作事件 (特效 / 生成 / 镜头 / Buff) 与锚点跟随特效<br>2. 多段技能 CD、查克拉、替身 (`breakHurt`)<br>3. Simple / Actor 生成物复用 `CharacterObj`，预建实例池，`CloneBrain` 脚本输入<br>4. Buff 持续时间 + 循环特效 | L1 `Skill` 工程全部通过 (CD / 多段 / 查克拉 / 替身 / 生成回收确定性与 0 GC / 分身 / Buff)；鸣人技能 1、技能 2 (投射物 + 命中派生)、替身已配表。CD 数值与查克拉获得规则以原版实测为准再调。 |
-| **M7: 可视化时间轴编辑器** | `Editor/ActionTimeline/ActionEditorWindow.cs`<br>`TimelineTracks.cs`<br>`BoxGizmoDrawer.cs` | 1. 实现时间轴多轨道可视化（帧/盒/打断/事件/位移）<br>2. Scene 视口鼠标直观拖拽编辑判定盒<br>3. 动作数据完整性校验与导出 | 策划或开发者无需手写 JSON，在编辑器内 10 分钟内完成一个全新动作的完整配表。 |
-| **M8: 鸣人迁移与联机验收** | `ArtAssets/Characters/90001_Naruto/`<br>`naruto_actions.json`<br>`NarutoEntity.cs` | 1. 迁移鸣人全部动作至新框架<br>2. 彻底移除旧版状态机代码<br>3. 双端联机帧同步对战压力测试 | 双端 KCP 联机对战，连续执行 1000 帧复杂连招对抗，状态校验和一致，0 脱同步。 |
+| **M7: 可视化时间轴编辑器 (部分完成)** | `Editor/ActionEditor/ActionEditorWindow.cs` (`.Timeline` / `.Validation`)<br>`Editor/ActionEditor/ActionEditorState.cs` / `ActionJson.cs` | 1. 实现时间轴多轨道可视化（帧/盒/打断/事件/位移）<br>2. Scene 视口鼠标直观拖拽编辑判定盒<br>3. 动作数据完整性校验与导出 | 策划或开发者无需手写 JSON，在编辑器内 10 分钟内完成一个全新动作的完整配表。 |
+| **M8: 角色迁移与联机验收 (迁移完成，联机验收未做)** | `AssetPackages/Characters/{naruto,sasuke,90081}/`<br>`Config/actions.json` / `skills.json`<br>`Reverse/tools/export_character.py` (原版导出) | 1. 迁移鸣人全部动作至新框架<br>2. 彻底移除旧版状态机代码<br>3. 双端联机帧同步对战压力测试 | 双端 KCP 联机对战，连续执行 1000 帧复杂连招对抗，状态校验和一致，0 脱同步。 |
 
 ---
 

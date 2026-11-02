@@ -1,461 +1,177 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Managers;
 using UnityEngine.Video;
-using TMPro;
 
-namespace KiHan.View.UI.Login
+namespace KiHan.UI
 {
-    public class LoginPanel : BasePanel
+    /// <summary>
+    /// 登录主界面：视频背景、未登录 / 已登录两组按钮、版本校验、开始游戏 (连接网关)、退出登录。
+    /// 登录 / 注册在 LoginPopup / RegisterPopup 中完成，成功后回调本界面切到已登录状态
+    /// </summary>
+    [UIPanel("UI/Panels/Login/LoginPanel", UILayer.Normal)]
+    public partial class LoginPanel : UIPanel
     {
-        // UI 组
-        private GameObject _unLoginGroup;
-        private GameObject _loginedGroup;
-        private GameObject _centerBtns;
-        private GameObject _rights;
-        private GameObject _startBtns;
-
-        // 弹窗
-        private GameObject _loginPopup;
-        private GameObject _registerPopup;
-
-        // 输入框
-        private TMP_InputField _loginUsernameInput;
-        private TMP_InputField _loginPasswordInput;
-        private TMP_InputField _regUsernameInput;
-        private TMP_InputField _regPasswordInput;
-        private TMP_InputField _regConfirmPasswordInput;
-        private TMP_InputField _regEmailInput;
+        private const string VideoFileName = "LoginTen.mp4";
+        private const string GatewayHost = "127.0.0.1";
+        private const int GatewayPort = 9000;
+        private const string TipInvalidVersion = "版本不对，请更新游戏";
+        private const string TipNetworkError = "网络问题";
 
         private VideoPlayer _videoPlayer;
-        private RawImage _videoRawImage;
+        private AspectRatioFitter _videoFitter;
         private RenderTexture _videoRT;
-        private bool _isLoggedIn = false;
+        private bool _isLoggedIn;
 
-        protected override void Awake()
+        private LoginPopup.Args _loginArgs;
+        private RegisterPopup.Args _registerArgs;
+
+        protected override void OnCreate()
         {
-            base.Awake();
-            // 查找各个模块（兼容了首字母大小写）
-            _unLoginGroup = FindChild(gameObject, "unLoginGroup") ?? FindChild(gameObject, "UnloginGroup");
-            _loginedGroup = FindChild(gameObject, "LoginedGroup");
-            _centerBtns = FindChild(gameObject, "centerBtns");
-            _rights = FindChild(gameObject, "rights");
-            _startBtns = FindChild(gameObject, "StartBtns");
-
-            _loginPopup = FindChild(gameObject, "LoginPanel");
-            _registerPopup = FindChild(gameObject, "RegisterPanel");
-
-            if (_loginPopup != null)
-            {
-                _loginUsernameInput = _loginPopup.transform.Find("Input/Username/inputfield")?.GetComponent<TMP_InputField>();
-                _loginPasswordInput = _loginPopup.transform.Find("Input/Password/inputfield")?.GetComponent<TMP_InputField>();
-            }
-
-            if (_registerPopup != null)
-            {
-                _regUsernameInput = _registerPopup.transform.Find("Input/Username/inputfield")?.GetComponent<TMP_InputField>();
-                _regPasswordInput = _registerPopup.transform.Find("Input/Password/inputfield")?.GetComponent<TMP_InputField>();
-                _regConfirmPasswordInput = _registerPopup.transform.Find("Input/ConfirmPassword/inputfield")?.GetComponent<TMP_InputField>();
-                _regEmailInput = _registerPopup.transform.Find("Input/Email/inputfield")?.GetComponent<TMP_InputField>();
-            }
-
             SetupVideoBackground();
-            BindEvents();
+
+            _loginArgs = new LoginPopup.Args { OnLoggedIn = OnLoggedIn };
+            _registerArgs = new RegisterPopup.Args { OnRegistered = OnLoggedIn };
+
+            _loginBtn.onClick.AddListener(() => UIManager.Instance.Open<LoginPopup, LoginPopup.Args>(_loginArgs));
+            _registerBtn.onClick.AddListener(() => UIManager.Instance.Open<RegisterPopup, RegisterPopup.Args>(_registerArgs));
+            _startBtn.onClick.AddListener(OnStartGameClick);
+            _logoutBtn.onClick.AddListener(OnLogoutClick);
         }
 
-        private void OnDestroy()
+        protected override void OnOpen()
+        {
+            _isLoggedIn = false;
+            RefreshState();
+
+            _videoPlayer.Play();
+            CheckAppVersion();
+
+            var gateway = KiHan.Network.GatewayManager.Instance;
+            if (gateway != null)
+            {
+                gateway.OnAuthSuccess += OnGatewayAuthSuccess;
+                gateway.OnAuthFailed += OnGatewayAuthFailed;
+            }
+        }
+
+        protected override void OnClose()
+        {
+            _videoPlayer.Stop();
+
+            var gateway = KiHan.Network.GatewayManager.Instance;
+            if (gateway != null)
+            {
+                gateway.OnAuthSuccess -= OnGatewayAuthSuccess;
+                gateway.OnAuthFailed -= OnGatewayAuthFailed;
+            }
+        }
+
+        protected override void OnRelease()
         {
             if (_videoRT != null)
             {
+                _videoPlayer.targetTexture = null;
+                _videoBg.texture = null;
                 _videoRT.Release();
                 Destroy(_videoRT);
                 _videoRT = null;
             }
         }
 
-        private void BindPasswordToggle(TMP_InputField inputField)
-        {
-            if (inputField == null) return;
-            
-            // 默认设置为密码隐藏模式
-            inputField.contentType = TMP_InputField.ContentType.Password;
-            inputField.ForceLabelUpdate();
-
-            // 查找父节点下的 ShowToggleBtn
-            Transform toggleBtnTrans = inputField.transform.parent.Find("ShowToggleBtn");
-            if (toggleBtnTrans != null)
-            {
-                Button toggleBtn = toggleBtnTrans.GetComponent<Button>();
-                
-                // 查找底下的 open 和 close 图片节点
-                GameObject openImg = toggleBtnTrans.Find("open")?.gameObject;
-                GameObject closeImg = toggleBtnTrans.Find("close")?.gameObject;
-
-                // 默认状态：密码隐藏 -> 显示 open 图片，隐藏 close 图片
-                if (openImg != null) openImg.SetActive(true);
-                if (closeImg != null) closeImg.SetActive(false);
-
-                if (toggleBtn != null)
-                {
-                    toggleBtn.onClick.AddListener(() =>
-                    {
-                        if (inputField.contentType == TMP_InputField.ContentType.Password)
-                        {
-                            inputField.contentType = TMP_InputField.ContentType.Standard;
-                            if (openImg != null) openImg.SetActive(false);
-                            if (closeImg != null) closeImg.SetActive(true);
-                        }
-                        else
-                        {
-                            inputField.contentType = TMP_InputField.ContentType.Password;
-                            if (openImg != null) openImg.SetActive(true);
-                            if (closeImg != null) closeImg.SetActive(false);
-                        }
-                        inputField.ForceLabelUpdate();
-                    });
-                }
-            }
-        }
-
-        private GameObject FindChild(GameObject root, string name)
-        {
-            if (root == null) return null;
-            Transform[] children = root.GetComponentsInChildren<Transform>(true);
-            foreach (Transform t in children)
-            {
-                if (t.name == name) return t.gameObject;
-            }
-            return null;
-        }
-
+        /// <summary>
+        /// 视频背景：节点 (RawImage + AspectRatioFitter + VideoPlayer) 在预制体里，这里只创建 RenderTexture 并配置播放
+        /// </summary>
         private void SetupVideoBackground()
         {
-            GameObject bgGo = new GameObject("VideoBackground");
-            bgGo.transform.SetParent(this.transform);
-            bgGo.transform.SetAsFirstSibling(); 
-            
-            RectTransform rt = bgGo.AddComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
-            rt.localScale = Vector3.one;
+            _videoBg.color = Color.white;
+            _videoBg.raycastTarget = false;
 
-            _videoRawImage = bgGo.AddComponent<RawImage>();
-            _videoRawImage.color = Color.white;
+            // 填满且不拉伸：视频完整拉伸到 RenderTexture，由 AspectRatioFitter 按视频原始比例还原
+            _videoFitter = _videoBg.GetComponent<AspectRatioFitter>();
+            _videoFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            _videoFitter.aspectRatio = 16f / 9f;
 
-            // 增加比例适配器，确保填满且不拉伸
-            var fitter = bgGo.AddComponent<AspectRatioFitter>();
-            fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
-            fitter.aspectRatio = 1.777778f; // 初始占位
-
-            _videoPlayer = bgGo.AddComponent<VideoPlayer>();
-            _videoPlayer.playOnAwake = true;
-            _videoPlayer.isLooping = true;
-            
-            // 使用 RenderTexture 渲染模式
             _videoRT = new RenderTexture(1920, 1080, 0);
+            _videoBg.texture = _videoRT;
+
+            _videoPlayer = _videoBg.GetComponent<VideoPlayer>();
+            _videoPlayer.playOnAwake = false;
+            _videoPlayer.isLooping = true;
             _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
             _videoPlayer.targetTexture = _videoRT;
-            _videoRawImage.texture = _videoRT;
-            
-            // 重要：让视频流完整填充 RenderTexture（可能会有拉伸），由 UI 的 AspectRatioFitter 负责还原比例
-            _videoPlayer.aspectRatio = VideoAspectRatio.Stretch; 
-
-            // 动态校准视频原始比例
-            _videoPlayer.prepareCompleted += (vp) => {
-                if (vp.height > 0) {
-                    float ratio = (float)vp.width / vp.height;
-                    fitter.aspectRatio = ratio;
-                    Debug.Log($"[LoginPanel] 视频原始比例已自动校准: {ratio}");
-                }
-            };
-
-            string videoPath = global::System.IO.Path.Combine(Application.streamingAssetsPath, "LoginTen.mp4");
-            _videoPlayer.url = videoPath;
-            _videoPlayer.Play();
+            _videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
+            _videoPlayer.prepareCompleted += OnVideoPrepared;
+            _videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, VideoFileName);
         }
 
-        private void BindEvents()
+        private void OnVideoPrepared(VideoPlayer vp)
         {
-            // 绑定密码可见性切换
-            BindPasswordToggle(_loginPasswordInput);
-            BindPasswordToggle(_regPasswordInput);
-            BindPasswordToggle(_regConfirmPasswordInput);
-
-            // 1. centerBtns 里的按钮
-            if (_centerBtns != null)
-            {
-                Button loginBtn = FindChild(_centerBtns, "LoginBtn")?.GetComponent<Button>();
-                if (loginBtn != null) loginBtn.onClick.AddListener(() => ShowPopup(_loginPopup));
-
-                Button regBtn = FindChild(_centerBtns, "RegisterBtn")?.GetComponent<Button>();
-                if (regBtn != null) regBtn.onClick.AddListener(() => ShowPopup(_registerPopup));
-            }
-
-            // 2. 登录弹窗 LoginPanel
-            if (_loginPopup != null)
-            {
-                Button xBtn = FindChild(_loginPopup, "XBtn")?.GetComponent<Button>();
-                if (xBtn != null) xBtn.onClick.AddListener(() => HidePopup(_loginPopup));
-
-                Button loginBtn = FindChild(_loginPopup, "LoginBtn")?.GetComponent<Button>();
-                if (loginBtn != null) loginBtn.onClick.AddListener(OnRealLoginSubmit);
-            }
-
-            // 3. 注册弹窗 RegisterPanel
-            if (_registerPopup != null)
-            {
-                Button xBtn = FindChild(_registerPopup, "XBtn")?.GetComponent<Button>();
-                if (xBtn != null) xBtn.onClick.AddListener(() => HidePopup(_registerPopup));
-
-                Button regBtn = FindChild(_registerPopup, "RegisterBtn")?.GetComponent<Button>();
-                if (regBtn != null) regBtn.onClick.AddListener(OnRealRegisterSubmit);
-            }
-
-            // 4. StartBtns 里的开始游戏按钮
-            if (_startBtns != null)
-            {
-                Button startBtn = FindChild(_startBtns, "StartBtn")?.GetComponent<Button>();
-                if (startBtn != null) startBtn.onClick.AddListener(OnStartGameSubmit);
-            }
-
-            // 5. 退出登录按钮
-            if (_loginedGroup != null)
-            {
-                Button backBtn = FindChild(_loginedGroup, "back")?.GetComponent<Button>();
-                if (backBtn != null) backBtn.onClick.AddListener(OnLogoutSubmit);
-            }
-        }
-
-        public override void OnOpen(object data = null)
-        {
-            Debug.Log("[LoginPanel] OnOpen called");
-            base.OnOpen(data);
-            
-            // 初始化状态：未登录
-            _isLoggedIn = false;
-            // 直接设为 false 避免初始状态播放隐藏动画
-            if (_loginPopup != null) _loginPopup.SetActive(false);
-            if (_registerPopup != null) _registerPopup.SetActive(false);
-            RefreshState();
-
-            // 启动视频
-            if (_videoPlayer != null) 
-            {
-                _videoPlayer.Play();
-            }
-
-            // 启动时检查版本
-            CheckAppVersion();
-
-            if (KiHan.Network.GatewayManager.Instance != null)
-            {
-                KiHan.Network.GatewayManager.Instance.OnAuthSuccess += OnGatewayAuthSuccess;
-                KiHan.Network.GatewayManager.Instance.OnAuthFailed += OnGatewayAuthFailed;
-            }
+            if (vp.height > 0) _videoFitter.aspectRatio = (float)vp.width / vp.height;
         }
 
         private void CheckAppVersion()
         {
-            HttpClient.Instance.CheckVersion(KiHan.Config.HttpConfig.AppVersion, res =>
+            Managers.HttpClient.Instance.CheckVersion(KiHan.Config.HttpConfig.AppVersion, res =>
             {
                 if (res.code == (int)KiHan.Config.HttpErrCode.InvalidVersion)
                 {
-                    UIManager.Instance.ShowTip("版本不对，请更新游戏");
+                    UIManager.Instance.Toast(TipInvalidVersion);
                 }
             }, err =>
             {
                 Debug.LogWarning($"[LoginPanel] 版本校验请求失败(网络问题): {err}");
-                UIManager.Instance.ShowTip("网络问题");
+                UIManager.Instance.Toast(TipNetworkError);
             });
         }
 
-        public override void OnClose()
+        private void OnLoggedIn()
         {
-            Debug.Log("[LoginPanel] OnClose called");
-            base.OnClose();
-            if (_videoPlayer != null) _videoPlayer.Stop();
+            _isLoggedIn = true;
+            RefreshState();
+        }
 
-            if (KiHan.Network.GatewayManager.Instance != null)
+        private void RefreshState()
+        {
+            // 未登录时显示
+            _unloginGroup.SetActive(!_isLoggedIn);
+            _centerBtns.SetActive(!_isLoggedIn);
+            _rights.SetActive(!_isLoggedIn);
+
+            // 登录后显示
+            _loginedGroup.SetActive(_isLoggedIn);
+            _startBtns.SetActive(_isLoggedIn);
+        }
+
+        private void OnStartGameClick()
+        {
+            // HTTP 登录缓存下来的 Token
+            string token = Managers.HttpClient.Instance.Token;
+            if (string.IsNullOrEmpty(token))
             {
-                KiHan.Network.GatewayManager.Instance.OnAuthSuccess -= OnGatewayAuthSuccess;
-                KiHan.Network.GatewayManager.Instance.OnAuthFailed -= OnGatewayAuthFailed;
+                UIManager.Instance.Toast("没有找到 Token，请重新登录！");
+                return;
             }
+
+            // 本地测试先写死网关地址；鉴权结果由 OnGatewayAuthSuccess / OnGatewayAuthFailed 处理
+            KiHan.Network.GatewayManager.Instance.Connect(GatewayHost, GatewayPort, token);
+        }
+
+        private void OnLogoutClick()
+        {
+            _isLoggedIn = false;
+            RefreshState();
+            GameFlow.Instance.ResetSession();
         }
 
         private void OnGatewayAuthSuccess()
         {
-            UIManager.Instance.ShowTip("连接网关成功！");
-            UIManager.Instance.ClosePanel(UIConst.LoginPanel);
-            UIManager.Instance.OpenPanel<KiHan.View.UI.Lobby.LobbyPanel>(UIConst.LobbyPanel);
+            UIManager.Instance.Toast("连接网关成功！");
+            GameFlow.Instance.EnterLobby();
         }
 
         private void OnGatewayAuthFailed(string msg)
         {
-            UIManager.Instance.ShowTip($"连接网关失败: {msg}");
-        }
-
-        private void ShowPopup(GameObject popup)
-        {
-            UIPanelAnim.Show(this, popup);
-        }
-
-        private void HidePopup(GameObject popup)
-        {
-            UIPanelAnim.Hide(this, popup);
-        }
-
-        // 核心状态刷新逻辑
-        private void RefreshState()
-        {
-            // 未登录时显示
-            if (_unLoginGroup != null) _unLoginGroup.SetActive(!_isLoggedIn);
-            if (_centerBtns != null) _centerBtns.SetActive(!_isLoggedIn);
-            if (_rights != null) _rights.SetActive(!_isLoggedIn);
-
-            // 登录后显示
-            if (_loginedGroup != null) _loginedGroup.SetActive(_isLoggedIn);
-            if (_startBtns != null) _startBtns.SetActive(_isLoggedIn);
-        }
-
-        private void OnRealLoginSubmit()
-        {
-            if (!HttpClient.Instance.IsVersionValid)
-            {
-                UIManager.Instance.ShowTip("版本不对，请更新游戏");
-                return;
-            }
-
-            string username = _loginUsernameInput != null ? _loginUsernameInput.text : "";
-            string password = _loginPasswordInput != null ? _loginPasswordInput.text : "";
-
-            if (string.IsNullOrEmpty(username))
-            {
-                UIManager.Instance.ShowTip("用户名不能为空！");
-                return;
-            }
-            if (string.IsNullOrEmpty(password))
-            {
-                UIManager.Instance.ShowTip("密码不能为空！");
-                return;
-            }
-
-            Debug.Log($"[LoginPanel] 正在登录: {username}");
-            
-            HttpClient.Instance.Login(username, password, 
-                onSuccess: res => 
-                {
-                    if (res.code == (int)KiHan.Config.HttpErrCode.Ok)
-                    {
-                        UIManager.Instance.ShowTip("登录成功！");
-                        _isLoggedIn = true;
-                        HidePopup(_loginPopup);
-                        RefreshState();
-                    }
-                    else
-                    {
-                        UIManager.Instance.ShowTip($"登录失败: {res.msg}");
-                    }
-                },
-                onError: err => 
-                {
-                    Debug.LogWarning($"[LoginPanel] 请求失败: {err}");
-                    UIManager.Instance.ShowTip("网络问题");
-                }
-            );
-        }
-
-        private void OnRealRegisterSubmit()
-        {
-            if (!HttpClient.Instance.IsVersionValid)
-            {
-                UIManager.Instance.ShowTip("版本不对，请更新游戏");
-                return;
-            }
-
-            string username = _regUsernameInput != null ? _regUsernameInput.text : "";
-            string email = _regEmailInput != null ? _regEmailInput.text : "";
-            string password = _regPasswordInput != null ? _regPasswordInput.text : "";
-            string confirmPwd = _regConfirmPasswordInput != null ? _regConfirmPasswordInput.text : "";
-
-            if (string.IsNullOrEmpty(username))
-            {
-                UIManager.Instance.ShowTip("用户名不能为空！");
-                return;
-            }
-            if (string.IsNullOrEmpty(password))
-            {
-                UIManager.Instance.ShowTip("密码不能为空！");
-                return;
-            }
-            if (password != confirmPwd)
-            {
-                UIManager.Instance.ShowTip("两次输入的密码不一致！");
-                return;
-            }
-
-            Debug.Log($"[LoginPanel] 正在注册: {username}, Email: {email}");
-
-            HttpClient.Instance.Register(username, password, email,
-                onSuccess: res => 
-                {
-                    if (res.code == (int)KiHan.Config.HttpErrCode.Ok)
-                    {
-                        UIManager.Instance.ShowTip("注册成功！");
-                        _isLoggedIn = true;
-                        HidePopup(_registerPopup);
-                        RefreshState();
-                    }
-                    else
-                    {
-                        UIManager.Instance.ShowTip($"注册失败: {res.msg}");
-                    }
-                },
-                onError: err => 
-                {
-                    Debug.LogWarning($"[LoginPanel] 请求失败: {err}");
-                    UIManager.Instance.ShowTip("网络问题");
-                }
-            );
-        }
-
-        private void OnStartGameSubmit()
-        {
-            Debug.Log("[LoginPanel] 正在连接网关...");
-            
-            // 获取之前 Http 登录缓存下来的 Token
-            string token = HttpClient.Instance.Token;
-            if (string.IsNullOrEmpty(token))
-            {
-                UIManager.Instance.ShowTip("没有找到 Token，请重新登录！");
-                return;
-            }
-
-            // 发起 WebSocket 连接，本地测试先写死 127.0.0.1:9000
-            KiHan.Network.GatewayManager.Instance.Connect("127.0.0.1", 9000, token);
-            
-            // 连接成功后的页面跳转由 OnGatewayAuthSuccess 处理
-        }
-
-        private void OnLogoutSubmit()
-        {
-            Debug.Log("[LoginPanel] 退出登录");
-            _isLoggedIn = false;
-            RefreshState();
-            
-            // 彻底清理所有战斗/场景残留
-            if (GameApp.Instance != null)
-            {
-                // 如果在战斗中，可以复用部分 ExitGame 的逻辑，或者确保管理器都清空
-                MapManager.Instance.ClearMap();
-                VirtualNetworkManager.Instance.Stop();
-            }
-            Managers.ViewManager.Instance.ClearAll();
-            Managers.ResManager.Instance.Clear();
-
-            KiHan.Network.GatewayManager.Instance?.Disconnect();
-            HttpClient.Instance.ClearToken(); 
+            UIManager.Instance.Toast("连接网关失败: " + msg);
         }
     }
 }

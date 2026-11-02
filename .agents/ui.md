@@ -1,7 +1,8 @@
 # KiHan UI 开发规范 (UI Specification)
-# 更新时间：2026-10-24
+# 更新时间：2026-10-30
 
 > 适用于 UGUI 界面 (面板、战斗 HUD、弹窗)。新写或修改 UI 时遵守；与现有代码冲突时以本文为准并顺手迁移。
+> 框架结构 (分层、`UIPanel` / `UIManager`、自动绑定、`GameFlow`) 见 [DOCS/UI_FRAMEWORK.md](../DOCS/UI_FRAMEWORK.md)，新建界面的步骤见 [DOCS/UI_GUIDE.md](../DOCS/UI_GUIDE.md)。
 
 ---
 
@@ -9,12 +10,12 @@
 
 1. **按压动画统一用 Q 弹缩放 (`UIPressBounce`)**：
    - 所有没有特殊设计的按钮都必须带按压回弹：按下缩小到 0.88，松开弹回并小幅过冲后回稳。
-   - 面板 (`BasePanel` 子类) 在 `Awake` 时自动给面板内所有 `Button` 挂上，无需手动添加；战斗虚拟按键 (`VirtualButton`) 自动挂上。
-   - 运行时动态生成的 UI (不经过 `BasePanel` 的预制体实例) 生成后调用 `UIPressBounce.AttachToButtons(go)`。
+   - 面板 (`UIPanel` 子类) 由 `UIManager` 在 `OnCreate` 前自动给面板内所有 `Button` 挂上，无需手动添加；战斗虚拟按键 (`VirtualButton`) 自动挂上。
+   - 运行时动态生成的 UI (不经过 `UIManager` 的预制体实例) 生成后调用 `UIPressBounce.AttachToButtons(go)`。
    - 非 `Button` 的可点击节点需要回弹时，直接在预制体上添加 `UIPressBounce`。
    - 手感参数 (缩放 / 刚度 / 阻尼) 保持默认，确有需要时在该按钮的 `UIPressBounce` 上单独调整，不改默认值。
 2. **有特殊按压设计的按钮**：挂 `UIPressBounceIgnore`，自动挂载会跳过它，再自行实现表现。禁止为了绕开自动挂载去删除或禁用 `UIPressBounce`。
-3. **面板 `Awake` 必须调用基类**：`BasePanel` 子类写成 `protected override void Awake()`，第一行 `base.Awake()`；写成 `private void Awake()` 会隐藏基类方法，按钮不会自动带动画。
+3. **面板初始化写在 `OnCreate`**：不要在面板里写 `Awake` / `Start`；按钮监听在 `OnCreate` 中添加，订阅在 `OnOpen` / `OnClose` 中成对处理。
 4. **不要禁用交互组件来省 Update**：EventSystem 不向禁用的组件派发点击事件；需要空闲时不计算，用标志位在 `Update` 开头直接返回。
 5. **按钮不可用**：用 `Button.interactable = false`，此时不播放按压动画；不要只换图不改 `interactable`。
 
@@ -22,12 +23,12 @@
 
 ## 二、 节点与绑定
 
-1. **节点引用全部序列化**：脚本用 `[SerializeField]` 字段，在预制体中拖拽绑定；禁止运行时按名字 `transform.Find` / 递归查找节点，禁止为找不到节点写备用名回退。
-2. **一排同类子节点 (豆、列表项)** 可在 `Awake` 中 `GetComponentsInChildren` 收集一次 (增减子节点即可改个数)，之后只用缓存。
+1. **节点引用全部序列化，用 `@` 前缀自动绑定**：需要被代码引用的节点改名为 `@名字`，菜单 **KiHan/UI/生成绑定** 生成 `<类名>.Bind.cs` 并自动赋值 (规则见 UI_FRAMEWORK.md 第 5 节)；禁止运行时按名字 `transform.Find` / 递归查找节点，禁止为找不到节点写备用名回退。
+2. **一排同类子节点 (豆、列表项)** 用数组绑定 (`@Bean_0`、`@Bean_1`)，或在部件 `Awake` 中 `GetComponentsInChildren` 收集一次，之后只用缓存。
 3. **UI 节点必须是 `RectTransform`**：在 Canvas 下用"右键 → UI"创建，或复制已有 UI 节点；Canvas 外 Create Empty 再拖进来会得到普通 Transform，锚点、Layout、SafeArea 都会失效。
 4. **命名**：
-   - 面板预制体 / 类：名词 + `Panel` (如 `BattleHud` 挂 `BattleHudPanel`)。
-   - 可复用部件 / 类：名词 + `View`，节点名为类名去掉 `View` (如 `HpBar` 挂 `HpBarView`)。
+   - 面板预制体 / 类：全屏界面名词 + `Panel`，弹窗名词 + `Popup` (如 `BattleHudPanel`、`ConfirmPopup`)，类名与预制体名一致。
+   - 可复用部件 / 类：名词 + `View`，继承 `UIView` (如 `HpBar` 挂 `HpBarView`)。
    - 多份实例用 `_P1` / `_P2` (按槽位，不按左右)，数组用 `_0`、`_1`。
    - 同一预制体内命名风格保持一致，不混用前缀与后缀写法。
 5. **对外入口唯一**：组合部件 (如 `FighterStatusView`) 对外只提供 `Bind` / `Refresh`，外部不直接操作其子节点。

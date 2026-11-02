@@ -194,7 +194,7 @@ public class LockstepManager : UnitySingleton<LockstepManager>
             StopGame();
             
             // 自动回到大厅
-            GameApp.Instance.ExitGame();
+            GameFlow.Instance.ExitBattle();
         }
     }
 }

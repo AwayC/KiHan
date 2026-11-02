@@ -227,6 +227,19 @@ namespace KiHan.Editor
                 LogError($"角色包检查异常: {ex.Message}\n{ex.StackTrace}");
             }
 
+            // 6. UI 面板与自动绑定 (DOCS/UI_FRAMEWORK.md)
+            try
+            {
+                Log("\n--- [6/6] UI 面板预制体与 @ 绑定检查 ---");
+                List<string> uiProblems = UIBindGenerator.Validate();
+                foreach (string p in uiProblems) LogError($"UI 配置错误: {p}");
+                if (uiProblems.Count == 0) Log("  [OK] 全部面板预制体、绑定文件与字段赋值一致");
+            }
+            catch (Exception ex)
+            {
+                LogError($"UI 检查异常: {ex.Message}\n{ex.StackTrace}");
+            }
+
             // 总结报告
             Log("\n========================================================================");
             if (allPassed)

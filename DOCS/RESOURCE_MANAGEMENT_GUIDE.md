@@ -81,11 +81,12 @@ Assets/AssetPackages/Resources/
 │       ├── MapConfig.asset          # 逻辑边界与碰撞阻挡
 │       └── Map_01.prefab            # 地面、多层视差背景、3D 场景模型
 │
-└── UI/                              # 战斗与通用 UI
-    ├── BattleUI/
-    │   └── Canvas.prefab
-    └── DamageText/
-        └── DamageTextNode.prefab    # 伤害跳字
+└── UI/                              # UI (框架与规则见 DOCS/UI_FRAMEWORK.md)
+    ├── Panels/<模块>/<类名>.prefab   # 面板 / 弹窗 (根节点挂同名 UIPanel 脚本，不带 Canvas)
+    │   ├── Common/                  # ToastPanel / ConfirmPopup / LoadingPanel
+    │   ├── Login/  Lobby/  BattleHud/
+    ├── Number/                      # 图片数字 DigitFont (伤害跳字为世界空间 SpriteRenderer)
+    └── Loading/  Slider/  Shadow/   # 美术子预制体
 ```
 
 ---
