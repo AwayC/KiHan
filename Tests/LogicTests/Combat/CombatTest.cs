@@ -124,7 +124,7 @@ static class Program
             Check(t2.Hurt == HurtState.Stun && t2.action.CurrentAction.id == "hurt", $"破霸后完整受击: {t2.Hurt}, {t2.action.CurrentAction.id}");
         }
 
-        Console.WriteLine("== 1b. 生命值归零后不再受击；无限血 (训练场) 目标照常扣血，归零时立即回满，可持续被命中 ==");
+        Console.WriteLine("== 1b. 生命值归零后不再受击；无限血 (Refill) 归零时立即回满；禁止回复 (Immortal) 停在 0 仍可被命中 ==");
         {
             var a = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
             var t = Make(2, 2, "0.9", "idle");
@@ -138,12 +138,46 @@ static class Program
             var a2 = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
             var t2 = Make(2, 2, "0.9", "idle");
             t2.maxHp = FP.Parse("80");
-            t2.infiniteHp = true;
+            t2.hpMode = HpMode.Refill;
             var w2 = World(a2, t2); Step(w2);
             Check(!t2.IsDead && F(t2.Hp) == 30f && w2.HitEvents.Count == 1, $"无限血照常扣血: Hp={F(t2.Hp)}");
             a2.action.SetAllActions(a2.action.AllActions, "atk");
             Step(w2);
             Check(w2.HitEvents.Count == 1 && !t2.IsDead && F(t2.Hp) == 80f, $"归零时回满且仍可被命中: 命中 {w2.HitEvents.Count}, Hp={F(t2.Hp)}");
+
+            var a3 = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
+            var t3 = Make(2, 2, "0.9", "idle");
+            t3.maxHp = FP.Parse("50");
+            t3.hpMode = HpMode.Immortal;
+            var w3 = World(a3, t3); Step(w3);
+            a3.action.SetAllActions(a3.action.AllActions, "atk");
+            Step(w3);
+            Check(w3.HitEvents.Count == 1 && !t3.IsDead && t3.Hp == FP.Zero, $"禁止回复：停在 0 不回满、不死亡且仍可被命中: 命中 {w3.HitEvents.Count}, Hp={F(t3.Hp)}");
+            t3.SetHpMode(HpMode.Refill);
+            Check(F(t3.Hp) == 50f, $"切回无限血时已归零的生命值立即回满: Hp={F(t3.Hp)}");
+        }
+
+        Console.WriteLine("== 1c. 暴击：伤害 × 暴击倍率，打击事件标记暴击；暴击率 0 不暴击、1 必暴击；无限暴击必暴击 ==");
+        {
+            CharacterObj Hit(string rate, bool always, out HitEvent evt)
+            {
+                var a = Make(1, 1, "0", "atk", Attack("atk", normal, 8));
+                a.critRate = FP.Parse(rate);
+                a.critMultiplier = FP.Parse("2");
+                a.alwaysCrit = always;
+                var t = Make(2, 2, "0.9", "idle");
+                t.maxHp = FP.Parse("1000");
+                var w = World(a, t); Step(w);
+                evt = w.HitEvents.Count == 1 ? w.HitEvents[0] : default;
+                return t;
+            }
+
+            var t0 = Hit("0", false, out HitEvent e0);
+            Check(!e0.Critical && F(e0.Damage) == 50f && F(t0.Hp) == 950f, $"暴击率 0：普通伤害 {F(e0.Damage)}, Hp={F(t0.Hp)}");
+            var t1 = Hit("1", false, out HitEvent e1);
+            Check(e1.Critical && F(e1.Damage) == 100f && F(t1.Hp) == 900f, $"暴击率 1：伤害 ×2 = {F(e1.Damage)}, Hp={F(t1.Hp)}");
+            var t2 = Hit("0", true, out HitEvent e2);
+            Check(e2.Critical && F(e2.Damage) == 100f, $"无限暴击：暴击率 0 也必定暴击 {F(e2.Damage)}");
         }
 
         Console.WriteLine("== 2. 无敌：armorPhase 配置 Invincible 的动作 (如闪避)，不产生命中 ==");

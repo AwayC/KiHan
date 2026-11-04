@@ -161,7 +161,8 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a class="sub" href="#t-BeHitBoxTurnOn" data-k="attackerActionChange selfActionChange defensePhase">BeHitBoxTurnOn</a>
   <a class="sub" href="#t-ArmorPhase" data-k="range level None Skill Super KingKong Invincible">ArmorPhase / ArmorLevel</a>
   <a class="sub" href="#t-RootMotion" data-k="moveX moveY velocityZ accelerationZ velocityX velocityY tweenMethod">RootMotionSegment</a>
-  <a class="sub" href="#t-Event" data-k="frame type asset spawnId anchor offset bind stopOnActionEnd loop Effect Camera Spawn Buff">ActionEvent</a>
+  <a class="sub" href="#t-Event" data-k="frame type asset spawnId anchor offset bind stopOnActionEnd loop audience worldPos camera Effect Camera Spawn Buff Sound Cinematic">ActionEvent</a>
+  <a class="sub" href="#t-CameraCmd" data-k="impact impact_heavy shot shake pulse reset zoom roll inSec holdSec outSec ease amplitude frequency duration count interval Linear EaseIn EaseOut EaseInOut BackOut">镜头指令</a>
   <a class="sub" href="#t-HurtIds" data-k="hurt hurt_1 hurt_2 hurt_3 grabbed float fall lie standup airHitStep lieSec">固定受击动作</a>
   <h4>skills.json</h4>
   <a href="#skill-root">SkillDataContainer</a>
@@ -820,14 +821,14 @@ tick 20：处理 attack2 的第 0 帧</div>
 <div class="crumb">actions.json › ActionData</div>
 <section class="field" id="action-events">
 <h3><code>events</code></h3>
-<p class="summary">时间轴事件：第 N 帧播特效、震屏、生成投射物、加 Buff。</p>
+<p class="summary">时间轴事件：第 N 帧播特效、震屏、音效、大招演出，生成投射物、加 Buff。</p>
 <table class="props"><tr><th>类型</th><td><a href="#t-Event"><code>ActionEvent</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
 <h4>示例</h4>
 <pre><code class="json">"events": [
   { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
   { "frame": 4, "type": "Spawn",  "spawnId": "naruto_skill2_fx" }
 ]</code></pre>
-<p>特效、震屏只影响画面；生成物、Buff 影响逻辑。</p>
+<p>特效、震屏、音效、演出只影响画面；生成物、Buff 影响逻辑。</p>
 </section>
 
 <div class="crumb">actions.json › ActionData</div>
@@ -1161,20 +1162,45 @@ tick 20：处理 attack2 的第 0 帧</div>
 <table>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
 <tr><td><code>frame</code></td><td>int</td><td>0</td><td>处理到这一帧时触发一次。从中间帧进入（<code>startFormFrame</code>/<code>keepFrame</code>）不会补发之前的事件；循环动作每圈都触发。</td></tr>
-<tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 震屏 / <code>Spawn</code> 生成物 / <code>Buff</code>。不区分大小写，写错按 Effect。</td></tr>
-<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局 Resources 路径加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：<code>impact_heavy</code> 为重震，其他为轻震。Buff：<b>Buff 的 id</b>。</td></tr>
+<tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 镜头 / <code>Spawn</code> 生成物 / <code>Buff</code> / <code>Sound</code> 音效 / <code>Cinematic</code> 大招演出。不区分大小写，写错按 Effect。</td></tr>
+<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局 Resources 路径加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：镜头指令 <code>impact</code> / <code>impact_heavy</code> / <code>shot</code> / <code>shake</code> / <code>pulse</code> / <code>reset</code>（见下方镜头指令）。Buff：<b>Buff 的 id</b>。Sound：音效 key（包内 SoundCue 或音频文件，找不到按全局 Resources 路径）。Cinematic：演出预制体 key（根节点带 PlayableDirector + Timeline，包内优先）。</td></tr>
 <tr><td><code>spawnId</code></td><td>string</td><td><code>""</code></td><td>Spawn：spawns.json 中的生成物 id。</td></tr>
-<tr><td><code>anchor</code></td><td>string</td><td><code>""</code></td><td>帧库锚点名，作为位置基准；留空或该帧没有此锚点时用脚底。</td></tr>
+<tr><td><code>anchor</code></td><td>string</td><td><code>""</code></td><td>帧库锚点名，作为位置基准；留空或该帧没有此锚点时用脚底。Cinematic 以此处作为演出原点。</td></tr>
 <tr><td><code>offset</code></td><td><code>{x,y}</code> 整数像素</td><td>{0,0}</td><td>相对锚点的偏移：x 朝前（随朝向镜像），y 向上。</td></tr>
-<tr><td><code>bind</code></td><td>bool</td><td>false</td><td>特效跟随角色移动；否则留在触发位置。</td></tr>
-<tr><td><code>stopOnActionEnd</code></td><td>bool</td><td>false</td><td>离开本动作时停止特效（循环播放不算离开）。</td></tr>
-<tr><td><code>loop</code></td><td>bool</td><td>false</td><td>特效循环播放，不会自行回收；会自动打开 <code>stopOnActionEnd</code>。</td></tr>
+<tr><td><code>bind</code></td><td>bool</td><td>false</td><td>特效挂到角色身上跟随移动（配了 <code>anchor</code> 时逐帧跟随锚点，如手上的螺旋丸）；不写或 false 时特效留在触发那一刻的位置，不随角色移动（如风圈、烟雾）。Camera shot：镜头目标点跟随施法者。</td></tr>
+<tr><td><code>stopOnActionEnd</code></td><td>bool</td><td>false</td><td>离开本动作时停止特效 / 音效 / 演出 / 镜头效果（循环播放不算离开）。</td></tr>
+<tr><td><code>loop</code></td><td>bool</td><td>false</td><td>特效 / 音效循环播放，不会自行结束；会自动打开 <code>stopOnActionEnd</code>。</td></tr>
+<tr><td><code>audience</code></td><td>string</td><td><code>All</code></td><td>Cinematic / Camera：谁能看到。<code>Self</code> 只有释放方本机、<code>Others</code> 只有其他玩家、<code>All</code> 所有人（生成物按其主人判断）。其他类型写了会有警告。</td></tr>
+<tr><td><code>worldPos</code></td><td><code>{x,y,z}</code> 字符串</td><td>不指定</td><td>Effect / Spawn / Cinematic / Camera shot：在指定的逻辑世界坐标生成（x 横向，地图中心为 0；y 纵深；z 高度；与角色位置同一单位）。填任一坐标即生效，未填的项为 0；不随朝向镜像，忽略 <code>anchor</code>/<code>offset</code>，<code>bind</code> 不生效。</td></tr>
+<tr><td><code>camera</code></td><td>object</td><td>按指令默认</td><td>Camera：镜头指令参数，见下方镜头指令。</td></tr>
 </table>
-<pre><code class="json">{ "frame": 0,  "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+<pre><code class="json">{ "frame": 0,  "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true }
+{ "frame": 0,  "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 } }
 { "frame": 12, "type": "Camera", "asset": "impact_heavy" }
+{ "frame": 3,  "type": "Camera", "asset": "shot", "offset": { "x": 150, "y": 80 }, "bind": true, "camera": { "zoom": "0.6", "roll": "6", "inSec": "0.3", "outSec": "0.3", "ease": "BackOut" } }
+{ "frame": 10, "type": "Camera", "asset": "shake", "camera": { "amplitude": "0.15", "duration": "0.4" } }
+{ "frame": 14, "type": "Camera", "asset": "pulse", "camera": { "zoom": "0.9", "inSec": "0.03", "holdSec": "0.05", "outSec": "0.1", "count": 2 } }
 { "frame": 4,  "type": "Spawn",  "spawnId": "naruto_skill2_fx", "offset": { "x": 40, "y": 0 } }
-{ "frame": 6,  "type": "Buff",   "asset": "haste" }</code></pre>
+{ "frame": 10, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk", "worldPos": { "x": "0", "z": "1" } }
+{ "frame": 6,  "type": "Buff",   "asset": "haste" }
+{ "frame": 0,  "type": "Sound",  "asset": "Sound/rasengan" }
+{ "frame": 0,  "type": "Cinematic", "asset": "Cinematic/ultimate", "audience": "Self" }</code></pre>
 <div class="callout warn"><b>Buff 的 id 写在 asset 里</b>不是 <code>spawnId</code>。Buff 事件忽略本事件的 anchor/offset/bind，特效位置以 buffs.json 为准；Buff 总是加在触发事件的实体自己身上。</div>
+<div class="callout"><b>演出 Timeline 可用轨道</b>：CameraShotTrack（拉远 / 推近、平移、屏幕内旋转，片段淡入淡出即过渡）、CameraShakeTrack（震屏）、ScreenFadeTrack（全屏遮罩）、ScreenVideoTrack（全屏视频，不出声）、原生 AudioTrack / ControlTrack / ActivationTrack。轨道绑定由播放器自动完成，朝左释放时整个演出镜像。同时只播一个演出，后触发的覆盖前一个。目前地图背景高度有限，拉远上限为 1（不拉远）。</div>
+<div class="callout"><b>约定音效</b>：按钮点击与命中音在 <code>Resources/Config/SoundConventions.asset</code> 配置；受击语音放在各角色包的 <code>Sound/hurt</code>（SoundCue 或音频文件，可缺省）。特效伴随音效：在特效预制体上挂 <code>FxSound</code>。</div>
+
+<h3 id="t-CameraCmd">镜头指令 (Camera 事件)</h3>
+<p class="summary">只影响画面。所有镜头效果都限制在正常跟随的取景范围内：推近后镜头可以在这个范围里移动、旋转、晃动，但不会露出范围之外；拉远上限目前为 1。</p>
+<table>
+<tr><th>asset</th><th>作用</th><th>camera 参数 (字符串数字，未填取默认)</th></tr>
+<tr><td><code>impact</code> / <code>impact_heavy</code></td><td>打击冲击：推近 5% 保持 40ms，重击连续两次（命中时也会自动触发）。</td><td>无</td></tr>
+<tr><td><code>shot</code></td><td>镜头移到事件点（<code>anchor</code> + <code>offset</code>，x 朝前；或 <code>worldPos</code>）并缩放 / 旋转，保持后复位。<code>bind</code> 时目标点跟随施法者。新的 shot 从当前镜头状态平滑衔接。</td><td><code>zoom</code> 正交尺寸倍率，&lt;1 推近，最小 0.4（默认 1）；<code>roll</code> 屏幕内旋转度数，朝左释放时取反，最大 30（默认 0）；<code>inSec</code> 进入时间（0.25）；<code>holdSec</code> 保持时间，<b>不填则保持到本动作结束</b>；<code>outSec</code> 复位时间（0.25）；<code>ease</code> 缓动曲线（EaseOut）。</td></tr>
+<tr><td><code>shake</code></td><td>上下左右晃动，振幅在持续时间内线性衰减；晃动时镜头自动略微推近，晃到边缘也不露出取景范围。</td><td><code>amplitude</code> 振幅，世界单位（0.1）；<code>frequency</code> 频率 Hz（20）；<code>duration</code> 持续秒数（0.3）；<code>roll</code> 旋转抖动幅度，度（0）。</td></tr>
+<tr><td><code>pulse</code></td><td>放大缩小震动：推近 → 保持 → 复位，可重复。</td><td><code>zoom</code> 峰值倍率，只能推近（0.95）；<code>inSec</code>（0）、<code>holdSec</code>（0.04）、<code>outSec</code>（0）；<code>count</code> 次数（1）；<code>interval</code> 两次间隔（0.04）；<code>ease</code>（EaseOut）。</td></tr>
+<tr><td><code>reset</code></td><td>提前结束本玩家的 shot（如抓取后的投掷帧收镜头）。</td><td><code>outSec</code>（0.25）、<code>ease</code>（EaseOut）。</td></tr>
+</table>
+<p><code>ease</code> 可选：<code>Linear</code> 匀速、<code>EaseIn</code> 起步慢、<code>EaseOut</code> 收尾慢、<code>EaseInOut</code> 两头慢、<code>BackOut</code> 冲过头再回弹（夸张推镜）。</p>
+<div class="callout warn"><b>被打断时自动复位</b>：shot 期间施法者被打 / 被抓（进入受击状态）、视图消失时，镜头立即按 <code>outSec</code> 复位；不填 <code>holdSec</code> 或开了 <code>stopOnActionEnd</code> 时，施法者换动作也会复位。抓取连段跨多个动作时，可在后续动作再放 shot（从当前镜头平滑衔接），或填 <code>holdSec</code> 并在结束帧用 <code>reset</code> 收镜头。shake / pulse 开了 <code>stopOnActionEnd</code> 时随动作结束停止。</div>
 
 <!-- ---------- Hurt ids ---------- -->
 <h2 id="t-HurtIds">固定受击动作</h2>

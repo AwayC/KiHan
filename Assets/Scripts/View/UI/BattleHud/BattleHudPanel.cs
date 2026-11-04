@@ -1,3 +1,4 @@
+using System;
 using KiHan.Config;
 using KiHan.Logic;
 using View.UI;
@@ -10,6 +11,8 @@ namespace KiHan.UI
     /// - 本机按键：技能 CD / 接段、替身可用次数、通灵数量；按键输入由各按键上的 VirtualButton / VirtualJoystick 直接写入 InputManager
     /// - 返回：通用确认弹窗，确认后 GameFlow.ExitBattle
     /// - 场景：打开训练场选图弹窗 (MapSelectPopup)
+    /// - 换人：角色状态上的换人按钮打开训练场换人弹窗 (CharSelectPopup)，联机时隐藏
+    /// - 设置：单机训练场设置 (TrainingSettingView，嵌在 HUD 中，联机时隐藏)
     /// 之后每帧只读角色状态，各部件只在数值变化时修改 UI
     /// </summary>
     [UIPanel("UI/Panels/BattleHud/BattleHudPanel", UILayer.Hud)]
@@ -28,6 +31,9 @@ namespace KiHan.UI
 
             /// <summary>本机玩家的出战配置 (通灵数量)</summary>
             public PlayerLoadout LocalLoadout;
+
+            /// <summary>单机训练场 (联机为 null，隐藏设置按钮与训练面板)</summary>
+            public TrainingSession Training;
         }
 
         private const string ExitConfirmText = "确定退出战斗吗？";
@@ -38,17 +44,21 @@ namespace KiHan.UI
         private readonly SkillIconCache _icons = new SkillIconCache();
 
         private CharacterObj _local;
+        private Action<CharacterObj> _openCharSelect;
 
         protected override void OnCreate()
         {
+            _openCharSelect = OpenCharSelect;
             _backButton.onClick.AddListener(() => UIManager.Instance.Confirm(ExitConfirmText, GameFlow.Instance.ExitBattle));
             _mapSelectBtn.onClick.AddListener(() => UIManager.Instance.Open<MapSelectPopup>());
+            _settingButton.onClick.AddListener(_trainingSettingPanel.ToggleSettings);
         }
 
         protected override void OnOpen(Args args)
         {
-            _p1Status.Bind(args.P1);
-            _p2Status.Bind(args.P2);
+            Action<CharacterObj> changeCharacter = args.Training != null ? _openCharSelect : null;
+            _p1Status.Bind(args.P1, changeCharacter);
+            _p2Status.Bind(args.P2, changeCharacter);
 
             _local = args.Local;
             _icons.Clear();
@@ -59,6 +69,9 @@ namespace KiHan.UI
             int summons = args.LocalLoadout != null && args.LocalLoadout.summons != null ? args.LocalLoadout.summons.Length : 0;
             _summon.Show(summons, summons);
 
+            _settingButton.gameObject.SetActive(args.Training != null);
+            _trainingSettingPanel.Bind(args.Training);
+
             Refresh();
         }
 
@@ -66,12 +79,18 @@ namespace KiHan.UI
         {
             _local = null;
             _icons.Clear();
+            _trainingSettingPanel.Bind(null);
         }
 
         private void Update()
         {
             if (!IsOpen) return;
             Refresh();
+        }
+
+        private static void OpenCharSelect(CharacterObj character)
+        {
+            UIManager.Instance.Open<CharSelectPopup, CharSelectPopup.Args>(new CharSelectPopup.Args { Slot = character.InputSlot, CurrentCharacterId = character.CharacterId });
         }
 
         private void Refresh()

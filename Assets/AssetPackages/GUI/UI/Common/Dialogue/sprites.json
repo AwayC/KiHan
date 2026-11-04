@@ -1,0 +1,322 @@
+[
+ {
+  "name": "mask1",
+  "file": "mask1.png",
+  "size": [
+   1024,
+   472
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg_wenzidi3_1135-150",
+  "file": "bg_wenzidi3_1135-150.png",
+  "size": [
+   1024,
+   135
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg_wenzidi1",
+  "file": "bg_wenzidi1.png",
+  "size": [
+   1024,
+   111
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Bg33",
+  "file": "Bg33.png",
+  "size": [
+   1024,
+   104
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "2",
+  "file": "2.png",
+  "size": [
+   412,
+   172
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "1",
+  "file": "1.png",
+  "size": [
+   405,
+   155
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "qte",
+  "file": "qte.png",
+  "size": [
+   184,
+   184
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Bg32",
+  "file": "Bg32.png",
+  "size": [
+   341,
+   96
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg19",
+  "file": "bg19.png",
+  "size": [
+   327,
+   68
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg_wenzidi2",
+  "file": "bg_wenzidi2.png",
+  "size": [
+   317,
+   65
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg_wenzidi4",
+  "file": "bg_wenzidi4.png",
+  "size": [
+   308,
+   64
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Bg34",
+  "file": "Bg34.png",
+  "size": [
+   389,
+   49
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "btn_bag",
+  "file": "btn_bag.png",
+  "size": [
+   135,
+   132
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "arrows",
+  "file": "arrows.png",
+  "size": [
+   81,
+   198
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "touch",
+  "file": "touch.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "btn-bofang",
+  "file": "btn-bofang.png",
+  "size": [
+   100,
+   39
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

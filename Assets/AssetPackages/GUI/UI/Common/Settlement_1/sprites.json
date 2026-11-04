@@ -1,0 +1,482 @@
+[
+ {
+  "name": "qiangzheduijue-vs",
+  "file": "qiangzheduijue-vs.png",
+  "size": [
+   1024,
+   193
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-pingju",
+  "file": "bg-pingju.png",
+  "size": [
+   301,
+   291
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-shengli",
+  "file": "bg-shengli.png",
+  "size": [
+   300,
+   291
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-wansheng",
+  "file": "wenzi-wansheng.png",
+  "size": [
+   353,
+   219
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-shibai",
+  "file": "wenzi-shibai.png",
+  "size": [
+   335,
+   219
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-shengli",
+  "file": "wenzi-shengli.png",
+  "size": [
+   335,
+   204
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-pinju",
+  "file": "wenzi-pinju.png",
+  "size": [
+   303,
+   203
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-jiesuan-lan1",
+  "file": "bg-jiesuan-lan1.png",
+  "size": [
+   561,
+   93
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-jiesuan-hong1",
+  "file": "bg-jiesuan-hong1.png",
+  "size": [
+   561,
+   93
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-jiesuan-lan",
+  "file": "bg-jiesuan-lan.png",
+  "size": [
+   674,
+   68
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-jiesuan-hong",
+  "file": "bg-jiesuan-hong.png",
+  "size": [
+   674,
+   68
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "shibai",
+  "file": "shibai.png",
+  "size": [
+   201,
+   160
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "shengli",
+  "file": "shengli.png",
+  "size": [
+   126,
+   90
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   35,
+   47,
+   40,
+   23
+  ]
+ },
+ {
+  "name": "bg-xia",
+  "file": "bg-xia.png",
+  "size": [
+   111,
+   30
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-wansheng-5",
+  "file": "zhuangshi-wansheng-5.png",
+  "size": [
+   55,
+   43
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-wansheng-3",
+  "file": "zhuangshi-wansheng-3.png",
+  "size": [
+   50,
+   38
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-wansheng-1",
+  "file": "zhuangshi-wansheng-1.png",
+  "size": [
+   48,
+   37
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-wansheng-4",
+  "file": "zhuangshi-wansheng-4.png",
+  "size": [
+   42,
+   35
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-wansheng-2",
+  "file": "zhuangshi-wansheng-2.png",
+  "size": [
+   35,
+   34
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-shibai-3",
+  "file": "zhuangshi-shibai-3.png",
+  "size": [
+   42,
+   24
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-shibai-5",
+  "file": "zhuangshi-shibai-5.png",
+  "size": [
+   32,
+   23
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-shibai-4",
+  "file": "zhuangshi-shibai-4.png",
+  "size": [
+   26,
+   26
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-shibai-1",
+  "file": "zhuangshi-shibai-1.png",
+  "size": [
+   22,
+   30
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-shibai-2",
+  "file": "zhuangshi-shibai-2.png",
+  "size": [
+   31,
+   19
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

@@ -1,0 +1,122 @@
+[
+ {
+  "name": "bg-lose",
+  "file": "bg-lose.png",
+  "size": [
+   255,
+   246
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   0,
+   1
+  ]
+ },
+ {
+  "name": "bg-win",
+  "file": "bg-win.png",
+  "size": [
+   255,
+   246
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   0,
+   1
+  ]
+ },
+ {
+  "name": "lose",
+  "file": "lose.png",
+  "size": [
+   335,
+   219
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-pinju",
+  "file": "wenzi-pinju.png",
+  "size": [
+   212,
+   153
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-wansheng",
+  "file": "wenzi-wansheng.png",
+  "size": [
+   247,
+   153
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "win",
+  "file": "win.png",
+  "size": [
+   335,
+   204
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

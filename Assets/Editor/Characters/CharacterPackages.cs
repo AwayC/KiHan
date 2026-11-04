@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KiHan.Config;
+using KiHan.View.Audio;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -16,6 +17,7 @@ namespace KiHan.Editor
     /// - Config/actions.json、skills.json、spawns.json、buffs.json
     /// - 包内全部 AnimationFrameData (按路径排序)
     /// - 包内全部 prefab：key = 相对包根目录的路径 (不含扩展名)，如 effect/lxw/ball
+    /// - 包内全部 SoundCue 与 AudioClip：key 规则同 prefab，如 Sound/hurt
     /// - UI/ 下图片的 Sprite：key = 相对路径；多图切片为 相对路径#子图名
     /// 包内文件新增 / 删除 / 移动时自动刷新对应清单，也可用菜单手动刷新
     /// </summary>
@@ -87,6 +89,7 @@ namespace KiHan.Editor
             manifest.buffs = buffs;
             manifest.animations = animations;
             manifest.resources = resources;
+            manifest.ResetLookup();
             EditorUtility.SetDirty(manifest);
             AssetDatabase.SaveAssetIfDirty(manifest);
             return true;
@@ -104,6 +107,16 @@ namespace KiHan.Editor
             foreach (string path in AssetDatabase.FindAssets("t:Prefab", new[] { root }).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p => p, StringComparer.Ordinal))
             {
                 resources.Add(new CharacterResource { key = KeyOf(root, path), asset = AssetDatabase.LoadAssetAtPath<GameObject>(path) });
+            }
+
+            foreach (string path in AssetDatabase.FindAssets("t:SoundCue", new[] { root }).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p => p, StringComparer.Ordinal))
+            {
+                resources.Add(new CharacterResource { key = KeyOf(root, path), asset = AssetDatabase.LoadAssetAtPath<SoundCue>(path) });
+            }
+
+            foreach (string path in AssetDatabase.FindAssets("t:AudioClip", new[] { root }).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p => p, StringComparer.Ordinal))
+            {
+                resources.Add(new CharacterResource { key = KeyOf(root, path), asset = AssetDatabase.LoadAssetAtPath<AudioClip>(path) });
             }
 
             string uiRoot = $"{root}/{UIFolder}";

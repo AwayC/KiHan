@@ -53,6 +53,20 @@ namespace KiHan.View.Effects
         private Vector3 _euler;
         private Vector3 _scale;
 
+        /// <summary>
+        /// autoDestruct 影响的渲染状态 (子树固定，首次使用时收集) 与已写入的结束标记 (只在变化时写入，避免每帧遍历子树并分配数组)
+        /// </summary>
+        private FxRendererState[] _destroyTargets;
+        private bool _destroyedApplied;
+
+        private void ApplyDestroyed(bool destroyed, bool force)
+        {
+            if (!force && destroyed == _destroyedApplied) return;
+            _destroyedApplied = destroyed;
+            if (_destroyTargets == null) _destroyTargets = GetComponentsInChildren<FxRendererState>(true);
+            for (int i = 0; i < _destroyTargets.Length; i++) _destroyTargets[i].Destroyed = destroyed;
+        }
+
         private void Capture()
         {
             if (_captured) return;
@@ -68,7 +82,7 @@ namespace KiHan.View.Effects
             transform.localPosition = _position;
             transform.localEulerAngles = _euler;
             transform.localScale = _scale;
-            if (autoDestruct) FxRendererState.SetDestroyed(transform, false);
+            if (autoDestruct) ApplyDestroyed(false, true);
         }
 
         protected override void Sample(float time)
@@ -136,7 +150,7 @@ namespace KiHan.View.Effects
             if (moved) transform.localPosition = position;
             if (rotated) transform.localEulerAngles = euler;
             if (scaled) transform.localScale = scale;
-            if (autoDestruct) FxRendererState.SetDestroyed(transform, finished);
+            if (autoDestruct) ApplyDestroyed(finished, false);
         }
 
         private static Vector3 Mask(FxCurve c, float v)

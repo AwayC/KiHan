@@ -1,0 +1,342 @@
+[
+ {
+  "name": "Modi",
+  "file": "Modi.png",
+  "size": [
+   96,
+   277
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "RedBg",
+  "file": "RedBg.png",
+  "size": [
+   83,
+   168
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "BuleRedBg",
+  "file": "BuleRedBg.png",
+  "size": [
+   83,
+   168
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Modi2",
+  "file": "Modi2.png",
+  "size": [
+   44,
+   156
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "s",
+  "file": "s.png",
+  "size": [
+   75,
+   86
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Orange_3",
+  "file": "Orange_3.png",
+  "size": [
+   69,
+   80
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   3,
+   3,
+   3
+  ]
+ },
+ {
+  "name": "Orange_1",
+  "file": "Orange_1.png",
+  "size": [
+   67,
+   80
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   4,
+   3,
+   4,
+   3
+  ]
+ },
+ {
+  "name": "Orange_2",
+  "file": "Orange_2.png",
+  "size": [
+   66,
+   79
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   4,
+   4,
+   5,
+   3
+  ]
+ },
+ {
+  "name": "c",
+  "file": "c.png",
+  "size": [
+   52,
+   66
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   11,
+   10,
+   12,
+   10
+  ]
+ },
+ {
+  "name": "a",
+  "file": "a.png",
+  "size": [
+   51,
+   66
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   12,
+   10,
+   12,
+   10
+  ]
+ },
+ {
+  "name": "b",
+  "file": "b.png",
+  "size": [
+   50,
+   65
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   12,
+   11,
+   13,
+   10
+  ]
+ },
+ {
+  "name": "Red_3",
+  "file": "Red_3.png",
+  "size": [
+   47,
+   56
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   14,
+   15,
+   14,
+   15
+  ]
+ },
+ {
+  "name": "Blue_3",
+  "file": "Blue_3.png",
+  "size": [
+   47,
+   56
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   14,
+   15,
+   14,
+   15
+  ]
+ },
+ {
+  "name": "Red_2",
+  "file": "Red_2.png",
+  "size": [
+   46,
+   57
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   14,
+   15,
+   15,
+   14
+  ]
+ },
+ {
+  "name": "Blue_2",
+  "file": "Blue_2.png",
+  "size": [
+   46,
+   57
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   14,
+   15,
+   15,
+   14
+  ]
+ },
+ {
+  "name": "Red_1",
+  "file": "Red_1.png",
+  "size": [
+   31,
+   55
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   22,
+   16,
+   22,
+   15
+  ]
+ },
+ {
+  "name": "Blue_1",
+  "file": "Blue_1.png",
+  "size": [
+   31,
+   55
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   22,
+   16,
+   22,
+   15
+  ]
+ }
+]

@@ -113,6 +113,15 @@ namespace KiHan.Editor
                         if (type == ActionEventType.Spawn && string.IsNullOrEmpty(e.spawnId)) Err($"events[{ev}] Spawn 事件缺少 spawnId");
                         if (type != ActionEventType.Spawn && string.IsNullOrEmpty(e.asset)) Err($"events[{ev}] {type} 事件缺少 asset");
                         if (e.loop && !e.bind) Warn($"events[{ev}] 循环特效未绑定角色 (bind)");
+                        CheckEnum<CinematicAudience>(e.audience, $"events[{ev}].audience", Err);
+                        if (type != ActionEventType.Cinematic && type != ActionEventType.Camera && !string.IsNullOrEmpty(e.audience)) Warn($"events[{ev}] audience 只对 Cinematic / Camera 生效");
+                        CheckNumber(e.worldPos.x, $"events[{ev}].worldPos.x", Err);
+                        CheckNumber(e.worldPos.y, $"events[{ev}].worldPos.y", Err);
+                        CheckNumber(e.worldPos.z, $"events[{ev}].worldPos.z", Err);
+                        if (e.worldPos.IsSet && type != ActionEventType.Effect && type != ActionEventType.Spawn && type != ActionEventType.Cinematic && !(type == ActionEventType.Camera && e.asset == CameraEffects.Shot))
+                            Warn($"events[{ev}] worldPos 只对 Effect / Spawn / Cinematic / Camera shot 生效");
+                        if (e.worldPos.IsSet && e.bind) Warn($"events[{ev}] 指定了 worldPos，bind 不生效 (世界坐标位置不跟随角色)");
+                        if (type == ActionEventType.Camera) CheckCamera(e, ev, Err, Warn);
                     }
                 }
 
@@ -161,6 +170,42 @@ namespace KiHan.Editor
                 }
                 if (!found) err($"{field} 引用了本动作未定义的 tempBeCancelledTag \"{id}\"");
             }
+        }
+
+        /// <summary>
+        /// Camera 事件：指令名、参数数字格式与常见误配
+        /// </summary>
+        private static void CheckCamera(ActionEventData e, int ev, Action<string> err, Action<string> warn)
+        {
+            if (!CameraEffects.IsKnown(e.asset)) err($"events[{ev}] 未知镜头指令 \"{e.asset}\" (impact / impact_heavy / shot / shake / pulse / reset)");
+            CameraEventData c = e.camera;
+            string f = $"events[{ev}].camera";
+            bool valid = true;
+            void Bad(string message)
+            {
+                valid = false;
+                err(message);
+            }
+            CheckNumber(c.zoom, $"{f}.zoom", Bad);
+            CheckNumber(c.roll, $"{f}.roll", Bad);
+            CheckNumber(c.inSec, $"{f}.inSec", Bad);
+            CheckNumber(c.holdSec, $"{f}.holdSec", Bad);
+            CheckNumber(c.outSec, $"{f}.outSec", Bad);
+            CheckNumber(c.amplitude, $"{f}.amplitude", Bad);
+            CheckNumber(c.frequency, $"{f}.frequency", Bad);
+            CheckNumber(c.duration, $"{f}.duration", Bad);
+            CheckNumber(c.interval, $"{f}.interval", Bad);
+            CheckEnum<CameraEase>(c.ease, $"{f}.ease", err);
+            if (!valid) return;
+
+            CameraEventInfo p = c.ToRuntime(e.asset);
+            float zoom = p.zoom.AsFloat();
+            if ((e.asset == CameraEffects.Shot || e.asset == CameraEffects.Pulse) && (zoom < CameraControllor.MinZoom || zoom > CameraControllor.MaxZoomOut))
+                warn($"{f}.zoom = {zoom} 超出镜头范围 [{CameraControllor.MinZoom}, {CameraControllor.MaxZoomOut}]，会被限制");
+            if (e.asset == CameraEffects.Shot && Mathf.Abs(p.roll.AsFloat()) > CameraControllor.MaxRoll)
+                warn($"{f}.roll 超过 {CameraControllor.MaxRoll} 度，会被限制");
+            if (e.asset == CameraEffects.Shot && !p.holdUntilActionEnd && !e.stopOnActionEnd)
+                warn($"events[{ev}] shot 配置了 holdSec 且未开 stopOnActionEnd：施法者换动作后镜头仍会保持到 holdSec 结束 (被打 / 被抓仍会复位)");
         }
 
         private static void CheckNumber(string value, string field, Action<string> err)

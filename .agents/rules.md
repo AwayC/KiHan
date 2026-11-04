@@ -5,6 +5,16 @@
 
 ---
 
+## 零、 Unity 编辑器操作一律优先走 CLI
+
+1. **有 CLI 就用 CLI**：需要编辑器参与的操作 (编译、跑测试、进出 Play 模式、截图、读控制台、检查场景 / 资源 / 预制体、执行编辑器代码) 先执行 `unicli check`，连接成功就只用 `unicli` 完成，用法见 [testing.md](testing.md) 第四节。
+   - 编译：`unicli exec Compile --json`；测试：`unicli exec TestRunner.RunEditMode --json`；执行代码：`unicli eval '<C#>' --json`；全部命令：`unicli commands`。
+   - 以命令返回的 JSON 为准，不再读 `Editor.log` 判断编译结果。
+2. **CLI 不可用时才退回旧办法** (切换窗口焦点 / Ctrl+R 触发刷新、读 `Editor.log`、临时编辑器脚本)，并在回复里说明 CLI 不可用的原因 (编辑器没开、包没装、连接失败)。
+3. 临时验证脚本中的等待必须有超时，禁止无出口的循环：主线程卡死会冻结整个编辑器，只能结束进程。
+
+---
+
 ## 一、 文件编码与换行符标准 (File Encoding & Line Endings)
 
 1. **统一换行符标准为 `LF` (`\n`)**：
@@ -29,6 +39,12 @@
    - 表现层（View/插值/动画）可运行于 30/60/120 FPS（`GameConfig.RENDER_FPS = 30`）。
    - 仅在表现层（`ActorView`、`EffectView`、相机、UI）允许使用 Unity 的浮点数 `Time.deltaTime` 进行平滑 Lerp 插值。
    - **逻辑内核与物理结算严禁调用任何 `Time.deltaTime`**。
+
+4. **逻辑帧由客户端定时器驱动 (`LockstepManager`)**：
+   - 客户端按真实时间以 1/30 秒步进 (累加器)，每步先上报本机输入 (目标帧号 = 当前帧 + 1 + 输入延迟)，再执行下一个**确认帧**；确认帧未到时本步等待，不预测、不回滚。
+   - 服务器只把各玩家同一帧号的输入合成确认帧下发 (2005)，不驱动客户端节奏；积压的确认帧超过上限时客户端追帧。
+   - 单机 / 训练场的本地服务器 `VirtualNetworkManager` 收到输入立即回送确认帧 (输入延迟 0)；联机默认输入延迟 `LockstepManager.OnlineInputDelayFrames`。
+   - 输入采样与上报跟随逻辑步，不跟随渲染帧；渲染帧率变化不改变逻辑速度。
 
 ---
 

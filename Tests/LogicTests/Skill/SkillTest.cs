@@ -85,7 +85,10 @@ static class Program
                 events = new[]
                 {
                     new ActionEventData { frame = 0, type = "Effect", asset = "fx_a", anchor = "hand", bind = true, stopOnActionEnd = true },
-                    new ActionEventData { frame = 3, type = "Camera", asset = CameraEffects.ImpactHeavy }
+                    new ActionEventData { frame = 1, type = "Sound", asset = "sfx_a", stopOnActionEnd = true },
+                    new ActionEventData { frame = 3, type = "Camera", asset = CameraEffects.ImpactHeavy },
+                    new ActionEventData { frame = 3, type = "Cinematic", asset = "cin_a", audience = "Self" },
+                    new ActionEventData { frame = 3, type = "Effect", asset = "fx_w", anchor = "hand", offset = new Vector2Int(50, 0), bind = true, worldPos = new EventPositionData { x = "1.5", z = "2" } }
                 }
             },
             new ActionData { id = "vanish", animKey = "vanish" },
@@ -279,7 +282,7 @@ static class Program
             var actions = Actions("proj");
             var p = Player(actions);
             var t = Make(2, 2, "0.9", actions, false);
-            t.infiniteHp = true;
+            t.hpMode = HpMode.Refill;
             var w = World(p, t);
             int hits = 0;
             Step(w, ButtonMask.Skill1);
@@ -302,7 +305,7 @@ static class Program
             var actions = Actions("proj");
             var p = Player(actions);
             var t = Make(2, 2, "0.9", actions, false);
-            t.infiniteHp = true;
+            t.hpMode = HpMode.Refill;
             var pool = new TestPool { Actions = actions };
             pool.Infos["proj"] = new SpawnData { id = "proj", type = "Simple", initialActionId = "proj", lifeTime = "3" }.ToRuntime();
             var w = World(p, t);
@@ -350,7 +353,7 @@ static class Program
                 var actions = Actions("proj");
                 var p = Player(actions);
                 var t = Make(2, 2, "0.9", actions, false);
-                t.infiniteHp = true;
+                t.hpMode = HpMode.Refill;
                 var pool = new TestPool { Actions = actions };
                 pool.Infos["proj"] = new SpawnData { id = "proj", type = "Simple", initialActionId = "proj" }.ToRuntime();
                 pool.Prewarm("proj", 2);
@@ -388,6 +391,8 @@ static class Program
             var w = World(p);
             var seen = new List<string>();
             int serialAtFx = -1;
+            ViewEvent cin = default;
+            ViewEvent fxw = default;
             Step(w, ButtonMask.Ultimate);
             for (int i = 0; i < 10; i++)
             {
@@ -396,17 +401,22 @@ static class Program
                 {
                     seen.Add($"{i}:{v.Type}:{v.Asset}");
                     if (v.Asset == "fx_a") serialAtFx = v.ActionSerial;
+                    if (v.Asset == "cin_a") cin = v;
+                    if (v.Asset == "fx_w") fxw = v;
                 }
             }
             string s = string.Join(",", seen);
-            Check(s == "0:Effect:fx_a,3:Camera:impact_heavy", $"第 0 帧特效、第 3 帧镜头各触发一次: {s}");
+            Check(s == "0:Effect:fx_a,1:Sound:sfx_a,3:Camera:impact_heavy,3:Cinematic:cin_a,3:Effect:fx_w", $"第 0 帧特效、第 1 帧音效、第 3 帧镜头、演出与世界坐标特效各触发一次: {s}");
+            Check(cin.Audience == CinematicAudience.Self && cin.OwnerSlot == Slot, $"演出事件带观看者与主人槽位: {cin.Audience} / {cin.OwnerSlot}");
+            Check(fxw.Position == new FPVector3(FP.Parse("1.5"), FP.Zero, FP.Parse("2")) && !fxw.Bind,
+                $"worldPos 特效在指定逻辑坐标生成，忽略锚点 / 偏移且不跟随角色: pos={fxw.Position} bind={fxw.Bind}");
             Check(serialAtFx >= 0 && serialAtFx != p.action.ActionSerial, $"事件携带动作序号，动作结束后序号已改变 (表现层据此停止特效): 事件={serialAtFx} 当前={p.action.ActionSerial}");
 
             p.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = "fxact", priority = 200, fromFrame = 2 });
             Step(w);
             seen.Clear();
             for (int i = 0; i < 8; i++) { Step(w); foreach (var v in w.ViewEvents) seen.Add(v.Asset); }
-            Check(string.Join(",", seen) == "impact_heavy", $"从第 2 帧切入：第 0 帧事件不补发: {string.Join(",", seen)}");
+            Check(string.Join(",", seen) == "impact_heavy,cin_a,fx_w", $"从第 2 帧切入：第 0、1 帧事件不补发: {string.Join(",", seen)}");
         }
 
         Console.WriteLine("== 7. keepFrame：命中后切换到同一动画的变体动作，从当前帧继续播放 ==");
@@ -467,7 +477,7 @@ static class Program
             var actions = Actions("clone");
             var p = Player(actions);
             var t = Make(2, 2, "0.9", actions, false);
-            t.infiniteHp = true;
+            t.hpMode = HpMode.Refill;
             var pool = new TestPool { Actions = actions };
             pool.Infos["clone"] = new SpawnData
             {

@@ -18,6 +18,12 @@ namespace View.UI
         [Tooltip("显示缩放：精灵原尺寸的倍数")]
         public float scale = 1f;
 
+        [Tooltip("跳字底图 (每次随机取一张，如暴击的墨迹底)；为空则不显示底")]
+        public Sprite[] backdrops;
+
+        [Tooltip("底图显示缩放：精灵原尺寸的倍数；数字比底图的 80% 还宽时自动放大到能盖住数字")]
+        public float backdropScale = 0.6f;
+
         public Sprite Get(int digit) => digit >= 0 && digit < digits.Length ? digits[digit] : null;
     }
 }

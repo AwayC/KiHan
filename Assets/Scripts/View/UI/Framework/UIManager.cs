@@ -246,6 +246,9 @@ namespace KiHan.UI
                 scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
                 scaler.matchWidthOrHeight = 1f;
 
+                // 镜像摆放 (绕 Y 轴转 180°) 的按钮也要能点：默认 true 会忽略背面朝向相机的图形 (如 HUD 的普攻键)
+                go.GetComponent<GraphicRaycaster>().ignoreReversedGraphics = false;
+
                 _layers[i] = (RectTransform)go.transform;
             }
 

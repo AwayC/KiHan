@@ -3,13 +3,15 @@ using UnityEngine;
 using KiHan.Asset;
 using KiHan.Config;
 using KiHan.Logic;
+using KiHan.View.Audio;
+using KiHan.View.Cinematic;
 using KiHan.View.Render;
 using Managers;
 using View.Component;
 
 /// <summary>
 /// 战斗表现层协调器：为逻辑角色与生成物创建 / 复用视图，每个逻辑帧后推进视图快照，
-/// 并把逻辑事件转换为表现：动作事件 (特效 / 镜头)、打击事件 (火花 / 跳字 / 震屏)
+/// 并把逻辑事件转换为表现：动作事件 (特效 / 镜头 / 音效 / 演出)、打击事件 (火花 / 跳字 / 震屏 / 命中音)
 /// 只读逻辑数据，不回写
 /// </summary>
 public class SceneManager : UnitySingleton<SceneManager>
@@ -50,11 +52,12 @@ public class SceneManager : UnitySingleton<SceneManager>
         EffectManager.Instance.Preload(HitSparkEffect, HitSparkPrewarm);
         _damageTexts?.Dispose();
         _damageTexts = new DamageTextPool(DamageTextCapacity);
+        AudioManager.Instance.LoadConventions();
     }
 
     /// <summary>
-    /// 预热角色动作事件与 Buff 引用的特效 (加载阶段，每个资源预建 ActionEffectPrewarm 个实例)
-    /// 特效 key 在角色包资源表中找到时登记包内预制体 (地址 pkg/{id}/{key})，否则按全局 Resources 路径加载
+    /// 预热动作事件引用的特效 / 音效 / 演出与 Buff 引用的特效 (加载阶段，每个特效资源预建 ActionEffectPrewarm 个实例)
+    /// 特效 key 在角色包资源表中找到时登记包内预制体 (地址 pkg/{id}/{key})，否则按全局 Resources 路径加载；音效与演出同样包内优先
     /// </summary>
     public void PreloadActionEffects(CharacterTemplate template)
     {
@@ -64,10 +67,22 @@ public class SceneManager : UnitySingleton<SceneManager>
             if (action.events == null) continue;
             foreach (ActionEventInfo evt in action.events)
             {
-                if (evt.type == ActionEventType.Effect) Preload(template.Manifest, evt.asset, assets);
+                switch (evt.type)
+                {
+                    case ActionEventType.Effect:
+                        Preload(template.Manifest, evt.asset, assets);
+                        break;
+                    case ActionEventType.Sound:
+                        AudioManager.Instance.Preload(template.Manifest, evt.asset);
+                        break;
+                    case ActionEventType.Cinematic:
+                        CinematicPlayer.Instance.Preload(template.Manifest, evt.asset);
+                        break;
+                }
             }
         }
         foreach (BuffInfo buff in template.Buffs.Values) Preload(template.Manifest, buff.effect, assets);
+        AudioManager.Instance.Preload(template.Manifest, SoundConventions.HurtVoiceKey, optional: true);
     }
 
     private static void Preload(CharacterManifest manifest, string key, HashSet<string> loaded)
@@ -128,6 +143,9 @@ public class SceneManager : UnitySingleton<SceneManager>
             view.OnLogicTick();
         }
 
+        CinematicPlayer.Instance.OnLogicTick();
+        CameraEventPlayer.Instance.OnLogicTick();
+
         for (int i = 0; i < world.ViewEvents.Count; i++)
         {
             PresentViewEvent(world.ViewEvents[i]);
@@ -159,6 +177,11 @@ public class SceneManager : UnitySingleton<SceneManager>
         ViewManager.Instance.ClearAll();
         _damageTexts?.Dispose();
         _damageTexts = null;
+
+        CinematicPlayer.Instance.Clear();
+        CameraEventPlayer.Instance.Clear();
+        AudioManager.Instance.StopAll();
+        AudioManager.Instance.ClearCaches();
     }
 
     private ActorView GetOrCreateSpawnView(CharacterObj entity)
@@ -182,7 +205,13 @@ public class SceneManager : UnitySingleton<SceneManager>
                 if (view != null) view.StopBuffEffect(evt.BuffSerial);
                 break;
             case ActionEventType.Camera:
-                CameraControllor.Instance.ImpactEffect(evt.Asset == CameraEffects.ImpactHeavy);
+                CameraEventPlayer.Instance.Play(evt, _localSlot);
+                break;
+            case ActionEventType.Sound:
+                AudioManager.Instance.PlayEvent(evt);
+                break;
+            case ActionEventType.Cinematic:
+                CinematicPlayer.Instance.Play(evt, _localSlot);
                 break;
         }
     }
@@ -235,7 +264,19 @@ public class SceneManager : UnitySingleton<SceneManager>
         {
             // 生成物造成的伤害按其主人区分颜色
             bool byLocalPlayer = owner != null && owner.Character.InputSlot == _localSlot;
-            _damageTexts.Show(damage, byLocalPlayer, pos, attackerFacingLeft ? -1 : 1);
+            _damageTexts.Show(damage, byLocalPlayer, evt.Critical, pos, attackerFacingLeft ? -1 : 1);
+        }
+
+        SoundConventions conv = AudioManager.Instance.Conventions;
+        if (conv != null)
+        {
+            AudioManager.Instance.Play(evt.Reaction == HitReaction.Launch ? conv.hitLaunch : evt.Reaction == HitReaction.ArmorBlocked ? conv.hitArmorBlocked : conv.hitNormal);
+            if (evt.Critical) AudioManager.Instance.Play(conv.hitCritical);
+        }
+        if (evt.Reaction == HitReaction.Stun || evt.Reaction == HitReaction.Launch || evt.Reaction == HitReaction.Grab)
+        {
+            ActorView target = ViewManager.Instance.GetView(evt.TargetId);
+            if (target != null && target.Character != null) AudioManager.Instance.PlayCharacter(target.Character.CharacterId, SoundConventions.HurtVoiceKey, evt.TargetId);
         }
 
         CameraControllor.Instance.ImpactEffect(evt.Reaction == HitReaction.Launch);

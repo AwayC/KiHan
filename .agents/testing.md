@@ -100,6 +100,15 @@ Tests/LogicTests/
 
 换到有 Unity 的环境后按顺序执行，结果记录到 TODO 或 issue。
 
+**命令行操控编辑器 (UniCli)**：工程已装 `com.yucchiy.unicli-server` (仅编辑器)，`unicli` 在用户 PATH (`%LOCALAPPDATA%\unicli\bin`)。编辑器开着时在工程目录执行：
+- `unicli check`：确认已连接
+- `unicli exec Compile --json`：触发编译，返回错误 / 警告列表 (替代切换窗口焦点 + 读 Editor.log)
+- `unicli exec TestRunner.RunEditMode --json`：跑编辑器测试
+- `unicli eval '<C#>' --json`：在编辑器里执行一段 C# (检查场景、资源、进入 Play 模式等)
+- `unicli commands`：全部 115 个命令
+
+临时验证脚本中的等待必须有超时，禁止无出口的循环 (主线程卡死会冻结整个编辑器)。
+
 ### 1. 编译与元数据
 - [ ] 打开工程等待导入完成，Console 中 `Assembly-CSharp` 与 `Assembly-CSharp-Editor` **0 错误、0 警告** ([rules.md](rules.md) 六.2)。
 

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using KiHan.Config;
 using KiHan.Logic;
+using KiHan.View.Audio;
 using UnityEngine;
+using UnityEngine.Playables;
 
 namespace KiHan.Editor
 {
@@ -18,6 +20,10 @@ namespace KiHan.Editor
             if (manifest.id <= 0) problems.Add("角色 ID 未填写");
             if (string.IsNullOrEmpty(manifest.displayName)) problems.Add("角色名未填写");
             if (manifest.headshot == null) problems.Add("头像未设置");
+            if (!TrueSync.FP.TryParse(manifest.critRate, out TrueSync.FP critRate) || critRate < TrueSync.FP.Zero || critRate > TrueSync.FP.One)
+                problems.Add($"暴击率 \"{manifest.critRate}\" 应为 0~1 的数字");
+            if (!TrueSync.FP.TryParse(manifest.critMultiplier, out TrueSync.FP critMultiplier) || critMultiplier < TrueSync.FP.One)
+                problems.Add($"暴击倍率 \"{manifest.critMultiplier}\" 应为不小于 1 的数字");
             if (manifest.actions == null)
             {
                 problems.Add("缺少 Config/actions.json");
@@ -75,6 +81,27 @@ namespace KiHan.Editor
                 if (!packaged && Resources.Load<GameObject>(key) == null) problems.Add($"{where} 的特效资源不存在: {key}");
             }
 
+            void RequireSound(string key, string where)
+            {
+                if (string.IsNullOrEmpty(key)) return;
+                bool packaged = manifest != null && (manifest.FindResource<SoundCue>(key) != null || manifest.FindResource<AudioClip>(key) != null);
+                if (!packaged && Resources.Load<SoundCue>(key) == null && Resources.Load<AudioClip>(key) == null) problems.Add($"{where} 的音效资源不存在: {key}");
+            }
+
+            void RequireCinematic(string key, string where)
+            {
+                if (string.IsNullOrEmpty(key)) return;
+                GameObject prefab = manifest != null ? manifest.FindResource<GameObject>(key) : null;
+                if (prefab == null) prefab = Resources.Load<GameObject>(key);
+                if (prefab == null)
+                {
+                    problems.Add($"{where} 的演出资源不存在: {key}");
+                    return;
+                }
+                PlayableDirector director = prefab.GetComponent<PlayableDirector>();
+                if (director == null || director.playableAsset == null) problems.Add($"{where} 的演出预制体缺少 PlayableDirector 或 Timeline: {key}");
+            }
+
             foreach (ActionInfo a in template.Actions)
             {
                 if (!animKeys.Contains(a.animKey)) problems.Add($"动作 {a.id} 的动画 {a.animKey} 不存在");
@@ -104,6 +131,8 @@ namespace KiHan.Editor
                     if (evt.type == ActionEventType.Spawn && !template.Spawns.ContainsKey(evt.spawnId))
                         problems.Add($"动作 {a.id} 第 {evt.frame} 帧生成了未配置的生成物 {evt.spawnId}");
                     if (evt.type == ActionEventType.Effect) RequireEffect(evt.asset, $"动作 {a.id} 第 {evt.frame} 帧");
+                    if (evt.type == ActionEventType.Sound) RequireSound(evt.asset, $"动作 {a.id} 第 {evt.frame} 帧");
+                    if (evt.type == ActionEventType.Cinematic) RequireCinematic(evt.asset, $"动作 {a.id} 第 {evt.frame} 帧");
                     if (evt.type == ActionEventType.Buff && !template.Buffs.ContainsKey(evt.asset))
                         problems.Add($"动作 {a.id} 第 {evt.frame} 帧添加了未配置的 Buff {evt.asset}");
                 }

@@ -31,17 +31,17 @@ UIRoot (代码构建，常驻)
 Assets/Scripts/View/UI/
 ├─ Framework/            UIManager、UIPanel、UIView、UILayer、UITransition、SafeArea、UIPressBounce
 ├─ Common/               通用面板：ConfirmPopup、ToastPanel、LoadingPanel
-│  └─ Widgets/           通用部件：UIScrollList (滑动列表)、UIDigitRow、DigitFont、UIRotator
+│  └─ Widgets/           通用部件：UIScrollList (滑动列表 / 网格)、UISwitch (开关，关压暗 / 开原色)、UIHoldButton (按住 / 松开)、UIDigitRow、DigitFont、UIRotator、UIBreathe (呼吸灯)、NinjaCardView (忍者卡片)
 ├─ Login/                LoginPanel、LoginPopup、RegisterPopup、PasswordVisibility
 ├─ Lobby/                LobbyPanel、CreateRolePopup、MatchingPopup
 └─ BattleHud/            BattleHudPanel
    ├─ Widgets/           HUD 部件：FighterStatusView、HpBarView、BeanListView、LightIcon、技能 / 替身 / 通灵按键、SkillIconCache
    ├─ Input/             VirtualButton、VirtualJoystick (直接写入 InputManager)
-   └─ Training/          训练场：MapSelectPopup (选图)、MapItemView
+   └─ Training/          训练场：MapSelectPopup (选图)、MapItemView、CharSelectPopup (换人)、CharSelectItemView、TrainingSettingView (设置与伤害统计，嵌在 HUD 中)
 
 Assets/AssetPackages/Resources/UI/
 ├─ Panels/<模块>/        面板 / 弹窗预制体，目录与脚本模块一一对应 (训练场：Panels/BattleHud/Training/)
-├─ Widgets/              被面板嵌套引用的通用预制体：Slider、Loading/seque、Loading/round
+├─ Widgets/              被面板嵌套引用的通用预制体：Slider、Loading/seque、Loading/round、Common/NinjaCard (忍者卡片)
 ├─ Number/               伤害数字字体 (DamageTextPool 按路径加载)
 └─ Shadow/               角色脚下阴影 (CharacterFootShadow 按路径加载)
 ```
@@ -85,6 +85,7 @@ public partial class ConfirmPopup : UIPanel<ConfirmPopup.Args> { ... }
 
 - **Normal 层是栈**：打开新界面时隐藏 (不关闭) 下面的界面，关闭栈顶时恢复下一个。
 - **Popup 层模态**：最上层弹窗下方自动放一张半透明遮罩挡住点击。
+- **Hud 层非模态**：没有遮罩、不进返回栈、返回键不关闭，后打开的面板显示在上面；只有面板里真正有图形 (`raycastTarget`) 的区域挡点击，其余位置照常点到下面的 HUD 按钮。战斗中常驻的面板 (如训练场设置) 放这一层，由自己的按钮关闭；`GameFlow.ExitBattle` 关闭整层。根节点不要挂铺满屏幕的 `Image`，否则整屏都会挡住。
 - 显示 / 隐藏动画由面板根节点上的 `UITransition` 组件决定 (缩放 / 淡入 / 滑入，`unscaledDeltaTime`，无协程)；没有该组件时立即显示 / 隐藏。
 
 ## 4. 部件 (`UIView`)
@@ -94,7 +95,7 @@ public partial class ConfirmPopup : UIPanel<ConfirmPopup.Args> { ... }
 
 ### 滑动列表 (`UIScrollList`)
 
-通用横向 / 纵向列表：拖动跟手，松手惯性减速，越界橡皮筋阻尼并弹性回弹；可选停靠 (松手停在最近一项并居中，轻甩翻一项)；只创建可见项并循环复用。
+通用横向 / 纵向列表，可选网格：拖动跟手，松手惯性减速，越界橡皮筋阻尼并弹性回弹；可选停靠 (松手停在最近一行并居中，轻甩翻一行)；只创建可见项并循环复用。
 
 ```
 @MapList            ← UIScrollList + RectMask2D (裁剪) + 透明 Image (空白处也能拖)
@@ -111,13 +112,16 @@ _mapList.RefreshItems();                                                        
 | 参数 | 说明 |
 | :--- | :--- |
 | `Direction` | 横向 / 纵向 |
-| `Spacing` / `Padding` | 项间距 / 首尾留白 |
-| `Snap` | 停靠模式；`CenterChanged` 事件 / `CenterIndex` 给出居中项 |
+| `Spacing` / `Padding` | 行间距 / 首尾留白 |
+| `Per Line` / `Cross Spacing` | 网格：每行 (纵向) / 每列 (横向) 的项数与行内间距；项在行内居中排列，末行从行首排起 (如换人弹窗 6 列) |
+| `Snap` | 停靠模式；`CenterChanged` 事件 / `CenterIndex` 给出居中行的第一项 |
 | `Deceleration Rate` | 惯性每秒保留的速度比例 (默认 0.135，同原生 ScrollRect) |
 | `Spring Time` | 回弹 / 停靠 / 动画定位的平滑时间 |
 | `Side Scale` | 离开中心一项距离时的缩放 (停靠模式下做轮播效果) |
 
 内容不足一屏时整体居中，仍可拖动并回弹。绑定回调建议缓存为字段 (`_bindItem = BindItem`)，避免每次打开分配委托。
+
+列表项会被复用：选中等状态由面板按下标记录，绑定时传给项 (如 `CharSelectPopup` 的 `_selectedIndex`)，选中变化后 `RefreshItems()`；不要把状态存在项上。
 
 ## 5. 自动绑定 (`@` 前缀)
 
@@ -147,6 +151,7 @@ _mapList.RefreshItems();                                                        
 | `StartOfflineBattle()` / `StartOnlineBattle(roomId)` | 进入战斗 (关闭大厅，打开 HUD) |
 | `ExitBattle()` | Loading 中清理战斗，回到大厅 |
 | `Logout()` | Loading 中断开网络并清理，回到登录 |
+| `RestartTraining(slot, characterId)` | 训练场换人：Loading 中清理战斗，换掉该槽位的角色重开 (地图保持，训练面板开关回到默认) |
 | `RunTransition(routine, onFinish)` | 显示 `LoadingPanel` 执行切换 |
 
 界面只调用 `GameFlow` 的意图方法 (开始匹配、退出战斗、登出)，不直接调用 `BattleManager` / 网络清理。
@@ -165,6 +170,7 @@ _mapList.RefreshItems();                                                        
 | Lobby | `MatchingPopup` | Popup | `Lobby/MatchPanel` |
 | BattleHud | `BattleHudPanel` | Hud | `Button/Canvas` (返回确认改用 `ConfirmPopup`) |
 | BattleHud/Training | `MapSelectPopup` | Popup | 新增：HUD 场景按钮打开，列出 `MapRegistry` 中已启用的地图，局内切换背景板 |
+| BattleHud/Training | `CharSelectPopup` | Popup | 新增：角色状态上的换人按钮打开 (仅训练场)，上下滑动的 6 列网格列出 `CharacterRegistry` 中已启用的忍者，选中框呼吸灯，确定后重开训练场 |
 
 战斗伤害跳字为世界空间 `SpriteRenderer`，不属于 UGUI，不在本框架内。
 

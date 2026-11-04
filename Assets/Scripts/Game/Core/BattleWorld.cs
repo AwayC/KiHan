@@ -123,7 +123,7 @@ namespace KiHan.Logic
                 return;
             }
 
-            FPVector3 point = source.EventPoint(evt.anchor, evt.offset);
+            FPVector3 point = evt.useWorldPos ? evt.worldPos : source.EventPoint(evt.anchor, evt.offset);
 
             if (evt.type == ActionEventType.Spawn)
             {
@@ -151,7 +151,10 @@ namespace KiHan.Logic
                 StopOnActionEnd = evt.stopOnActionEnd,
                 Loop = evt.loop,
                 FacingLeft = source.FacingLeft,
-                Position = point
+                Position = point,
+                Audience = evt.audience,
+                OwnerSlot = source.RootOwner.InputSlot,
+                Camera = evt.camera
             });
         }
 

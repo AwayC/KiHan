@@ -9,7 +9,7 @@
 | 事项 | 规则 |
 | :--- | :--- |
 | 类型与命名 | 全屏界面 `XxxPanel`，弹窗 `XxxPopup`，可复用部件 `XxxView`；类名 = 预制体名 = 脚本文件名 |
-| 层级 (`UILayer`) | 全屏界面 `Normal`；弹窗 `Popup`；战斗界面 `Hud`；飘字 `Toast`；切换 Loading `Loading` |
+| 层级 (`UILayer`) | 全屏界面 `Normal`；弹窗 `Popup` (模态：有遮罩、挡住下面的点击、返回键关闭)；战斗界面与**战斗中常驻、不挡其他按钮的面板** (如训练场设置) `Hud`；飘字 `Toast`；切换 Loading `Loading` |
 | 模块目录 | 预制体 `Assets/AssetPackages/Resources/UI/Panels/<模块>/<类名>.prefab`，脚本 `Assets/Scripts/View/UI/<模块>/<类名>.cs` (模块如 `Login`、`Lobby`、`Common`、`BattleHud`；子功能再开子目录，如训练场 `BattleHud/Training/`)；模块专用部件放 `<模块>/Widgets/`。完整目录见 [UI_FRAMEWORK.md](UI_FRAMEWORK.md) 第 1 节 |
 
 ## 二、 做预制体

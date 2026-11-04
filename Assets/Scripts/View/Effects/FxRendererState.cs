@@ -82,17 +82,6 @@ namespace KiHan.View.Effects
             _block.SetVector(MainTexStId, new Vector4(scale.x, scale.y, offset.x, offset.y));
             _renderer.SetPropertyBlock(_block);
         }
-
-        /// <summary>
-        /// 标记节点及其子节点上的全部特效渲染器为已销毁 (隐藏，以便对象池复用时恢复)
-        /// </summary>
-        public static void SetDestroyed(Transform root, bool destroyed)
-        {
-            foreach (FxRendererState state in root.GetComponentsInChildren<FxRendererState>(true))
-            {
-                state.Destroyed = destroyed;
-            }
-        }
     }
 
     /// <summary>
@@ -103,11 +92,21 @@ namespace KiHan.View.Effects
     {
         private float _time;
         private FxRendererState _state;
+        private bool _stateResolved;
 
         /// <summary>
-        /// 本节点的渲染状态 (没有渲染器的节点为 null)
+        /// 本节点的渲染状态 (没有渲染器的节点为 null)；只查找一次 (没有时不再每帧 GetComponent)
         /// </summary>
-        protected FxRendererState State => _state != null ? _state : (_state = GetComponent<FxRendererState>());
+        protected FxRendererState State
+        {
+            get
+            {
+                if (_stateResolved) return _state;
+                _stateResolved = true;
+                _state = GetComponent<FxRendererState>();
+                return _state;
+            }
+        }
 
         protected virtual void OnEnable()
         {

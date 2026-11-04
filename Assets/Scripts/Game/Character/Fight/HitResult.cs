@@ -54,7 +54,17 @@ namespace KiHan.Logic
 
         public int TargetId;
         public int AttackPhase;
+
+        /// <summary>
+        /// 实际伤害 (暴击时已乘暴击倍率)
+        /// </summary>
         public FP Damage;
+
+        /// <summary>
+        /// 是否暴击
+        /// </summary>
+        public bool Critical;
+
         public FPVector3 HitPoint;
 
         /// <summary>

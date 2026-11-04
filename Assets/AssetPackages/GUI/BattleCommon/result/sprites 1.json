@@ -1,0 +1,402 @@
+[
+ {
+  "name": "fight",
+  "file": "fight.png",
+  "size": [
+   435,
+   124
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "fight_light",
+  "file": "fight_light.png",
+  "size": [
+   438,
+   124
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "guang",
+  "file": "guang.png",
+  "size": [
+   206,
+   55
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "mo1",
+  "file": "mo1.png",
+  "size": [
+   151,
+   76
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "mo1-1",
+  "file": "mo1-1.png",
+  "size": [
+   61,
+   35
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian 1",
+  "file": "modian 1.png",
+  "size": [
+   50,
+   34
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian1",
+  "file": "modian1.png",
+  "size": [
+   16,
+   9
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian-1",
+  "file": "modian-1.png",
+  "size": [
+   26,
+   18
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian2",
+  "file": "modian2.png",
+  "size": [
+   93,
+   20
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian3",
+  "file": "modian3.png",
+  "size": [
+   22,
+   15
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian5-1",
+  "file": "modian5-1.png",
+  "size": [
+   116,
+   48
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0001",
+  "file": "pomo0001.png",
+  "size": [
+   143,
+   114
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0002",
+  "file": "pomo0002.png",
+  "size": [
+   185,
+   91
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0003",
+  "file": "pomo0003.png",
+  "size": [
+   268,
+   112
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0004",
+  "file": "pomo0004.png",
+  "size": [
+   309,
+   147
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0005",
+  "file": "pomo0005.png",
+  "size": [
+   207,
+   154
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   2,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Result01",
+  "file": "Result01.png",
+  "size": [
+   245,
+   141
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Result02",
+  "file": "Result02.png",
+  "size": [
+   207,
+   130
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Result03",
+  "file": "Result03.png",
+  "size": [
+   78,
+   98
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Result04",
+  "file": "Result04.png",
+  "size": [
+   189,
+   132
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

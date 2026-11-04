@@ -1,0 +1,102 @@
+[
+ {
+  "name": "Bg_tongyong_datanchuang",
+  "file": "Bg_tongyong_datanchuang.png",
+  "size": [
+   841,
+   521
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Bg",
+  "file": "Bg.png",
+  "size": [
+   516,
+   323
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Bg_tongyong_datanchuang_diwen",
+  "file": "Bg_tongyong_datanchuang_diwen.png",
+  "size": [
+   102,
+   51
+  ],
+  "border": [
+   5,
+   5,
+   5,
+   5
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Icon_tongyong_fanye2",
+  "file": "Icon_tongyong_fanye2.png",
+  "size": [
+   27,
+   27
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Icon_tongyong_fanye1",
+  "file": "Icon_tongyong_fanye1.png",
+  "size": [
+   13,
+   13
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

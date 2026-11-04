@@ -132,6 +132,19 @@ namespace KiHan.Logic
         }
 
         /// <summary>
+        /// 训练场无限火力：清空全部技能 CD、刷新查克拉可获得状态并回满查克拉 (接段进度与接段时限保留)
+        /// </summary>
+        public void Refill()
+        {
+            for (int i = 0; i < _skills.Length; i++)
+            {
+                _cooldown[i] = 0;
+                _chakraReady[i] = true;
+            }
+            Chakra = ChakraMax;
+        }
+
+        /// <summary>
         /// 逻辑帧推进：接段时限 (不在释放该技能时才计时) 与 CD 倒计时，CD 结束刷新查克拉可获得状态
         /// </summary>
         public void Tick()

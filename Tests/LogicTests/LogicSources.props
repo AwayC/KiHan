@@ -16,5 +16,6 @@
     <Compile Include="$(Scripts)Game/Physics/*.cs;$(Scripts)Game/Method/*.cs" />
     <Compile Include="$(Scripts)Game/LogicCommon.cs;$(Scripts)Game/GameConfig.cs;$(Scripts)Game/MapLogic.cs" />
     <Compile Include="$(Scripts)Anim/*.cs;$(Scripts)Managers/Network/Protocol.cs" />
+    <Compile Include="$(Scripts)Game/AI/*.cs;$(Scripts)Game/Training/*.cs" />
   </ItemGroup>
 </Project>

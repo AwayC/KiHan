@@ -52,7 +52,6 @@ namespace KiHan.View.Render
         // 逻辑帧快照 (x 横向, y 纵深, z 高度)
         private Vector3 _prevLogicPos;
         private Vector3 _currLogicPos;
-        private float _lastTickTime;
 
         /// <summary>
         /// 本角色触发的需要跟踪的动作事件特效：跟随型按锚点逐帧定位，所属动作结束时可提前停止
@@ -117,7 +116,6 @@ namespace KiHan.View.Render
             EnsureExtraRenderers(MaxExtraLayers(character));
             _currLogicPos = ReadLogicPos();
             _prevLogicPos = _currLogicPos;
-            _lastTickTime = Time.time;
             // 简单生成物 (投射物) 没有脚下阴影
             _footShadow.EnableShadow = character.Hittable;
             _footShadow.InitShadow(character.TeamId);
@@ -203,7 +201,16 @@ namespace KiHan.View.Render
         {
             _prevLogicPos = _currLogicPos;
             _currLogicPos = ReadLogicPos();
-            _lastTickTime = Time.time;
+        }
+
+        /// <summary>
+        /// 逻辑位置被瞬间改变 (如训练场瞬移) 后调用：插值起点与终点都对齐到当前逻辑位置并立即摆放，不从旧位置滑过去
+        /// </summary>
+        public void SnapToLogic()
+        {
+            _currLogicPos = ReadLogicPos();
+            _prevLogicPos = _currLogicPos;
+            ApplyTransform(_currLogicPos);
         }
 
         /// <summary>
@@ -226,7 +233,8 @@ namespace KiHan.View.Render
         {
             if (Character == null) return;
 
-            float alpha = Mathf.Clamp01((Time.time - _lastTickTime) / GameConfig.LOGIC_TICK_TIME);
+            // 按定时器相位插值 (LockstepManager.TickAlpha)：逻辑帧在渲染帧中的执行时机有抖动，按执行时的 Time.time 计会一帧停一帧跳
+            float alpha = LockstepManager.Instance.TickAlpha;
             ApplyTransform(Vector3.Lerp(_prevLogicPos, _currLogicPos, alpha));
             RenderFrame();
             UpdateBoundEffects();

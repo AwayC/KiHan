@@ -10,9 +10,11 @@ namespace KiHan.UI
         [SerializeField] private global::View.UI.SubstitutionButtonView _substitution;
         [SerializeField] private global::View.UI.SummonButtonView _summon;
         [SerializeField] private global::View.UI.SkillButtonView[] _skillButtons;
-        [SerializeField] private global::UnityEngine.UI.Button _backButton;
         [SerializeField] private global::View.UI.FighterStatusView _p1Status;
         [SerializeField] private global::View.UI.FighterStatusView _p2Status;
         [SerializeField] private global::UnityEngine.UI.Button _mapSelectBtn;
+        [SerializeField] private global::UnityEngine.UI.Button _settingButton;
+        [SerializeField] private global::KiHan.UI.TrainingSettingView _trainingSettingPanel;
+        [SerializeField] private global::UnityEngine.UI.Button _backButton;
     }
 }

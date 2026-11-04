@@ -1,0 +1,382 @@
+[
+ {
+  "name": "bg-juanzhou",
+  "file": "bg-juanzhou.png",
+  "size": [
+   311,
+   640
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "mijuanxze",
+  "file": "mijuanxze.png",
+  "size": [
+   291,
+   125
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "aoyixuanze",
+  "file": "aoyixuanze.png",
+  "size": [
+   280,
+   128
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "specialPool",
+  "file": "specialPool.png",
+  "size": [
+   344,
+   97
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "dengdaiduifang",
+  "file": "dengdaiduifang.png",
+  "size": [
+   314,
+   106
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "shunxutiaozheng",
+  "file": "shunxutiaozheng.png",
+  "size": [
+   282,
+   113
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "jinengxuanze",
+  "file": "jinengxuanze.png",
+  "size": [
+   258,
+   116
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "ban_mj",
+  "file": "ban_mj.png",
+  "size": [
+   294,
+   99
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "jihuo-mijuan",
+  "file": "jihuo-mijuan.png",
+  "size": [
+   110,
+   110
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhuangshi-yun",
+  "file": "zhuangshi-yun.png",
+  "size": [
+   105,
+   78
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "icon-tongyong-yuanxingdi",
+  "file": "icon-tongyong-yuanxingdi.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   2,
+   2,
+   2,
+   2
+  ]
+ },
+ {
+  "name": "icon-jineng-zi",
+  "file": "icon-jineng-zi.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "icon-jineng-lv",
+  "file": "icon-jineng-lv.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "icon-jineng-lan",
+  "file": "icon-jineng-lan.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "icon-jineng-hui",
+  "file": "icon-jineng-hui.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "icon-jineng-bai",
+  "file": "icon-jineng-bai.png",
+  "size": [
+   75,
+   75
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "icon-tongyong-yuanxinggai",
+  "file": "icon-tongyong-yuanxinggai.png",
+  "size": [
+   73,
+   73
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   3,
+   3,
+   3
+  ]
+ },
+ {
+  "name": "wenzi-2ph",
+  "file": "wenzi-2ph.png",
+  "size": [
+   49,
+   44
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-1pl",
+  "file": "wenzi-1pl.png",
+  "size": [
+   44,
+   44
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

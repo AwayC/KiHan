@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: DamageTaken
   m_EditorClassIdentifier: 
   digits:
-  - {fileID: 1915103282, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: 222628590, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: 1578168050, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: 2112403911, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: -2050887626, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: 1290430615, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: -789341554, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: -191174650, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: 702860970, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  - {fileID: -1808502885, guid: 47464c2e99233d145b6c04fc14a4232c, type: 3}
-  spacing: -40
-  scale: 0.2
+  - {fileID: 36601866, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: 247930353, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: -196824580, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: -976700180, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: 1440517828, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: -1238254823, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: -2087916823, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: 1303157697, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: 510573414, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  - {fileID: -724449986, guid: d862c54bfe0a8c84e8c03319192be852, type: 3}
+  spacing: -2
+  scale: 1.4

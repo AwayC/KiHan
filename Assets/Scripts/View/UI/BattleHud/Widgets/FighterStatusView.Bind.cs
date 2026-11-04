@@ -11,5 +11,6 @@ namespace View.UI
         [SerializeField] private global::View.UI.BeanListView _chakra;
         [SerializeField] private global::View.UI.HpBarView _hpBar;
         [SerializeField] private global::TMPro.TMP_Text _name;
+        [SerializeField] private global::UnityEngine.UI.Button _changeCharBtn;
     }
 }

@@ -1,0 +1,922 @@
+[
+ {
+  "name": "bg-motiao-lianji",
+  "file": "bg-motiao-lianji.png",
+  "size": [
+   440,
+   161
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-motiao-1",
+  "file": "bg-motiao-1.png",
+  "size": [
+   315,
+   181
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-motiao-10",
+  "file": "bg-motiao-10.png",
+  "size": [
+   243,
+   218
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   1
+  ]
+ },
+ {
+  "name": "bg-motiao-5",
+  "file": "bg-motiao-5.png",
+  "size": [
+   340,
+   148
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-motiao-8",
+  "file": "bg-motiao-8.png",
+  "size": [
+   244,
+   206
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-motiao-9",
+  "file": "bg-motiao-9.png",
+  "size": [
+   277,
+   169
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_zz",
+  "file": "vt_content_zz.png",
+  "size": [
+   216,
+   25
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_bg_zz",
+  "file": "vt_bg_zz.png",
+  "size": [
+   212,
+   22
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   5,
+   2,
+   0,
+   1
+  ]
+ },
+ {
+  "name": "vt_content_zzsz",
+  "file": "vt_content_zzsz.png",
+  "size": [
+   207,
+   22
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   2,
+   7,
+   1
+  ]
+ },
+ {
+  "name": "vt_bg_zzsz",
+  "file": "vt_bg_zzsz.png",
+  "size": [
+   214,
+   19
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   3,
+   0,
+   3
+  ]
+ },
+ {
+  "name": "vt_content_lddt",
+  "file": "vt_content_lddt.png",
+  "size": [
+   195,
+   17
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   5,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_bg_gs",
+  "file": "vt_bg_gs.png",
+  "size": [
+   207,
+   16
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   1,
+   0
+  ]
+ },
+ {
+  "name": "vt_bg_gsp",
+  "file": "vt_bg_gsp.png",
+  "size": [
+   207,
+   15
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   1,
+   1,
+   0
+  ]
+ },
+ {
+  "name": "hudun2",
+  "file": "hudun2.png",
+  "size": [
+   216,
+   14
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "hudun1",
+  "file": "hudun1.png",
+  "size": [
+   216,
+   14
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_bg_lddt",
+  "file": "vt_bg_lddt.png",
+  "size": [
+   194,
+   15
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   5,
+   2,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "bofengshuimen_vt3",
+  "file": "bofengshuimen_vt3.png",
+  "size": [
+   203,
+   14
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bofengshuimen_vt2",
+  "file": "bofengshuimen_vt2.png",
+  "size": [
+   203,
+   14
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bofengshuimen_vt",
+  "file": "bofengshuimen_vt.png",
+  "size": [
+   203,
+   14
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_special",
+  "file": "vt_content_special.png",
+  "size": [
+   206,
+   13
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_bg_special",
+  "file": "vt_bg_special.png",
+  "size": [
+   206,
+   12
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_gs",
+  "file": "vt_content_gs.png",
+  "size": [
+   203,
+   12
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   2,
+   2,
+   3,
+   2
+  ]
+ },
+ {
+  "name": "vt_content_gsp",
+  "file": "vt_content_gsp.png",
+  "size": [
+   203,
+   11
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   2,
+   3,
+   3,
+   2
+  ]
+ },
+ {
+  "name": "vt_bg",
+  "file": "vt_bg.png",
+  "size": [
+   209,
+   8
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "yinshevtbg",
+  "file": "yinshevtbg.png",
+  "size": [
+   108,
+   8
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "tongshevtbg",
+  "file": "tongshevtbg.png",
+  "size": [
+   108,
+   8
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_yellow",
+  "file": "vt_content_yellow.png",
+  "size": [
+   205,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_white",
+  "file": "vt_content_white.png",
+  "size": [
+   205,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_golden",
+  "file": "vt_content_golden.png",
+  "size": [
+   205,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_fade",
+  "file": "vt_content_fade.png",
+  "size": [
+   205,
+   4
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content",
+  "file": "vt_content.png",
+  "size": [
+   205,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "white",
+  "file": "white.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_qing",
+  "file": "vt_content_qing.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_deep_purple",
+  "file": "vt_content_deep_purple.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_dark_red",
+  "file": "vt_content_dark_red.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_blue",
+  "file": "vt_content_blue.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "vt_content_ZLY",
+  "file": "vt_content_ZLY.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   1,
+   0
+  ]
+ },
+ {
+  "name": "purple",
+  "file": "purple.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pink",
+  "file": "pink.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "orange",
+  "file": "orange.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "khaki",
+  "file": "khaki.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "green",
+  "file": "green.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "golden",
+  "file": "golden.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "blue",
+  "file": "blue.png",
+  "size": [
+   204,
+   4
+  ],
+  "border": [
+   30,
+   0,
+   30,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "yinshevt",
+  "file": "yinshevt.png",
+  "size": [
+   96,
+   4
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "tongshevt",
+  "file": "tongshevt.png",
+  "size": [
+   96,
+   4
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

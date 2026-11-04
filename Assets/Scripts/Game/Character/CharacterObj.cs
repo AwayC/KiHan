@@ -7,6 +7,21 @@ using KiHan.Math;
 namespace KiHan.Logic
 {
     /// <summary>
+    /// 生命值规则 (训练场使用；正式对战为 Normal)
+    /// </summary>
+    public enum HpMode
+    {
+        /// <summary>扣到 0 即死亡 (不再受击，Actor 生成物回收)</summary>
+        Normal,
+
+        /// <summary>照常扣血，归零时立即回满 (训练场默认)</summary>
+        Refill,
+
+        /// <summary>照常扣血，归零后停在 0 不回复，但不算死亡：仍可行动、仍可被命中 (训练场"禁止回复")</summary>
+        Immortal,
+    }
+
+    /// <summary>
     /// 角色动作与战斗实体逻辑主体 (纯定点数确定性运算)
     /// 由 BattleWorld 按 EntityId 顺序显式驱动，不依赖 Unity Update 与物理系统
     /// </summary>
@@ -157,9 +172,24 @@ namespace KiHan.Logic
         public FP maxHp = FP.Parse("1000");
 
         /// <summary>
-        /// 训练场无限血：受击照常扣血与结算，生命值归零时立即回满 (不会死亡)
+        /// 生命值规则 (训练场的无限血 / 禁止回复)
         /// </summary>
-        public bool infiniteHp = false;
+        public HpMode hpMode = HpMode.Normal;
+
+        /// <summary>
+        /// 暴击率 (0~1，角色包清单配置；生成物命中按主人计算)
+        /// </summary>
+        public FP critRate = FP.Zero;
+
+        /// <summary>
+        /// 暴击伤害倍率
+        /// </summary>
+        public FP critMultiplier = FP.Parse("1.5");
+
+        /// <summary>
+        /// 训练场无限暴击：必定暴击
+        /// </summary>
+        public bool alwaysCrit = false;
 
         /// <summary>
         /// 击飞触地弹起的速度衰减系数：弹起速度 = 落地瞬间下落速度 × 该系数
@@ -191,7 +221,7 @@ namespace KiHan.Logic
         /// </summary>
         public FP Hp { get; private set; }
 
-        public bool IsDead => Hp <= FP.Zero;
+        public bool IsDead => Hp <= FP.Zero && hpMode != HpMode.Immortal;
 
         /// <summary>
         /// 当前动作对各目标的命中冷却记录 (换动作时重置；值类型按下标原地更新，预留容量避免扩容)
@@ -693,7 +723,16 @@ namespace KiHan.Logic
         {
             if (damage <= FP.Zero) return;
             Hp = FPMath.Max(FP.Zero, Hp - damage);
-            if (infiniteHp && Hp <= FP.Zero) Hp = maxHp;
+            if (hpMode == HpMode.Refill && Hp <= FP.Zero) Hp = maxHp;
+        }
+
+        /// <summary>
+        /// 切换生命值规则 (训练场在逻辑帧之间调用)：切到 Refill 时若已归零则立即回满
+        /// </summary>
+        public void SetHpMode(HpMode mode)
+        {
+            hpMode = mode;
+            if (mode == HpMode.Refill && Hp <= FP.Zero) Hp = maxHp;
         }
 
         /// <summary>

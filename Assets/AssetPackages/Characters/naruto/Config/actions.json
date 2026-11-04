@@ -221,7 +221,7 @@
       ],
       "events": [
         { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
-        { "frame": 0, "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+        { "frame": 0, "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 } }
       ],
       "attackPhase": [
         { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },

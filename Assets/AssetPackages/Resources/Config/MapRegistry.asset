@@ -17,3 +17,5 @@ MonoBehaviour:
     map: {fileID: 11400000, guid: 522e4888ec373fc40935bb8881f998b0, type: 2}
   - enabled: 1
     map: {fileID: 11400000, guid: 268062d7131dc0b42b85d641162bdbc3, type: 2}
+  - enabled: 1
+    map: {fileID: 11400000, guid: 5070c97e964886d49b11212893e260b9, type: 2}

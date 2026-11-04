@@ -1,6 +1,8 @@
+using KiHan.View.Audio;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using View.UI;
 
 namespace Managers
 {
@@ -9,6 +11,7 @@ namespace Managers
     /// - 用阻尼弹簧模拟 (欠阻尼产生回弹)，只改自身 localScale，静止后不再计算 (0 GC)
     /// - 同节点有 Selectable (Button 等) 且不可交互时不播放
     /// - UIManager 创建面板时给面板内所有 Button 自动挂上；VirtualButton 自带；其余节点可直接手动添加
+    /// - 按下时播放约定点击音 (SoundConventions.uiClick)；战斗虚拟按键按得频繁，不播
     /// - 有特殊按压设计的按钮挂 UIPressBounceIgnore，自动挂载时跳过
     /// 组件需保持启用：EventSystem 不向禁用的组件派发点击事件
     /// </summary>
@@ -35,6 +38,7 @@ namespace Managers
         private float _goal = 1f;
         private bool _pressed;
         private bool _animating;
+        private bool _isVirtualButton;
 
         /// <summary>
         /// 给 root 下 (含未激活节点) 所有 Button 挂上本组件；已有本组件或挂了 UIPressBounceIgnore 的跳过
@@ -52,11 +56,17 @@ namespace Managers
         {
             _baseScale = transform.localScale;
             TryGetComponent(out _selectable);
+            _isVirtualButton = TryGetComponent(out VirtualButton _);
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
             if (_selectable != null && !_selectable.IsInteractable()) return;
+            if (!_isVirtualButton)
+            {
+                AudioManager audio = AudioManager.Instance;
+                if (audio != null) audio.Play(audio.Conventions != null ? audio.Conventions.uiClick : null);
+            }
             _pressed = true;
             _goal = _pressedScale;
             _animating = true;

@@ -6,8 +6,9 @@ using UnityEngine.EventSystems;
 namespace KiHan.UI
 {
     /// <summary>
-    /// 通用滑动列表 (横向 / 纵向)：拖动跟手，松手按惯性减速，越界时橡皮筋阻尼、松手弹性回弹；可选停靠 (松手停在最近一项并居中，轻甩翻一项)
+    /// 通用滑动列表 (横向 / 纵向，可选网格)：拖动跟手，松手按惯性减速，越界时橡皮筋阻尼、松手弹性回弹；可选停靠 (松手停在最近一行并居中，轻甩翻一行)
     /// - 只创建可见范围内的项并循环复用，项数量不限；项由模板 (_template：_content 下隐藏的子节点，大小即项大小) 复制
+    /// - 网格：_perLine > 1 时每行 (纵向) / 每列 (横向) 排 _perLine 项，按行滚动；项在行内居中排列，末行不满时从行首排起
     /// - 用法：SetCount(数量, (项部件, 下标) =&gt; 绑定)；某项进入可见范围或调用 RefreshItems 时回调绑定；ScrollTo 定位
     /// - 节点约定：本节点即视口 (挂 RectMask2D 裁剪、透明 Image 接收空白处的拖动)，_content 铺满视口，项锚定在视口中心
     /// - 按 unscaledDeltaTime 推进 (暂停时也能滑动)，静止时不刷新布局；拖动超过阈值后不触发项内按钮的点击
@@ -46,6 +47,12 @@ namespace KiHan.UI
         [Tooltip("首尾留白 (参考分辨率像素)")]
         [SerializeField] private float _padding = 40f;
 
+        [Tooltip("每行 (纵向列表) / 每列 (横向列表) 的项数：大于 1 时为网格")]
+        [SerializeField, Min(1)] private int _perLine = 1;
+
+        [Tooltip("网格行内相邻项的间距 (参考分辨率像素)")]
+        [SerializeField] private float _crossSpacing = 40f;
+
         [Header("手感")]
         [Tooltip("停靠：松手后停在最近一项并居中，轻甩翻一项")]
         [SerializeField] private bool _snap;
@@ -70,16 +77,16 @@ namespace KiHan.UI
         }
 
         /// <summary>
-        /// 最靠近视口中心的项变化时触发 (参数为下标)
+        /// 最靠近视口中心的行变化时触发 (参数为该行第一项的下标)
         /// </summary>
         public event Action<int> CenterChanged;
 
         public int Count => _count;
 
         /// <summary>
-        /// 最靠近视口中心的项 (列表为空时为 -1)
+        /// 最靠近视口中心的行的第一项下标 (列表为空时为 -1；非网格时即最靠近中心的项)
         /// </summary>
-        public int CenterIndex => _centerIndex;
+        public int CenterIndex => _centerLine < 0 ? -1 : _centerLine * _perLine;
 
         private readonly List<Item> _active = new List<Item>();
         private readonly Stack<Item> _pool = new Stack<Item>();
@@ -88,7 +95,7 @@ namespace KiHan.UI
         private RectTransform _viewport;
         private Vector3 _itemScale = Vector3.one;
         private int _count;
-        private int _centerIndex = -1;
+        private int _centerLine = -1;
 
         // 滚动位置：视口起点 (横向为左边、纵向为上边) 在列表坐标中的位置，列表坐标从第一项前的留白起算
         private float _pos;
@@ -160,7 +167,7 @@ namespace KiHan.UI
             Bounds(out float min, out float max);
             _pos = Mathf.Clamp(_pos, min, max);
             _prevPos = _pos;
-            _centerIndex = -1;
+            _centerLine = -1;
             Layout();
         }
 
@@ -174,14 +181,14 @@ namespace KiHan.UI
         }
 
         /// <summary>
-        /// 滚动到第 index 项 (尽量居中，不越界)；animated 为 false 时立即定位
+        /// 滚动到第 index 项所在的行 (尽量居中，不越界)；animated 为 false 时立即定位
         /// </summary>
         public void ScrollTo(int index, bool animated)
         {
             if (_count == 0) return;
-            index = Mathf.Clamp(index, 0, _count - 1);
+            int line = Mathf.Clamp(index, 0, _count - 1) / _perLine;
             Bounds(out float min, out float max);
-            float target = Mathf.Clamp(CenteredPos(index), min, max);
+            float target = Mathf.Clamp(CenteredPos(line), min, max);
             _velocity = 0f;
             if (animated)
             {
@@ -252,8 +259,8 @@ namespace KiHan.UI
             float from = _hasTarget ? _target : _pos;
             if (_snap)
             {
-                int index = Mathf.Clamp(NearestIndex(from) + (step > 0f ? 1 : -1), 0, _count - 1);
-                _target = CenteredPos(index);
+                int line = Mathf.Clamp(NearestLine(from) + (step > 0f ? 1 : -1), 0, LineCount - 1);
+                _target = CenteredPos(line);
             }
             else
             {
@@ -271,12 +278,12 @@ namespace KiHan.UI
         {
             // 速度按 r^t 指数衰减，滑行总距离 = v / -ln(r)
             float travel = _velocity / -Mathf.Log(_decelerationRate);
-            int index = NearestIndex(_pos + travel);
-            if (index == NearestIndex(_pos) && Mathf.Abs(_velocity) > FlickSpeed)
+            int line = NearestLine(_pos + travel);
+            if (line == NearestLine(_pos) && Mathf.Abs(_velocity) > FlickSpeed)
             {
-                index = Mathf.Clamp(index + (_velocity > 0f ? 1 : -1), 0, _count - 1);
+                line = Mathf.Clamp(line + (_velocity > 0f ? 1 : -1), 0, LineCount - 1);
             }
-            _target = CenteredPos(index);
+            _target = CenteredPos(line);
             _hasTarget = true;
         }
 
@@ -360,17 +367,24 @@ namespace KiHan.UI
 
         private float ItemLength => Horizontal ? _template.rect.width : _template.rect.height;
 
+        /// <summary>
+        /// 项在行内方向 (与滚动方向垂直) 的长度与步长
+        /// </summary>
+        private float CrossStride => (Horizontal ? _template.rect.height : _template.rect.width) + _crossSpacing;
+
         private float Stride => ItemLength + _spacing;
 
-        /// <summary>
-        /// 第 i 项中心在列表坐标中的位置
-        /// </summary>
-        private float ItemCenter(int i) => _padding + i * Stride + ItemLength * 0.5f;
+        private int LineCount => (_count + _perLine - 1) / _perLine;
 
         /// <summary>
-        /// 第 i 项居中时的滚动位置
+        /// 第 line 行中心在列表坐标中的位置
         /// </summary>
-        private float CenteredPos(int i) => ItemCenter(i) - ViewLength * 0.5f;
+        private float LineCenter(int line) => _padding + line * Stride + ItemLength * 0.5f;
+
+        /// <summary>
+        /// 第 line 行居中时的滚动位置
+        /// </summary>
+        private float CenteredPos(int line) => LineCenter(line) - ViewLength * 0.5f;
 
         /// <summary>
         /// 滚动范围：停靠模式为首项居中到末项居中；否则为内容首尾贴边，内容不足一屏时整体居中且不可滚动
@@ -386,12 +400,13 @@ namespace KiHan.UI
             if (_snap)
             {
                 min = CenteredPos(0);
-                max = CenteredPos(_count - 1);
+                max = CenteredPos(LineCount - 1);
                 return;
             }
 
             float view = ViewLength;
-            float content = 2f * _padding + _count * ItemLength + (_count - 1) * _spacing;
+            int lines = LineCount;
+            float content = 2f * _padding + lines * ItemLength + (lines - 1) * _spacing;
             if (content <= view)
             {
                 min = max = (content - view) * 0.5f;
@@ -401,11 +416,11 @@ namespace KiHan.UI
             max = content - view;
         }
 
-        private int NearestIndex(float pos)
+        private int NearestLine(float pos)
         {
             if (_count == 0) return -1;
-            int index = Mathf.RoundToInt((pos + ViewLength * 0.5f - _padding - ItemLength * 0.5f) / Stride);
-            return Mathf.Clamp(index, 0, _count - 1);
+            int line = Mathf.RoundToInt((pos + ViewLength * 0.5f - _padding - ItemLength * 0.5f) / Stride);
+            return Mathf.Clamp(line, 0, LineCount - 1);
         }
 
         private void Layout()
@@ -416,13 +431,15 @@ namespace KiHan.UI
             float view = ViewLength;
             float size = ItemLength;
             float stride = Stride;
-            int first = 0;
-            int last = -1;
+            int firstLine = 0;
+            int lastLine = -1;
             if (_count > 0 && stride > 0f)
             {
-                first = Mathf.Max(0, Mathf.CeilToInt((_pos - _padding - size) / stride));
-                last = Mathf.Min(_count - 1, Mathf.FloorToInt((_pos + view - _padding) / stride));
+                firstLine = Mathf.Max(0, Mathf.CeilToInt((_pos - _padding - size) / stride));
+                lastLine = Mathf.Min(LineCount - 1, Mathf.FloorToInt((_pos + view - _padding) / stride));
             }
+            int first = firstLine * _perLine;
+            int last = Mathf.Min(_count - 1, (lastLine + 1) * _perLine - 1);
 
             // 回收离开可见范围的项
             for (int i = _active.Count - 1; i >= 0; i--)
@@ -433,6 +450,8 @@ namespace KiHan.UI
                 _active.RemoveAt(i);
             }
 
+            float crossStride = CrossStride;
+            float crossStart = -(_perLine - 1) * 0.5f * crossStride;
             for (int index = first; index <= last; index++)
             {
                 Item item = FindActive(index);
@@ -444,8 +463,11 @@ namespace KiHan.UI
                     _bind(item.View, index);
                 }
 
-                float offset = ItemCenter(index) - _pos - view * 0.5f;
-                item.Rect.anchoredPosition = Horizontal ? new Vector2(offset, 0f) : new Vector2(0f, -offset);
+                int line = index / _perLine;
+                float offset = LineCenter(line) - _pos - view * 0.5f;
+                // 行内从行首排起：纵向列表从左到右，横向列表从上到下
+                float cross = crossStart + (index - line * _perLine) * crossStride;
+                item.Rect.anchoredPosition = Horizontal ? new Vector2(offset, -cross) : new Vector2(cross, -offset);
                 if (_sideScale < 1f)
                 {
                     float t = Mathf.Clamp01(Mathf.Abs(offset) / stride);
@@ -453,10 +475,10 @@ namespace KiHan.UI
                 }
             }
 
-            int center = NearestIndex(_pos);
-            if (center == _centerIndex) return;
-            _centerIndex = center;
-            CenterChanged?.Invoke(center);
+            int center = NearestLine(_pos);
+            if (center == _centerLine) return;
+            _centerLine = center;
+            CenterChanged?.Invoke(CenterIndex);
         }
 
         private Item FindActive(int index)

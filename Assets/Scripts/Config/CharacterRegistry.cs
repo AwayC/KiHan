@@ -47,6 +47,19 @@ namespace KiHan.Config
             }
             return null;
         }
+
+        /// <summary>
+        /// 按登记顺序把已启用的角色包追加到 result
+        /// </summary>
+        public static void CollectEnabled(List<CharacterManifest> result)
+        {
+            CharacterRegistry registry = Instance;
+            if (registry == null) return;
+            foreach (CharacterRegistryEntry entry in registry.characters)
+            {
+                if (entry.enabled && entry.manifest != null) result.Add(entry.manifest);
+            }
+        }
     }
 
     [Serializable]

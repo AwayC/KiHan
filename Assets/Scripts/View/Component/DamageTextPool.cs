@@ -22,8 +22,20 @@ namespace View.Component
         /// </summary>
         private const string TakenFontPath = "UI/Number/DamageTaken";
 
+        /// <summary>
+        /// 本机玩家的暴击 (金色大字)
+        /// </summary>
+        private const string DealtCritFontPath = "UI/Number/DamageDealtCrit";
+
+        /// <summary>
+        /// 敌人的暴击 (红色大字)
+        /// </summary>
+        private const string TakenCritFontPath = "UI/Number/DamageTakenCrit";
+
         private readonly DigitFont _dealtFont;
         private readonly DigitFont _takenFont;
+        private readonly DigitFont _dealtCritFont;
+        private readonly DigitFont _takenCritFont;
         private readonly Stack<DamageTextNode> _free;
         private readonly List<DamageTextNode> _active;
         private readonly Transform _root;
@@ -32,6 +44,8 @@ namespace View.Component
         {
             _dealtFont = LoadFont(DealtFontPath);
             _takenFont = LoadFont(TakenFontPath);
+            _dealtCritFont = LoadFont(DealtCritFontPath);
+            _takenCritFont = LoadFont(TakenCritFontPath);
             _free = new Stack<DamageTextNode>(capacity);
             _active = new List<DamageTextNode>(capacity);
             _root = new GameObject("[DamageTextPool]").transform;
@@ -43,8 +57,9 @@ namespace View.Component
             }
         }
 
-        /// <param name="byLocalPlayer">本机玩家造成的伤害用造成伤害字体，否则用受到伤害字体</param>
-        public void Show(int damage, bool byLocalPlayer, Vector3 worldPos, int hitDirectionX)
+        /// <param name="byLocalPlayer">本机玩家 (含其生成物) 造成的伤害，否则为本机受到 / 旁观的伤害</param>
+        /// <param name="critical">暴击：使用暴击字体与暴击动画</param>
+        public void Show(int damage, bool byLocalPlayer, bool critical, Vector3 worldPos, int hitDirectionX)
         {
             DamageTextNode node;
             if (_free.Count > 0)
@@ -59,7 +74,10 @@ namespace View.Component
             }
 
             _active.Add(node);
-            node.Show(damage, byLocalPlayer ? _dealtFont : _takenFont, worldPos, hitDirectionX);
+            DigitFont font = critical
+                ? (byLocalPlayer ? _dealtCritFont : _takenCritFont)
+                : (byLocalPlayer ? _dealtFont : _takenFont);
+            node.Show(damage, font, worldPos, hitDirectionX, critical);
         }
 
         public void Dispose()

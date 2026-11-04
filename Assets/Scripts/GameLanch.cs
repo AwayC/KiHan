@@ -14,7 +14,7 @@ public class GameLanch : UnitySingleton<GameLanch>
     void Start()
     {
         Debug.Log("[GameLanch] 启动并挂载逻辑模块...");
-        // 渲染锁 30 帧 (LockstepManager 每个 Update 上报一次输入，与逻辑帧率对齐)
+        // 渲染锁 30 帧 (逻辑帧由 LockstepManager 的定时器按真实时间驱动，与渲染帧率无关；渲染帧率可按画面需要调高)
 #if UNITY_EDITOR
         EditorFramePacer.Install(KiHan.Logic.GameConfig.LOGIC_FPS);
 #else

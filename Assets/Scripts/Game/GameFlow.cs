@@ -75,6 +75,16 @@ public sealed class GameFlow : UnitySingleton<GameFlow>
     }
 
     /// <summary>
+    /// 训练场换人 (换人弹窗确定)：Loading 中清理战斗并换掉该槽位的角色重开，地图保持
+    /// </summary>
+    public void RestartTraining(int slot, int characterId)
+    {
+        IsGameRunning = false;
+        UIManager.Instance.CloseLayer(UILayer.Hud);
+        RunTransition(BattleManager.Instance.RestartTrainingRoutine(slot, characterId));
+    }
+
+    /// <summary>
     /// 登出：Loading 中断开网络并清理，回到登录
     /// </summary>
     public void Logout()

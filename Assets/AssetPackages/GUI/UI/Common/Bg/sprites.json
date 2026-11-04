@@ -1,0 +1,202 @@
+[
+ {
+  "name": "Bg711",
+  "file": "Bg711.png",
+  "size": [
+   1024,
+   438
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "lang1",
+  "file": "lang1.png",
+  "size": [
+   416,
+   170
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "lang2",
+  "file": "lang2.png",
+  "size": [
+   390,
+   159
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "yun2",
+  "file": "yun2.png",
+  "size": [
+   424,
+   121
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "yun1",
+  "file": "yun1.png",
+  "size": [
+   388,
+   131
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Bg_Bottom",
+  "file": "Bg_Bottom.png",
+  "size": [
+   1024,
+   42
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "bg-tongyong-zhezhao-005",
+  "file": "bg-tongyong-zhezhao-005.png",
+  "size": [
+   59,
+   640
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   1,
+   0
+  ]
+ },
+ {
+  "name": "Bg222",
+  "file": "Bg222.png",
+  "size": [
+   361,
+   80
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Icon_Bg1",
+  "file": "Icon_Bg1.png",
+  "size": [
+   144,
+   34
+  ],
+  "border": [
+   50,
+   10,
+   50,
+   10
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "icon-tongyong-duihuatips",
+  "file": "icon-tongyong-duihuatips.png",
+  "size": [
+   60,
+   44
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

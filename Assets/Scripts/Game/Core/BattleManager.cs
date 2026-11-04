@@ -7,6 +7,7 @@ using KiHan.Asset;
 using KiHan.Config;
 using KiHan.DebugTools;
 using KiHan.Logic;
+using KiHan.Logic.AI;
 using KiHan.Math;
 using KiHan.Network;
 using KiHan.View.Render;
@@ -22,7 +23,8 @@ public class OfflineBattleFactory : IBattleFactory
     public void CreateBattle(uint roomId)
     {
         Debug.Log("[OfflineBattleFactory] 创建单机战斗...");
-        LockstepManager.Instance.Init(VirtualNetworkManager.Instance);
+        // 本地服务器收到输入立即回送确认帧：不需要输入延迟
+        LockstepManager.Instance.Init(VirtualNetworkManager.Instance, inputDelayFrames: 0);
         VirtualNetworkManager.Instance.Connect();
     }
 }
@@ -36,7 +38,7 @@ public class OnlineBattleFactory : IBattleFactory
         if (gateway != null && gateway.IsAuthed)
         {
             KcpNetworkManager.Instance.Connect(gateway.ServerIp, (ushort)gateway.UdpPort, gateway.ConnId, gateway.ConnKey);
-            LockstepManager.Instance.Init(KcpNetworkManager.Instance);
+            LockstepManager.Instance.Init(KcpNetworkManager.Instance, LockstepManager.OnlineInputDelayFrames);
             var req = new EnterRoomReq { room_id = (int)roomId };
             KcpNetworkManager.Instance.SendMsg(2001, req.Serialize());
         }
@@ -72,13 +74,23 @@ public class BattleManager : UnitySingleton<BattleManager>
     /// </summary>
     public CharacterObj LocalCharacter { get; private set; }
 
+    /// <summary>
+    /// 单机训练场 (联机为 null)：训练面板的开关与对敌人 (P2) 的操控
+    /// </summary>
+    public TrainingSession Training { get; private set; }
+
     private readonly List<CharacterObj> _characters = new List<CharacterObj>();
     private SpawnPool _spawnPool;
     private PlayerLoadout _p1Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
     private PlayerLoadout _p2Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
     private CharacterObj _p1;
     private CharacterObj _p2;
-    private bool _infiniteHp;
+    private HpMode _hpMode;
+
+    /// <summary>
+    /// 开局地图 (训练场换人重开时沿用当前地图)；为 null 时用地图注册表的默认地图
+    /// </summary>
+    private MapConfig _startMap;
 
     public void EnterBattle(bool isOnline, uint targetRoomId = 1)
     {
@@ -87,14 +99,14 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         _p1Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
         _p2Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
-        _infiniteHp = false;
+        _hpMode = HpMode.Normal;
         if (!isOnline)
         {
             DebugConfig dbgConfig = Resources.Load<DebugConfig>(DebugConfig.DefaultPath);
             if (dbgConfig != null)
             {
                 // 无限血只用于单机：联机双方配置不同会导致不同步
-                _infiniteHp = dbgConfig.infiniteHp;
+                if (dbgConfig.infiniteHp) _hpMode = HpMode.Refill;
                 if (dbgConfig.isBattleDebug)
                 {
                     _p1Loadout = dbgConfig.player1;
@@ -103,12 +115,48 @@ public class BattleManager : UnitySingleton<BattleManager>
             }
         }
 
+        _startMap = null;
+        StartBattle();
+    }
+
+    /// <summary>
+    /// 训练场换人 (GameFlow.RestartTraining 在 Loading 中执行)：清理当前战斗后换掉该槽位的角色重开单机战斗，
+    /// 地图、另一方角色与血量模式保持；训练面板的开关回到默认
+    /// </summary>
+    public IEnumerator RestartTrainingRoutine(int slot, int characterId)
+    {
+        // 出战配置可能直接引用调试配置资源：换人时复制一份，不改资源
+        PlayerLoadout p1 = slot == P1Slot ? WithCharacter(_p1Loadout, characterId) : _p1Loadout;
+        PlayerLoadout p2 = slot == P2Slot ? WithCharacter(_p2Loadout, characterId) : _p2Loadout;
+        MapConfig map = MapManager.Instance.CurrentMap;
+        HpMode hpMode = _hpMode;
+
+        yield return CleanupRoutine();
+
+        IsOnline = false;
+        _p1Loadout = p1;
+        _p2Loadout = p2;
+        _hpMode = hpMode;
+        _startMap = map;
+        StartBattle();
+    }
+
+    private static PlayerLoadout WithCharacter(PlayerLoadout loadout, int characterId)
+    {
+        return new PlayerLoadout { characterId = characterId, summons = loadout != null ? loadout.summons : null };
+    }
+
+    /// <summary>
+    /// 绑定帧同步回调并创建战斗 (单机虚拟网络会同步派发开局消息，开局即 LoadBattle)
+    /// </summary>
+    private void StartBattle()
+    {
         // 绑定帧同步回调 (须在连接网络前，单机虚拟网络会同步派发开局消息)
         LockstepManager.Instance.OnExecuteFrame = OnBattleTick;
         LockstepManager.Instance.OnGameStart -= OnGameStart;
         LockstepManager.Instance.OnGameStart += OnGameStart;
 
-        IBattleFactory factory = isOnline ? new OnlineBattleFactory() : (IBattleFactory)new OfflineBattleFactory();
+        IBattleFactory factory = IsOnline ? new OnlineBattleFactory() : (IBattleFactory)new OfflineBattleFactory();
         factory.CreateBattle(roomId);
     }
 
@@ -120,7 +168,7 @@ public class BattleManager : UnitySingleton<BattleManager>
 
     private void LoadBattle()
     {
-        MapManager.Instance.LoadMap(MapRegistry.Default);
+        MapManager.Instance.LoadMap(_startMap != null ? _startMap : MapRegistry.Default);
         World = new BattleWorld(MapManager.Instance.CurrentMapLogic);
         _spawnPool = new SpawnPool();
         World.Spawner = _spawnPool;
@@ -135,12 +183,13 @@ public class BattleManager : UnitySingleton<BattleManager>
         ActorView local = localSlot == P2Slot ? p2 : p1;
         LocalCharacter = local != null ? local.Character : null;
         if (local != null) CameraControllor.Instance.SetTarget(local, true);
+        Training = IsOnline || _p1 == null || _p2 == null ? null : new TrainingSession(_p1, _p2, _hpMode, MeleeBotBrain.Create());
 
         // 生成物实例与视图、动作事件特效全部在加载阶段预建 (局内不再 Load / 新建实例)
         SceneManager.Instance.PrewarmSpawnViews(_spawnPool.Instances);
 
         PlayerLoadout localLoadout = localSlot == P2Slot ? _p2Loadout : _p1Loadout;
-        GameFlow.Instance.OnBattleLoaded(new KiHan.UI.BattleHudPanel.Args { P1 = _p1, P2 = _p2, Local = LocalCharacter, LocalLoadout = localLoadout });
+        GameFlow.Instance.OnBattleLoaded(new KiHan.UI.BattleHudPanel.Args { P1 = _p1, P2 = _p2, Local = LocalCharacter, LocalLoadout = localLoadout, Training = Training });
     }
 
     /// <summary>
@@ -156,7 +205,7 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         CharacterObj character = CharacterFactory.Create(characterId, slot, slot, slot, position, facingLeft);
         if (character == null) return null;
-        character.infiniteHp = _infiniteHp;
+        character.hpMode = _hpMode;
 
         World.AddCharacter(character);
         _characters.Add(character);
@@ -174,8 +223,13 @@ public class BattleManager : UnitySingleton<BattleManager>
     {
         if (!GameFlow.Instance.IsGameRunning || World == null) return;
 
+        bool teleported = Training != null && Training.BeforeTick();
         World.Tick(frame);
+        Training?.AfterTick(World);
         SceneManager.Instance.OnLogicTick(World);
+
+        // 训练场瞬移：敌人视图直接对齐到新位置，不从旧位置插值滑过去
+        if (teleported) ViewManager.Instance.GetView(_p2.EntityId)?.SnapToLogic();
     }
 
     /// <summary>
@@ -196,6 +250,7 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         World = null;
         LocalCharacter = null;
+        Training = null;
         _p1 = null;
         _p2 = null;
         CameraControllor.Instance.ResetView();

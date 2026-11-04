@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using KiHan.Asset;
 using KiHan.Config;
 using KiHan.Math;
+using TrueSync;
 using UnityEngine;
 
 namespace KiHan.Logic
@@ -23,6 +24,12 @@ namespace KiHan.Logic
         public SkillInfo[] Skills;
         public int ChakraMax;
         public int ChakraStart;
+
+        /// <summary>
+        /// 暴击率 (0~1) 与暴击伤害倍率，来自角色包清单
+        /// </summary>
+        public FP CritRate;
+        public FP CritMultiplier = FP.One;
         public readonly Dictionary<string, SpawnInfo> Spawns = new Dictionary<string, SpawnInfo>();
         public readonly Dictionary<string, BuffInfo> Buffs = new Dictionary<string, BuffInfo>();
     }
@@ -73,7 +80,9 @@ namespace KiHan.Logic
                 Id = manifest.id,
                 Manifest = manifest,
                 Anims = manifest.animations.FindAll(clip => clip != null).ToArray(),
-                Actions = LoadActions(manifest)
+                Actions = LoadActions(manifest),
+                CritRate = ParseStat(manifest.critRate, FP.Zero),
+                CritMultiplier = ParseStat(manifest.critMultiplier, FP.One)
             };
 
             SkillDataContainer skills = LoadJson<SkillDataContainer>(manifest.skills);
@@ -107,6 +116,14 @@ namespace KiHan.Logic
         }
 
         /// <summary>
+        /// 解析角色包清单中的定点数属性，空或格式错误时用默认值 (CharacterValidator 会报告格式错误)
+        /// </summary>
+        public static FP ParseStat(string text, FP fallback)
+        {
+            return !string.IsNullOrEmpty(text) && FP.TryParse(text, out FP value) ? value : fallback;
+        }
+
+        /// <summary>
         /// 退出战斗时释放模板 (下次进入重新读取配置)
         /// </summary>
         public static void ClearTemplates()
@@ -131,6 +148,8 @@ namespace KiHan.Logic
             var skills = new SkillController();
             skills.Setup(template.Skills, template.ChakraMax, template.ChakraStart);
             character.Skills = skills;
+            character.critRate = template.CritRate;
+            character.critMultiplier = template.CritMultiplier;
 
             character.FacingLeft = facingLeft;
             character.motion.Reset(position);

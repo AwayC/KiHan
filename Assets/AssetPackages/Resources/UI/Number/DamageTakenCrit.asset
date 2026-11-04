@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5bdb572151b428996cb7687957ae80e, type: 3}
+  m_Name: DamageTakenCrit
+  m_EditorClassIdentifier: 
+  digits:
+  - {fileID: -696694693, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: -67403722, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: -249391055, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: 301600410, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: 1018481037, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: -1771917784, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: -1519540086, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: -1636512005, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: 975316850, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  - {fileID: -1804234608, guid: e74ffc73fcc344249898582300d50885, type: 3}
+  spacing: -40
+  scale: 0.4
+  backdrops:
+  - {fileID: 21300000, guid: a9d97f17f767f084d896b8538d41e28a, type: 3}
+  - {fileID: 21300000, guid: 15b919134ebf92f4cbe84ba11217eb3d, type: 3}
+  - {fileID: 21300000, guid: 01d540a11b8422940b400ba503266238, type: 3}
+  - {fileID: 21300000, guid: 06b43be07e7147c4e8cc79a896053d77, type: 3}
+  - {fileID: 21300000, guid: 8ba43ea3b5ee7cc43a2c51876509ff1a, type: 3}
+  backdropScale: 1

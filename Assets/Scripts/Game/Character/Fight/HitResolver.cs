@@ -7,7 +7,7 @@ namespace KiHan.Logic
     /// 命中结算 (纯确定性)
     ///
     /// 流程：
-    /// 1. 命中记录、扣血 (霸体抵挡、被抓中同样扣血)
+    /// 1. 命中记录、暴击判定 (按攻击者主人的暴击率确定性判定，伤害 × 暴击倍率)、扣血 (霸体抵挡、被抓中同样扣血)
     /// 2. 被抓中的目标：只结算伤害，保持原抓取状态 (不受击退/击飞/外力影响，也不会被其他抓取覆盖)
     ///    投掷做法：抓取锚点在第 N 帧消失 (先于命中检测释放)，同一帧开启的攻击即按正常受击结算
     /// 3. 霸体裁决：攻击破霸等级 &lt; 受击者霸体等级 -> 只结算伤害，不产生任何受击反应
@@ -22,6 +22,11 @@ namespace KiHan.Logic
     /// </summary>
     public static class HitResolver
     {
+        /// <summary>
+        /// 暴击判定的精度 (万分比)
+        /// </summary>
+        private const uint CritRollRange = 10000;
+
         public static HitEvent Resolve(HitResult hit, uint frameId)
         {
             CharacterObj attacker = hit.Attacker;
@@ -29,7 +34,10 @@ namespace KiHan.Logic
             AttackInfo atk = hit.Attack;
 
             attacker.AddHitRecord(target, hit.AttackPhase);
-            target.TakeDamage(atk.attack);
+            CharacterObj owner = attacker.RootOwner;
+            bool critical = RollCritical(owner, target, hit.AttackPhase, frameId);
+            FP damage = critical ? atk.attack * owner.critMultiplier : atk.attack;
+            target.TakeDamage(damage);
 
             // 技能 (含技能生成物) 命中为主人获得查克拉 (每次技能刷新只获得一次)
             attacker.OnHitDealt();
@@ -63,13 +71,25 @@ namespace KiHan.Logic
             {
                 FrameId = frameId,
                 AttackerId = attacker.EntityId,
-                OwnerId = attacker.RootOwner.EntityId,
+                OwnerId = owner.EntityId,
                 TargetId = target.EntityId,
                 AttackPhase = hit.AttackPhase,
-                Damage = atk.attack,
+                Damage = damage,
+                Critical = critical,
                 HitPoint = hit.HitPoint,
                 Reaction = reaction
             };
+        }
+
+        /// <summary>
+        /// 暴击判定：无限暴击必定暴击；否则按暴击率与 (帧号, 双方, 攻击阶段) 的确定性哈希判定 (与僵直变体的随机互不相关)
+        /// </summary>
+        private static bool RollCritical(CharacterObj owner, CharacterObj target, int attackPhase, uint frameId)
+        {
+            if (owner.alwaysCrit) return true;
+            if (owner.critRate <= FP.Zero) return false;
+            uint roll = LogicHash.Mix(frameId ^ 0x9E3779B9u, target.EntityId, owner.EntityId * 31 + attackPhase) % CritRollRange;
+            return FP.FromInt((int)roll) < owner.critRate * FP.FromInt((int)CritRollRange);
         }
 
         private static HitReaction ApplyReaction(HitResult hit, CharacterObj attacker, CharacterObj target, AttackInfo atk, uint frameId)

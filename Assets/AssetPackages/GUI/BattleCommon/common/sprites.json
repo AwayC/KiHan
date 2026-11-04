@@ -1,0 +1,702 @@
+[
+ {
+  "name": "shenfuyifen_shuimo",
+  "file": "shenfuyifen_shuimo.png",
+  "size": [
+   1024,
+   335
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "title2",
+  "file": "title2.png",
+  "size": [
+   771,
+   269
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "BG",
+  "file": "BG.png",
+  "size": [
+   261,
+   236
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-bufenshengfu",
+  "file": "wenzi-bufenshengfu.png",
+  "size": [
+   391,
+   148
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   6,
+   0,
+   3,
+   0
+  ]
+ },
+ {
+  "name": "result01",
+  "file": "result01.png",
+  "size": [
+   288,
+   182
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "dian4",
+  "file": "dian4.png",
+  "size": [
+   408,
+   128
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "wenzi-shijianhaojin",
+  "file": "wenzi-shijianhaojin.png",
+  "size": [
+   390,
+   130
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   0,
+   7,
+   1
+  ]
+ },
+ {
+  "name": "pomo0004",
+  "file": "pomo0004.png",
+  "size": [
+   309,
+   147
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zhong",
+  "file": "zhong.png",
+  "size": [
+   220,
+   161
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0005",
+  "file": "pomo0005.png",
+  "size": [
+   207,
+   154
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   2,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0003",
+  "file": "pomo0003.png",
+  "size": [
+   268,
+   112
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "six",
+  "file": "six.png",
+  "size": [
+   168,
+   175
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   14,
+   0,
+   14,
+   1
+  ]
+ },
+ {
+  "name": "3",
+  "file": "3.png",
+  "size": [
+   194,
+   149
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   2,
+   16,
+   0,
+   11
+  ]
+ },
+ {
+  "name": "4",
+  "file": "4.png",
+  "size": [
+   193,
+   146
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   14,
+   3,
+   16
+  ]
+ },
+ {
+  "name": "5",
+  "file": "5.png",
+  "size": [
+   175,
+   160
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   8,
+   10,
+   13,
+   6
+  ]
+ },
+ {
+  "name": "2",
+  "file": "2.png",
+  "size": [
+   190,
+   122
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   24,
+   3,
+   30
+  ]
+ },
+ {
+  "name": "wenzi-danju-shengzhe",
+  "file": "wenzi-danju-shengzhe.png",
+  "size": [
+   210,
+   109
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0002",
+  "file": "pomo0002.png",
+  "size": [
+   185,
+   91
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "pomo0001",
+  "file": "pomo0001.png",
+  "size": [
+   143,
+   114
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "1",
+  "file": "1.png",
+  "size": [
+   175,
+   66
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   6,
+   54,
+   15,
+   56
+  ]
+ },
+ {
+  "name": "guang",
+  "file": "guang.png",
+  "size": [
+   206,
+   55
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "dian",
+  "file": "dian.png",
+  "size": [
+   75,
+   92
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "zui",
+  "file": "zui.png",
+  "size": [
+   69,
+   82
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Result03",
+  "file": "Result03.png",
+  "size": [
+   107,
+   52
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "di",
+  "file": "di.png",
+  "size": [
+   73,
+   74
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "hui",
+  "file": "hui.png",
+  "size": [
+   63,
+   68
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Result01",
+  "file": "Result01_2.png",
+  "size": [
+   79,
+   53
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Nor",
+  "file": "Nor.png",
+  "size": [
+   54,
+   58
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Lock",
+  "file": "Lock.png",
+  "size": [
+   54,
+   58
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian2",
+  "file": "modian2.png",
+  "size": [
+   93,
+   20
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian 1",
+  "file": "modian 1.png",
+  "size": [
+   50,
+   34
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian-1",
+  "file": "modian-1.png",
+  "size": [
+   26,
+   18
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "血量标",
+  "file": "血量标.png",
+  "size": [
+   20,
+   22
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian3",
+  "file": "modian3.png",
+  "size": [
+   22,
+   15
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "modian1",
+  "file": "modian1.png",
+  "size": [
+   16,
+   9
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

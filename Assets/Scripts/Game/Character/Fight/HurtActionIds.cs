@@ -78,16 +78,7 @@ namespace KiHan.Logic
             if (variants == null || variants.Count == 0) return Stand;
             if (variants.Count == 1) return variants[0];
 
-            unchecked
-            {
-                uint h = frameId * 2654435761u ^ (uint)targetId * 2246822519u ^ (uint)attackerId * 3266489917u;
-                h ^= h >> 15;
-                h *= 2246822519u;
-                h ^= h >> 13;
-                h *= 3266489917u;
-                h ^= h >> 16;
-                return variants[(int)(h % (uint)variants.Count)];
-            }
+            return variants[(int)(LogicHash.Mix(frameId, targetId, attackerId) % (uint)variants.Count)];
         }
 
         public static ActionChangeInfo ChangeTo(string id, int priority = Priority, int fromFrame = 0, bool hold = false) => new ActionChangeInfo

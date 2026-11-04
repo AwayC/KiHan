@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 90001
   displayName: "\u9E23\u4EBA"
-  headshot: {fileID: 21300000, guid: be445394a34e4a747ac3a921895244d8, type: 3}
+  headshot: {fileID: 21300000, guid: bb9f33fc44e24a240933b4bbe8677bb5, type: 3}
+  critRate: 0.15
+  critMultiplier: 1.5
   actions: {fileID: 4900000, guid: c4e6b3ef81e632d4db328dc251f51227, type: 3}
   skills: {fileID: 4900000, guid: dff45c14f500f01469897d4906df3218, type: 3}
   spawns: {fileID: 4900000, guid: 508b9b7320d054145a7127ee25a03aac, type: 3}

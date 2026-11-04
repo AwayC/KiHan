@@ -1,0 +1,262 @@
+[
+ {
+  "name": "num0",
+  "file": "num0.png",
+  "size": [
+   141,
+   173
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   1,
+   0,
+   1
+  ]
+ },
+ {
+  "name": "num1",
+  "file": "num1.png",
+  "size": [
+   97,
+   170
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   0,
+   1
+  ]
+ },
+ {
+  "name": "num2",
+  "file": "num2.png",
+  "size": [
+   138,
+   176
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "num3",
+  "file": "num3.png",
+  "size": [
+   141,
+   174
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "num4",
+  "file": "num4.png",
+  "size": [
+   140,
+   182
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   2,
+   0
+  ]
+ },
+ {
+  "name": "num5",
+  "file": "num5.png",
+  "size": [
+   139,
+   179
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "num6",
+  "file": "num6.png",
+  "size": [
+   135,
+   182
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "num7",
+  "file": "num7.png",
+  "size": [
+   144,
+   178
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   0,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "num8",
+  "file": "num8.png",
+  "size": [
+   134,
+   182
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   1,
+   1,
+   1
+  ]
+ },
+ {
+  "name": "num9",
+  "file": "num9.png",
+  "size": [
+   138,
+   189
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   1,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "number_bg",
+  "file": "number_bg.png",
+  "size": [
+   301,
+   244
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   3,
+   6,
+   6,
+   6
+  ]
+ },
+ {
+  "name": "number_bg2",
+  "file": "number_bg2.png",
+  "size": [
+   178,
+   138
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "number_bg3",
+  "file": "number_bg3.png",
+  "size": [
+   96,
+   72
+  ],
+  "border": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "padding": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

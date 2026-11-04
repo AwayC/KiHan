@@ -11,7 +11,7 @@ namespace KiHan.Config
     /// 目录约定 (以清单所在目录为包根目录)：
     /// - Config/actions.json、skills.json、spawns.json、buffs.json
     /// - 任意位置的 AnimationFrameData (资源名即 animKey) 与帧库
-    /// - 任意位置的特效 prefab、UI/ 下的图片 (头像、技能图标)
+    /// - 任意位置的特效 / 演出 prefab、SoundCue 与音频、UI/ 下的图片 (头像、技能图标)
     ///
     /// 包内资源按"相对包根目录的路径 (不含扩展名)"作为 key 引用，多图切片追加 "#子图名"，
     /// 如 effect/lxw/ball、UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0；json 中只写 key，包可以整体移动或改名。
@@ -37,6 +37,13 @@ namespace KiHan.Config
         [Tooltip("战斗 HUD 头像")]
         public Sprite headshot;
 
+        [Header("战斗属性 (手动填写，定点数字符串)")]
+        [Tooltip("暴击率 0~1 (生成物命中按主人计算)")]
+        public string critRate = "0.15";
+
+        [Tooltip("暴击伤害倍率 (≥ 1)")]
+        public string critMultiplier = "1.5";
+
         [Header("配置 (自动收集 Config/ 目录)")]
         public TextAsset actions;
         public TextAsset skills;
@@ -46,7 +53,7 @@ namespace KiHan.Config
         [Header("动画 (自动收集包内全部 AnimationFrameData)")]
         public List<AnimationFrameData> animations = new List<AnimationFrameData>();
 
-        [Header("包内资源表 (自动收集包内 prefab 与 UI/ 下的图片)")]
+        [Header("包内资源表 (自动收集包内 prefab、SoundCue、音频与 UI/ 下的图片)")]
         public List<CharacterResource> resources = new List<CharacterResource>();
 
         [NonSerialized] private Dictionary<string, Object> _lookup;
@@ -93,11 +100,19 @@ namespace KiHan.Config
             }
         }
 
-        private void OnValidate()
+        /// <summary>
+        /// 资源表被修改后重建索引 (编辑器刷新角色包时调用；代码赋值不会触发 OnValidate)
+        /// </summary>
+        public void ResetLookup()
         {
-            // 资源表在编辑器中被修改 (刷新 / 手动编辑) 后重建索引
             _lookup = null;
             _addresses = null;
+        }
+
+        private void OnValidate()
+        {
+            // 资源表在 Inspector 中被手动编辑后重建索引
+            ResetLookup();
         }
     }
 
