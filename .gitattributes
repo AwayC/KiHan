@@ -2,10 +2,8 @@
 # KiHan Git 换行符与资产属性规范 (.gitattributes)
 # 全局强制标准：所有文本资源一律采用 LF (Unix) 换行符与 UTF-8
 # ---------------------------------------------------------------
-
 # 全局默认文本推断
 * text=auto eol=lf
-
 # C# 源码、着色器与文本配置
 *.cs text eol=lf diff=csharp
 *.shader text eol=lf
@@ -18,7 +16,6 @@
 *.yml text eol=lf
 *.csproj text eol=lf
 *.sln text eol=lf
-
 # Unity 文本格式元数据与资产
 *.meta text eol=lf
 *.asset text eol=lf
@@ -29,7 +26,6 @@
 *.controller text eol=lf
 *.spriteatlas text eol=lf
 *.asmdef text eol=lf
-
 # 纯二进制文件 (禁用换行符转换)
 *.png binary
 *.jpg binary
@@ -43,7 +39,8 @@
 *.dll binary
 *.so binary
 *.a binary
-
 # Git LFS 大文件追踪 (继承原项目配置)
 *.png filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
+Assets/StreamingAssets/LoginTen.mp4 filter=lfs diff=lfs merge=lfs -text
+Assets/AssetPackages/Movies/LoginTen.mp4 filter=lfs diff=lfs merge=lfs -text
