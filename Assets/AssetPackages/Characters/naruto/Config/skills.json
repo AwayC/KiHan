@@ -7,18 +7,14 @@
       "button": "Skill1",
       "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
       "cooldown": "3",
-      "stages": [
-        { "actionId": "skill1" }
-      ]
+      "actionId": "skill1"
     },
     {
       "id": "skill2",
       "button": "Skill2",
       "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_1",
       "cooldown": "3",
-      "stages": [
-        { "actionId": "skill2_1", "followActions": ["skill2_land", "skill2_2"] }
-      ]
+      "actionId": "skill2_1"
     },
     {
       "id": "ultimate",
@@ -26,9 +22,13 @@
       "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_2",
       "cooldown": "0",
       "chakraCost": 4,
-      "stages": [
-        { "actionId": "ultimate" }
-      ]
+      "actionId": "ultimate"
+    },
+    {
+      "id": "secret",
+      "button": "Secret",
+      "cooldown": "10",
+      "actionId": "secret"
     },
     {
       "id": "substitution",
@@ -36,9 +36,7 @@
       "cooldown": "3",
       "chakraCost": 1,
       "requireHurt": true,
-      "stages": [
-        { "actionId": "substitution" }
-      ]
+      "actionId": "substitution"
     }
   ]
 }

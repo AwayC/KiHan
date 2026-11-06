@@ -7,10 +7,10 @@ namespace KiHan.Logic
 {
     /// <summary>
     /// 动作事件类型
-    /// - Spawn / Buff 影响逻辑：生成投射物 / 分身 (BattleWorld 在本帧末尾统一执行)；给自己添加一层 Buff
+    /// - Spawn 影响逻辑：生成投射物 / 分身 (BattleWorld 在本帧末尾统一执行)
     /// - Effect / Camera 只通知表现层 (BattleWorld.ViewEvents)，不影响逻辑状态
     /// - Sound / Cinematic 只通知表现层
-    /// - BuffRemoved 只出现在表现事件中 (Buff 到期)
+    /// - Buff / BuffRemoved 只出现在表现事件中 (Buff 添加 / 移除时播放 / 停止循环特效)；给角色加 Buff 用动作指令 addBuff
     /// </summary>
     public enum ActionEventType
     {
@@ -38,7 +38,7 @@ namespace KiHan.Logic
         public ActionEventType type;
 
         /// <summary>
-        /// Effect：特效 key (优先在本角色包资源表中查找，找不到按全局 Resources 路径加载)；Camera：镜头效果名 (见 CameraEffects)；Buff：buff id (buffs.json)；
+        /// Effect：特效 key (优先在本角色包资源表中查找，找不到按全局 Resources 路径加载)；Camera：镜头效果名 (见 CameraEffects)；
         /// Sound：音效 key (SoundCue 或 AudioClip，优先本角色包)；Cinematic：演出预制体 key (根节点带 PlayableDirector + Timeline)
         /// </summary>
         public string asset;
@@ -127,10 +127,15 @@ namespace KiHan.Logic
         public ActionEventInfo ToRuntime()
         {
             bool world = worldPos.IsSet;
+            ActionEventType parsed = ActionData.ParseEnum(type, ActionEventType.Effect);
+            if (parsed == ActionEventType.Buff || parsed == ActionEventType.BuffRemoved)
+            {
+                Debug.LogError($"[ActionData] 动作事件不能使用 {parsed} 类型 (第 {frame} 帧)：给角色加 Buff 改用动作指令 addBuff");
+            }
             return new ActionEventInfo
             {
                 frame = frame,
-                type = ActionData.ParseEnum(type, ActionEventType.Effect),
+                type = parsed,
                 asset = asset ?? string.Empty,
                 spawnId = spawnId ?? string.Empty,
                 anchor = anchor ?? string.Empty,

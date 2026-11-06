@@ -7,7 +7,7 @@ using UnityEngine;
 namespace View.UI
 {
     /// <summary>
-    /// 技能按键图标缓存：加载阶段按 skills.json 中技能与各段的 icon 一次性解析，局内只查表
+    /// 技能按键图标缓存：加载阶段按 skills.json 中技能的 icon 与动作指令 skillStage 的 icon 一次性解析，局内只查表
     /// icon 优先作为角色包资源 key 查找 (如 UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0)，
     /// 找不到时按全局 Resources 地址加载 (单图路径，或多图切片 "路径#子图名")
     /// </summary>
@@ -17,12 +17,16 @@ namespace View.UI
 
         public void Preload(SkillController skills, CharacterManifest manifest)
         {
-            for (int i = 0; i < skills.Count; i++)
-            {
-                SkillInfo skill = skills.GetSkill(i);
-                Add(skill.icon, manifest);
-                foreach (SkillStageInfo stage in skill.stages) Add(stage.icon, manifest);
-            }
+            for (int i = 0; i < skills.Count; i++) Add(skills.GetSkill(i).icon, manifest);
+            foreach (string icon in skills.StageIcons) Add(icon, manifest);
+        }
+
+        /// <summary>
+        /// 直接登记一张图标 (秘卷等不走资源地址的图标)，需在 Preload 之前调用
+        /// </summary>
+        public void Register(string key, Sprite sprite)
+        {
+            if (!string.IsNullOrEmpty(key) && sprite != null) _sprites[key] = sprite;
         }
 
         public void Clear()

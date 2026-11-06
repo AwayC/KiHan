@@ -135,7 +135,8 @@ namespace KiHan.Logic
         /// <param name="entityId">逻辑实体 ID (双端一致，决定结算顺序)</param>
         /// <param name="teamId">阵营</param>
         /// <param name="inputSlot">RoomFrame.InputFrames 的玩家槽位</param>
-        public static CharacterObj Create(int characterId, int entityId, int teamId, int inputSlot, FPVector3 position, bool facingLeft)
+        /// <param name="secretScroll">佩戴的秘卷 id (秘卷表)，为空不佩戴</param>
+        public static CharacterObj Create(int characterId, int entityId, int teamId, int inputSlot, FPVector3 position, bool facingLeft, string secretScroll = null)
         {
             CharacterTemplate template = GetTemplate(characterId);
             if (template == null) return null;
@@ -146,7 +147,7 @@ namespace KiHan.Logic
             character.InputSlot = inputSlot;
 
             var skills = new SkillController();
-            skills.Setup(template.Skills, template.ChakraMax, template.ChakraStart);
+            skills.Setup(WithSecretScroll(template, secretScroll), template.Actions, template.ChakraMax, template.ChakraStart);
             character.Skills = skills;
             character.critRate = template.CritRate;
             character.critMultiplier = template.CritMultiplier;
@@ -154,6 +155,36 @@ namespace KiHan.Logic
             character.FacingLeft = facingLeft;
             character.motion.Reset(position);
             return character;
+        }
+
+        /// <summary>
+        /// 佩戴秘卷：角色的秘卷技能 (button 为 Secret) 换成秘卷的 CD、图标与 Buff (复制技能配置，模板不变)；
+        /// 没有佩戴或角色没有秘卷技能时返回模板的技能
+        /// </summary>
+        private static SkillInfo[] WithSecretScroll(CharacterTemplate template, string scrollId)
+        {
+            SecretScrollEntry scroll = SecretScrollRegistry.Find(scrollId);
+            if (scroll == null)
+            {
+                if (!string.IsNullOrEmpty(scrollId)) Debug.LogError($"[CharacterFactory] 秘卷表中没有秘卷 {scrollId}");
+                return template.Skills;
+            }
+
+            var skills = new SkillInfo[template.Skills.Length];
+            bool applied = false;
+            for (int i = 0; i < skills.Length; i++)
+            {
+                skills[i] = template.Skills[i];
+                if (applied || skills[i].button != CommandKey.Secret) continue;
+                SkillInfo secret = skills[i].Clone();
+                secret.cooldownTicks = GameConfig.SecondsToTicks(ActionData.ParseFP(scroll.cooldown));
+                secret.icon = scroll.icon != null ? scroll.IconKey : secret.icon;
+                secret.buff = scroll.buff != null ? scroll.buff.id : string.Empty;
+                skills[i] = secret;
+                applied = true;
+            }
+            if (!applied) Debug.LogWarning($"[CharacterFactory] 角色 {template.Id} 没有秘卷技能 (skills.json 中 button 为 Secret 的技能)，秘卷 {scrollId} 无法释放");
+            return skills;
         }
 
         /// <summary>

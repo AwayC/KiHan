@@ -17,7 +17,7 @@ namespace KiHan.Logic
         public int AttackPhase;
 
         /// <summary>
-        /// 命中发生在攻击方动作的哪个动画帧 (命中记录 recordHitFrames 按此判断)
+        /// 命中发生在攻击方动作的哪个动画帧 (hit 指令的区间按此判断)
         /// </summary>
         public int Frame;
 

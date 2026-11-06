@@ -13,6 +13,7 @@ namespace KiHan.Logic
     /// 2. 匹配 CancelTag 与 BeCancelledTag 整数帧打断窗口，结合 InputToCommand 决策出招
     /// 3. 管理自动流向 (autoNextActionId) 与循环动作维持 (keepPlayingAnim)
     /// 4. 激活当前帧攻击盒与受击盒，计算移动速度倍率
+    /// 5. 执行动作指令 (scripts)：帧 / 命中 / 输入 / 离开触发的跳转、变量与条件、技能换段
     /// </summary>
     public class ActionController : MonoBehaviour
     {
@@ -197,7 +198,12 @@ namespace KiHan.Logic
             // 6. 动作时间轴事件
             FireEvents(_wasFrame, _curFrame);
 
-            // 7. 遍历动作库检测主动打断 (受控锁定时不能主动行动，只检测受击中强制进入的动作)
+            // 7. 动作指令：帧指令与输入指令 (跳转预约先于 autoNext 加入，autoNext 只在没有其他预约时兜底)
+            RunFrameScripts(_scriptFrom > _wasFrame ? _scriptFrom : _wasFrame, _curFrame);
+            if (_curFrame > _scriptFrom) _scriptFrom = _curFrame;
+            if (!ControlLocked) RunInputScripts();
+
+            // 8. 遍历动作库检测主动打断 (受控锁定时不能主动行动，只检测受击中强制进入的动作)
             if (!ControlLocked)
             {
                 foreach (ActionInfo action in AllActions)
@@ -217,7 +223,7 @@ namespace KiHan.Logic
                 PreorderBreakHurtActions();
             }
 
-            // 8. 自然播放结束或输入中断 (autoTerminate) 时预约 autoNext；受控锁定时不走 autoNext (循环或由受击流程驱动)
+            // 9. 自然播放结束或输入中断 (autoTerminate) 时预约 autoNext；受控锁定时不走 autoNext (循环或由受击流程驱动)
             if (!ControlLocked && _preorderActions.Count <= 0 && (anim.IsFinished || CurrentAction.autoTerminate))
             {
                 if (!string.IsNullOrEmpty(CurrentAction.autoNextActionId))
@@ -226,7 +232,7 @@ namespace KiHan.Logic
                 }
             }
 
-            // 9. 动作切换不在此处执行：统一延迟到 FlushPreorders 裁决
+            // 10. 动作切换不在此处执行：统一延迟到 FlushPreorders 裁决
             //    保证本逻辑帧的物理与命中检测使用的仍是实际推进了 [TickFromFrame, TickToFrame) 这些动画帧的动作
             _tickFromFrame = _wasFrame;
             _tickToFrame = _curFrame;
@@ -234,52 +240,216 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 裁决本逻辑帧的全部动作预约 (主动打断 / autoNext / 落地 / 命中 / 命中分支)，按优先级当帧生效
-        /// 由 BattleWorld 在本帧物理与打击结算全部完成后调用 (本帧的命中已写入命中记录，命中分支可以立即判断)
+        /// 裁决本逻辑帧的全部动作预约 (主动打断 / autoNext / 落地 / 命中 / 指令跳转)，按优先级当帧生效
+        /// 由 BattleWorld 在本帧物理与打击结算全部完成后调用 (本帧命中触发的指令已执行，跳转可以立即生效)
         /// </summary>
         public void FlushPreorders()
         {
-            PreorderHitBranches();
             ResolvePreorders();
         }
 
         /// <summary>
-        /// 命中记录：跨动作保留，进入 clearHitRecord 的动作时清空 (对应原版 1013 / 1014 / 1015)
+        /// 单个动作最多可用的 hit / input 指令下标 (每个动作实例按位记录是否已执行)
         /// </summary>
-        public bool HitRecorded { get; private set; }
+        public const int MaxScriptsPerAction = 64;
 
         /// <summary>
-        /// 本动作的攻击在动画帧 frame 命中 (含被霸体抵挡、目标被抓中)：落在 recordHitFrames 内则写入命中记录
+        /// 指令变量名 (SetAllActions 时从全部动作的指令收集，顺序确定) 与当前值：角色级整型变量，跨动作保留，初始为 0
         /// </summary>
-        public void RecordHit(int frame)
+        private readonly List<string> _varNames = new List<string>();
+        private int[] _vars = Array.Empty<int>();
+
+        /// <summary>
+        /// 本动作已执行过帧指令的帧上界：小于它的帧不再执行 (进入帧的指令在切入动作时已执行)
+        /// </summary>
+        private int _scriptFrom;
+
+        /// <summary>
+        /// 本动作实例中已执行过的 hit / input 指令 (按下标置位，每条只执行一次)
+        /// </summary>
+        private ulong _scriptFired;
+
+        /// <summary>
+        /// 指令变量的当前值 (没有该变量时为 0)
+        /// </summary>
+        public int GetVar(string name)
         {
-            FrameRange[] ranges = CurrentAction.recordHitFrames;
-            if (ranges == null) return;
-            for (int i = 0; i < ranges.Length; i++)
+            int index = _varNames.IndexOf(name);
+            return index >= 0 ? _vars[index] : 0;
+        }
+
+        /// <summary>
+        /// 全部指令变量清零 (重置战斗状态 / 实例复用)
+        /// </summary>
+        public void ResetVariables()
+        {
+            Array.Clear(_vars, 0, _vars.Length);
+        }
+
+        /// <summary>
+        /// 本动作的攻击在动画帧 frame 命中 target (含被霸体抵挡、目标被抓中)：执行区间覆盖该帧、尚未执行过的 hit 指令
+        /// (toTarget 的 addBuff / removeBuff 作用于 target)
+        /// </summary>
+        public void OnHit(int frame, CharacterObj target)
+        {
+            ActionScript[] scripts = CurrentAction.scripts;
+            if (scripts == null) return;
+            for (int i = 0; i < scripts.Length; i++)
             {
-                if (frame >= ranges[i].x && frame <= ranges[i].y)
+                if (scripts[i].on != ScriptTrigger.Hit || frame < scripts[i].range.x || frame > scripts[i].range.y || IsFired(i)) continue;
+                MarkFired(i);
+                RunScript(in scripts[i], false, target);
+            }
+        }
+
+        /// <summary>
+        /// 执行帧号落在 [fromFrame, toFrame) 的 frame 指令
+        /// </summary>
+        private void RunFrameScripts(int fromFrame, int toFrame)
+        {
+            ActionScript[] scripts = CurrentAction.scripts;
+            if (scripts == null || toFrame <= fromFrame) return;
+            for (int i = 0; i < scripts.Length; i++)
+            {
+                if (scripts[i].on == ScriptTrigger.Frame && scripts[i].frame >= fromFrame && scripts[i].frame < toFrame)
                 {
-                    HitRecorded = true;
-                    return;
+                    RunScript(in scripts[i], false);
                 }
             }
         }
 
         /// <summary>
-        /// 本逻辑帧推进经过的命中分支帧：命中记录为真时预约切换 (受控锁定时不切换)
+        /// 本逻辑帧处理的动画帧落在区间内、按下了指定按键的 input 指令 (每条只执行一次)
         /// </summary>
-        private void PreorderHitBranches()
+        private void RunInputScripts()
         {
-            HitBranch[] branches = CurrentAction.hitBranches;
-            if (!HitRecorded || ControlLocked || branches == null || _tickToFrame <= _tickFromFrame) return;
-
-            for (int i = 0; i < branches.Length; i++)
+            ActionScript[] scripts = CurrentAction.scripts;
+            if (scripts == null || command == null) return;
+            for (int i = 0; i < scripts.Length; i++)
             {
-                if (branches[i].frame >= _tickFromFrame && branches[i].frame < _tickToFrame)
+                if (scripts[i].on != ScriptTrigger.Input || IsFired(i)) continue;
+                if (!InFrames(_wasFrame, _curFrame, scripts[i].range.x, scripts[i].range.y) || !command.ActionOccur(scripts[i].input, _facingLeft)) continue;
+                MarkFired(i);
+                RunScript(in scripts[i], false);
+            }
+        }
+
+        private void RunExitScripts()
+        {
+            ActionScript[] scripts = CurrentAction.scripts;
+            if (scripts == null) return;
+            for (int i = 0; i < scripts.Length; i++)
+            {
+                if (scripts[i].on == ScriptTrigger.Exit) RunScript(in scripts[i], true);
+            }
+        }
+
+        /// <summary>
+        /// 下标超出位记录范围的 hit / input 指令视为已执行 (不会执行，加载时报错)
+        /// </summary>
+        private bool IsFired(int index)
+        {
+            return index >= MaxScriptsPerAction || (_scriptFired & (1UL << index)) != 0;
+        }
+
+        private void MarkFired(int index)
+        {
+            _scriptFired |= 1UL << index;
+        }
+
+        private void RunScript(in ActionScript script, bool exiting, CharacterObj hitTarget = null)
+        {
+            ScriptCondition[] cond = script.cond;
+            if (cond != null)
+            {
+                for (int i = 0; i < cond.Length; i++)
                 {
-                    _preorderActions.Add(new PreorderActionInfo(branches[i].actionId, branches[i].priority + CurrentAction.priority, 0));
+                    int current = string.IsNullOrEmpty(cond[i].buff)
+                        ? GetVar(cond[i].name)
+                        : (Owner != null ? Owner.RootOwner.Buffs.GetRemaining(cond[i].buff) : 0);
+                    if (!cond[i].Test(current)) return;
                 }
             }
+
+            switch (script.op)
+            {
+                case ScriptOp.Goto:
+                    // 离开动作时的跳转没有意义；受击锁定期间只接受受击流程的切换
+                    if (exiting || ControlLocked) return;
+                    _preorderActions.Add(new PreorderActionInfo(script.action, script.priority + CurrentAction.priority, 0));
+                    break;
+                case ScriptOp.SetVar:
+                    WriteVar(script.name, script.value, false);
+                    break;
+                case ScriptOp.AddVar:
+                    WriteVar(script.name, script.value, true);
+                    break;
+                case ScriptOp.SkillStage:
+                    Owner?.RootOwner.Skills?.EnterStage(script.skill, script.action, script.windowTicks, script.cdReturnTicks, script.icon);
+                    break;
+                case ScriptOp.SkillEnd:
+                    Owner?.RootOwner.Skills?.EndStage(script.skill, script.cdReturnTicks);
+                    break;
+                case ScriptOp.ResetHits:
+                    Owner?.HitRecords.Clear();
+                    break;
+                case ScriptOp.AddBuff:
+                case ScriptOp.RemoveBuff:
+                    RunBuffScript(in script, hitTarget);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// addBuff / removeBuff：默认作用于自己 (生成物作用于主人)，hit 指令配 toTarget 时作用于被打中的目标；Buff 按 id 从世界的 Buff 表查找
+        /// </summary>
+        private void RunBuffScript(in ActionScript script, CharacterObj hitTarget)
+        {
+            if (Owner == null || Owner.World == null) return;
+            CharacterObj target = script.toTarget ? hitTarget : Owner.RootOwner;
+            if (target == null) return;
+            if (script.op == ScriptOp.RemoveBuff)
+            {
+                Owner.World.RemoveBuff(target, script.buff);
+            }
+            else if (Owner.World.BuffTable.TryGetValue(script.buff, out BuffInfo info))
+            {
+                Owner.World.AddBuff(target, info, script.windowTicks);
+        }
+        }
+
+        private void WriteVar(string name, int value, bool add)
+        {
+            int index = _varNames.IndexOf(name);
+            if (index < 0) return;
+            _vars[index] = add ? _vars[index] + value : value;
+        }
+
+        /// <summary>
+        /// 收集全部动作指令用到的变量名并清零
+        /// </summary>
+        private void CollectVariables()
+        {
+            _varNames.Clear();
+            foreach (ActionInfo info in AllActions)
+            {
+                if (info.scripts == null) continue;
+                foreach (ActionScript script in info.scripts)
+                {
+                    if (script.op == ScriptOp.SetVar || script.op == ScriptOp.AddVar) AddVarName(script.name);
+                    if (script.cond == null) continue;
+                    foreach (ScriptCondition c in script.cond)
+                    {
+                        if (string.IsNullOrEmpty(c.buff)) AddVarName(c.name);
+                    }
+                }
+            }
+            _vars = new int[_varNames.Count];
+        }
+
+        private void AddVarName(string name)
+        {
+            if (!string.IsNullOrEmpty(name) && !_varNames.Contains(name)) _varNames.Add(name);
         }
 
         /// <summary>
@@ -294,35 +464,34 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 取优先级最高的预约 (同优先级先到先得，保证确定性)，执行后清空预约列表
+        /// 取优先级最高的预约 (同优先级先到先得，保证确定性)，清空预约列表后执行
+        /// (切入动作时立即执行的进入帧指令可以再加预约，留到下一逻辑帧裁决)
         /// 没有任何预约且处于僵直循环时，受击动作播完则从头循环
         /// </summary>
         private void ResolvePreorders()
         {
-            if (_preorderActions.Count <= 0 && ControlLocked && _loopWhileLocked && anim != null && anim.IsFinished)
+            if (_preorderActions.Count <= 0)
             {
                 // 锁定循环从进入时的起始帧重播 (如浮空动作从空中受击的切片步起播后循环)
-                RestartCurrentAnim(_entryFrame);
+                if (ControlLocked && _loopWhileLocked && anim != null && anim.IsFinished) RestartCurrentAnim(_entryFrame);
+                return;
             }
-            else if (_preorderActions.Count > 0)
+
+            PreorderActionInfo winner = _preorderActions[0];
+            for (int i = 1; i < _preorderActions.Count; i++)
             {
-                PreorderActionInfo winner = _preorderActions[0];
-                for (int i = 1; i < _preorderActions.Count; i++)
-                {
-                    if (_preorderActions[i].Priority > winner.Priority) winner = _preorderActions[i];
-                }
-
-                if (winner.ActionId == CurrentAction.id && CurrentAction.keepPlayingAnim)
-                {
-                    KeepAction(_curFrame);
-                }
-                else
-                {
-                    ChangeAction(winner.ActionId, winner.FromFrame, winner.KeepFrame, winner.Hold);
-                }
+                if (_preorderActions[i].Priority > winner.Priority) winner = _preorderActions[i];
             }
-
             _preorderActions.Clear();
+
+            if (winner.ActionId == CurrentAction.id && CurrentAction.keepPlayingAnim)
+            {
+                KeepAction(_curFrame);
+            }
+            else
+            {
+                ChangeAction(winner.ActionId, winner.FromFrame, winner.KeepFrame, winner.Hold);
+            }
         }
 
         /// <summary>
@@ -619,11 +788,13 @@ namespace KiHan.Logic
             return false;
         }
 
-        private void ChangeAction(string actionId, int fromFrame, bool keepFrame = false, bool hold = false)
+        /// <param name="runExit">执行当前动作的 exit 指令 (实例复用 / 重新装载动作库时不执行)</param>
+        private void ChangeAction(string actionId, int fromFrame, bool keepFrame = false, bool hold = false, bool runExit = true)
         {
             ActionInfo aInfo = GetActionById(actionId, out bool foundAction);
             if (foundAction)
             {
+                if (runExit) RunExitScripts();
                 command?.ConsumePresses();
 
                 ActionInfo previous = CurrentAction;
@@ -632,7 +803,6 @@ namespace KiHan.Logic
                 _entryFrame = keepFrame ? 0 : fromFrame;
                 CurrentAction = aInfo;
                 ActionSerial++;
-                if (aInfo.clearHitRecord) HitRecorded = false;
 
                 CurrentBeCancelledTag.Clear();
                 if (aInfo.beCancelledTag != null)
@@ -661,6 +831,11 @@ namespace KiHan.Logic
                 FacingLeft = aInfo.inverse ? !_facingLeft : _facingLeft;
 
                 Owner?.OnActionChanged(previous, aInfo, keepFrame);
+
+                // 进入帧的指令在切入的同一逻辑帧执行 (技能换段等状态当帧生效)，之后的帧随动画推进执行
+                _scriptFired = 0;
+                RunFrameScripts(fromFrame, fromFrame + 1);
+                _scriptFrom = fromFrame + 1;
             }
         }
 
@@ -671,8 +846,8 @@ namespace KiHan.Logic
         {
             _preorderActions.Clear();
             Unlock();
-            HitRecorded = false;
-            ChangeAction(actionId, 0);
+            ResetVariables();
+            ChangeAction(actionId, 0, runExit: false);
         }
 
         private void KeepAction(int currentFrame)
@@ -691,6 +866,8 @@ namespace KiHan.Logic
             anim?.Play(CurrentAction.animKey, fromFrame);
             _curFrame = fromFrame;
             _wasFrame = fromFrame;
+            _scriptFrom = fromFrame;
+            _scriptFired = 0;
         }
 
         /// <summary>
@@ -765,8 +942,8 @@ namespace KiHan.Logic
             FloatAirHitFrame = hasFloat ? FirstFrameOfStep(HurtActionIds.Float, floatInfo.airHitStep) : 0;
 
             ValidateGrabAnchors();
-            HitRecorded = false;
-            ChangeAction(defaultActionId, 0);
+            CollectVariables();
+            ChangeAction(defaultActionId, 0, runExit: false);
         }
 
         /// <summary>

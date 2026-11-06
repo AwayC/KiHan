@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d624727439d54ec992c9d64498e4287f, type: 3}
+  m_Name: 90999narutotest
+  m_EditorClassIdentifier: 
+  id: 90999
+  displayName: "\u9E23\u4EBA(\u6D4B\u8BD5)"
+  headshot: {fileID: 21300000, guid: bb9f33fc44e24a240933b4bbe8677bb5, type: 3}
+  critRate: 0.15
+  critMultiplier: 1.5
+  actions: {fileID: 4900000, guid: 860eae69a96bd0b45bc5af830dc70ddc, type: 3}
+  skills: {fileID: 4900000, guid: f5b74ac06c3fbd7488cc99728db1e614, type: 3}
+  spawns: {fileID: 4900000, guid: 24340d1b287917641a605968162c4608, type: 3}
+  buffs: {fileID: 0}
+  animations:
+  - {fileID: 11400000, guid: 8db86877e923c364aa7d661d6d16a6ee, type: 2}
+  - {fileID: 11400000, guid: d9e5d664453f7cf4da2565a3cad0d551, type: 2}
+  - {fileID: 11400000, guid: f9660732e11856a40abc30012eec2026, type: 2}
+  - {fileID: 11400000, guid: f15ec1016eb71d9449517b67f65065de, type: 2}
+  - {fileID: 11400000, guid: 31ad252ba369b844bb4f54725c49c950, type: 2}
+  - {fileID: 11400000, guid: 0927f92a3c04fec4aba165327146b9c1, type: 2}
+  - {fileID: 11400000, guid: b7af95a862e4d154ea49705510d7612e, type: 2}
+  - {fileID: 11400000, guid: 5bc83517aed287e4badd7e06afe9f82f, type: 2}
+  - {fileID: 11400000, guid: d161d149df9f0434e842164a92c8ff6e, type: 2}
+  - {fileID: 11400000, guid: 9534b9879f4d25848855e68265c031de, type: 2}
+  - {fileID: 11400000, guid: 77a1d63dcc6243c4f87299a76fd73642, type: 2}
+  - {fileID: 11400000, guid: 2fa5bb73b014b5e4abdcae0990ec2f1a, type: 2}
+  - {fileID: 11400000, guid: 452abf9c6209c6d48ad1fd3220350f07, type: 2}
+  - {fileID: 11400000, guid: 9bce31e374883544ead6d871dbb77e99, type: 2}
+  - {fileID: 11400000, guid: 2309d0d81938a3a46a3f6e54929ce6fc, type: 2}
+  - {fileID: 11400000, guid: b9ebc357f17958b469e457f270f6942c, type: 2}
+  - {fileID: 11400000, guid: c1ca43f4a3b37e842849721d5eac8c45, type: 2}
+  - {fileID: 11400000, guid: 26c4cb8c7f89ba74196b298832ca2e21, type: 2}
+  - {fileID: 11400000, guid: eb3d8d73595234242a66754dc1f5206a, type: 2}
+  - {fileID: 11400000, guid: 9ee0aab55b3e1554f807ad8af5ee6d02, type: 2}
+  - {fileID: 11400000, guid: 9c7b4e223fb4da2419d16e89abe64ddb, type: 2}
+  - {fileID: 11400000, guid: 01c50457e542d1f4890d6506cb232144, type: 2}
+  - {fileID: 11400000, guid: 332553ce7d5f6434392b7ce652911d43, type: 2}
+  - {fileID: 11400000, guid: 17d64f34624698346bdf6478d8cc926e, type: 2}
+  - {fileID: 11400000, guid: fb29be85d3353d842b4c720b5b08f1eb, type: 2}
+  - {fileID: 11400000, guid: ce4d8fbd8f43b0643b0c421873935ccb, type: 2}
+  resources:
+  - key: Effect/90001101
+    asset: {fileID: 287918465331581016, guid: 94d040e7151708d48ba2b150958bc2a8, type: 3}
+  - key: Effect/90001103
+    asset: {fileID: 3132947215041482362, guid: 3e4d46c10beb29c4fba7a6b81ff7cd0f, type: 3}
+  - key: Effect/90001104
+    asset: {fileID: 3859477618202969025, guid: 1ab8124a16facb145bc16f53c0d8fff8, type: 3}
+  - key: Effect/90001105
+    asset: {fileID: 7322107671250295564, guid: 6b1fbca0562f6294b95fab155e6e378a, type: 3}
+  - key: Effect/90001206
+    asset: {fileID: 5248727648190398152, guid: d02d4b1f5ed833e478e4fe26b37e399d, type: 3}
+  - key: Effect/90001207
+    asset: {fileID: 6256120918841670864, guid: 3d6dd13cbd7ba5f47a826bd49d2d2d93, type: 3}
+  - key: Effect/90001208
+    asset: {fileID: 4885496514336318881, guid: e6031bf079add0144809e609525ea3ac, type: 3}
+  - key: Effect/90001212
+    asset: {fileID: 4269904323298481505, guid: d26adf7fc6a9271498b4f956ebba1326, type: 3}
+  - key: Effect/90001301
+    asset: {fileID: 8535155811663108455, guid: 45a82df5901bed944ad892ca9a815ed1, type: 3}
+  - key: Effect/90001302
+    asset: {fileID: 2598593185932843484, guid: b26e0667ba9a75c479a81bef499a1ea3, type: 3}
+  - key: Effect/90001303
+    asset: {fileID: 8553382997692960149, guid: 4edc00f80fe158f469e39db81cfeba3b, type: 3}
+  - key: Effect/90001304
+    asset: {fileID: 7770108673468737554, guid: 2df47b910a965ab4e884e9547cafc6a2, type: 3}
+  - key: Effect/90001305
+    asset: {fileID: 1818122915985019539, guid: 9c361141c2651104bade520e0d4d9af1, type: 3}
+  - key: Effect/90001306
+    asset: {fileID: 7594569993528924370, guid: 293f68dde68105c41869b410ab819058, type: 3}
+  - key: Effect/90001307
+    asset: {fileID: 5007357877840457125, guid: bcc9599295ae2634e968a4d46779d2d8, type: 3}
+  - key: Effect/90001308
+    asset: {fileID: 722013798370539308, guid: baeea52037a94e34f9b943ada9e6bd8e, type: 3}
+  - key: Effect/90001309
+    asset: {fileID: 1238137390265928030, guid: 9af5072d1a2be514a936bffce66735bf, type: 3}
+  - key: Effect/90001310
+    asset: {fileID: 7348852374424546208, guid: e5d3e7e44b4589b45b9885586bf87668, type: 3}
+  - key: Effect/90001311
+    asset: {fileID: 8036315226407147099, guid: b6a868f8c909aba499ca5486e2e5046e, type: 3}
+  - key: Effect/90001312
+    asset: {fileID: 5631202137148960985, guid: 153f7e1dfc4aa0a4288dcb210b676358, type: 3}
+  - key: Effect/90001316
+    asset: {fileID: 6358637193249394488, guid: 4efab96a02699cd45830fc51cd23f963, type: 3}
+  - key: Effect/90001401
+    asset: {fileID: 1129507986521358569, guid: 9759e79d07e7c834ba5dc54584586df3, type: 3}
+  - key: Effect/90001499
+    asset: {fileID: 3619983709586544302, guid: e848f424fba785f4192bcead0f765082, type: 3}
+  - key: Effect/fengshen/fengshen
+    asset: {fileID: 2556400640471425680, guid: 7ab95a96dc59a824a8641b34bef039fd, type: 3}
+  - key: Effect/lxw/ball
+    asset: {fileID: 4589074302170459123, guid: 19b52f477fb950d408945b04fe2d9b24, type: 3}
+  - key: Effect/skill2_smk/skill2_smk
+    asset: {fileID: 2438920868185007899, guid: 96bc85acd8f31d443862fb0b387af3aa, type: 3}
+  - key: Effect/ultraSkill_smk/ultraSkill_smk
+    asset: {fileID: 6588677266008982484, guid: 39231de73affc364dab199df0bdcb76e, type: 3}
+  - key: UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0
+    asset: {fileID: 2131943674, guid: 870bfed0625878c4992cc4a12f717341, type: 3}
+  - key: UI/90001_SkillIconAtlas#90001_SkillIconAtlas_1
+    asset: {fileID: 1453582778, guid: 870bfed0625878c4992cc4a12f717341, type: 3}
+  - key: UI/90001_SkillIconAtlas#90001_SkillIconAtlas_2
+    asset: {fileID: -1258383415, guid: 870bfed0625878c4992cc4a12f717341, type: 3}

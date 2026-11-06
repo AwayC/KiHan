@@ -319,13 +319,18 @@ namespace KiHan.Logic
         #region 动作回调 (ActionController 调用)
 
         /// <summary>
-        /// 动作切换：清除命中记录，技能段流转；进入受击强制动作 (替身) 时解除受击；
+        /// 动作切换：清除命中记录，技能释放归属与换段 (释放配置了 buff 的技能时给自己加 Buff，如秘卷)；进入受击强制动作 (替身) 时解除受击；
         /// 切换到其他动画时清除水平惯性 (击飞流程中的受击动作切换、同一段动画的 keepFrame 变体除外)
         /// </summary>
         public void OnActionChanged(ActionInfo previous, ActionInfo current, bool keepFrame)
         {
             HitRecords.Clear();
-            Skills?.OnActionChanged(current.id);
+            if (Skills != null)
+            {
+                int cast = Skills.OnActionChanged(current.id, current.id == action.DefaultActionId || Hurt != HurtState.None);
+                string buff = cast >= 0 ? Skills.GetSkill(cast).buff : null;
+                if (!string.IsNullOrEmpty(buff) && World != null && World.BuffTable.TryGetValue(buff, out BuffInfo info)) World.AddBuff(this, info);
+            }
             if (current.breakHurt) BreakHurt();
             if (!keepFrame && Hurt != HurtState.Launch) motion.ClearPlanarVelocity();
         }
@@ -347,12 +352,12 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 当前行为归属的技能 (查克拉与生成物来源)：生成物取来源技能，玩家角色取当前动作所属技能
+        /// 当前行为归属的技能 (查克拉与生成物来源)：生成物取来源技能，玩家角色取正在释放的技能
         /// </summary>
         public int AttributedSkill()
         {
             if (Owner != null) return SourceSkill;
-            return Skills != null && action != null ? Skills.SkillIndexOfAction(action.CurrentAction.id) : -1;
+            return Skills != null ? Skills.CastingSkill : -1;
         }
 
         /// <summary>
@@ -750,6 +755,7 @@ namespace KiHan.Logic
             ClearForceMove();
             StopSuction();
             HitRecords.Clear();
+            if (action != null) action.ResetVariables();
             Skills?.Reset();
             Buffs.Clear();
         }

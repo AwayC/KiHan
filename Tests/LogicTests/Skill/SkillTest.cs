@@ -61,7 +61,11 @@ static class Program
                 id = "s1", animKey = "s1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
                 attackPhase = Box(2, 4), attacks = new[] { Hit("10", 3) }
             },
-            new ActionData { id = "m1", animKey = "m1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill2") },
+            new ActionData
+            {
+                id = "m1", animKey = "m1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill2"),
+                scripts = new[] { Stage("0.5", "atlas#stage2") }
+            },
             new ActionData { id = "m2", animKey = "m2", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill2") },
             new ActionData { id = "sub", animKey = "sub", breakHurt = true, commands = Cmd("Substitution") },
             new ActionData
@@ -109,10 +113,10 @@ static class Program
             new ActionData
             {
                 id = "buffact", animKey = "fxact", autoNextActionId = "idle",
-                events = new[]
+                scripts = new[]
                 {
-                    new ActionEventData { frame = 0, type = "Buff", asset = "haste" },
-                    new ActionEventData { frame = 2, type = "Buff", asset = "haste" }
+                    new ActionScriptData { frame = 0, op = "addBuff", buff = "haste" },
+                    new ActionScriptData { frame = 2, op = "addBuff", buff = "haste" }
                 }
             },
         };
@@ -122,15 +126,34 @@ static class Program
         return list;
     }
 
+    /// <summary>
+    /// 多段技能 multi 的换段指令：m1 第 0 帧把按键换成 m2，返还 0.5 秒
+    /// </summary>
+    static ActionScriptData Stage(string window, string icon = null) =>
+        new ActionScriptData { frame = 0, op = "skillStage", skill = "multi", action = "m2", window = window, cdReturn = "0.5", icon = icon };
+
+    /// <summary>
+    /// 按 id 替换动作库中的动作，没有则追加
+    /// </summary>
+    static List<ActionInfo> Replace(List<ActionInfo> actions, params ActionData[] data)
+    {
+        foreach (ActionData d in data)
+        {
+            int i = actions.FindIndex(a => a.id == d.id);
+            if (i >= 0) actions[i] = d.ToRuntime();
+            else actions.Add(d.ToRuntime());
+        }
+        return actions;
+    }
+
     static SkillInfo[] Skills()
     {
-        SkillStageData Stage(string id, string window = null, string refund = null) => new SkillStageData { actionId = id, stageDuration = window, cdReturn = refund };
         var data = new[]
         {
-            new SkillData { id = "s1", button = "Skill1", cooldown = "1", stages = new[] { Stage("s1") } },
-            new SkillData { id = "multi", button = "Skill2", cooldown = "2", stages = new[] { Stage("m1", "0.5", "0.5"), Stage("m2") } },
-            new SkillData { id = "sub", button = "Substitution", cooldown = "1", requireHurt = true, stages = new[] { Stage("sub") } },
-            new SkillData { id = "summon", button = "Secret", cooldown = "1", stages = new[] { Stage("summon") } },
+            new SkillData { id = "s1", button = "Skill1", cooldown = "1", actionId = "s1" },
+            new SkillData { id = "multi", button = "Skill2", icon = "atlas#skill", cooldown = "2", actionId = "m1" },
+            new SkillData { id = "sub", button = "Substitution", cooldown = "1", requireHurt = true, actionId = "sub" },
+            new SkillData { id = "summon", button = "Secret", cooldown = "1", actionId = "summon" },
         };
         var skills = new SkillInfo[data.Length];
         for (int i = 0; i < data.Length; i++) skills[i] = data[i].ToRuntime();
@@ -159,7 +182,7 @@ static class Program
         var p = Make(1, 1, "0", actions, true);
         p.InputSlot = Slot;
         var skills = new SkillController();
-        skills.Setup(Skills(), 4);
+        skills.Setup(Skills(), actions, 4);
         p.Skills = skills;
         return p;
     }
@@ -249,32 +272,69 @@ static class Program
             Check(p.action.CurrentAction.id == "s1", $"CD 结束后再次释放: {p.action.CurrentAction.id}");
         }
 
-        Console.WriteLine("== 2. 多段技能：段间时限内接下一段，释放最后一段时开始完整 CD；超时未接则返还 cdReturn ==");
+        Console.WriteLine("== 2. 多段技能 (动作指令 skillStage)：入口动作第 0 帧换段并开始接段计时 (释放期间照常倒数)，时限内同一按键放下一段并开始完整 CD；超时恢复按键并返还 cdReturn；skillEnd 离开时返还 ==");
         {
             var p = Player(Actions("proj"));
             var w = World(p);
             Step(w, ButtonMask.Skill2);
-            UntilIdle(w, p);
-            Check(p.Skills.GetNextStage(multi) == 1 && p.Skills.GetWindow(multi) == 15 && p.Skills.GetCooldown(multi) == 0,
-                $"第 1 段放完：下一段=1、接段时限 0.5×30=15、CD 未开始: 段={p.Skills.GetNextStage(multi)} 时限={p.Skills.GetWindow(multi)} CD={p.Skills.GetCooldown(multi)}");
+            Check(p.action.CurrentAction.id == "m1" && p.Skills.CastingSkill == multi && p.Skills.GetStageAction(multi) == "m2"
+                && p.Skills.GetWindow(multi) == 15 && p.Skills.GetWindowTotal(multi) == 15 && p.Skills.GetCooldown(multi) == 0,
+                $"按下即进入 m1，第 0 帧 skillStage 当帧换段 (不闪 CD)：下一段=m2、时限 0.5×30=15、CD 0: 动作={p.action.CurrentAction.id} 段={p.Skills.GetStageAction(multi)} 时限={p.Skills.GetWindow(multi)} CD={p.Skills.GetCooldown(multi)}");
+            int m1Ticks = UntilIdle(w, p);
+            Check(p.Skills.GetWindow(multi) == 15 - m1Ticks && p.Skills.GetCooldown(multi) == 0,
+                $"m1 释放期间时限照常倒数: 时限={p.Skills.GetWindow(multi)} (预期 15-{m1Ticks}) CD={p.Skills.GetCooldown(multi)}");
             Step(w, ButtonMask.Skill2);
-            Check(p.action.CurrentAction.id == "m2", $"时限内同一按键接第 2 段 (第 1 段入口被准入拦截): {p.action.CurrentAction.id}");
-            Check(p.Skills.GetCooldown(multi) == 60 && p.Skills.GetNextStage(multi) == 0,
-                $"释放最后一段时开始完整 CD 2×30=60 并回到第 1 段: CD={p.Skills.GetCooldown(multi)} 段={p.Skills.GetNextStage(multi)}");
+            Check(p.action.CurrentAction.id == "m2", $"时限内同一按键放 m2 (入口 m1 被准入拦截): {p.action.CurrentAction.id}");
+            Check(p.Skills.GetCooldown(multi) == 60 && p.Skills.GetStageAction(multi) == "" && p.Skills.GetWindow(multi) == 0 && p.Skills.CastingSkill == multi,
+                $"放下一段时开始完整 CD 2×30=60、恢复按键、时限清零: CD={p.Skills.GetCooldown(multi)} 段=\"{p.Skills.GetStageAction(multi)}\" 时限={p.Skills.GetWindow(multi)}");
             int m2Ticks = UntilIdle(w, p);
-            Check(p.Skills.GetCooldown(multi) == 60 - m2Ticks, $"第 2 段释放期间 CD 照常倒计时: CD={p.Skills.GetCooldown(multi)} (预期 60-{m2Ticks})");
+            Check(p.Skills.GetCooldown(multi) == 60 - m2Ticks, $"m2 释放期间 CD 照常倒计时: CD={p.Skills.GetCooldown(multi)} (预期 60-{m2Ticks})");
 
             var q = Player(Actions("proj"));
             var w2 = World(q);
             Step(w2, ButtonMask.Skill2);
-            UntilIdle(w2, q);
             Step(w2, ButtonMask.None, 14);
-            Check(q.Skills.GetWindow(multi) == 1 && q.Skills.GetCooldown(multi) == 0, $"时限最后一帧前仍可接段: 时限={q.Skills.GetWindow(multi)} CD={q.Skills.GetCooldown(multi)}");
+            Check(q.Skills.GetWindow(multi) == 1 && q.Skills.GetCooldown(multi) == 0, $"时限最后一帧前仍在换段 (从释放起算 14 帧): 时限={q.Skills.GetWindow(multi)} CD={q.Skills.GetCooldown(multi)}");
             Step(w2);
-            Check(q.Skills.GetCooldown(multi) == 45 && q.Skills.GetNextStage(multi) == 0,
-                $"超时：CD = 60 - 返还 0.5×30=15 = 45，回到第 1 段: CD={q.Skills.GetCooldown(multi)} 段={q.Skills.GetNextStage(multi)}");
+            Check(q.Skills.GetCooldown(multi) == 45 && q.Skills.GetStageAction(multi) == "" && q.Skills.GetWindow(multi) == 0,
+                $"超时：恢复按键，CD = 60 - 返还 0.5×30=15 = 45: CD={q.Skills.GetCooldown(multi)} 段=\"{q.Skills.GetStageAction(multi)}\"");
             Step(w2, ButtonMask.Skill2);
-            Check(q.action.CurrentAction.id == "idle", $"超时后 CD 中两段都不能释放: {q.action.CurrentAction.id}");
+            Check(q.action.CurrentAction.id == "idle", $"超时后 CD 中 m1 / m2 都不能释放: {q.action.CurrentAction.id}");
+
+            // 时限短于 m1：释放期间就超时，进入 CD；放完离开时不再打开时限、不重复计算 CD
+            var shortActions = Replace(Actions("proj"), new ActionData
+            {
+                id = "m1", animKey = "m1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill2"),
+                scripts = new[] { Stage("0.1") }
+            });
+            var r = Player(shortActions);
+            var w3 = World(r);
+            Step(w3, ButtonMask.Skill2);
+            Step(w3, ButtonMask.None, 3);
+            Check(r.action.CurrentAction.id == "m1" && r.Skills.CastingSkill == multi && r.Skills.GetWindow(multi) == 0 && r.Skills.GetStageAction(multi) == "" && r.Skills.GetCooldown(multi) == 45,
+                $"m1 释放期间时限 0.1×30=3 帧到期：开始 CD 60-15=45: 动作={r.action.CurrentAction.id} 释放中={r.Skills.CastingSkill} 时限={r.Skills.GetWindow(multi)} CD={r.Skills.GetCooldown(multi)}");
+            int rest = UntilIdle(w3, r);
+            Check(rest == 3 && r.Skills.GetWindow(multi) == 0 && r.Skills.GetCooldown(multi) == 45 - rest,
+                $"m1 放完离开：不再打开时限、CD 不重新计算: 用时 {rest} 帧 (预期 3) 时限={r.Skills.GetWindow(multi)} CD={r.Skills.GetCooldown(multi)} (预期 45-{rest})");
+            Step(w3, ButtonMask.Skill2);
+            Check(r.action.CurrentAction.id == "idle", $"CD 中 m1 / m2 都不能释放: {r.action.CurrentAction.id}");
+
+            // skillEnd：m2 离开时立即开始 CD 并返还 cdReturn (覆盖进入 m2 时开始的完整 CD)
+            var endActions = Replace(Actions("proj"), new ActionData
+            {
+                id = "m2", animKey = "m2", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill2"),
+                scripts = new[] { new ActionScriptData { on = "exit", op = "skillEnd", skill = "multi", cdReturn = "1" } }
+            });
+            var e = Player(endActions);
+            var w4 = World(e);
+            Step(w4, ButtonMask.Skill2);
+            UntilIdle(w4, e);
+            Step(w4, ButtonMask.Skill2);
+            Step(w4);
+            Check(e.action.CurrentAction.id == "m2" && e.Skills.GetCooldown(multi) == 59, $"m2 释放中仍是完整 CD 倒计时: 动作={e.action.CurrentAction.id} CD={e.Skills.GetCooldown(multi)} (预期 59)");
+            int endTicks = UntilIdle(w4, e);
+            Check(e.action.CurrentAction.id == "idle" && e.Skills.GetCooldown(multi) == 30,
+                $"离开 m2 时 exit 指令 skillEnd：CD = 60 - 返还 1×30 = 30 (未按完整 CD 继续倒数到 {59 - endTicks}): CD={e.Skills.GetCooldown(multi)}");
         }
 
         Console.WriteLine("== 3. 查克拉：技能命中获得 1 颗，同一轮多次命中只获得 1 颗；普攻不获得；CD 刷新后可再次获得 ==");
@@ -532,7 +592,7 @@ static class Program
             Check(w2.Despawned.Contains(c2.EntityId), $"生命值归零当帧回收: 已死亡={c2.IsDead}");
         }
 
-        Console.WriteLine("== 10. Buff：动作事件按 id 添加，不限层数，各层独立计时，到期移除并通知表现层停止特效 ==");
+        Console.WriteLine("== 10. Buff：指令 addBuff 按 id 添加，不限层数，各层独立计时，到期移除并通知表现层停止特效 ==");
         {
             var p = Player(Actions("proj"));
             var w = World(p);
@@ -549,42 +609,53 @@ static class Program
                 if (i == 4) Check(p.Buffs.CountOf("haste") == 2, $"第 0 帧与第 2 帧各添加一层: {p.Buffs.CountOf("haste")} 层");
             }
             string s = string.Join(",", log);
-            // 第 1 帧切入动作，第 2 帧处理动画第 0 帧添加 (持续 0.2×30=6 帧，第 8 帧到期)，第 4 帧处理第 2 帧添加 (第 10 帧到期)
-            Check(s == "2:Buff#1:fx_haste,4:Buff#2:fx_haste,8:BuffRemoved#1:fx_haste,10:BuffRemoved#2:fx_haste",
+            // 第 1 帧切入动作，第 0 帧指令在切入当帧添加 (持续 0.2×30=6 帧，第 7 帧到期)，第 4 帧处理动画第 2 帧时添加 (第 10 帧到期)
+            Check(s == "1:Buff#1:fx_haste,4:Buff#2:fx_haste,7:BuffRemoved#1:fx_haste,10:BuffRemoved#2:fx_haste",
                 $"添加与到期事件: {s}");
             Check(p.Buffs.Count == 0, $"全部到期后清空: {p.Buffs.Count}");
         }
 
-        Console.WriteLine("== 11. 技能图标配置：各段图标优先，未配置的段沿用技能图标 ==");
+        Console.WriteLine("== 11. 技能图标：未换段时用技能图标，skillStage 换段期间用指令配置的图标 (未配置沿用技能图标)；全部段图标在 Setup 时收集 ==");
         {
-            var skill = new SkillData
+            var p = Player(Actions("proj"));
+            var w = World(p);
+            Check(p.Skills.StageIcons.Count == 1 && p.Skills.StageIcons[0] == "atlas#stage2", $"收集 skillStage 图标: {string.Join(",", p.Skills.StageIcons)}");
+            Check(p.Skills.GetIcon(multi) == "atlas#skill", $"未换段时用技能图标: {p.Skills.GetIcon(multi)}");
+            Step(w, ButtonMask.Skill2);
+            Check(p.Skills.GetIcon(multi) == "atlas#stage2", $"换段期间用段图标: {p.Skills.GetIcon(multi)}");
+            Step(w, ButtonMask.None, 15);
+            Check(p.Skills.GetWindow(multi) == 0 && p.Skills.GetIcon(multi) == "atlas#skill", $"超时恢复按键后回到技能图标: {p.Skills.GetIcon(multi)}");
+
+            var noIcon = Replace(Actions("proj"), new ActionData
             {
-                id = "multi", icon = "atlas#skill",
-                stages = new[] { new SkillStageData { actionId = "m1" }, new SkillStageData { actionId = "m2", icon = "atlas#stage2" } }
-            }.ToRuntime();
-            Check(skill.IconOfStage(0) == "atlas#skill" && skill.IconOfStage(1) == "atlas#stage2",
-                $"第 1 段沿用技能图标、第 2 段用自己的图标: {skill.IconOfStage(0)} / {skill.IconOfStage(1)}");
+                id = "m1", animKey = "m1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill2"),
+                scripts = new[] { Stage("0.5") }
+            });
+            var q = Player(noIcon);
+            var w2 = World(q);
+            Step(w2, ButtonMask.Skill2);
+            Check(q.Skills.GetWindow(multi) == 15 && q.Skills.GetIcon(multi) == "atlas#skill" && q.Skills.StageIcons.Count == 0,
+                $"未配置段图标：换段期间沿用技能图标、不收集: 图标={q.Skills.GetIcon(multi)} 收集 {q.Skills.StageIcons.Count} 个");
         }
 
-        Console.WriteLine("== 12. 技能派生 (技能划平 A)：技能释放中点普攻接派生 (followActions)，派生仍算释放该技能，CD 从释放技能时开始计算；idle 下点普攻不会进入派生 ==");
+        Console.WriteLine("== 12. 技能派生 (技能划平 A)：技能释放中点普攻经取消窗口进入派生，派生沿用正在释放的技能 (回到 idle 才结束)，CD 从释放技能时开始计算；idle 下点普攻不会进入派生 ==");
         {
-            var actions = Actions("proj");
-            actions[actions.FindIndex(a => a.id == "s1")] = new ActionData
-            {
-                id = "s1", animKey = "s1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
-                beCancelledTag = new[] { new BeCancelledTagData { frameRange = new FrameRange(4, 6), cancelTag = new[] { "s1_follow" } } }
-            }.ToRuntime();
-            actions.Add(new ActionData { id = "s1_follow", animKey = "atk", autoNextActionId = "idle", cancelTag = Tag("s1_follow"), commands = Cmd("Attack") }.ToRuntime());
+            var actions = Replace(Actions("proj"),
+                new ActionData
+                {
+                    id = "s1", animKey = "s1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
+                    beCancelledTag = new[] { new BeCancelledTagData { frameRange = new FrameRange(4, 6), cancelTag = new[] { "s1_follow" } } }
+                },
+                new ActionData { id = "s1_follow", animKey = "atk", autoNextActionId = "idle", cancelTag = Tag("s1_follow"), commands = Cmd("Attack") });
             var p = Make(1, 1, "0", actions, true);
             p.InputSlot = Slot;
             var skills = new SkillController();
-            var follow = new SkillData { id = "s1", button = "Skill1", cooldown = "1", stages = new[] { new SkillStageData { actionId = "s1", followActions = new[] { "s1_follow" } } } };
-            skills.Setup(new[] { follow.ToRuntime() }, 4);
+            skills.Setup(new[] { new SkillData { id = "s1", button = "Skill1", cooldown = "1", actionId = "s1" }.ToRuntime() }, actions, 4);
             p.Skills = skills;
             var w = World(p);
 
             Step(w, ButtonMask.Attack);
-            Check(p.action.CurrentAction.id == "atk", $"idle 下点普攻出普通攻击，派生标签只由技能窗口放行: {p.action.CurrentAction.id}");
+            Check(p.action.CurrentAction.id == "atk" && p.Skills.CastingSkill == -1, $"idle 下点普攻出普通攻击，派生标签只由技能窗口放行: {p.action.CurrentAction.id} 释放中={p.Skills.CastingSkill}");
             UntilIdle(w, p);
 
             // 第 0 帧放 s1，第 2 帧点普攻 (窗口 4~6 帧打开前)，靠预输入在窗口打开时进入派生
@@ -595,36 +666,46 @@ static class Program
             Check(p.action.CurrentAction.id == "s1_follow" && p.Skills.CastingSkill == 0 && p.Skills.GetCooldown(0) == 25,
                 $"窗口打开时接派生，仍算释放 s1，CD 从释放 s1 时起已倒计时 5 帧: 动作={p.action.CurrentAction.id} 释放中={p.Skills.CastingSkill} CD={p.Skills.GetCooldown(0)} (预期 25)");
             int n = UntilIdle(w, p);
-            Check(p.action.CurrentAction.id == "idle" && p.Skills.GetCooldown(0) == 25 - n, $"派生播完回到 idle，CD 不重新计算: 用时 {n} 帧, CD={p.Skills.GetCooldown(0)} (预期 25-{n})");
+            Check(p.action.CurrentAction.id == "idle" && p.Skills.CastingSkill == -1 && p.Skills.GetCooldown(0) == 25 - n,
+                $"派生播完回到 idle 结束释放，CD 不重新计算: 用时 {n} 帧, 释放中={p.Skills.CastingSkill} CD={p.Skills.GetCooldown(0)} (预期 25-{n})");
         }
 
-        Console.WriteLine("== 13. 命中记录与命中分支：前一段的命中跨动作保留，后一段经过分支帧时命中过才切换，否则走 autoNext；记录窗口外的命中不计；clearHitRecord 清掉之前残留的记录 ==");
+        Console.WriteLine("== 13. 动作指令 (scripts)：命中 / 帧 / 输入 / 离开触发，角色级变量跨动作保留，条件比较，受击锁定忽略跳转，resetHits ==");
         {
-            // s1 (空中段)：攻击 2~4 帧，记录窗口可调 -> s1_land (落地段) 第 3 帧命中分支 -> s1_next，未命中 -> idle
-            List<ActionInfo> Branch(int recFrom, int recTo, bool clear)
+            ActionScriptData SetVar(int frame, string name, int value) => new ActionScriptData { frame = frame, op = "setVar", name = name, value = value };
+            ActionScriptData On(string trigger, int from, int to, string op, string name, int value) =>
+                new ActionScriptData { on = trigger, range = new FrameRange(from, to), op = op, name = name, value = value };
+            ActionScriptData Goto(int frame, string action, ScriptConditionData[] cond = null) =>
+                new ActionScriptData { frame = frame, cond = cond, op = "goto", action = action, priority = 50 };
+            ScriptConditionData[] If(string name, string cmp, int value) => new[] { new ScriptConditionData { name = name, cmp = cmp, value = value } };
+            AttackData Weak(int times) => new AttackData { attack = "1", hitStun = "0.3", canHitSameTarget = times, hitSameTargetDelay = "0" };
+            var next = new ActionData { id = "s1_next", animKey = "vanish", autoNextActionId = "idle" };
+            void Enter(CharacterObj c, string id) =>
+                c.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = id, priority = 200 });
+
+            Console.WriteLine("  -- (a) 跨动作命中分支：s1 (攻击 2~4 帧) 命中区间内 setVar hit 1 -> s1_land 第 3 帧 cond hit==1 goto s1_next，否则 autoNext idle");
+            // reset：s1 第 0 帧 setVar hit 0 (清掉之前残留的值)；普攻任意帧命中也会写 hit 1 (制造残留)
+            List<ActionInfo> Branch(int recFrom, int recTo, bool reset)
             {
-                var actions = Actions("proj");
-                actions[actions.FindIndex(a => a.id == "s1")] = new ActionData
-                {
-                    id = "s1", animKey = "s1", autoNextActionId = "s1_land", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
-                    clearHitRecord = clear, recordHitFrames = new[] { new FrameRange(recFrom, recTo) },
-                    attackPhase = Box(2, 4), attacks = new[] { new AttackData { attack = "1", hitStun = "0.3", canHitSameTarget = 1 } }
-                }.ToRuntime();
-                actions[actions.FindIndex(a => a.id == "atk")] = new ActionData
-                {
-                    id = "atk", animKey = "atk", autoNextActionId = "idle", cancelTag = Tag("attack"), commands = Cmd("Attack"),
-                    recordHitFrames = new[] { All }, attackPhase = Box(1, 3), attacks = new[] { new AttackData { attack = "1", hitStun = "0.3", canHitSameTarget = 1 } }
-                }.ToRuntime();
-                actions.Add(new ActionData
-                {
-                    id = "s1_land", animKey = "standup", autoNextActionId = "idle",
-                    hitBranches = new[] { new HitBranch { frame = 3, actionId = "s1_next", priority = 50 } }
-                }.ToRuntime());
-                actions.Add(new ActionData { id = "s1_next", animKey = "vanish", autoNextActionId = "idle" }.ToRuntime());
-                return actions;
+                var s1Scripts = new List<ActionScriptData>();
+                if (reset) s1Scripts.Add(SetVar(0, "hit", 0));
+                s1Scripts.Add(On("hit", recFrom, recTo, "setVar", "hit", 1));
+                return Replace(Actions("proj"),
+                    new ActionData
+                    {
+                        id = "s1", animKey = "s1", autoNextActionId = "s1_land", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
+                        attackPhase = Box(2, 4), attacks = new[] { Weak(1) }, scripts = s1Scripts.ToArray()
+                    },
+                    new ActionData
+                    {
+                        id = "atk", animKey = "atk", autoNextActionId = "idle", cancelTag = Tag("attack"), commands = Cmd("Attack"),
+                        attackPhase = Box(1, 3), attacks = new[] { Weak(1) }, scripts = new[] { On("hit", 0, 999, "setVar", "hit", 1) }
+                    },
+                    new ActionData { id = "s1_land", animKey = "standup", autoNextActionId = "idle", scripts = new[] { Goto(3, "s1_next", If("hit", "==", 1)) } },
+                    next);
             }
 
-            // 释放 s1 后记录经过的动作序列；staleHit：先用会写记录的普攻打中目标，再把目标移走后释放 s1
+            // 释放 s1 后记录经过的动作序列；staleHit：先用普攻打中目标 (hit=1 残留)，再把目标移走后释放 s1
             string Trace(List<ActionInfo> actions, bool targetInRange, bool staleHit = false)
             {
                 var p = Player(actions);
@@ -648,15 +729,311 @@ static class Program
             }
 
             string hit = Trace(Branch(0, 9, true), true);
-            Check(hit == "s1>s1_land>s1_next>idle", $"空中段命中，落地段第 3 帧切到下一段: {hit}");
+            Check(hit == "s1>s1_land>s1_next>idle", $"s1 命中，s1_land 第 3 帧切到 s1_next: {hit}");
             string miss = Trace(Branch(0, 9, true), false);
-            Check(miss == "s1>s1_land>idle", $"未命中：落地段播完回 idle: {miss}");
+            Check(miss == "s1>s1_land>idle", $"未命中：s1_land 播完回 idle: {miss}");
             string outside = Trace(Branch(6, 9, true), true);
-            Check(outside == "s1>s1_land>idle", $"命中发生在记录窗口 (6~9 帧) 之外不计入: {outside}");
+            Check(outside == "s1>s1_land>idle", $"命中发生在 hit 区间 (6~9 帧) 之外不触发: {outside}");
             string cleared = Trace(Branch(0, 9, true), false, staleHit: true);
-            Check(cleared == "s1>s1_land>idle", $"普攻留下的命中记录被 s1 的 clearHitRecord 清空: {cleared}");
+            Check(cleared == "s1>s1_land>idle", $"普攻留下的 hit=1 被 s1 第 0 帧 setVar hit 0 清掉: {cleared}");
             string stale = Trace(Branch(0, 9, false), false, staleHit: true);
-            Check(stale == "s1>s1_land>s1_next>idle", $"不清空时沿用之前的命中记录 (对照组): {stale}");
+            Check(stale == "s1>s1_land>s1_next>idle", $"不清零时变量跨动作保留 (对照组): {stale}");
+
+            Console.WriteLine("  -- (b) hit 指令每个动作实例只执行一次 (多次命中也一样)，新的动作实例重新执行");
+            {
+                var actions = Replace(Actions("proj"), new ActionData
+                {
+                    id = "s1", animKey = "s1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
+                    attackPhase = Box(2, 4), attacks = new[] { Weak(3) }, scripts = new[] { On("hit", 0, 999, "addVar", "hits", 1) }
+                });
+                var p = Player(actions);
+                var t = Make(2, 2, "0.9", actions, false);
+                t.hpMode = HpMode.Refill;
+                var w = World(p, t);
+                int hits = 0;
+                Step(w, ButtonMask.Skill1);
+                for (int i = 0; i < 10; i++) { Step(w); hits += w.HitEvents.Count; }
+                Check(hits == 3 && p.action.GetVar("hits") == 1, $"s1 命中 3 次，hit 指令只执行 1 次: 命中 {hits} 次, hits={p.action.GetVar("hits")}");
+                Step(w, ButtonMask.None, 40);
+                Step(w, ButtonMask.Skill1);
+                Step(w, ButtonMask.None, 10);
+                Check(p.action.GetVar("hits") == 2, $"再次释放 s1 (新实例) 命中后再执行一次: hits={p.action.GetVar("hits")}");
+            }
+
+            Console.WriteLine("  -- (c) 进入帧 (第 0 帧) 的指令在切入的同一逻辑帧执行，之后的帧随动画推进执行");
+            {
+                var actions = Replace(Actions("proj"), new ActionData
+                {
+                    id = "v0", animKey = "s1", autoNextActionId = "idle", scripts = new[] { SetVar(0, "a", 1), SetVar(3, "a", 2) }
+                });
+                var p = Player(actions);
+                var w = World(p);
+                Enter(p, "v0");
+                Step(w);
+                Check(p.action.CurrentAction.id == "v0" && p.action.GetVar("a") == 1, $"切入 v0 的当帧第 0 帧指令已执行: 动作={p.action.CurrentAction.id} a={p.action.GetVar("a")}");
+                Step(w, ButtonMask.None, 3);
+                Check(p.action.GetVar("a") == 1, $"处理第 0~2 帧：第 3 帧指令尚未执行: a={p.action.GetVar("a")}");
+                Step(w);
+                Check(p.action.GetVar("a") == 2, $"处理到第 3 帧时执行: a={p.action.GetVar("a")}");
+                Check(p.action.GetVar("unknown") == 0, $"没有出现在任何指令中的变量读出为 0: {p.action.GetVar("unknown")}");
+            }
+
+            Console.WriteLine("  -- (d) 受击锁定期间 goto 被忽略 (同一动作的其他指令照常执行)");
+            {
+                var actions = Replace(Actions("proj"),
+                    new ActionData { id = "hurt", animKey = "hurt", scripts = new[] { SetVar(1, "hurtSeen", 1), Goto(1, "s1_next") } },
+                    next);
+                var p = Player(actions);
+                var t = Make(2, 2, "0.9", actions, false);
+                t.FacingLeft = true;
+                var w = World(p, t);
+                Enter(t, "atk");
+                Step(w, ButtonMask.None, 3);
+                Check(p.Hurt == HurtState.Stun && p.action.CurrentAction.id == "hurt", $"被普攻命中进入僵直: {p.Hurt} {p.action.CurrentAction.id}");
+                Step(w, ButtonMask.None, 3);
+                Check(p.action.CurrentAction.id == "hurt" && p.action.GetVar("hurtSeen") == 1,
+                    $"hurt 第 1 帧 setVar 已执行，同帧 goto s1_next 被忽略: 动作={p.action.CurrentAction.id} hurtSeen={p.action.GetVar("hurtSeen")}");
+            }
+
+            Console.WriteLine("  -- (e) input 指令：动画处于区间 (4~6 帧) 内按下按键执行一次，区间外按下不执行");
+            {
+                var actions = Replace(Actions("proj"), new ActionData
+                {
+                    id = "inp", animKey = "s1", autoNextActionId = "idle",
+                    scripts = new[] { new ActionScriptData { on = "input", range = new FrameRange(4, 6), keys = new[] { "Attack" }, op = "addVar", name = "inp", value = 1 } }
+                });
+                var p = Player(actions);
+                var w = World(p);
+                Enter(p, "inp");
+                Step(w);
+                Step(w, ButtonMask.None, 7);
+                Step(w, ButtonMask.Attack);
+                Step(w, ButtonMask.None);
+                Step(w, ButtonMask.Attack);
+                Check(p.action.CurrentAction.id == "idle" && p.action.GetVar("inp") == 0, $"第 7、9 帧 (区间外) 按下不执行: 动作={p.action.CurrentAction.id} inp={p.action.GetVar("inp")}");
+                Step(w);
+                Enter(p, "inp");
+                Step(w);
+                Step(w, ButtonMask.None, 4);
+                Step(w, ButtonMask.Attack);
+                Check(p.action.CurrentAction.id == "inp" && p.action.GetVar("inp") == 1, $"第 4 帧 (区间内) 按下执行: inp={p.action.GetVar("inp")}");
+                Step(w, ButtonMask.None);
+                Step(w, ButtonMask.Attack);
+                UntilIdle(w, p);
+                Check(p.action.GetVar("inp") == 1, $"区间内第 6 帧再次按下不重复执行: inp={p.action.GetVar("inp")}");
+            }
+
+            Console.WriteLine("  -- (f) exit 指令：离开动作时执行 (播完、受击都算)，其中的 goto 被忽略");
+            {
+                var actions = Replace(Actions("proj"),
+                    new ActionData
+                    {
+                        id = "ex", animKey = "s1", autoNextActionId = "idle",
+                        scripts = new[]
+                        {
+                            new ActionScriptData { on = "exit", op = "addVar", name = "exits", value = 1 },
+                            new ActionScriptData { on = "exit", op = "goto", action = "s1_next", priority = 500 }
+                        }
+                    },
+                    next);
+                var p = Player(actions);
+                var t = Make(2, 2, "0.9", actions, false);
+                t.FacingLeft = true;
+                t.motion.Reset(new FPVector3(FP.Parse("6"), FP.Zero, FP.Zero));
+                var w = World(p, t);
+                Enter(p, "ex");
+                Step(w);
+                Step(w, ButtonMask.None, 9);
+                Check(p.action.CurrentAction.id == "ex" && p.action.GetVar("exits") == 0, $"播放中不执行: 动作={p.action.CurrentAction.id} exits={p.action.GetVar("exits")}");
+                Step(w);
+                Check(p.action.CurrentAction.id == "idle" && p.action.GetVar("exits") == 1, $"播完离开时执行: 动作={p.action.CurrentAction.id} exits={p.action.GetVar("exits")}");
+                Step(w, ButtonMask.None, 2);
+                Check(p.action.CurrentAction.id == "idle", $"exit 中的 goto 被忽略: {p.action.CurrentAction.id}");
+
+                t.motion.Reset(new FPVector3(FP.Parse("0.9"), FP.Zero, FP.Zero));
+                Enter(p, "ex");
+                Enter(t, "atk");
+                Step(w);
+                Step(w, ButtonMask.None, 2);
+                Check(p.action.CurrentAction.id == "hurt" && p.action.GetVar("exits") == 2, $"被命中离开时执行: 动作={p.action.CurrentAction.id} exits={p.action.GetVar("exits")}");
+            }
+
+            Console.WriteLine("  -- (g) addVar 与条件比较符");
+            {
+                var actions = Replace(Actions("proj"), new ActionData
+                {
+                    id = "cnt", animKey = "s1", autoNextActionId = "idle",
+                    scripts = new[]
+                    {
+                        SetVar(0, "lt", 0), SetVar(0, "le", 0), SetVar(0, "gt", 0), SetVar(0, "ge", 0), SetVar(0, "ne", 0), SetVar(0, "eq", 0),
+                        new ActionScriptData { frame = 0, op = "addVar", name = "n", value = 1 },
+                        new ActionScriptData { frame = 1, cond = If("n", "<", 2), op = "setVar", name = "lt", value = 1 },
+                        new ActionScriptData { frame = 1, cond = If("n", "<=", 1), op = "setVar", name = "le", value = 1 },
+                        new ActionScriptData { frame = 1, cond = If("n", ">", 1), op = "setVar", name = "gt", value = 1 },
+                        new ActionScriptData { frame = 1, cond = If("n", ">=", 2), op = "setVar", name = "ge", value = 1 },
+                        new ActionScriptData { frame = 1, cond = If("n", "!=", 1), op = "setVar", name = "ne", value = 1 },
+                        new ActionScriptData { frame = 1, cond = If("n", null, 1), op = "setVar", name = "eq", value = 1 },
+                    }
+                });
+                var p = Player(actions);
+                var w = World(p);
+                string Vars() => $"n={p.action.GetVar("n")} lt={p.action.GetVar("lt")} le={p.action.GetVar("le")} gt={p.action.GetVar("gt")} ge={p.action.GetVar("ge")} ne={p.action.GetVar("ne")} eq={p.action.GetVar("eq")}";
+                Enter(p, "cnt");
+                Step(w, ButtonMask.None, 3);
+                Check(Vars() == "n=1 lt=1 le=1 gt=0 ge=0 ne=0 eq=1", $"第 1 次进入 n=1：< <= == (留空) 成立，> >= != 不成立: {Vars()}");
+                UntilIdle(w, p);
+                Enter(p, "cnt");
+                Step(w, ButtonMask.None, 3);
+                Check(Vars() == "n=2 lt=0 le=0 gt=1 ge=1 ne=1 eq=0", $"第 2 次进入 addVar 累加到 n=2：> >= != 成立，< <= == 不成立: {Vars()}");
+            }
+
+            Console.WriteLine("  -- (h) resetHits：清空命中记录，同一动作内已命中的目标可再次命中");
+            {
+                int Hits(bool reset)
+                {
+                    var actions = Replace(Actions("proj"), new ActionData
+                    {
+                        id = "rh", animKey = "s1", autoNextActionId = "idle", attackPhase = Box(1, 6), attacks = new[] { Weak(1) },
+                        scripts = reset ? new[] { new ActionScriptData { frame = 4, op = "resetHits" } } : null
+                    });
+                    var p = Player(actions);
+                    var t = Make(2, 2, "0.9", actions, false);
+                    t.hpMode = HpMode.Refill;
+                    var w = World(p, t);
+                    Enter(p, "rh");
+                    int n = 0;
+                    for (int i = 0; i < 11; i++) { Step(w); n += w.HitEvents.Count; }
+                    return n;
+                }
+                int without = Hits(false), with = Hits(true);
+                Check(without == 1, $"canHitSameTarget=1：同一动作内只命中 1 次 (对照组): {without}");
+                Check(with == 2, $"第 4 帧 resetHits 后再次命中: {with}");
+            }
+        }
+
+        Console.WriteLine("== 14. Buff 当计时标记：指令 addBuff / removeBuff (切入当帧生效、跨动作保留、可同时存在多个)，配置了 button 的 Buff 在该按键显示剩余最多的一层，条件 buff 读取剩余帧数，叠层上限只刷新时间，重置战斗状态清空 ==");
+        {
+            ActionScriptData Add(string buff) => new ActionScriptData { frame = 0, op = "addBuff", buff = buff };
+            var actions = Replace(Actions("proj"),
+                new ActionData
+                {
+                    id = "s1", animKey = "s1", autoNextActionId = "idle", cancelTag = Tag("skill"), commands = Cmd("Skill1"),
+                    scripts = new[] { Add("atkEx"), Add("stance"), Add("hidden") }
+                },
+                new ActionData
+                {
+                    id = "atk", animKey = "atk", autoNextActionId = "idle", cancelTag = Tag("attack"), commands = Cmd("Attack"),
+                    scripts = new[]
+                    {
+                        new ActionScriptData
+                        {
+                            frame = 0, op = "goto", action = "atk_ex", priority = 10,
+                            cond = new[] { new ScriptConditionData { buff = "atkEx", cmp = ">", value = 0 } }
+                        }
+                    }
+                },
+                new ActionData { id = "atk_ex", animKey = "atk", autoNextActionId = "idle", scripts = new[] { new ActionScriptData { frame = 0, op = "removeBuff", buff = "atkEx" } } });
+            var p = Player(actions);
+            var w = World(p);
+            w.BuffTable["atkEx"] = new BuffData { id = "atkEx", duration = "0.5", button = "Attack" }.ToRuntime();
+            w.BuffTable["stance"] = new BuffData { id = "stance", duration = "1", button = "Attack", maxStack = 1 }.ToRuntime();
+            w.BuffTable["hidden"] = new BuffData { id = "hidden", duration = "0.2" }.ToRuntime();
+            BuffController buffs = p.Buffs;
+            int ButtonRemaining(CommandKey key) => buffs.TryGetButtonBuff(key, out int remaining, out _) ? remaining : 0;
+
+            Step(w, ButtonMask.Skill1);
+            Check(p.action.CurrentAction.id == "s1" && buffs.GetRemaining("atkEx") == 15 && buffs.GetRemaining("stance") == 30 && buffs.GetRemaining("hidden") == 6,
+                $"进入 s1 当帧添加三个 Buff 15 / 30 / 6 帧: atkEx={buffs.GetRemaining("atkEx")} stance={buffs.GetRemaining("stance")} hidden={buffs.GetRemaining("hidden")}");
+            Check(buffs.TryGetButtonBuff(CommandKey.Attack, out int r0, out int t0) && r0 == 30 && t0 == 30 && ButtonRemaining(CommandKey.Skill1) == 0,
+                $"Attack 上配置了两个 Buff 时显示剩余最多的 stance，未配置的按键没有: Attack={r0}/{t0} Skill1={ButtonRemaining(CommandKey.Skill1)}");
+            int n = UntilIdle(w, p);
+            Check(buffs.GetRemaining("atkEx") == 15 - n && buffs.CountOf("hidden") == 0,
+                $"回到 idle 后继续倒数 (跨动作保留)，到期的移除: atkEx={buffs.GetRemaining("atkEx")} (预期 15-{n}) hidden 层数={buffs.CountOf("hidden")}");
+
+            Step(w, ButtonMask.Attack);
+            Step(w);
+            Check(p.action.CurrentAction.id == "atk_ex" && buffs.CountOf("atkEx") == 0 && buffs.GetRemaining("stance") > 0,
+                $"有 atkEx 时按普攻：条件 buff atkEx > 0 成立跳到派生，派生 removeBuff 只移除 atkEx: 动作={p.action.CurrentAction.id} atkEx={buffs.CountOf("atkEx")} stance={buffs.GetRemaining("stance")}");
+            UntilIdle(w, p);
+            Step(w, ButtonMask.Attack);
+            Step(w);
+            Check(p.action.CurrentAction.id == "atk", $"没有 atkEx 时条件不成立，普攻不派生: {p.action.CurrentAction.id}");
+            Step(w, ButtonMask.None, 30);
+            Check(ButtonRemaining(CommandKey.Attack) == 0 && buffs.Count == 0, $"全部到期后按键上不再显示: Attack={ButtonRemaining(CommandKey.Attack)} 层数={buffs.Count}");
+
+            Step(w, ButtonMask.Skill1);
+            Step(w, ButtonMask.None, 10);
+            w.AddBuff(p, w.BuffTable["stance"]);
+            Check(buffs.CountOf("stance") == 1 && buffs.GetRemaining("stance") == 30 && buffs.CountOf("atkEx") == 1,
+                $"stance 叠层上限 1：再添加只刷新剩余时间；atkEx 不限层数: stance 层数={buffs.CountOf("stance")} 剩余={buffs.GetRemaining("stance")} atkEx 层数={buffs.CountOf("atkEx")}");
+            p.ResetCombatState();
+            Check(buffs.Count == 0 && ButtonRemaining(CommandKey.Attack) == 0, $"重置战斗状态清空 Buff: {buffs.Count}");
+        }
+
+        Console.WriteLine("== 15. Buff 属性与秘卷：伤害加成 / 暴击率加成按层累加，hit 指令 toTarget 给被打中的目标加 Buff，技能配置 buff 时释放即给自己加 ==");
+        {
+            AttackData Hit10() => new AttackData { attack = "10", hitStun = "0.3", canHitSameTarget = 1, hitSameTargetDelay = "0" };
+            void Enter(CharacterObj c, string id) =>
+                c.action.PreorderActionByActionChangeInfo(new ActionChangeInfo { changeType = ActionChangeType.ChangeToActionId, param = id, priority = 200 });
+            var actions = Replace(Actions("proj"),
+                new ActionData
+                {
+                    id = "hit10", animKey = "atk", autoNextActionId = "idle", attackPhase = Box(1, 3), attacks = new[] { Hit10() },
+                    scripts = new[] { new ActionScriptData { on = "hit", range = new FrameRange(0, 999), op = "addBuff", buff = "seal", toTarget = true } }
+                });
+
+            FP HitOnce(CharacterObj p, CharacterObj t, BattleWorld w, out bool critical)
+            {
+                critical = false;
+                Enter(p, "hit10");
+                for (int i = 0; i < 8; i++)
+                {
+                    Step(w);
+                    if (w.HitEvents.Count > 0)
+                    {
+                        critical = w.HitEvents[0].Critical;
+                        FP damage = w.HitEvents[0].Damage;
+                        UntilIdle(w, p);
+                        return damage;
+                    }
+                }
+                return FP.Zero;
+            }
+
+            var a = Player(actions);
+            var target = Make(2, 2, "0.9", actions, false);
+            target.hpMode = HpMode.Refill;
+            var wa = World(a, target);
+            wa.BuffTable["power"] = new BuffData { id = "power", duration = "10", damageRate = "0.5" }.ToRuntime();
+            wa.BuffTable["fury"] = new BuffData { id = "fury", duration = "10", critRate = "1" }.ToRuntime();
+            wa.BuffTable["seal"] = new BuffData { id = "seal", duration = "3" }.ToRuntime();
+            a.critRate = FP.Zero;
+
+            FP baseDamage = HitOnce(a, target, wa, out bool crit0);
+            Check(baseDamage == FP.Parse("10") && !crit0, $"无 Buff：伤害 10、暴击率 0 不暴击: {baseDamage} 暴击={crit0}");
+            Check(target.Buffs.CountOf("seal") == 1 && a.Buffs.CountOf("seal") == 0, $"hit 指令 toTarget：Buff 加在被打中的目标身上: 目标={target.Buffs.CountOf("seal")} 自己={a.Buffs.CountOf("seal")}");
+
+            wa.AddBuff(a, wa.BuffTable["power"]);
+            FP oneLayer = HitOnce(a, target, wa, out _);
+            wa.AddBuff(a, wa.BuffTable["power"]);
+            FP twoLayers = HitOnce(a, target, wa, out _);
+            Check(oneLayer == FP.Parse("15") && twoLayers == FP.Parse("20"), $"伤害加成 0.5 每层累加：1 层 15、2 层 20: {oneLayer} / {twoLayers}");
+
+            wa.AddBuff(a, wa.BuffTable["fury"]);
+            FP critDamage = HitOnce(a, target, wa, out bool crit1);
+            Check(crit1 && critDamage == FP.Parse("20") * a.critMultiplier, $"暴击率加成 1：必定暴击，伤害 = 20 × 暴击倍率 {a.critMultiplier}: {critDamage} 暴击={crit1}");
+
+            // 秘卷：技能配置 buff，释放 (进入入口动作) 时给自己加
+            var scroll = Make(3, 1, "0", Actions("proj"), true);
+            scroll.InputSlot = Slot;
+            var scrollSkills = new SkillController();
+            scrollSkills.Setup(new[] { new SkillData { id = "secret", button = "Skill1", cooldown = "5", actionId = "s1", buff = "power" }.ToRuntime() }, Actions("proj"), 4);
+            scroll.Skills = scrollSkills;
+            var ws = World(scroll);
+            ws.BuffTable["power"] = wa.BuffTable["power"];
+            Step(ws, ButtonMask.Skill1);
+            Check(scroll.action.CurrentAction.id == "s1" && scroll.Buffs.CountOf("power") == 1 && scroll.Buffs.GetRemaining("power") == 300 && scroll.Skills.GetCooldown(0) == 150,
+                $"释放带 buff 的技能：当帧给自己加 power (10×30=300 帧) 并开始 CD 5×30=150: 动作={scroll.action.CurrentAction.id} 层数={scroll.Buffs.CountOf("power")} 剩余={scroll.Buffs.GetRemaining("power")} CD={scroll.Skills.GetCooldown(0)}");
         }
 
         Console.WriteLine(_fail == 0 ? "\n全部通过" : $"\n失败 {_fail} 项");

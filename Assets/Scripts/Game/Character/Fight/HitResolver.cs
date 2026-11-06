@@ -36,7 +36,9 @@ namespace KiHan.Logic
             attacker.AddHitRecord(target, hit.AttackPhase);
             CharacterObj owner = attacker.RootOwner;
             bool critical = RollCritical(owner, target, hit.AttackPhase, frameId);
-            FP damage = critical ? atk.attack * owner.critMultiplier : atk.attack;
+            // 伤害 = 攻击 × (1 + 主人身上 Buff 的伤害加成) × 暴击倍率 (生成物的攻击按主人的 Buff 计算)
+            FP damage = atk.attack * (FP.One + owner.Buffs.DamageRate);
+            if (critical) damage *= owner.critMultiplier;
             target.TakeDamage(damage);
 
             // 技能 (含技能生成物) 命中为主人获得查克拉 (每次技能刷新只获得一次)
@@ -59,8 +61,8 @@ namespace KiHan.Logic
                     : HitReaction.ArmorBlocked;
             }
 
-            // 攻击方：命中即生效 (无论是否被霸体抵挡或目标处于被抓中)
-            attacker.action.RecordHit(hit.Frame);
+            // 攻击方：命中即生效 (无论是否被霸体抵挡或目标处于被抓中)；hit 指令立即执行，跳转在本帧 FlushPreorders 生效
+            attacker.action.OnHit(hit.Frame, target);
             attacker.action.PreorderActionByActionChangeInfo(atk.selfActionChange);
             if (atk.tempBeCancelledTagTurnOn != null)
             {
@@ -82,14 +84,16 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 暴击判定：无限暴击必定暴击；否则按暴击率与 (帧号, 双方, 攻击阶段) 的确定性哈希判定 (与僵直变体的随机互不相关)
+        /// 暴击判定：无限暴击必定暴击；否则按暴击率 (角色暴击率 + Buff 暴击率加成) 与 (帧号, 双方, 攻击阶段) 的确定性哈希判定
+        /// (与僵直变体的随机互不相关)
         /// </summary>
         private static bool RollCritical(CharacterObj owner, CharacterObj target, int attackPhase, uint frameId)
         {
             if (owner.alwaysCrit) return true;
-            if (owner.critRate <= FP.Zero) return false;
+            FP rate = owner.critRate + owner.Buffs.CritRate;
+            if (rate <= FP.Zero) return false;
             uint roll = LogicHash.Mix(frameId ^ 0x9E3779B9u, target.EntityId, owner.EntityId * 31 + attackPhase) % CritRollRange;
-            return FP.FromInt((int)roll) < owner.critRate * FP.FromInt((int)CritRollRange);
+            return FP.FromInt((int)roll) < rate * FP.FromInt((int)CritRollRange);
         }
 
         private static HitReaction ApplyReaction(HitResult hit, CharacterObj attacker, CharacterObj target, AttackInfo atk, uint frameId)

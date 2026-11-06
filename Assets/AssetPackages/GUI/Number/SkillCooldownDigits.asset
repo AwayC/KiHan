@@ -23,5 +23,5 @@ MonoBehaviour:
   - {fileID: -321947591, guid: 6b6106bd5d643e840bc3072510bd4839, type: 3}
   - {fileID: 1312836230, guid: 6b6106bd5d643e840bc3072510bd4839, type: 3}
   - {fileID: -692364012, guid: 6b6106bd5d643e840bc3072510bd4839, type: 3}
-  spacing: -4
-  scale: 0.8
+  spacing: -12
+  scale: 0.98

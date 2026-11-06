@@ -26,6 +26,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 54611913e793ff94aa0339660d48ba52, type: 2}
   - {fileID: 11400000, guid: 7a14c4d2447a982469423156ce03979c, type: 2}
   - {fileID: 11400000, guid: df7434e4566f14a48aff9f6783deb24a, type: 2}
+  - {fileID: 11400000, guid: eaf67d9efe71ab649841b0e5c5ea0087, type: 2}
   - {fileID: 11400000, guid: 1107cf7f1ff753f449fd72b01c01b8fe, type: 2}
   - {fileID: 11400000, guid: d292dc5810feab147a559a6adbaa9a12, type: 2}
   - {fileID: 11400000, guid: a69253894d90b644d9a6ddce2f7d2b66, type: 2}
@@ -47,6 +48,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 672698bfd43fa5248a6adab989698f26, type: 2}
   - {fileID: 11400000, guid: fd1cdcd8308128643adf516eb173225a, type: 2}
   - {fileID: 11400000, guid: e2130118fca05ba449d9db669b90cb6d, type: 2}
+  - {fileID: 11400000, guid: 18b2cd536b54a3e459f2f0737915d12f, type: 2}
   resources:
   - key: Effect/90001101
     asset: {fileID: 287918465331581016, guid: fc12eb33c433c204a9096b5c56f02100, type: 3}

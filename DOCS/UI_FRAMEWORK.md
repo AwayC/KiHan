@@ -35,13 +35,13 @@ Assets/Scripts/View/UI/
 ├─ Login/                LoginPanel、LoginPopup、RegisterPopup、PasswordVisibility
 ├─ Lobby/                LobbyPanel、CreateRolePopup、MatchingPopup
 └─ BattleHud/            BattleHudPanel
-   ├─ Widgets/           HUD 部件：FighterStatusView、HpBarView、BeanListView、LightIcon、技能 / 替身 / 通灵按键、SkillIconCache
+   ├─ Widgets/           HUD 部件：FighterStatusView、HpBarView、BeanListView、LightIcon、技能 / 替身 / 通灵按键、SkillWindowView (接段窗口圆形倒计时)、ButtonTimerView (按键上的 Buff 剩余时间圆环，显示 buffs.json 中配置了 button 的 Buff)、SkillIconCache
    ├─ Input/             VirtualButton、VirtualJoystick (直接写入 InputManager)
    └─ Training/          训练场：MapSelectPopup (选图)、MapItemView、CharSelectPopup (换人)、CharSelectItemView、TrainingSettingView (设置与伤害统计，嵌在 HUD 中)
 
 Assets/AssetPackages/Resources/UI/
 ├─ Panels/<模块>/        面板 / 弹窗预制体，目录与脚本模块一一对应 (训练场：Panels/BattleHud/Training/)
-├─ Widgets/              被面板嵌套引用的通用预制体：Slider、Loading/seque、Loading/round、Common/NinjaCard (忍者卡片)
+├─ Widgets/              被面板嵌套引用的通用预制体：Slider、Loading/seque、Loading/round、Common/NinjaCard (忍者卡片)、BattleHud/CDTimer (技能按键的接段倒计时圆环)
 ├─ Number/               伤害数字字体 (DamageTextPool 按路径加载)
 └─ Shadow/               角色脚下阴影 (CharacterFootShadow 按路径加载)
 ```

@@ -150,12 +150,6 @@
           "priority": 0
         }
       ],
-      "recordHitFrames": [
-        {
-          "x": 5,
-          "y": 7
-        }
-      ],
       "attackPhase": [
         {
           "frameRanges": [
@@ -271,16 +265,6 @@
             "attack3"
           ],
           "priority": 0
-        }
-      ],
-      "recordHitFrames": [
-        {
-          "x": 4,
-          "y": 7
-        },
-        {
-          "x": 10,
-          "y": 14
         }
       ],
       "attackPhase": [
@@ -475,12 +459,6 @@
             "attack4"
           ],
           "priority": 0
-        }
-      ],
-      "recordHitFrames": [
-        {
-          "x": 9,
-          "y": 13
         }
       ],
       "attackPhase": [
@@ -756,12 +734,6 @@
             "summon"
           ],
           "priority": 0
-        }
-      ],
-      "recordHitFrames": [
-        {
-          "x": 25,
-          "y": 29
         }
       ],
       "attackPhase": [
@@ -2007,12 +1979,6 @@
           "turn": true
         }
       ],
-      "recordHitFrames": [
-        {
-          "x": 5,
-          "y": 999
-        }
-      ],
       "attackPhase": [
         {
           "frameRanges": [
@@ -2231,12 +2197,6 @@
           "turn": true
         }
       ],
-      "recordHitFrames": [
-        {
-          "x": 4,
-          "y": 7
-        }
-      ],
       "attackPhase": [
         {
           "frameRanges": [
@@ -2372,12 +2332,6 @@
           "turn": true
         }
       ],
-      "recordHitFrames": [
-        {
-          "x": 1,
-          "y": 999
-        }
-      ],
       "attackPhase": [
         {
           "frameRanges": [
@@ -2446,12 +2400,6 @@
           "rateX": "0",
           "rateY": "0",
           "turn": true
-        }
-      ],
-      "recordHitFrames": [
-        {
-          "x": 0,
-          "y": 3
         }
       ],
       "attackPhase": [

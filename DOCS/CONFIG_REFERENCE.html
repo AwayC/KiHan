@@ -106,7 +106,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a href="#tut-minimal">1. 最小可运行角色</a>
   <a href="#tut-combo">2. 普攻连段</a>
   <a href="#tut-skill">3. 单段技能与 CD</a>
-  <a href="#tut-hitbranch">4. 命中派生（变体动作法）</a>
+  <a href="#tut-hitbranch">4. 命中派生（scripts 变量法）</a>
   <a href="#tut-spawn">5. 投射物生成物</a>
   <a href="#tut-sub">6. 替身术</a>
   <h4>actions.json</h4>
@@ -133,7 +133,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a class="sub" href="#action-rootMotion">rootMotion</a>
   <a class="sub" href="#action-events">events</a>
   <a class="sub" href="#action-breakHurt">breakHurt</a>
-  <a class="sub" href="#action-hitRecord">clearHitRecord / recordHitFrames / hitBranches</a>
+  <a class="sub" href="#action-scripts" data-k="on frame range keys cond op goto setVar addVar skillStage skillEnd resetHits">scripts</a>
   <h4>actions.json · 子结构</h4>
   <a class="sub" href="#t-FrameRange">FrameRange</a>
   <a class="sub" href="#t-CancelTag" data-k="tag startFormFrame">CancelTag</a>
@@ -174,12 +174,9 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a class="sub" href="#skill-cooldown">cooldown</a>
   <a class="sub" href="#skill-chakraCost">chakraCost</a>
   <a class="sub" href="#skill-requireHurt">requireHurt</a>
-  <a class="sub" href="#skill-stages">stages</a>
-  <a class="sub2" href="#stage-actionId">actionId</a>
-  <a class="sub2" href="#stage-followActions">followActions</a>
-  <a class="sub2" href="#stage-stageDuration">stageDuration</a>
-  <a class="sub2" href="#stage-cdReturn">cdReturn</a>
-  <a class="sub2" href="#stage-icon">icon</a>
+  <a class="sub" href="#skill-actionId">actionId</a>
+  <a class="sub" href="#skill-buff">buff</a>
+  <a class="sub" href="#skill-multistage">多段技能（skillStage）</a>
   <a class="sub" href="#skill-chakra">查克拉规则</a>
   <h4>spawns.json</h4>
   <a href="#spawn-root">SpawnDataContainer</a>
@@ -193,7 +190,10 @@ footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px
   <a class="sub" href="#spawn-brain" data-k="script frame hold buttons dir None Script">brain / script</a>
   <a class="sub" href="#spawn-prewarm">prewarm</a>
   <h4>buffs.json</h4>
-  <a href="#buff-root" data-k="id duration effect anchor offset">BuffData</a>
+  <a href="#buff-root" data-k="id duration damageRate critRate maxStack button effect anchor offset">BuffData</a>
+  <a class="sub" href="#buff-damage">伤害公式</a>
+  <h4>秘卷</h4>
+  <a href="#secret-root" data-k="SecretScrollRegistry secret 秘卷 power crit frenzy">SecretScrollRegistry</a>
   <h4>附录</h4>
   <a href="#ap-framecheck">帧判定口径对照</a>
   <a href="#ap-validate">自动校验清单</a>
@@ -266,12 +266,12 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td>自然衔接</td><td>动画播完（或 <code>autoTerminate</code> 时每帧）</td><td><a href="#action-autoNextActionId"><code>autoNextActionId</code></a></td><td>否</td></tr>
 <tr><td>落地</td><td>物理落地事件</td><td><a href="#action-onLand"><code>onLand</code></a></td><td>否</td></tr>
 <tr><td>命中</td><td>本帧攻击命中</td><td><a href="#attack-selfActionChange"><code>attacks[].selfActionChange</code></a>（攻击方）、<a href="#attack-hurtAction"><code>hurtAction</code></a>（受击方）</td><td>否</td></tr>
-<tr><td>命中分支</td><td>经过指定帧时命中记录为真</td><td><a href="#action-hitRecord"><code>hitBranches</code></a>（命中记录由 <code>recordHitFrames</code> 写入、<code>clearHitRecord</code> 清空，可跨动作）</td><td>否</td></tr>
+<tr><td>指令 goto</td><td>经过指定帧 / 命中 / 按键，且 <code>cond</code> 成立</td><td><a href="#action-scripts"><code>scripts</code></a> 的 <code>goto</code>（条件变量由 <code>setVar</code> / <code>addVar</code> 写入，跨动作保留）</td><td>否</td></tr>
 <tr><td>受击流程</td><td>框架内置</td><td><a href="#t-HurtIds">固定受击动作 id</a></td><td>否</td></tr>
 <tr><td>替身破除受击</td><td>受击锁定中按键</td><td><a href="#action-breakHurt"><code>breakHurt</code></a></td><td>是</td></tr>
 <tr><td>生成物寿命到期</td><td>框架内置</td><td><a href="#spawn-despawnActionId"><code>despawnActionId</code></a></td><td>—</td></tr>
 </table>
-<div class="callout warn"><b>注意：只有"输入发起"的切换会经过技能准入</b>落地、命中、自然衔接直接进入目标动作，不看 CD 与段号。所以技能的后续动作（落地、命中派生、收招）必须登记在 <a href="#stage-followActions"><code>followActions</code></a> 里，否则进入它们时技能会被当成"已经放完"：多段技能会提前开始接段计时（没有接段时限则直接开始 CD）。</div>
+<div class="callout"><b>只有"输入发起"的切换会经过技能准入</b>落地、命中、goto、自然衔接直接进入目标动作，不看 CD。技能的"释放中"状态会沿用到回到 idle 或受击为止，所以这些后续动作自动算本技能（CD 不会提前开始，命中照常给查克拉）。</div>
 
 <h2 id="concept-cancel">取消系统：cancelTag 与 beCancelledTag</h2>
 <p>这是整个动作框架最核心的设计：<strong>能不能从 A 切到 B，由 A 和 B 各说一半</strong>。</p>
@@ -306,7 +306,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><td>受击流程推进（toair→inair→fall、起身、僵直结束回 idle）</td><td><b>90</b> + 目标 priority</td><td>0</td></tr>
 <tr><td>主动取消</td><td>窗口 priority + 标签 priority + 动作 priority</td><td><code>startFormFrame</code></td></tr>
 <tr><td><code>onLand</code> / <code>selfActionChange</code> / <code>releaseActionChange</code></td><td>配置的 priority + 目标动作 priority</td><td><code>fromFrame</code>，或 <code>keepFrame</code> 时接着当前帧</td></tr>
-<tr><td><code>hitBranches</code></td><td>配置的 priority + <strong>当前</strong>动作 priority</td><td>0</td></tr>
+<tr><td><code>scripts</code> 的 <code>goto</code></td><td>配置的 priority + <strong>当前</strong>动作 priority</td><td>0（frame 指令的 goto 先于 autoNext 加入，有 goto 时 autoNext 不加入）</td></tr>
 <tr><td><code>autoNextActionId</code></td><td><b>0</b>（不加动作 priority）</td><td>0</td></tr>
 </table>
 <div class="callout"><b>autoNext 是"兜底"</b>只有在本 tick 此前没有任何预约时才会加入。只要有按键取消、受击等预约，autoNext 就不会出现。</div>
@@ -435,21 +435,29 @@ tick 20：处理 attack2 的第 0 帧</div>
   "data": [
     { "id": "skill1", "button": "Skill1", "cooldown": "3",
       "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0",
-      "stages": [ { "actionId": "skill1" } ] }
+      "actionId": "skill1" }
   ]
 }</code></pre>
 <ul>
 <li><b>出招由动作的 <code>commands</code> 决定</b>，不是 <code>button</code>。<code>button</code> 只决定 CD 遮罩显示在哪个按钮上。</li>
-<li><b>CD 什么时候开始</b>：离开技能的那一帧（进入 idle 时），不是按下时。释放过程中 CD 为 0。</li>
+<li><b>CD 什么时候开始</b>：进入入口动作的那一帧开始完整 CD，释放期间照常倒计时。</li>
 <li><b>CD 期间</b>按键仍然会被检测，但技能准入拒绝，所以什么都不会发生。</li>
 <li><b>霸体 <code>Skill</code></b>：第 0~29 帧被普通攻击打中只扣血、不会被打断；对方攻击的 <code>armorBreak</code> 达到 <code>Skill</code> 才能打断。</li>
 </ul>
+<h4>多段技能：按键换段</h4>
+<p>在第一段动作 frame 0 放一条 <code>skillStage</code>，技能按键在切入第一段的同一逻辑帧就变成第二段（图标立即刷新，不亮 CD），window 秒内可按；没接上则开始 CD 并返还 <code>cdReturn</code>。第二段的 <code>commands</code> 可以和第一段相同。</p>
+<pre><code class="json">// actions.json —— skill1 的 scripts
+"scripts": [
+  { "frame": 0, "op": "skillStage", "skill": "skill1", "action": "skill1_2", "window": "3", "cdReturn": "4", "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_1" }
+]
+// skills.json 不变，仍然只写 "actionId": "skill1"</code></pre>
+<p>详见<a href="#skill-multistage">多段技能</a>。</p>
 
-<h2 id="tut-hitbranch">教程 4：命中派生（命中记录法）</h2>
+<h2 id="tut-hitbranch">教程 4：命中派生（scripts 变量法）</h2>
 <p>需求：鸣人技能 2 的第一段是<strong>起跳攻击</strong>。打中了，落地后接第二段；没打中，落地硬直后回 idle。</p>
-<p>"打中过"要<strong>跨两个动作</strong>（空中段 → 落地段）才用得上。框架的<a href="#action-hitRecord">命中记录</a>属于角色、跨动作保留：空中段负责记，落地段到指定帧再判断（对应原版 1013 / 1014 / 1015）。</p>
+<p>"打中过"要<strong>跨两个动作</strong>（空中段 → 落地段）才用得上。<a href="#action-scripts"><code>scripts</code></a> 的变量属于角色、跨动作保留：空中段命中时写变量，落地段到指定帧按变量决定是否 goto（对应原版 1013 / 1014 / 1015）。</p>
 <div class="flow">
-  <span class="node">skill2_1</span><span class="arr">─ 落地 / 播完 →</span><span class="node">skill2_land</span><span class="arr">─ 第 9 帧命中过 →</span><span class="node">skill2_2</span><span class="arr">→</span><span class="node alt">idle</span>
+  <span class="node">skill2_1</span><span class="arr">─ 落地 / 播完 →</span><span class="node">skill2_land</span><span class="arr">─ 第 9 帧 skill2Hit == 1 →</span><span class="node">skill2_2</span><span class="arr">→</span><span class="node alt">idle</span>
 </div>
 <div class="flow">
   <span class="lab">没命中：skill2_land 播完 →</span><span class="node alt">idle</span>
@@ -460,29 +468,33 @@ tick 20：处理 attack2 的第 0 帧</div>
   "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 },
   "cancelTag": [ { "tag": "skill", "startFormFrame": 0, "priority": 20 } ],
   "commands":  [ { "press": ["Skill2"], "validInSec": "0.2" }, { "hold": ["Skill2"] } ],
-  "clearHitRecord": true,
-  "recordHitFrames": [{ "x": 19, "y": 26 }],
   "rootMotion": [ { "frameRange": { "x": 19, "y": 19 }, "velocityX": "8", "velocityZ": "5" } ],
   "attackPhase": [ { "frameRanges": [{ "x": 19, "y": 26 }], "tag": [], "attackPhase": 0, "priority": 10 } ],
-  "attacks": [ { "attack": "100", "hitStun": "0.8", "armorBreak": "Skill", "canHitSameTarget": 1 } ]
+  "attacks": [ { "attack": "100", "hitStun": "0.8", "armorBreak": "Skill", "canHitSameTarget": 1 } ],
+  "scripts": [
+    { "frame": 0, "op": "setVar", "name": "skill2Hit", "value": 0 },
+    { "on": "hit", "range": { "x": 19, "y": 26 }, "op": "setVar", "name": "skill2Hit", "value": 1 }
+  ]
 },
 {
   "id": "skill2_land", "animKey": "Skill_B_land", "catalog": "Skill", "priority": 20,
   "autoNextActionId": "idle",
-  "hitBranches": [ { "frame": 9, "actionId": "skill2_2", "priority": 50 } ],
-  "armorPhase": [ { "range": { "x": 0, "y": 9 }, "level": "Skill" } ]
+  "armorPhase": [ { "range": { "x": 0, "y": 9 }, "level": "Skill" } ],
+  "scripts": [
+    { "frame": 9, "cond": [{ "name": "skill2Hit", "cmp": "==", "value": 1 }], "op": "goto", "action": "skill2_2", "priority": 50 }
+  ]
 }</code></pre>
 <h4>关键点逐条看</h4>
 <ol>
-<li><b><code>clearHitRecord</code></b>：技能第一段进入时清掉之前残留的记录（比如普攻留下的），否则没打中也会接二段。</li>
-<li><b><code>recordHitFrames</code></b>：只有这些帧里的命中才算"打中过"。攻击判定照常保留，打中后同一动作里的后续攻击也能继续命中其他目标。</li>
-<li><b><code>hitBranches</code> 的帧</b>：落地动画共 10 帧，分支放在最后一帧 9，与 autoNext 同一 tick 触发且优先级更高（50 + 20 &gt; 0），命中过就接 <code>skill2_2</code>，否则 autoNext 回 idle。想更早接，就把 frame 调小。</li>
+<li><b>frame 0 的 <code>setVar 0</code></b>：变量跨动作保留，技能第一段进入时先归零，否则上次留下的 1 会让没打中也接二段。frame 0 指令在切入当帧就执行。</li>
+<li><b><code>on: hit</code> 的 range</b>：只有这些帧里的命中才算"打中过"。攻击判定照常保留，打中后同一动作里的后续攻击也能继续命中其他目标。</li>
+<li><b>goto 的帧</b>：落地动画共 10 帧，goto 放在最后一帧 9；frame 指令的 goto 先于 autoNext 加入，条件成立时 autoNext 不再加入，于是接 <code>skill2_2</code>（优先级 50 + 20）；条件不成立则 autoNext 回 idle。想更早接，就把 frame 调小。</li>
 <li><b><code>onLand</code> 与 <code>autoNextActionId</code> 都写</b>：先落地就由 <code>onLand</code> 切走（优先级 100+20）；如果动画先播完而角色还在空中，autoNext 会切到落地动作，避免停在最后一帧的空中姿势。</li>
 <li><b>落地段的霸体</b>：命中与未命中共用 <code>skill2_land</code>，霸体两种情况都有。</li>
 </ol>
-<p>最后在 <code>skills.json</code> 里把整条链登记进同一段，CD 才会在 <code>skill2_2</code> 结束后开始：</p>
-<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_land", "skill2_2"] }</code></pre>
-<div class="callout">需要"命中瞬间就切"（比如抓取成功立刻接投技）时仍用 <a href="#attack-selfActionChange"><code>selfActionChange</code></a>；"打中了，到某一帧再决定"用命中记录，不需要额外的变体动作。</div>
+<p><code>skills.json</code> 只写入口动作。<code>skill2_land</code>、<code>skill2_2</code> 由落地 / goto 进入，自动沿用"正在释放 skill2"，直到回 idle：</p>
+<pre><code class="json">{ "id": "skill2", "button": "Skill2", "cooldown": "6", "actionId": "skill2_1" }</code></pre>
+<div class="callout">需要"命中瞬间就切"（比如抓取成功立刻接投技）时仍用 <a href="#attack-selfActionChange"><code>selfActionChange</code></a>，或在 <code>on: hit</code> 指令里直接 goto；"打中了，到某一帧再决定"用变量，不需要额外的变体动作。</div>
 
 <h2 id="tut-spawn">教程 5：投射物生成物</h2>
 <p>需求：技能 2 第 4 帧放出一个独立的踢击投射物，三段命中后落地消失。</p>
@@ -525,7 +537,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 
 // skills.json
 { "id": "substitution", "button": "Substitution", "cooldown": "3", "requireHurt": true,
-  "stages": [ { "actionId": "substitution" } ] }</code></pre>
+  "actionId": "substitution" }</code></pre>
 <ul>
 <li><b><code>breakHurt</code></b>：受击时角色处于"受控锁定"，正常的取消检测全部停止，只检测带 <code>breakHurt</code> 的动作，并以 200 的高优先级预约。进入后解除僵直、抓取、击退，起身无敌；播完再追加 0.5 秒无敌。</li>
 <li><b><code>requireHurt</code></b>：非受击状态时技能准入拒绝。注意起身（Standup）阶段<strong>不算</strong>可替身的受击状态，因为此时已经无敌了。</li>
@@ -543,10 +555,10 @@ tick 20：处理 attack2 的第 0 帧</div>
 <p class="summary">动作的唯一标识，所有跳转都按它查找。</p>
 <table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code></td></tr><tr><th>匹配</th><td>区分大小写，重复时取<strong>第一个</strong></td></tr></table>
 <h4>说明</h4>
-<p>被这些地方引用：<code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、<code>hurtAction</code>、skills.json 的 <code>actionId</code>/<code>followActions</code>、spawns.json 的 <code>initialActionId</code>/<code>despawnActionId</code>。以下 id 有框架含义，不能改名：<code>idle</code>（默认动作）与 7 个<a href="#t-HurtIds">固定受击动作</a>。</p>
+<p>被这些地方引用：<code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、<code>hurtAction</code>、<code>scripts</code> 中 goto / skillStage 的 <code>action</code>、skills.json 的 <code>actionId</code>、spawns.json 的 <code>initialActionId</code>/<code>despawnActionId</code>。以下 id 有框架含义，不能改名：<code>idle</code>（默认动作）与 7 个<a href="#t-HurtIds">固定受击动作</a>。</p>
 <h4>示例</h4>
 <pre><code class="json">"id": "attack1"</code></pre>
-<div class="callout warn"><b>引用了不存在的 id 不会报错</b>运行时切换请求会被静默丢弃，角色停在原动作的最后一帧。用 Unity 菜单 <code>KiHan/Testing/Run All Unity Environment Tests</code> 能查出 autoNext、selfActionChange、hurtAction 和技能段的悬空引用（<code>onLand</code> 不检查）。</div>
+<div class="callout warn"><b>引用了不存在的 id 不会报错</b>运行时切换请求会被静默丢弃，角色停在原动作的最后一帧。用 Unity 菜单 <code>KiHan/Testing/Run All Unity Environment Tests</code> 能查出 autoNext、selfActionChange、hurtAction、技能 <code>actionId</code> 以及 <code>scripts</code> 的 goto / skillStage 目标的悬空引用（<code>onLand</code> 不检查）。</div>
 </section>
 
 <div class="crumb">actions.json › ActionData</div>
@@ -634,7 +646,7 @@ tick 20：处理 attack2 的第 0 帧</div>
     { "attack": "70", "tempBeCancelledTagTurnOn": ["atk4_hit"] }
   ]
 }</code></pre>
-<div class="callout warn"><b>不能跨动作</b>命中后如果本动作马上切走（比如同时配了 <code>selfActionChange</code>），临时窗口会随之丢失。"空中命中、落地后接二段"这种跨动作的需求，请用<a href="#tut-hitbranch">变体动作法</a>。</div>
+<div class="callout warn"><b>不能跨动作</b>命中后如果本动作马上切走（比如同时配了 <code>selfActionChange</code>），临时窗口会随之丢失。"空中命中、落地后接二段"这种跨动作的需求，请用 <a href="#tut-hitbranch"><code>scripts</code> 变量法</a>。</div>
 </section>
 
 <div class="crumb">actions.json › ActionData</div>
@@ -821,7 +833,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <div class="crumb">actions.json › ActionData</div>
 <section class="field" id="action-events">
 <h3><code>events</code></h3>
-<p class="summary">时间轴事件：第 N 帧播特效、震屏、音效、大招演出，生成投射物、加 Buff。</p>
+<p class="summary">时间轴事件：第 N 帧播特效、震屏、音效、大招演出，生成投射物。</p>
 <table class="props"><tr><th>类型</th><td><a href="#t-Event"><code>ActionEvent</code></a>[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
 <h4>示例</h4>
 <pre><code class="json">"events": [
@@ -849,26 +861,93 @@ tick 20：处理 attack2 的第 0 帧</div>
 </section>
 
 <div class="crumb">actions.json › ActionData</div>
-<section class="field" id="action-hitRecord">
-<h3><code>clearHitRecord</code> / <code>recordHitFrames</code> / <code>hitBranches</code><span class="badge logic">逻辑</span></h3>
-<p class="summary">命中记录：前一段打中了，后面某一段到指定帧再决定要不要接下一段（对应原版 1013 / 1014 / 1015）。</p>
-<table class="props">
-<tr><th><code>clearHitRecord</code></th><td>bool，默认 false。进入本动作时清空命中记录，配在技能第一段。</td></tr>
-<tr><th><code>recordHitFrames</code></th><td><a href="#t-FrameRange">FrameRange</a>[]。本动作的攻击命中时，命中所在的动画帧落在这些区间内就写入命中记录。被霸体抵挡、目标处于被抓中同样计入。</td></tr>
-<tr><th><code>hitBranches</code></th><td><code>{ frame, actionId, priority }</code>[]。本 tick 推进经过 <code>frame</code> 且命中记录为真时，以 priority + 当前动作 priority 预约 <code>actionId</code>（起始帧 0）；受控锁定（受击）中不触发。</td></tr>
+<section class="field" id="action-scripts" data-k="scripts on frame range keys cond op goto setVar addVar skillStage skillEnd resetHits addBuff removeBuff buff toTarget 标记 hit input exit">
+<h3><code>scripts</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">动作指令列表：在某帧 / 命中时 / 按键时 / 离开时执行一条指令（跳转、写变量、技能换段……），对应原版 LogicData 的脚本。</p>
+<table class="props"><tr><th>类型</th><td>ActionScript[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr><tr><th>上限</th><td>每个动作最多 64 条（超出部分的 hit / input 不执行，加载时报错）</td></tr></table>
+<h4>字段</h4>
+<table>
+<tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
+<tr><td><code>on</code></td><td>string</td><td><code>frame</code></td><td>触发方式：<code>frame</code> / <code>hit</code> / <code>input</code> / <code>exit</code>，不区分大小写。</td></tr>
+<tr><td><code>frame</code></td><td>int</td><td>0</td><td>frame 触发的动画帧。</td></tr>
+<tr><td><code>range</code></td><td><a href="#t-FrameRange">FrameRange</a></td><td>{0,0}</td><td>hit / input 触发的动画帧闭区间。</td></tr>
+<tr><td><code>keys</code></td><td>string[]</td><td><code>[]</code></td><td>input 触发：这些<a href="#t-CommandKey">按键</a><strong>全部</strong>按下。不能用摇杆键。</td></tr>
+<tr><td><code>cond</code></td><td>{ name 或 buff, cmp, value }[]</td><td><code>[]</code></td><td>全部成立才执行。<code>name</code> 比较变量；<code>buff</code> 比较自己身上该 Buff 剩余时间最长一层的<strong>剩余帧数</strong>（没有为 0），两者二选一。<code>cmp</code> 为 <code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code>，留空为 <code>==</code>；value 为 int。</td></tr>
+<tr><td><code>op</code></td><td>string</td><td>—</td><td><code>goto</code> / <code>setVar</code> / <code>addVar</code> / <code>skillStage</code> / <code>skillEnd</code> / <code>resetHits</code> / <code>addBuff</code> / <code>removeBuff</code>。</td></tr>
+<tr><td><code>action</code></td><td>string</td><td><code>""</code></td><td>goto 的目标动作；skillStage 换上的下一段动作。</td></tr>
+<tr><td><code>priority</code></td><td>int</td><td>0</td><td>goto 的优先级（再加<strong>当前</strong>动作 priority）。</td></tr>
+<tr><td><code>name</code> / <code>value</code></td><td>string / int</td><td>—</td><td>setVar / addVar 的变量名与值。</td></tr>
+<tr><td><code>skill</code></td><td>string</td><td><code>""</code></td><td>skillStage / skillEnd 作用的技能 id（skills.json 的 <code>id</code>）。</td></tr>
+<tr><td><code>buff</code></td><td>string</td><td><code>""</code></td><td>addBuff / removeBuff 的 Buff id（buffs.json 或秘卷 Buff）。</td></tr>
+<tr><td><code>toTarget</code></td><td>bool</td><td>false</td><td>addBuff / removeBuff 作用于被命中的目标，只能配 <code>on: hit</code>。</td></tr>
+<tr><td><code>window</code> / <code>cdReturn</code></td><td>字符串秒数</td><td>0</td><td>skillStage 的换段时限；addBuff 覆盖的 Buff 时长（留空用 duration）；超时 / skillEnd 时返还的 CD。</td></tr>
+<tr><td><code>icon</code></td><td>string</td><td><code>""</code></td><td>skillStage 换段期间的按钮图标，留空沿用技能图标。</td></tr>
 </table>
-<h4>说明</h4>
-<ol>
-<li>命中记录属于角色，<strong>跨动作保留</strong>，直到进入某个 <code>clearHitRecord</code> 的动作。所以"空中段命中、落地段再判断"只需要在落地段配分支，不用拆"命中 / 未命中"两套动作。</li>
-<li>分支在本 tick 的命中结算之后检查，本 tick 的命中也算数。</li>
-<li>没命中时分支不生效，动作照常走 <code>autoNextActionId</code>。</li>
-<li>分支目标与落地动作要登记在技能 <a href="#stage-followActions"><code>followActions</code></a> 里。</li>
-</ol>
+<h4>触发时机</h4>
+<ul>
+<li><b>frame</b>：动画推进经过 <code>frame</code> 时执行一次（与 <a href="#action-events">events</a> 同一口径 [上一帧, 当前帧)）。<strong>frame 等于进入帧（通常 0）的指令在切入动作的同一逻辑帧立即执行</strong>，所以 frame 0 的 skillStage 按键当帧就换段，不会闪 CD。循环重播会再执行。</li>
+<li><b>hit</b>：本动作的攻击在 <code>range</code> 内的动画帧命中时执行；每个动作实例每条只执行一次。被霸体抵挡、目标被抓中同样计入；生成物的命中只触发生成物自己动作的指令。在打击结算阶段执行，其中的 goto 当帧生效。</li>
+<li><b>input</b>：动画处于 <code>range</code> 内且 <code>keys</code> 全部按下时执行；每个动作实例每条只执行一次。受击锁定期间不检测。</li>
+<li><b>exit</b>：离开本动作时执行（播完、取消、受击都算）。不能用 goto（运行时忽略）。</li>
+</ul>
+<h4>指令</h4>
+<table>
+<tr><th>op</th><th>效果</th></tr>
+<tr><td><code>goto</code></td><td>预约切到 <code>action</code>，优先级 = priority + 当前动作 priority，起始帧 0。不经过技能准入；受击锁定期间忽略。frame 指令的 goto 先于 autoNext 加入，有 goto 时 autoNext 不再加入。</td></tr>
+<tr><td><code>setVar</code> / <code>addVar</code></td><td>把变量 <code>name</code> 设为 / 加上 <code>value</code>。</td></tr>
+<tr><td><code>skillStage</code></td><td>把技能 <code>skill</code> 的按键换成 <code>action</code>，<code>window</code> 秒内可释放（必须 &gt; 0，为 0 等同 skillEnd）。详见<a href="#skill-multistage">多段技能</a>。</td></tr>
+<tr><td><code>skillEnd</code></td><td>立即恢复技能 <code>skill</code> 的按键并开始 CD = cooldown − <code>cdReturn</code>。</td></tr>
+<tr><td><code>resetHits</code></td><td>清空本角色对各目标的命中记录，已命中的目标可以再次被命中。</td></tr>
+<tr><td><code>addBuff</code></td><td>加一层 Buff <code>buff</code>，时长为 <code>window</code>（留空用 Buff 的 duration）。默认加给自己（生成物加给根主人）；<code>on: hit</code> + <code>toTarget: true</code> 时加给被命中的目标。层数上限与刷新规则见 <a href="#buff-root">buffs.json</a>。</td></tr>
+<tr><td><code>removeBuff</code></td><td>移除 <code>buff</code> 的全部层（<code>toTarget</code> 同上）。</td></tr>
+</table>
+<h4>变量</h4>
+<ul>
+<li>整型，属于角色（每个角色 / 生成物一套），<strong>跨动作保留</strong>，初始 0；重新载入动作库或重置角色时清零。</li>
+<li>没在任何 setVar / addVar / cond 里出现过的变量读出为 0。要"每次释放重新判断"，在入口动作 frame 0 先 setVar 归零。</li>
+</ul>
+<h4>Buff 当标记</h4>
+<ul>
+<li>"某状态还剩多久"统一用 <a href="#buff-root">Buff</a> 表达：派生的可用时限、架势 / 形态持续时间、飞雷神这类印记的有效期等。对应原版用 buff 当计时标记再用"是否有该 buff"做条件、1331 按键计时、1092 图标点亮的写法。</li>
+<li>Buff 在 buffs.json 定义（时长、<code>button</code> 倒计时圈），<code>addBuff</code> 加一层、<code>removeBuff</code> 清除，<code>cond</code> 的 <code>buff</code> 读取剩余帧数。</li>
+<li><code>on: hit</code> + <code>toTarget: true</code> 把 Buff 加到被打中的目标身上（敌人身上的印记）。</li>
+<li>需要计数（例如场上还剩几把苦无）用变量；需要时限用 Buff；两者可以写在同一条 <code>cond</code> 里组合判断。</li>
+</ul>
+<h4>示例：普攻派生时限（技能放完后 1.5 秒内按普攻接派生，普攻键显示倒计时圈）</h4>
+<pre><code class="json">// buffs.json
+{ "id": "attackEx", "duration": "1.5", "button": "Attack" }
+// 技能动作：加 Buff
+{ "frame": 20, "op": "addBuff", "buff": "attackEx" }
+// attack1：Buff 还在时，进入即跳到派生
+{ "frame": 0, "cond": [{ "buff": "attackEx", "cmp": "&gt;", "value": 0 }], "op": "goto", "action": "attack_ex", "priority": 10 }
+// attack_ex：进入即移除
+{ "frame": 0, "op": "removeBuff", "buff": "attackEx" }</code></pre>
 <h4>示例：鸣人 skill2（空中命中 → 落地 → 二段）</h4>
-<pre><code class="json">{ "id": "skill2_1", "clearHitRecord": true, "recordHitFrames": [{ "x": 19, "y": 26 }],
-  "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 }, ... },
+<pre><code class="json">{ "id": "skill2_1", "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 }, ...,
+  "scripts": [
+    { "frame": 0, "op": "setVar", "name": "skill2Hit", "value": 0 },
+    { "on": "hit", "range": { "x": 19, "y": 26 }, "op": "setVar", "name": "skill2Hit", "value": 1 } ] },
 { "id": "skill2_land", "autoNextActionId": "idle",
-  "hitBranches": [{ "frame": 9, "actionId": "skill2_2", "priority": 50 }] }</code></pre>
+  "scripts": [
+    { "frame": 9, "cond": [{ "name": "skill2Hit", "cmp": "==", "value": 1 }], "op": "goto", "action": "skill2_2", "priority": 50 } ] }</code></pre>
+<h4>示例：按键派生 / 离开时结束换段 / 多段重置命中</h4>
+<pre><code class="json">"scripts": [
+  { "on": "input", "range": { "x": 10, "y": 20 }, "keys": ["Attack"], "op": "goto", "action": "skill1_follow", "priority": 30 },
+  { "on": "exit", "op": "skillEnd", "skill": "skill1", "cdReturn": "2" },
+  { "frame": 12, "op": "resetHits" }
+]</code></pre>
+<h4>与原版脚本 id 对照</h4>
+<table>
+<tr><th>原版</th><th>这里的写法</th></tr>
+<tr><td>1005 / 1015</td><td><code>goto</code>（1015 带变量条件：<code>cond</code>）</td></tr>
+<tr><td>1013 / 1014</td><td><code>on: hit</code> + <code>setVar</code></td></tr>
+<tr><td>1019 / 1114</td><td><code>setVar</code> / <code>addVar</code> + <code>cond</code></td></tr>
+<tr><td>1007</td><td><code>on: input</code></td></tr>
+<tr><td>1068 / 1092 / 1183</td><td><code>skillStage</code> / <code>skillEnd</code></td></tr>
+<tr><td>1195</td><td><code>on: exit</code></td></tr>
+<tr><td>1016</td><td><code>resetHits</code></td></tr>
+<tr><td>1031 计时 buff + 1123 条件 101（是否有该 buff）/ 1331 / 1092 isIconLight</td><td>buffs.json 定义 Buff + <code>addBuff</code> / <code>removeBuff</code> + <code>cond</code> 的 <code>buff</code>（按键显示用 Buff 的 <code>button</code>）</td></tr>
+</table>
 </section>
 <!-- ============================== 子结构 ============================== -->
 <h2 id="t-FrameRange">FrameRange · 帧区间</h2>
@@ -1088,7 +1167,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <pre><code class="json">"canHitSameTarget": 6, "hitSameTargetDelay": "0.06"   // 螺旋丸：最多 6 段，每段至少隔 2 帧</code></pre>
 
 <h3 id="attack-selfActionChange"><code>selfActionChange</code></h3>
-<p>命中时<strong>攻击方自己</strong>的动作切换（<a href="#t-ActionChange">ActionChange</a>）。每次命中都会触发，包括被霸体挡住的命中。用于"命中瞬间就切"；"打中了，到某一帧再决定"用 <a href="#action-hitRecord">命中记录</a>。</p>
+<p>命中时<strong>攻击方自己</strong>的动作切换（<a href="#t-ActionChange">ActionChange</a>）。每次命中都会触发，包括被霸体挡住的命中。用于"命中瞬间就切"；"打中了，到某一帧再决定"用 <a href="#action-scripts"><code>scripts</code></a> 的 hit 触发 + 变量。</p>
 <pre><code class="json">"selfActionChange": { "changeType": 1, "param": "grab_hit", "priority": 50, "keepFrame": true }</code></pre>
 <p class="see">参见：<a href="#tut-hitbranch">教程 4 命中派生</a></p>
 
@@ -1162,8 +1241,8 @@ tick 20：处理 attack2 的第 0 帧</div>
 <table>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
 <tr><td><code>frame</code></td><td>int</td><td>0</td><td>处理到这一帧时触发一次。从中间帧进入（<code>startFormFrame</code>/<code>keepFrame</code>）不会补发之前的事件；循环动作每圈都触发。</td></tr>
-<tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 镜头 / <code>Spawn</code> 生成物 / <code>Buff</code> / <code>Sound</code> 音效 / <code>Cinematic</code> 大招演出。不区分大小写，写错按 Effect。</td></tr>
-<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局 Resources 路径加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：镜头指令 <code>impact</code> / <code>impact_heavy</code> / <code>shot</code> / <code>shake</code> / <code>pulse</code> / <code>reset</code>（见下方镜头指令）。Buff：<b>Buff 的 id</b>。Sound：音效 key（包内 SoundCue 或音频文件，找不到按全局 Resources 路径）。Cinematic：演出预制体 key（根节点带 PlayableDirector + Timeline，包内优先）。</td></tr>
+<tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 镜头 / <code>Spawn</code> 生成物 / <code>Sound</code> 音效 / <code>Cinematic</code> 大招演出。不区分大小写，写错按 Effect。<code>Buff</code> 不再是动作事件（报错），改用 scripts 的 <code>addBuff</code>。</td></tr>
+<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局 Resources 路径加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：镜头指令 <code>impact</code> / <code>impact_heavy</code> / <code>shot</code> / <code>shake</code> / <code>pulse</code> / <code>reset</code>（见下方镜头指令）。Sound：音效 key（包内 SoundCue 或音频文件，找不到按全局 Resources 路径）。Cinematic：演出预制体 key（根节点带 PlayableDirector + Timeline，包内优先）。</td></tr>
 <tr><td><code>spawnId</code></td><td>string</td><td><code>""</code></td><td>Spawn：spawns.json 中的生成物 id。</td></tr>
 <tr><td><code>anchor</code></td><td>string</td><td><code>""</code></td><td>帧库锚点名，作为位置基准；留空或该帧没有此锚点时用脚底。Cinematic 以此处作为演出原点。</td></tr>
 <tr><td><code>offset</code></td><td><code>{x,y}</code> 整数像素</td><td>{0,0}</td><td>相对锚点的偏移：x 朝前（随朝向镜像），y 向上。</td></tr>
@@ -1182,10 +1261,9 @@ tick 20：处理 attack2 的第 0 帧</div>
 { "frame": 14, "type": "Camera", "asset": "pulse", "camera": { "zoom": "0.9", "inSec": "0.03", "holdSec": "0.05", "outSec": "0.1", "count": 2 } }
 { "frame": 4,  "type": "Spawn",  "spawnId": "naruto_skill2_fx", "offset": { "x": 40, "y": 0 } }
 { "frame": 10, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk", "worldPos": { "x": "0", "z": "1" } }
-{ "frame": 6,  "type": "Buff",   "asset": "haste" }
 { "frame": 0,  "type": "Sound",  "asset": "Sound/rasengan" }
 { "frame": 0,  "type": "Cinematic", "asset": "Cinematic/ultimate", "audience": "Self" }</code></pre>
-<div class="callout warn"><b>Buff 的 id 写在 asset 里</b>不是 <code>spawnId</code>。Buff 事件忽略本事件的 anchor/offset/bind，特效位置以 buffs.json 为准；Buff 总是加在触发事件的实体自己身上。</div>
+<div class="callout warn"><b>没有 Buff 事件</b>写 <code>"type": "Buff"</code>（或 BuffRemoved）会加载报错。加 Buff 改用 <a href="#action-scripts"><code>scripts</code></a> 的 <code>addBuff</code>。</div>
 <div class="callout"><b>演出 Timeline 可用轨道</b>：CameraShotTrack（拉远 / 推近、平移、屏幕内旋转，片段淡入淡出即过渡）、CameraShakeTrack（震屏）、ScreenFadeTrack（全屏遮罩）、ScreenVideoTrack（全屏视频，不出声）、原生 AudioTrack / ControlTrack / ActivationTrack。轨道绑定由播放器自动完成，朝左释放时整个演出镜像。同时只播一个演出，后触发的覆盖前一个。目前地图背景高度有限，拉远上限为 1（不拉远）。</div>
 <div class="callout"><b>约定音效</b>：按钮点击与命中音在 <code>Resources/Config/SoundConventions.asset</code> 配置；受击语音放在各角色包的 <code>Sound/hurt</code>（SoundCue 或音频文件，可缺省）。特效伴随音效：在特效预制体上挂 <code>FxSound</code>。</div>
 
@@ -1218,11 +1296,11 @@ tick 20：处理 attack2 的第 0 帧</div>
 <pre><code class="json">{ "id": "float", "animKey": "Float", "catalog": "Hurt", "airHitStep": 1 }</code></pre>
 <!-- ============================== skills.json ============================== -->
 <h2 id="skill-root">skills.json · SkillDataContainer</h2>
-<p class="summary">技能层：在动作层之上加 CD、多段、查克拉和按键 UI。<strong>技能不定义怎么出招</strong>，出招仍然是 actions.json 里入口动作的 <code>commands</code> 和取消窗口；技能只负责"现在能不能进"和"什么时候开始 CD"。</p>
+<p class="summary">技能层：在动作层之上加 CD、换段、查克拉和按键 UI。<strong>技能不定义怎么出招</strong>，出招仍然是 actions.json 里入口动作的 <code>commands</code> 和取消窗口；技能只负责"现在能不能进"和"什么时候开始 CD"。</p>
 <pre><code class="json">{
   "chakraMax": 4,
   "data": [
-    { "id": "skill1", "button": "Skill1", "cooldown": "3", "stages": [ { "actionId": "skill1" } ] }
+    { "id": "skill1", "button": "Skill1", "cooldown": "3", "actionId": "skill1" }
   ]
 }</code></pre>
 <div class="callout"><b>技能准入什么时候检查</b>只在"输入发起"的切换时检查：主动取消（第 2 步扫描取消时）和受击中的 <code>breakHurt</code>。autoNext、落地、命中切换进入技能动作时不检查。</div>
@@ -1254,7 +1332,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <div class="crumb">skills.json › data[]</div>
 <section class="field" id="skill-button">
 <h3><code>button</code><span class="badge view">表现</span></h3>
-<p class="summary">CD 遮罩、图标、段号显示在哪个按钮上。<strong>不决定出招按键。</strong></p>
+<p class="summary">CD 遮罩、图标、接段倒计时圆环显示在哪个按钮上。<strong>不决定出招按键。</strong></p>
 <table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>None</code>（不显示）</td></tr><tr><th>有按钮 UI 的值</th><td><code>Skill1</code>、<code>Skill2</code>、<code>Ultimate</code>、<code>Substitution</code></td></tr></table>
 <h4>说明</h4>
 <p>按键名不区分大小写，写错时静默变为 None。<code>Secret</code>、<code>Summon</code> 在逻辑上可用，但目前没有对应的按钮界面。多个技能绑同一个按钮时，UI 只显示第一个。</p>
@@ -1283,12 +1361,12 @@ tick 20：处理 attack2 的第 0 帧</div>
 <table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0</td></tr></table>
 <h4>CD 什么时候开始</h4>
 <ul>
-<li>释放<strong>最后一段</strong>：进入该段入口动作的那一帧开始完整 CD，释放期间照常倒计时（单段技能即按下就开始）。</li>
-<li>多段技能某段之后<strong>超时没接下一段</strong>：开始 CD，并返还该段的 <code>cdReturn</code>。</li>
-<li>非最后一段释放中被打断（进入受击）也算离开该段，开始接段计时。</li>
+<li>进入<strong>入口动作</strong>或<strong>换上的下一段动作</strong>的那一帧开始完整 CD，释放期间照常倒计时（单段技能即按下就开始）。</li>
+<li>换段（<code>skillStage</code>）期间 CD 清零；<strong>超时没接下一段</strong>：开始 CD = cooldown − <code>cdReturn</code>。</li>
+<li><code>skillEnd</code> 指令：立即开始 CD = cooldown − <code>cdReturn</code>。</li>
 </ul>
 <pre><code class="json">"cooldown": "3"    // 90 帧</code></pre>
-<div class="timeline">释放最后一段的 tick 记为 N，cooldown = "1"（30 帧）
+<div class="timeline">进入入口动作的 tick 记为 N，cooldown = "1"（30 帧）
 tick N   : CD = 30
 tick N+1 : CD = 29
 ...
@@ -1298,9 +1376,9 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <div class="crumb">skills.json › data[]</div>
 <section class="field" id="skill-chakraCost">
 <h3><code>chakraCost</code><span class="badge logic">逻辑</span></h3>
-<p class="summary">释放第一段时消耗的查克拉。不足时无法释放。</p>
+<p class="summary">释放入口动作时消耗的查克拉。不足时无法释放。</p>
 <table class="props"><tr><th>类型</th><td>int</td></tr><tr><th>默认</th><td>0</td></tr></table>
-<p>只检查、只扣第一段，后续段不消耗。实际扣除发生在真正进入入口动作时。因为开局查克拉为 0，消耗大于 0 的技能（奥义）要先攒查克拉。</p>
+<p>只检查、只扣入口动作，换段进入的后续段不消耗。实际扣除发生在真正进入入口动作时。因为开局查克拉为 0，消耗大于 0 的技能（奥义）要先攒查克拉。</p>
 <pre><code class="json">"chakraCost": 2</code></pre>
 </section>
 
@@ -1310,78 +1388,67 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <p class="summary">只能在受击中释放（僵直 / 击飞 / 被抓 / 倒地）。起身阶段不算。</p>
 <table class="props"><tr><th>类型</th><td>bool</td></tr><tr><th>默认</th><td>false</td></tr></table>
 <pre><code class="json">{ "id": "substitution", "button": "Substitution", "cooldown": "3", "requireHurt": true,
-  "stages": [ { "actionId": "substitution" } ] }</code></pre>
+  "actionId": "substitution" }</code></pre>
 <div class="callout bad"><b>入口动作必须配 breakHurt</b>受击中普通取消检测是关闭的，只有 <code>"breakHurt": true</code> 的动作会被检查。<code>requireHurt</code> 而入口动作没有 <code>breakHurt</code>，技能永远放不出来，且没有任何报错。</div>
 </section>
 
-<div class="crumb">skills.json › data[]</div>
-<section class="field" id="skill-stages">
-<h3><code>stages</code><span class="badge req">必填</span><span class="badge logic">逻辑</span></h3>
-<p class="summary">技能段，按顺序为第 1 段、第 2 段……至少一段。</p>
-<table class="props"><tr><th>类型</th><td>SkillStage[]</td></tr><tr><th>默认</th><td><code>[]</code>：技能永远放不出</td></tr></table>
-<h4>多段技能怎么工作</h4>
-<div class="timeline">stages = [multi_1 (stageDuration 2, cdReturn 4), multi_2 (stageDuration 1.5, cdReturn 2), multi_3]   cooldown 12
 
-按键 → multi_1 → 放完回 idle → 2 秒内再按 → multi_2 → 放完 → 1.5 秒内再按 → multi_3 → 放完 → CD 12 秒
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-actionId">
+<h3><code>actionId</code><span class="badge req">必填</span><span class="badge logic">逻辑</span></h3>
+<p class="summary">技能的入口动作 id。由输入发起，受准入裁决（CD、换段状态、查克拉、受击条件）。</p>
+<table class="props"><tr><th>类型</th><td>string（动作 id）</td></tr><tr><th>默认</th><td><code>""</code>：技能永远放不出</td></tr></table>
+<pre><code class="json">{ "id": "skill1", "button": "Skill1", "cooldown": "8", "actionId": "skill1" }</code></pre>
+<p>入口动作本身要在 actions.json 里配好 <code>cancelTag</code>（通常是 <code>skill</code>）和 <code>commands</code>，并且要有窗口放行这个标签（idle、move、普攻后摇等）。</p>
+<h4>释放中（CastingSkill）</h4>
+<p>进入入口动作（或当前换上的下一段动作）时，角色进入"正在释放本技能"状态，并<strong>一直沿用</strong>到进入默认动作 <code>idle</code> 或进入受击为止。中间经过的落地、<code>goto</code>、autoNext、派生动作都自动算本技能，不需要登记。释放中命中给查克拉，生成物记下生成时的技能。</p>
+<h4>准入规则</h4>
+<ul>
+<li>入口动作：CD 为 0 且没有处于换段、查克拉 ≥ <code>chakraCost</code>、<code>requireHurt</code> 时处于可替身的受击。</li>
+<li>下一段动作（被某条 <code>skillStage</code> 指令登记的 action）：只有该技能正在换段、且换上的正是它时放行。</li>
+<li>其他动作：放行。</li>
+</ul>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-buff">
+<h3><code>buff</code><span class="badge logic">逻辑</span></h3>
+<p class="summary">释放技能（进入入口动作）时给自己加一层该 <a href="#buff-root">Buff</a>。</p>
+<table class="props"><tr><th>类型</th><td>string（Buff id）</td></tr><tr><th>默认</th><td><code>""</code>：不加</td></tr></table>
+<pre><code class="json">{ "id": "skill1", "button": "Skill1", "cooldown": "8", "actionId": "skill1", "buff": "rage" }</code></pre>
+<p>装备秘卷时，<code>button: "Secret"</code> 技能的 buff 被秘卷 Buff 覆盖，见<a href="#secret-root">秘卷</a>。</p>
+</section>
+
+<div class="crumb">skills.json › data[]</div>
+<section class="field" id="skill-multistage" data-k="skillStage skillEnd window cdReturn 换段 多段">
+<h3>多段技能（按键换段）</h3>
+<p class="summary">skills.json 只写第一段。后续段由动作上的 <a href="#action-scripts"><code>skillStage</code></a> 指令把技能按键"换成"下一段动作（对应原版 1068 / 1092 / 1183）。</p>
+<ul>
+<li><b>换键</b>：<code>skillStage</code> 执行后，该技能按键在 <code>window</code> 秒内释放的是 <code>action</code>；期间 CD 显示为 0，入口动作被准入拦截，所以各段可以绑同一个按键。frame 0 的 skillStage 在切入动作的同一逻辑帧执行，二段图标立即刷新。</li>
+<li><b>超时</b>：<code>window</code> 倒数到 0 时恢复按键，开始 CD = max(0, cooldown − <code>cdReturn</code>)（返还）。</li>
+<li><b>接上下一段</b>：进入换上的动作时恢复按键并开始<strong>完整 CD</strong>；该动作 frame 0 的 <code>skillStage</code> 在同一逻辑帧执行，可立即再换段，不会闪 CD。</li>
+<li><b>提前结束</b>：<code>skillEnd</code> 立即恢复按键并开始 CD = cooldown − <code>cdReturn</code>。</li>
+<li><b>图标</b>：换段期间按钮显示 <code>icon</code>（留空沿用技能图标），外圈圆形进度条（CDTimer）表示剩余 window，中央不显示数字。</li>
+</ul>
+<div class="timeline">cooldown 12；multi_1 frame 0: skillStage → multi_2 (window 2, cdReturn 4)；multi_2 frame 0: skillStage → multi_3 (window 1.5, cdReturn 2)
+
+按键 → multi_1 → 放完回 idle → 2 秒内再按 → multi_2 → 放完 → 1.5 秒内再按 → multi_3 → 放完 → CD 12 秒（从进入 multi_3 起算）
                           └ 2 秒没按 → CD = 12 - 4 = 8 秒，回到第 1 段
                                                            └ 1.5 秒没按 → CD = 12 - 2 = 10 秒</div>
-<p>同一时刻只有"下一段"的入口能进，其他段的入口被准入拦截，所以各段入口可以绑同一个按键。</p>
-<div class="callout warn"><b>一个动作只能属于一个技能段</b>同一个动作 id 出现在两个段（或两个技能）里会报错，并且只有第一次登记生效。</div>
-</section>
-
-<div class="crumb">skills.json › data[] › stages[]</div>
-<section class="field" id="stage-actionId">
-<h3><code>actionId</code><span class="badge req">必填</span></h3>
-<p class="summary">本段的入口动作 id。由输入发起，受准入裁决（CD、段号、查克拉、受击条件）。</p>
-<pre><code class="json">{ "actionId": "skill1" }</code></pre>
-<p>入口动作本身要在 actions.json 里配好 <code>cancelTag</code>（通常是 <code>skill</code>）和 <code>commands</code>，并且要有窗口放行这个标签（idle、move、普攻后摇等）。</p>
-</section>
-
-<div class="crumb">skills.json › data[] › stages[]</div>
-<section class="field" id="stage-followActions">
-<h3><code>followActions</code><span class="badge logic">逻辑</span></h3>
-<p class="summary">本段的后续动作：落地、命中派生、收招、技能派生。处于这些动作期间仍算"正在释放本段"。</p>
-<table class="props"><tr><th>类型</th><td>string[]</td></tr><tr><th>默认</th><td><code>[]</code></td></tr></table>
-<h4>为什么必须列全</h4>
-<ul>
-<li><b>CD</b>：进入一个没登记的动作，技能就被认为"放完了"，CD 提前开始。</li>
-<li><b>查克拉</b>：登记的动作（及其生成物）命中才算本技能的命中，会给查克拉。</li>
-<li><b>不受准入</b>：后续动作不检查 CD 和段号。</li>
-</ul>
-<pre><code class="json">{ "actionId": "skill2_1", "followActions": ["skill2_land", "skill2_2"] }</code></pre>
-<div class="callout"><b>怎么找全</b>从入口动作出发，沿着 <code>autoNextActionId</code>、<code>onLand.param</code>、<code>selfActionChange.param</code>、<code>hitBranches[].actionId</code>、以及只在技能窗口里放行的派生动作，一直走到回 idle 为止，路上所有动作都要列进来。</div>
-</section>
-
-<div class="crumb">skills.json › data[] › stages[]</div>
-<section class="field" id="stage-stageDuration">
-<h3><code>stageDuration</code></h3>
-<p class="summary">本段放完后，接下一段的时限（秒）。最后一段无效。</p>
-<table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0：放完立即开始 CD</td></tr></table>
-<p>时限从离开本段时开始倒数，<strong>释放期间不倒数</strong>。设 W 帧时限、在第 N 帧离开：第 N+1 ~ N+W-1 帧按键能接下一段，第 N+W 帧超时。</p>
-<p>时限内按钮会显示下一段的图标（没配就显示段号）。</p>
-<pre><code class="json">"stageDuration": "2"</code></pre>
-</section>
-
-<div class="crumb">skills.json › data[] › stages[]</div>
-<section class="field" id="stage-cdReturn">
-<h3><code>cdReturn</code></h3>
-<p class="summary">连段在本段之后中断时返还的 CD 秒数。</p>
-<table class="props"><tr><th>类型</th><td>字符串秒数</td></tr><tr><th>默认</th><td>0</td></tr></table>
-<pre><code class="json">"cdReturn": "4"   // cooldown 12 → 只放第 1 段时实际 CD 8 秒</code></pre>
-<p>实际 CD = max(0, cooldown − cdReturn)。最后一段的 cdReturn 不会被使用。</p>
-</section>
-
-<div class="crumb">skills.json › data[] › stages[]</div>
-<section class="field" id="stage-icon">
-<h3><code>icon</code><span class="badge view">表现</span></h3>
-<p class="summary">轮到本段时按钮显示的图标，格式同技能 <a href="#skill-icon"><code>icon</code></a>。留空用技能图标，并在按钮中央显示段号。</p>
-<pre><code class="json">{ "actionId": "multi_2", "icon": "UI/xxx#xxx_1", "stageDuration": "1.5" }</code></pre>
+<pre><code class="json">// skills.json
+{ "id": "multi", "button": "Skill1", "cooldown": "12", "actionId": "multi_1" }
+// actions.json
+{ "id": "multi_1", ..., "scripts": [
+  { "frame": 0, "op": "skillStage", "skill": "multi", "action": "multi_2", "window": "2", "cdReturn": "4", "icon": "UI/xxx#xxx_1" } ] },
+{ "id": "multi_2", ..., "scripts": [
+  { "frame": 0, "op": "skillStage", "skill": "multi", "action": "multi_3", "window": "1.5", "cdReturn": "2", "icon": "UI/xxx#xxx_2" } ] }</code></pre>
+<div class="callout warn"><b>window 要比本段动作长</b>window 从 skillStage 执行时开始倒数，本段动作本身占掉一部分；留给玩家的时间 = window − 剩余动作时长。<code>window</code> 必须 &gt; 0（0 等同 skillEnd）。</div>
 </section>
 
 <h3 id="skill-chakra">查克拉规则</h3>
 <ul>
 <li>开局为 <code>chakraStart</code>（默认 0），上限 <code>chakraMax</code>。</li>
-<li><b>获得</b>：某技能的任意段、后续动作或它生成的生成物<strong>命中</strong>时 +1。被霸体挡住、命中被抓目标也算。</li>
+<li><b>获得</b>：命中方处于某技能的释放中（CastingSkill，见 <a href="#skill-actionId"><code>actionId</code></a>），或生成物生成时归属某技能，<strong>命中</strong>时 +1。被霸体挡住、命中被抓目标也算。</li>
 <li><b>每轮一次</b>：获得一次后，要等该技能 CD 结束（刷新）才能再获得。所以一个技能多段命中只给 1 颗。</li>
 <li>普攻等不属于任何技能的动作，命中不给查克拉。</li>
 <li><b>消耗</b>：见 <a href="#skill-chakraCost"><code>chakraCost</code></a>。</li>
@@ -1494,19 +1561,64 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 
 <!-- ============================== buffs.json ============================== -->
 <h2 id="buff-root">buffs.json · BuffData</h2>
-<p class="summary">Buff 目前只有"持续时间 + 循环特效"，没有数值效果、没有层数上限（每次添加都是独立的一层，各自计时）。由动作事件 <code>{"type": "Buff", "asset": "buff id"}</code> 添加到触发者自己身上。</p>
+<p class="summary">Buff = 带时限的状态层：可以带伤害 / 暴击加成、循环特效、按键倒计时圈，也用来当"标记"（派生时限、形态持续时间、敌人身上的印记）。由 <a href="#action-scripts"><code>scripts</code></a> 的 <code>addBuff</code> / <code>removeBuff</code>、技能的 <a href="#skill-buff"><code>buff</code></a>、<a href="#secret-root">秘卷</a>添加。运行时类型 <code>BuffInfo</code>（<code>Assets/Scripts/Game/Character/Buff/BuffInfo.cs</code>）。</p>
 <table>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
-<tr><td><code>id</code></td><td>string</td><td><code>""</code></td><td>被事件的 <code>asset</code> 引用。全局共享：同一场战斗里后加载角色的同名 Buff 会覆盖先加载的。</td></tr>
-<tr><td><code>duration</code></td><td>字符串秒数</td><td>0</td><td>第 N 帧添加，第 N+帧数 帧移除。0 表示下一帧就移除。</td></tr>
-<tr><td><code>effect</code></td><td>string</td><td><code>""</code></td><td>循环特效的资源路径，Buff 移除时停止。</td></tr>
+<tr><td><code>id</code></td><td>string</td><td><code>""</code></td><td>被 <code>addBuff</code> / <code>removeBuff</code> / <code>cond</code> 的 <code>buff</code>、技能 <code>buff</code> 引用。全局共享：所有角色的 buffs.json 与秘卷 Buff 合成一张表；角色 Buff 不能与秘卷 Buff 重名（校验报错）。</td></tr>
+<tr><td><code>duration</code></td><td>字符串秒数</td><td>—</td><td>每层的持续时间，必须 &gt; 0。<code>addBuff</code> 的 <code>window</code> 可覆盖。</td></tr>
+<tr><td><code>damageRate</code></td><td>字符串</td><td>0</td><td>伤害加成，每层叠加：<code>"0.2"</code> = 造成伤害 +20%。</td></tr>
+<tr><td><code>critRate</code></td><td>字符串</td><td>0</td><td>暴击率加成，每层叠加：<code>"0.15"</code> = 暴击率 +15%。</td></tr>
+<tr><td><code>maxStack</code></td><td>int</td><td>0</td><td>层数上限，0 不限。已满时再添加不加层，改为把<strong>剩余时间最少（最早）</strong>的一层刷新为满时长。</td></tr>
+<tr><td><code>button</code></td><td>string</td><td><code>""</code></td><td>可选：<code>Attack</code> / <code>Skill1</code> / <code>Skill2</code> / <code>Ultimate</code> / <code>Substitution</code> / <code>Secret</code> / <code>Summon</code>。该按键的圆形进度条（CDTimer）显示剩余时间；同一按键有多个 Buff 时显示剩余最多的一层；技能按键在接段窗口中优先显示接段。只做显示，不拦截按键。</td></tr>
+<tr><td><code>effect</code></td><td>string</td><td><code>""</code></td><td>循环特效的资源路径，该层存在期间播放。</td></tr>
 <tr><td><code>anchor</code></td><td>string</td><td><code>""</code>（脚底）</td><td>特效跟随的锚点。</td></tr>
 <tr><td><code>offset</code></td><td><code>{x,y}</code> 像素</td><td>{0,0}</td><td>特效偏移。</td></tr>
 </table>
+<h4>层与计时</h4>
+<ul>
+<li>每次添加是独立的一层，各自逐帧倒数，到期移除并通知表现层（停止特效、刷新按键圈）。</li>
+<li>Buff 属于角色；生成物 / 投射物执行 <code>addBuff</code> 时加到根主人身上。</li>
+<li><code>cond</code> 的 <code>buff</code> 读取该 Buff 剩余时间最长一层的剩余帧数，没有为 0。</li>
+</ul>
+<h4 id="buff-damage">伤害公式</h4>
+<div class="timeline">伤害 = attack × (1 + 攻击方全部 Buff 的 damageRate 之和) × (暴击时的暴击倍率)
+暴击率 = 攻击方 critRate + 攻击方全部 Buff 的 critRate 之和</div>
+<p>生成物 / 投射物的命中使用根主人身上的 Buff。</p>
 <pre><code class="json">{ "data": [
-  { "id": "haste", "duration": "0.2", "effect": "fx_haste", "anchor": "body" }
+  { "id": "rage", "duration": "5", "damageRate": "0.2", "maxStack": 3, "effect": "fx_rage", "anchor": "body" },
+  { "id": "attackEx", "duration": "1.5", "button": "Attack" }
 ] }</code></pre>
-<p>目前没有任何角色配置 buffs.json，上例来自逻辑测试。事件引用了未定义的 Buff id 时运行时静默忽略（Unity 环境测试会报出来）。</p>
+<p>引用了未定义的 Buff id 时运行时忽略，角色包校验会报错。</p>
+
+<!-- ============================== 秘卷 ============================== -->
+<h2 id="secret-root">秘卷 · SecretScrollRegistry</h2>
+<p class="summary">秘卷是全局装备：给角色的秘卷技能（<code>button: "Secret"</code>）换上秘卷自己的 CD、图标和 Buff。配置在 ScriptableObject <code>Assets/AssetPackages/Resources/Config/SecretScrollRegistry.asset</code>（类 <code>KiHan.Config.SecretScrollRegistry</code>，菜单 <code>KiHan/Secret Scroll Registry</code>）。</p>
+<table>
+<tr><th>字段</th><th>类型</th><th>说明</th></tr>
+<tr><td><code>id</code></td><td>string</td><td>秘卷 id，被装备 <code>PlayerLoadout.secret</code> 引用。</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>显示名。</td></tr>
+<tr><td><code>icon</code></td><td>Sprite</td><td>秘卷按钮图标。</td></tr>
+<tr><td><code>cooldown</code></td><td>字符串秒数</td><td>秘卷技能 CD。</td></tr>
+<tr><td><code>buff</code></td><td><a href="#buff-root">BuffData</a>（内联）</td><td>释放时加给自己的 Buff。</td></tr>
+</table>
+<h4>装备与覆盖规则</h4>
+<ul>
+<li>玩家装备 <code>PlayerLoadout.secret</code> 填秘卷 id（调试：<code>LocalDebugConfig</code> 的 <code>player1.secret = "power"</code>）。</li>
+<li>装备后，角色 skills.json 中 <code>button: "Secret"</code> 的技能（入口动作通常是结印动作 <code>reel</code>）的 CD、图标、<code>buff</code> 改用秘卷的；释放（进入入口动作）时加 Buff。</li>
+<li>战斗开始时所有秘卷 Buff 都注册进 Buff 表，脚本可以直接引用（如 <code>cond</code> 的 <code>buff: "scroll_power"</code>）。</li>
+<li>战斗 HUD 的秘卷键：底图节点 <code>Secret</code> 挂 VirtualButton，图标子节点 <code>@SecretBtn</code> 挂 SkillButtonView（键 <code>Secret</code>），显示秘卷图标、CD 遮罩与秒数（<code>_digitScale</code> 0.5）；不显示接段 / Buff 倒计时圆环。键盘 K 同样可释放。</li>
+</ul>
+<h4>已有秘卷</h4>
+<table>
+<tr><th>id</th><th>名称</th><th>CD</th><th>Buff</th></tr>
+<tr><td><code>power</code></td><td>攻击秘卷</td><td>20</td><td><code>scroll_power</code>：8 秒，damageRate 0.3，maxStack 1</td></tr>
+<tr><td><code>crit</code></td><td>会心秘卷</td><td>20</td><td><code>scroll_crit</code>：8 秒，critRate 0.3，maxStack 1</td></tr>
+<tr><td><code>frenzy</code></td><td>狂战秘卷</td><td>30</td><td><code>scroll_frenzy</code>：6 秒，damageRate 0.15 + critRate 0.15，maxStack 1</td></tr>
+</table>
+<pre><code class="json">// actions.json（naruto / naruto_test）
+{ "id": "secret", "animKey": "reel", "cancelTag": [...skill], "commands": [{ "press": ["Secret"] }], ... }
+// skills.json
+{ "id": "secret", "button": "Secret", "cooldown": "10", "actionId": "secret" }</code></pre>
 <!-- ============================== 附录 ============================== -->
 <h2 id="ap-framecheck">附录 A · 帧判定口径对照</h2>
 <p>同样写 <code>{x: 2, y: 3}</code>，不同字段判断的"帧"略有不同。大多数情况下不用关心，调试"差一帧"的问题时查这张表。</p>
@@ -1532,10 +1644,10 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <li><code>autoNextActionId</code>、<code>selfActionChange</code>（changeType 1）、<code>hurtAction</code> 引用的动作是否存在</li>
 <li>指令里的按键名是否合法</li>
 <li>抓取段覆盖的帧是否画了抓取锚点</li>
-<li>事件的 <code>spawnId</code>、Buff id、特效资源是否存在</li>
-<li>技能至少一段；<code>actionId</code>、<code>followActions</code> 是否存在；图标能否加载</li>
+<li>事件的 <code>spawnId</code>、特效资源是否存在；事件类型写 <code>Buff</code> 报错（改用 scripts 的 addBuff）</li>
+<li>技能 <code>actionId</code> 是否存在；<code>scripts</code> 的 trigger / op / cmp 是否合法，<code>goto</code> / <code>skillStage</code> 的 <code>action</code> 与 <code>skill</code> 是否存在，<code>addBuff</code> / <code>removeBuff</code> / <code>cond</code> 的 <code>buff</code> 与技能 <code>buff</code> 是否存在（buffs.json 或秘卷表），<code>toTarget</code> 只能配 hit 触发，单动作不超过 64 条；图标能否加载</li>
 <li>生成物的 <code>initialActionId</code>、<code>despawnActionId</code> 是否存在</li>
-<li>Buff 的 <code>effect</code> 能否加载</li>
+<li>Buff 的 <code>effect</code> 能否加载；<code>duration</code> 是否 &gt; 0；id 是否与秘卷 Buff 重名</li>
 </ul>
 </td><td>
 <ul>
@@ -1546,7 +1658,7 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <li>霸体等级、事件类型、生成物类型、缓动名的拼写（静默回落默认值）</li>
 <li>技能 <code>button</code> 是否合法</li>
 <li><code>requireHurt</code> 的入口动作是否配了 <code>breakHurt</code></li>
-<li>同一动作被登记到多个技能段（只在运行时报错）</li>
+<li>同一动作被多个 <code>skillStage</code> 登记为不同技能的下一段</li>
 </ul>
 </td></tr>
 </table>
@@ -1557,7 +1669,7 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <tr><td>写了 <code>startFromFrame</code> 不生效</td><td>字段名是 <code>startFormFrame</code>（历史拼写）</td><td>照抄现有配置的拼写</td></tr>
 <tr><td><code>startFrames</code> 以为是"从第几帧开始"</td><td>实际是临时窗口的<strong>持续帧数</strong></td><td>见 <a href="#t-TempBeCancelledTag">TempBeCancelledTag</a></td></tr>
 <tr><td>调整 <code>attacks</code> 顺序后伤害错位</td><td>攻击段按数组下标引用，<code>phase</code> 字段不参与</td><td>改顺序时同步改 <code>attackPhase</code></td></tr>
-<tr><td>技能 CD 提前开始</td><td>后续动作没列进 <code>followActions</code></td><td>沿 autoNext / onLand / 命中切换把整条链列全</td></tr>
+<tr><td>技能后续动作命中不给查克拉</td><td>释放状态（CastingSkill）在进入 idle 或受击时结束，链路中途经过 idle 就不再算本技能</td><td>后续动作直接由 goto / onLand / autoNext 衔接，不要经过 idle；需要回 idle 再按键的段用 <code>skillStage</code> 换键</td></tr>
 <tr><td>命中派生后霸体消失</td><td>变体动作不继承原动作的 <code>armorPhase</code></td><td>变体里把霸体抄一份</td></tr>
 <tr><td>只配 press 时按住不连段</td><td>切动作会消耗"按下"</td><td>连段动作同时配 <code>press</code> 和 <code>hold</code></td></tr>
 <tr><td>浮空连击高度不对</td><td>打空中目标用的是 <code>air</code>，没配时用全局默认 z=5</td><td>每一招都写自己的 <code>air</code></td></tr>

@@ -120,14 +120,14 @@ public class BattleManager : UnitySingleton<BattleManager>
     }
 
     /// <summary>
-    /// 训练场换人 (GameFlow.RestartTraining 在 Loading 中执行)：清理当前战斗后换掉该槽位的角色重开单机战斗，
-    /// 地图、另一方角色与血量模式保持；训练面板的开关回到默认
+    /// 训练场换人 / 换秘卷 (GameFlow.RestartTraining 在 Loading 中执行)：清理当前战斗后换掉该槽位的角色与秘卷重开单机战斗，
+    /// 地图、另一方配置与血量模式保持；训练面板的开关回到默认
     /// </summary>
-    public IEnumerator RestartTrainingRoutine(int slot, int characterId)
+    public IEnumerator RestartTrainingRoutine(int slot, int characterId, string secret)
     {
         // 出战配置可能直接引用调试配置资源：换人时复制一份，不改资源
-        PlayerLoadout p1 = slot == P1Slot ? WithCharacter(_p1Loadout, characterId) : _p1Loadout;
-        PlayerLoadout p2 = slot == P2Slot ? WithCharacter(_p2Loadout, characterId) : _p2Loadout;
+        PlayerLoadout p1 = slot == P1Slot ? WithCharacterAndSecret(_p1Loadout, characterId, secret) : _p1Loadout;
+        PlayerLoadout p2 = slot == P2Slot ? WithCharacterAndSecret(_p2Loadout, characterId, secret) : _p2Loadout;
         MapConfig map = MapManager.Instance.CurrentMap;
         HpMode hpMode = _hpMode;
 
@@ -141,9 +141,18 @@ public class BattleManager : UnitySingleton<BattleManager>
         StartBattle();
     }
 
-    private static PlayerLoadout WithCharacter(PlayerLoadout loadout, int characterId)
+    /// <summary>
+    /// 该槽位当前佩戴的秘卷 ID (没有为 null)
+    /// </summary>
+    public string SecretOf(int slot)
     {
-        return new PlayerLoadout { characterId = characterId, summons = loadout != null ? loadout.summons : null };
+        PlayerLoadout loadout = slot == P2Slot ? _p2Loadout : _p1Loadout;
+        return loadout != null ? loadout.secret : null;
+    }
+
+    private static PlayerLoadout WithCharacterAndSecret(PlayerLoadout loadout, int characterId, string secret)
+    {
+        return new PlayerLoadout { characterId = characterId, secret = secret, summons = loadout != null ? loadout.summons : null };
     }
 
     /// <summary>
@@ -172,12 +181,16 @@ public class BattleManager : UnitySingleton<BattleManager>
         World = new BattleWorld(MapManager.Instance.CurrentMapLogic);
         _spawnPool = new SpawnPool();
         World.Spawner = _spawnPool;
+        // 秘卷的 Buff 与角色无关，开局全部登记 (角色的 Buff 在生成角色时登记)
+        var scrollBuffs = new List<BuffInfo>();
+        SecretScrollRegistry.CollectBuffs(scrollBuffs);
+        foreach (BuffInfo buff in scrollBuffs) World.BuffTable[buff.id] = buff;
 
         int localSlot = IsOnline ? LockstepManager.Instance.MyGameId : P1Slot;
         SceneManager.Instance.InitWorld(localSlot);
 
-        ActorView p1 = SpawnPlayer(_p1Loadout.characterId, P1Slot, P1Spawn, facingLeft: false);
-        ActorView p2 = SpawnPlayer(_p2Loadout.characterId, P2Slot, P2Spawn, facingLeft: true);
+        ActorView p1 = SpawnPlayer(_p1Loadout, P1Slot, P1Spawn, facingLeft: false);
+        ActorView p2 = SpawnPlayer(_p2Loadout, P2Slot, P2Spawn, facingLeft: true);
         _p1 = p1 != null ? p1.Character : null;
         _p2 = p2 != null ? p2.Character : null;
         ActorView local = localSlot == P2Slot ? p2 : p1;
@@ -195,15 +208,16 @@ public class BattleManager : UnitySingleton<BattleManager>
     /// <summary>
     /// 玩家的 EntityId / 阵营 / 输入槽位均取槽位号，保证双端一致
     /// </summary>
-    private ActorView SpawnPlayer(int characterId, int slot, FPVector3 position, bool facingLeft)
+    private ActorView SpawnPlayer(PlayerLoadout loadout, int slot, FPVector3 position, bool facingLeft)
     {
+        int characterId = loadout.characterId;
         if (!CharacterFactory.IsKnown(characterId))
         {
             Debug.LogWarning($"[BattleManager] 角色 {characterId} 尚未接入新框架，改用默认角色 {DefaultCharacterId}");
             characterId = DefaultCharacterId;
         }
 
-        CharacterObj character = CharacterFactory.Create(characterId, slot, slot, slot, position, facingLeft);
+        CharacterObj character = CharacterFactory.Create(characterId, slot, slot, slot, position, facingLeft, loadout.secret);
         if (character == null) return null;
         character.hpMode = _hpMode;
 

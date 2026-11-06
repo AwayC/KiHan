@@ -8,5 +8,6 @@ namespace View.UI
     public partial class SummonButtonView
     {
         [SerializeField] private global::View.UI.BeanListView _beans;
+        [SerializeField] private global::UnityEngine.UI.Image _summonBtn;
     }
 }

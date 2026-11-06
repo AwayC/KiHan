@@ -6,70 +6,38 @@
       "id": "skill1",
       "button": "Skill1",
       "cooldown": "3",
-      "stages": [
-        {
-          "actionId": "skill1",
-          "followActions": [
-            "skill1_2",
-            "skill1_3"
-          ]
-        }
-      ]
+      "actionId": "skill1"
     },
     {
       "id": "skill2",
       "button": "Skill2",
       "cooldown": "3",
-      "stages": [
-        {
-          "actionId": "skill2"
-        }
-      ]
+      "actionId": "skill2"
     },
     {
       "id": "ultimate",
       "button": "Ultimate",
       "cooldown": "0",
-      "stages": [
-        {
-          "actionId": "ultimate",
-          "followActions": [
-            "ultimate_2",
-            "ultimate_3"
-          ]
-        }
-      ],
+      "actionId": "ultimate",
       "chakraCost": 4
     },
     {
       "id": "secret",
       "button": "Secret",
       "cooldown": "3",
-      "stages": [
-        {
-          "actionId": "secret"
-        }
-      ]
+      "actionId": "secret"
     },
     {
       "id": "summon",
       "button": "Summon",
       "cooldown": "3",
-      "stages": [
-        {
-          "actionId": "summon"
-        }
-      ]
+      "actionId": "summon"
     },
     {
       "id": "substitution",
       "button": "Substitution",
       "cooldown": "3",
-      "stages": [
-        {
-          "actionId": "substitution"
-        }
-      ],
+      "actionId": "substitution",
       "chakraCost": 1,
       "requireHurt": true
     }

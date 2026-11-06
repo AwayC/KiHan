@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "id": "naruto_skill2_fx",
+      "type": "Simple",
+      "initialActionId": "skill2_fx",
+      "lifeTime": "3",
+      "prewarm": 2
+    }
+  ]
+}

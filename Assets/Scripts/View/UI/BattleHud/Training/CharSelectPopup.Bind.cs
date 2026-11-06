@@ -8,7 +8,11 @@ namespace KiHan.UI
     public partial class CharSelectPopup
     {
         [SerializeField] private global::UnityEngine.UI.Button _closeBtn;
-        [SerializeField] private global::KiHan.UI.UIScrollList _list;
+        [SerializeField] private global::KiHan.UI.UIScrollList _charList;
+        [SerializeField] private global::KiHan.UI.UIScrollList _secretList;
         [SerializeField] private global::UnityEngine.UI.Button _confirmBtn;
+        [SerializeField] private global::UnityEngine.RectTransform _pageList;
+        [SerializeField] private global::KiHan.UI.PageTabView _charPage;
+        [SerializeField] private global::KiHan.UI.PageTabView _secretPage;
     }
 }

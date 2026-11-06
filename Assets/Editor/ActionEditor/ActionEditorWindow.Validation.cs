@@ -110,6 +110,7 @@ namespace KiHan.Editor
                         ActionEventData e = a.events[ev];
                         CheckEnum<ActionEventType>(e.type, $"events[{ev}].type", Err);
                         ActionEventType type = ActionData.ParseEnum(e.type, ActionEventType.Effect);
+                        if (type == ActionEventType.Buff || type == ActionEventType.BuffRemoved) Err($"events[{ev}] 动作事件不能使用 {type} 类型，给角色加 Buff 改用 scripts 的 addBuff");
                         if (type == ActionEventType.Spawn && string.IsNullOrEmpty(e.spawnId)) Err($"events[{ev}] Spawn 事件缺少 spawnId");
                         if (type != ActionEventType.Spawn && string.IsNullOrEmpty(e.asset)) Err($"events[{ev}] {type} 事件缺少 asset");
                         if (e.loop && !e.bind) Warn($"events[{ev}] 循环特效未绑定角色 (bind)");
@@ -135,6 +136,12 @@ namespace KiHan.Editor
                     }
                 }
 
+                if (a.scripts != null)
+                {
+                    if (a.scripts.Length > ActionController.MaxScriptsPerAction) Err($"scripts 超过 {ActionController.MaxScriptsPerAction} 条 ({a.scripts.Length})，超出部分的 hit / input 不执行");
+                    for (int s = 0; s < a.scripts.Length; s++) CheckScript(a.scripts[s], s, total, Err, Warn);
+                }
+
                 if (a.rootMotion != null)
                 {
                     for (int r = 0; r < a.rootMotion.Length; r++)
@@ -150,6 +157,75 @@ namespace KiHan.Editor
                 }
             }
             return issues;
+        }
+
+        /// <summary>
+        /// 动作指令：触发时机、op、条件、帧 / 区间、按键、技能换段参数 (动作引用由 CollectOutgoing 统一检查)
+        /// </summary>
+        private static void CheckScript(ActionScriptData s, int index, int total, Action<string> err, Action<string> warn)
+        {
+            string field = $"scripts[{index}]";
+            if (!ActionScriptData.TryParseTrigger(s.on, out ScriptTrigger trigger)) err($"{field}.on = \"{s.on}\" 无法识别，可选值: frame / hit / input / exit");
+            bool opOk = ActionScriptData.TryParseOp(s.op, out ScriptOp op);
+            if (!opOk) err($"{field}.op = \"{s.op}\" 无法识别，可选值: goto / setVar / addVar / skillStage / skillEnd / resetHits / addBuff / removeBuff");
+
+            if (s.cond != null)
+            {
+                for (int c = 0; c < s.cond.Length; c++)
+                {
+                    bool hasName = !string.IsNullOrEmpty(s.cond[c].name);
+                    bool hasBuff = !string.IsNullOrEmpty(s.cond[c].buff);
+                    if (hasName == hasBuff) err($"{field}.cond[{c}] 需要且只能配置 name (变量) 或 buff (Buff 剩余帧数) 其中之一");
+                    if (!ScriptConditionData.TryParseCompare(s.cond[c].cmp, out _)) err($"{field}.cond[{c}].cmp = \"{s.cond[c].cmp}\" 无法识别，可选值: {string.Join(" ", ScriptConditionData.CompareSymbols)}");
+                }
+            }
+
+            if (trigger == ScriptTrigger.Frame)
+            {
+                if (s.frame < 0) err($"{field}.frame = {s.frame} 无效");
+                else if (s.frame >= total) warn($"{field}.frame = {s.frame} 超出动画 ({total} 帧)，不会生效");
+            }
+            else if (trigger == ScriptTrigger.Hit || trigger == ScriptTrigger.Input)
+            {
+                if (s.range.x < 0 || s.range.y < s.range.x) err($"{field}.range [{s.range.x}, {s.range.y}] 无效");
+                else if (s.range.x >= total) warn($"{field}.range 起点 {s.range.x} 超出动画 ({total} 帧)，不会生效");
+            }
+            if (trigger == ScriptTrigger.Input)
+            {
+                if (CheckKeys(s.keys, false, $"{field}.keys", err) == 0) err($"{field} input 触发没有配置任何按键");
+            }
+            else if (s.keys != null && s.keys.Length > 0) warn($"{field}.keys 只对 input 触发生效");
+
+            if (!opOk) return;
+            switch (op)
+            {
+                case ScriptOp.Goto:
+                    if (trigger == ScriptTrigger.Exit) err($"{field} exit 触发不能使用 goto");
+                    if (string.IsNullOrEmpty(s.action)) err($"{field} goto 缺少 action");
+                    break;
+                case ScriptOp.SetVar:
+                case ScriptOp.AddVar:
+                    if (string.IsNullOrEmpty(s.name)) err($"{field} {op} 缺少变量名 name");
+                    break;
+                case ScriptOp.SkillStage:
+                    if (string.IsNullOrEmpty(s.skill)) err($"{field} skillStage 缺少 skill");
+                    if (string.IsNullOrEmpty(s.action)) err($"{field} skillStage 缺少 action");
+                    CheckNumber(s.window, $"{field}.window", err);
+                    CheckNumber(s.cdReturn, $"{field}.cdReturn", err);
+                    if (!decimal.TryParse(s.window, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out decimal window) || window <= 0m)
+                        err($"{field}.window = \"{s.window}\" 必须大于 0");
+                    break;
+                case ScriptOp.SkillEnd:
+                    if (string.IsNullOrEmpty(s.skill)) err($"{field} skillEnd 缺少 skill");
+                    CheckNumber(s.cdReturn, $"{field}.cdReturn", err);
+                    break;
+                case ScriptOp.AddBuff:
+                case ScriptOp.RemoveBuff:
+                    if (string.IsNullOrEmpty(s.buff)) err($"{field} {op} 缺少 buff");
+                    if (s.toTarget && trigger != ScriptTrigger.Hit) err($"{field} toTarget 只能用于 hit 触发 (作用于被打中的目标)");
+                    if (op == ScriptOp.AddBuff) CheckNumber(s.window, $"{field}.window", err);
+                    break;
+            }
         }
 
         private static void CheckEnum<T>(string value, string field, Action<string> err) where T : struct

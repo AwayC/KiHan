@@ -86,7 +86,7 @@ namespace KiHan.Editor
             new TrackInfo { Kind = TrackKind.BeCancelled, Name = "可被取消", Field = "beCancelledTag", Color = new Color(0.35f, 0.8f, 0.4f), Tip = "beCancelledTag：区间内可被带有这些 cancelTag 的动作打断" },
             new TrackInfo { Kind = TrackKind.InputAccept, Name = "移动输入", Field = "inputAcceptance", Color = new Color(0.3f, 0.75f, 0.75f), Tip = "inputAcceptance：区间内接受摇杆移动的速率与转向" },
             new TrackInfo { Kind = TrackKind.RootMotion, Name = "位移", Field = "rootMotion", Color = new Color(0.65f, 0.45f, 0.95f), Tip = "rootMotion：区间内的水平位移 / 起始帧设置的速度" },
-            new TrackInfo { Kind = TrackKind.Event, Name = "事件", Field = "events", Color = new Color(0.95f, 0.85f, 0.3f), Point = true, Tip = "events：在该帧触发特效 / 生成物 / 镜头 / Buff / 音效 / 演出" },
+            new TrackInfo { Kind = TrackKind.Event, Name = "事件", Field = "events", Color = new Color(0.95f, 0.85f, 0.3f), Point = true, Tip = "events：在该帧触发特效 / 生成物 / 镜头 / 音效 / 演出" },
             new TrackInfo { Kind = TrackKind.CancelTag, Name = "切入帧", Field = "cancelTag", Color = new Color(0.7f, 0.7f, 0.7f), Point = true, Tip = "cancelTag.startFormFrame：以该标签切入本动作时从这一帧开始播放" },
         };
 
@@ -1158,7 +1158,7 @@ namespace KiHan.Editor
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Label("类型", GUILayout.Width(40));
-                foreach (string name in new[] { "Effect", "Spawn", "Camera", "Buff", "Sound", "Cinematic" })
+                foreach (string name in new[] { "Effect", "Spawn", "Camera", "Sound", "Cinematic" })
                 {
                     bool on = string.Equals(type.stringValue, name, StringComparison.OrdinalIgnoreCase) || (name == "Effect" && string.IsNullOrEmpty(type.stringValue));
                     if (GUILayout.Toggle(on, name, EditorStyles.miniButton) && !on) type.stringValue = name;

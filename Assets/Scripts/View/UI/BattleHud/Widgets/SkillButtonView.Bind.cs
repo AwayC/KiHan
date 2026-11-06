@@ -7,6 +7,7 @@ namespace View.UI
 {
     public partial class SkillButtonView
     {
+        [SerializeField] private global::View.UI.SkillWindowView _cDTimer;
         [SerializeField] private global::UnityEngine.GameObject _readyAura;
     }
 }

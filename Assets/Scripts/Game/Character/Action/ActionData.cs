@@ -50,14 +50,8 @@ namespace KiHan.Logic
         [Tooltip("受击中可以凭指令强制进入 (替身术)：忽略被取消窗口，进入后解除受击状态并进入起身无敌")]
         public bool breakHurt;
 
-        [Tooltip("进入本动作时清空命中记录 (技能第一段)")]
-        public bool clearHitRecord;
-
-        [Tooltip("本动作的攻击在这些动画帧命中时写入命中记录 (跨动作保留，直到 clearHitRecord 的动作清空)")]
-        public FrameRange[] recordHitFrames;
-
-        [Tooltip("命中分支：经过 frame 且命中记录为真时切换到 actionId")]
-        public HitBranch[] hitBranches;
+        [Tooltip("动作指令：按帧 / 命中 / 输入 / 离开触发，带变量条件 (跳转、变量、技能换段、命中记录)")]
+        public ActionScriptData[] scripts;
 
         [Tooltip("浮空受击动作 (float) 专用：空中受击与触地弹起时从第几个切片步 (0 起) 开始播放")]
         public int airHitStep;
@@ -113,9 +107,22 @@ namespace KiHan.Logic
             info.priority = priority;
             info.onLand = onLand != null ? onLand.ToRuntime() : default;
             info.breakHurt = breakHurt;
-            info.clearHitRecord = clearHitRecord;
-            info.recordHitFrames = recordHitFrames ?? Array.Empty<FrameRange>();
-            info.hitBranches = hitBranches ?? Array.Empty<HitBranch>();
+            if (scripts != null)
+            {
+                if (scripts.Length > ActionController.MaxScriptsPerAction)
+                {
+                    Debug.LogError($"[ActionData] 动作 {id} 的指令超过 {ActionController.MaxScriptsPerAction} 条，超出部分的 hit / input 指令不会执行");
+                }
+                info.scripts = new ActionScript[scripts.Length];
+                for (int i = 0; i < scripts.Length; i++)
+                {
+                    info.scripts[i] = scripts[i].ToRuntime();
+                }
+            }
+            else
+            {
+                info.scripts = Array.Empty<ActionScript>();
+            }
             info.airHitStep = airHitStep;
 
             if (events != null)

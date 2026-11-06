@@ -113,15 +113,12 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 动作事件 (由角色在第 2 步触发)：生成请求排队到第 7 步执行，Buff 立即添加，表现事件记入 ViewEvents
+        /// 动作事件 (由角色在第 2 步触发)：生成请求排队到第 7 步执行，表现事件记入 ViewEvents
+        /// (Buff 由动作指令 addBuff 添加；Buff / BuffRemoved 只作为表现事件类型使用，配置在动作事件里时忽略并在加载时报错)
         /// </summary>
         public void OnActionEvent(CharacterObj source, in ActionEventInfo evt)
         {
-            if (evt.type == ActionEventType.Buff)
-            {
-                if (BuffTable.TryGetValue(evt.asset, out BuffInfo buff)) AddBuff(source, buff);
-                return;
-            }
+            if (evt.type == ActionEventType.Buff || evt.type == ActionEventType.BuffRemoved) return;
 
             FPVector3 point = evt.useWorldPos ? evt.worldPos : source.EventPoint(evt.anchor, evt.offset);
 
@@ -159,11 +156,12 @@ namespace KiHan.Logic
         }
 
         /// <summary>
-        /// 给角色添加一层 Buff，并通知表现层播放其循环特效
+        /// 给角色添加一层 Buff，持续 ticks 帧 (&lt;= 0 时按配置时长)；新增层时通知表现层播放其循环特效，达到叠层上限只刷新时间
         /// </summary>
-        public void AddBuff(CharacterObj target, BuffInfo buff)
+        public void AddBuff(CharacterObj target, BuffInfo buff, int ticks = 0)
         {
-            int serial = target.Buffs.Add(buff);
+            int serial = target.Buffs.Add(buff, ticks > 0 ? ticks : buff.durationTicks, out bool added);
+            if (!added) return;
             ViewEvents.Add(new ViewEvent
             {
                 Type = ActionEventType.Buff,
@@ -178,6 +176,14 @@ namespace KiHan.Logic
                 BuffSerial = serial,
                 Position = target.motion.Position
             });
+        }
+
+        /// <summary>
+        /// 移除角色身上指定 id 的全部层 (通知表现层停止特效)
+        /// </summary>
+        public void RemoveBuff(CharacterObj target, string buffId)
+        {
+            target.Buffs.Remove(buffId, target);
         }
 
         /// <summary>

@@ -84,7 +84,7 @@ namespace KiHan.Logic.AI
         private static bool IsReady(SkillController skills, int index)
         {
             SkillInfo skill = skills.GetSkill(index);
-            return !skill.requireHurt && skills.GetCooldown(index) == 0 && skills.GetNextStage(index) == 0 && skills.Chakra >= skill.chakraCost;
+            return !skill.requireHurt && skills.GetCooldown(index) == 0 && skills.GetWindow(index) == 0 && skills.Chakra >= skill.chakraCost;
         }
 
         private static BTStatus Attack(BotContext ctx)

@@ -9,6 +9,8 @@ namespace KiHan.UI
     {
         [SerializeField] private global::View.UI.SubstitutionButtonView _substitution;
         [SerializeField] private global::View.UI.SummonButtonView _summon;
+        [SerializeField] private global::View.UI.SkillButtonView _secretBtn;
+        [SerializeField] private global::View.UI.ButtonTimerView _attackTimer;
         [SerializeField] private global::View.UI.SkillButtonView[] _skillButtons;
         [SerializeField] private global::View.UI.FighterStatusView _p1Status;
         [SerializeField] private global::View.UI.FighterStatusView _p2Status;

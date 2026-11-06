@@ -8,7 +8,8 @@ namespace KiHan.UI
     /// <summary>
     /// 战斗 HUD (Hud 层)：GameFlow 在战斗加载完成后带参数打开
     /// - 顶部：双方角色状态 (按槽位 P1 / P2)
-    /// - 本机按键：技能 CD / 接段、替身可用次数、通灵数量；按键输入由各按键上的 VirtualButton / VirtualJoystick 直接写入 InputManager
+    /// - 本机按键：技能 / 秘卷 CD 与接段、Buff 倒计时 (buffs 的 button 配置在普攻等按键上)、替身可用次数、通灵数量；按键输入由各按键上的 VirtualButton / VirtualJoystick 直接写入 InputManager
+    ///   (秘卷键与通灵键的父节点是底图，图标在子节点 @SecretBtn / @SummonBtn 上；秘卷图标与 CD 由 @SecretBtn 上的 SkillButtonView 显示)
     /// - 返回：通用确认弹窗，确认后 GameFlow.ExitBattle
     /// - 场景：打开训练场选图弹窗 (MapSelectPopup)
     /// - 换人：角色状态上的换人按钮打开训练场换人弹窗 (CharSelectPopup)，联机时隐藏
@@ -62,8 +63,11 @@ namespace KiHan.UI
 
             _local = args.Local;
             _icons.Clear();
+            SecretScrollEntry scroll = args.LocalLoadout != null ? SecretScrollRegistry.Find(args.LocalLoadout.secret) : null;
+            if (scroll != null) _icons.Register(scroll.IconKey, scroll.icon);
             if (_local != null && _local.Skills != null) _icons.Preload(_local.Skills, CharacterRegistry.Find(_local.CharacterId));
             foreach (SkillButtonView button in _skillButtons) button.Bind(_icons);
+            _secretBtn.Bind(_icons);
 
             // 通灵系统尚未实现：佩戴的通灵都还没有使用
             int summons = args.LocalLoadout != null && args.LocalLoadout.summons != null ? args.LocalLoadout.summons.Length : 0;
@@ -90,7 +94,7 @@ namespace KiHan.UI
 
         private static void OpenCharSelect(CharacterObj character)
         {
-            UIManager.Instance.Open<CharSelectPopup, CharSelectPopup.Args>(new CharSelectPopup.Args { Slot = character.InputSlot, CurrentCharacterId = character.CharacterId });
+            UIManager.Instance.Open<CharSelectPopup, CharSelectPopup.Args>(new CharSelectPopup.Args { Slot = character.InputSlot, CurrentCharacterId = character.CharacterId, CurrentSecret = BattleManager.Instance.SecretOf(character.InputSlot) });
         }
 
         private void Refresh()
@@ -98,9 +102,13 @@ namespace KiHan.UI
             _p1Status.Refresh();
             _p2Status.Refresh();
 
-            SkillController skills = _local != null ? _local.Skills : null;
+            if (_local == null) return;
+            _attackTimer.Refresh(_local.Buffs);
+
+            SkillController skills = _local.Skills;
             if (skills == null) return;
-            for (int i = 0; i < _skillButtons.Length; i++) _skillButtons[i].Refresh(skills);
+            for (int i = 0; i < _skillButtons.Length; i++) _skillButtons[i].Refresh(skills, _local.Buffs);
+            _secretBtn.Refresh(skills, _local.Buffs);
             _substitution.Refresh(skills);
         }
     }

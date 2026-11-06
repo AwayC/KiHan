@@ -69,6 +69,20 @@ namespace KiHan.Editor
                 if (!string.IsNullOrEmpty(id) && !actionIds.Contains(id)) problems.Add($"{where} 引用了不存在的动作 {id}");
             }
 
+            var skillIds = new HashSet<string>();
+            var skillEntries = new HashSet<string>();
+            foreach (SkillInfo skill in template.Skills)
+            {
+                skillIds.Add(skill.id);
+                if (!string.IsNullOrEmpty(skill.actionId)) skillEntries.Add(skill.actionId);
+            }
+
+            void RequireSkill(string id, string where)
+            {
+                if (string.IsNullOrEmpty(id)) problems.Add($"{where} 没有配置技能 skill");
+                else if (!skillIds.Contains(id)) problems.Add($"{where} 引用了不存在的技能 {id}");
+            }
+
             void RequireIcon(string key, string where)
             {
                 if (!string.IsNullOrEmpty(key) && global::View.UI.SkillIconCache.Load(key, manifest) == null) problems.Add($"{where} 的图标不存在: {key}");
@@ -102,15 +116,63 @@ namespace KiHan.Editor
                 if (director == null || director.playableAsset == null) problems.Add($"{where} 的演出预制体缺少 PlayableDirector 或 Timeline: {key}");
             }
 
+            void RequireBuff(string id, string where)
+            {
+                if (string.IsNullOrEmpty(id)) problems.Add($"{where} 没有配置 buff");
+                else if (!template.Buffs.ContainsKey(id) && !SecretScrollRegistry.HasBuff(id)) problems.Add($"{where} 引用了不存在的 Buff {id} (buffs.json 或秘卷表)");
+            }
+
+            void ValidateScripts(ActionInfo a)
+            {
+                if (a.scripts == null) return;
+                if (a.scripts.Length > ActionController.MaxScriptsPerAction)
+                    problems.Add($"动作 {a.id} 的指令超过 {ActionController.MaxScriptsPerAction} 条");
+                for (int i = 0; i < a.scripts.Length; i++)
+                {
+                    ActionScript s = a.scripts[i];
+                    string where = $"动作 {a.id} 的 scripts[{i}]";
+                    if (s.op == ScriptOp.None) problems.Add($"{where} 无法识别的 op");
+                    if (s.on == ScriptTrigger.Input && (s.input.press == null || s.input.press.Length == 0))
+                        problems.Add($"{where} 是 input 触发但没有配置按键");
+                    else if (s.on == ScriptTrigger.Input && Array.IndexOf(s.input.press, CommandKey.None) >= 0)
+                        problems.Add($"{where} 的按键无法识别 (摇杆键不能用于 input)");
+                    switch (s.op)
+                    {
+                        case ScriptOp.Goto:
+                            if (s.on == ScriptTrigger.Exit) problems.Add($"{where} 在 exit 触发中使用了 goto");
+                            if (string.IsNullOrEmpty(s.action)) problems.Add($"{where} 的 goto 没有配置 action");
+                            RequireAction(s.action, where);
+                            break;
+                        case ScriptOp.SkillStage:
+                            if (string.IsNullOrEmpty(s.action)) problems.Add($"{where} 的 skillStage 没有配置 action");
+                            RequireAction(s.action, where);
+                            RequireSkill(s.skill, where);
+                            RequireIcon(s.icon, where);
+                            if (s.windowTicks <= 0) problems.Add($"{where} 的 skillStage window 必须大于 0");
+                            break;
+                        case ScriptOp.SkillEnd:
+                            RequireSkill(s.skill, where);
+                            break;
+                        case ScriptOp.AddBuff:
+                        case ScriptOp.RemoveBuff:
+                            RequireBuff(s.buff, where);
+                            if (s.toTarget && s.on != ScriptTrigger.Hit) problems.Add($"{where} 的 toTarget 只能用于 hit 触发");
+                            break;
+                    }
+                    if (s.cond == null) continue;
+                    foreach (ScriptCondition c in s.cond)
+                    {
+                        if (!string.IsNullOrEmpty(c.buff)) RequireBuff(c.buff, $"{where} 的条件");
+                    }
+                }
+            }
+
             foreach (ActionInfo a in template.Actions)
             {
                 if (!animKeys.Contains(a.animKey)) problems.Add($"动作 {a.id} 的动画 {a.animKey} 不存在");
                 RequireAction(a.autoNextActionId, $"动作 {a.id} 的 autoNextActionId");
                 ValidateCommands(a, problems);
-                if (a.hitBranches != null)
-                {
-                    foreach (HitBranch branch in a.hitBranches) RequireAction(branch.actionId, $"动作 {a.id} 第 {branch.frame} 帧的命中分支");
-                }
+                ValidateScripts(a);
                 if (a.attacks != null)
                 {
                     foreach (AttackInfo atk in a.attacks)
@@ -133,24 +195,42 @@ namespace KiHan.Editor
                     if (evt.type == ActionEventType.Effect) RequireEffect(evt.asset, $"动作 {a.id} 第 {evt.frame} 帧");
                     if (evt.type == ActionEventType.Sound) RequireSound(evt.asset, $"动作 {a.id} 第 {evt.frame} 帧");
                     if (evt.type == ActionEventType.Cinematic) RequireCinematic(evt.asset, $"动作 {a.id} 第 {evt.frame} 帧");
-                    if (evt.type == ActionEventType.Buff && !template.Buffs.ContainsKey(evt.asset))
-                        problems.Add($"动作 {a.id} 第 {evt.frame} 帧添加了未配置的 Buff {evt.asset}");
+                    if (evt.type == ActionEventType.Buff || evt.type == ActionEventType.BuffRemoved)
+                        problems.Add($"动作 {a.id} 第 {evt.frame} 帧的动作事件使用了 {evt.type} 类型，给角色加 Buff 改用 scripts 的 addBuff");
                 }
             }
 
             foreach (SkillInfo skill in template.Skills)
             {
-                if (skill.stages.Length == 0) problems.Add($"技能 {skill.id} 没有配置段");
                 RequireIcon(skill.icon, $"技能 {skill.id}");
-                foreach (SkillStageInfo stage in skill.stages)
+                if (string.IsNullOrEmpty(skill.actionId)) problems.Add($"技能 {skill.id} 没有配置入口动作 actionId");
+                RequireAction(skill.actionId, $"技能 {skill.id}");
+                if (!string.IsNullOrEmpty(skill.buff)) RequireBuff(skill.buff, $"技能 {skill.id} 的 buff");
+            }
+
+            // 换段目标动作：不能是技能入口动作，不能被两个技能共用
+            var stageOwner = new Dictionary<string, string>();
+            foreach (ActionInfo a in template.Actions)
+            {
+                if (a.scripts == null) continue;
+                foreach (ActionScript s in a.scripts)
                 {
-                    RequireAction(stage.actionId, $"技能 {skill.id}");
-                    foreach (string follow in stage.followActions) RequireAction(follow, $"技能 {skill.id} 的后续动作");
-                    RequireIcon(stage.icon, $"技能 {skill.id} 的段 {stage.actionId}");
+                    if (s.op != ScriptOp.SkillStage || string.IsNullOrEmpty(s.action)) continue;
+                    if (skillEntries.Contains(s.action)) problems.Add($"动作 {a.id} 的 skillStage 目标 {s.action} 同时是技能入口动作");
+                    if (stageOwner.TryGetValue(s.action, out string owner))
+                    {
+                        if (owner != s.skill) problems.Add($"动作 {s.action} 同时是技能 {owner} 和 {s.skill} 的下一段动作");
+                    }
+                    else stageOwner.Add(s.action, s.skill);
                 }
             }
 
-            foreach (BuffInfo buff in template.Buffs.Values) RequireEffect(buff.effect, $"Buff {buff.id}");
+            foreach (BuffInfo buff in template.Buffs.Values)
+            {
+                RequireEffect(buff.effect, $"Buff {buff.id}");
+                if (buff.durationTicks <= 0) problems.Add($"Buff {buff.id} 的 duration 必须大于 0");
+                if (SecretScrollRegistry.HasBuff(buff.id)) problems.Add($"Buff {buff.id} 与秘卷表中的 Buff 重名");
+            }
 
             foreach (SpawnInfo spawn in template.Spawns.Values)
             {

@@ -649,6 +649,16 @@ namespace KiHan.Editor
                     AddChange(refs, $"对手被反#{i}", (int)a.defensePhase[i].attackerActionChange.changeType, a.defensePhase[i].attackerActionChange.param);
                 }
             }
+            if (a.scripts != null)
+            {
+                for (int i = 0; i < a.scripts.Length; i++)
+                {
+                    ActionScriptData s = a.scripts[i];
+                    if (string.IsNullOrEmpty(s.action) || !ActionScriptData.TryParseOp(s.op, out ScriptOp op)) continue;
+                    if (op == ScriptOp.Goto) refs.Add(new KeyValuePair<string, string>($"指令跳转#{i}", s.action));
+                    else if (op == ScriptOp.SkillStage) refs.Add(new KeyValuePair<string, string>($"技能换段#{i}", s.action));
+                }
+            }
         }
 
         private static void AddChange(List<KeyValuePair<string, string>> refs, string how, int changeType, string param)
@@ -669,6 +679,7 @@ namespace KiHan.Editor
             { "beCancelledTag", "beCancelledTag 可被取消窗口" },
             { "tempBeCancelledTag", "tempBeCancelledTag 临时取消窗口" },
             { "commands", "commands 触发指令" },
+            { "scripts", "scripts 指令" },
             { "inputAcceptance", "inputAcceptance 移动输入" },
             { "autoNextActionId", "autoNextActionId 结束后" },
             { "keepPlayingAnim", "keepPlayingAnim 循环播放" },

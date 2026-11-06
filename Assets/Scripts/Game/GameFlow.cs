@@ -75,13 +75,13 @@ public sealed class GameFlow : UnitySingleton<GameFlow>
     }
 
     /// <summary>
-    /// 训练场换人 (换人弹窗确定)：Loading 中清理战斗并换掉该槽位的角色重开，地图保持
+    /// 训练场换人 / 换秘卷 (换人弹窗确定)：Loading 中清理战斗并换掉该槽位的角色与秘卷重开，地图保持
     /// </summary>
-    public void RestartTraining(int slot, int characterId)
+    public void RestartTraining(int slot, int characterId, string secret)
     {
         IsGameRunning = false;
         UIManager.Instance.CloseLayer(UILayer.Hud);
-        RunTransition(BattleManager.Instance.RestartTrainingRoutine(slot, characterId));
+        RunTransition(BattleManager.Instance.RestartTrainingRoutine(slot, characterId, secret));
     }
 
     /// <summary>

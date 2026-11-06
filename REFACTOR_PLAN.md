@@ -195,12 +195,13 @@ ForceMove / 重力   平推/击飞/吸附/抓取/扫地       SimpleEntity vs Ac
   - `Spawn` / `Buff` 影响逻辑：生成请求在 `BattleWorld` 第 7 步统一执行；Buff 立即加到自己身上。
   - `Effect` / `Camera` 只写入 `BattleWorld.ViewEvents`：特效可跟随锚点 (`bind` + `anchor`，`ActorView` 逐帧对齐)，`stopOnActionEnd` 按动作序号 `ActionSerial` 在动作结束时回收。
 - **技能资源控制器 (`SkillController`，`{dir}/skills.json`)**：
-  - 准入：`ActionController` 主动打断时调用 `CharacterObj.CanEnterAction`，入口动作需 CD 结束、轮到该段、查克拉足够、满足受击条件。
-  - 多段：每段由入口动作发起，`followActions` 列出同段的后续动作 (落地、命中派生、收招)；段放完后 `stageDuration` 内可接下一段。
-  - 图标：技能 `icon` 与各段 `stages[].icon` (Resources 路径，多图切片贴图用 `路径#子图名`)；按键显示轮到的那一段的图标，该段未配置时沿用技能图标；图标在战斗 UI 创建时预载。
-  - CD：释放完最后一段 (离开该技能全部动作) 后开始计算；接段超时开始计算并返还 `cdReturn`。
-  - 查克拉：上限 `chakraMax` (默认 4)；技能刷新 (CD 结束) 后，该技能任一段或其生成物命中获得 1 颗，之后要等下次刷新。
+  - 准入：`ActionController` 主动打断时调用 `CharacterObj.CanEnterAction`，入口动作 (`actionId`) 需 CD 结束、未换段、查克拉足够、满足受击条件；换上的下一段动作只在换段窗口内放行。
+  - 多段 (按键换段)：动作指令 `skillStage` 把技能按键换成下一段动作，`window` 秒内可按；后续动作 (落地、命中派生、收招) 经 autoNext / goto / 派生进入，自动沿用正在释放的技能 (`CastingSkill`)。
+  - 图标：技能 `icon` 与 `skillStage` 的 `icon` (Resources 路径，多图切片贴图用 `路径#子图名`)；换段期间显示段图标，未配置时沿用技能图标；图标在战斗 UI 创建时预载。
+  - CD：进入入口动作或下一段动作时开始完整 CD；换段期间 CD 清零，窗口超时 (或 `skillEnd`) 开始 CD = cooldown - `cdReturn`。
+  - 查克拉：上限 `chakraMax` (默认 4)；技能刷新 (CD 结束) 后，该技能任一动作或其生成物命中获得 1 颗，之后要等下次刷新。
   - 替身：技能配置 `requireHurt`，动作配置 `breakHurt`。只能在僵直/击飞/被抓/倒地时使用，受控锁定期间同样检测指令；进入后解除受击并以起身无敌播放替身动作，播完与倒地起身一样追加无敌。
+- **动作指令 (`ActionInfo.scripts`)**：触发 frame / hit / input / exit，指令 goto / setVar / addVar / skillStage / skillEnd / resetHits，角色级整型变量 + `cond` 条件 (命中派生 = hit 记变量 + frame 判断 goto)。
 - **生成物 (`{dir}/spawns.json`)**：两类都复用 `CharacterObj` + `ActionController` (动作库与主人角色共用)：
   - `Simple` (投射物)：不可受击，没有输入，动作链走完或寿命到期回收。
   - `Actor` (分身/召唤物)：可受击、独立生命值，由 `CloneBrain` (`None` / `Script`) 注入输入；寿命到期播放消失动作 (无敌) 后回收，生命值归零立即回收。

@@ -319,8 +319,10 @@
       "armorPhase": [
         { "range": { "x": 0, "y": 28 }, "level": "Skill" }
       ],
-      "clearHitRecord": true,
-      "recordHitFrames": [{ "x": 19, "y": 26 }],
+      "scripts": [
+        { "frame": 0, "op": "setVar", "name": "skill2Hit", "value": 0 },
+        { "on": "hit", "range": { "x": 19, "y": 26 }, "op": "setVar", "name": "skill2Hit", "value": 1 }
+      ],
       "events": [
         { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx" },
         { "frame": 4, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk" }
@@ -349,8 +351,8 @@
       "catalog": "Skill",
       "priority": 20,
       "autoNextActionId": "idle",
-      "hitBranches": [
-        { "frame": 9, "actionId": "skill2_2", "priority": 50 }
+      "scripts": [
+        { "frame": 9, "cond": [{ "name": "skill2Hit", "cmp": "==", "value": 1 }], "op": "goto", "action": "skill2_2", "priority": 50 }
       ],
       "armorPhase": [
         { "range": { "x": 0, "y": 9 }, "level": "Skill" }
@@ -442,6 +444,23 @@
       "id": "skill2_fx_land",
       "animKey": "Skill_B_fx_land",
       "catalog": "Spawn"
+    },
+    {
+      "id": "secret",
+      "animKey": "reel",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "commands": [
+        { "press": ["Secret"], "validInSec": "0.2" },
+        { "hold": ["Secret"] }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ]
     },
     {
       "id": "substitution",

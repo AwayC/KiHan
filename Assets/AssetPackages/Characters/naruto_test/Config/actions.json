@@ -1,0 +1,629 @@
+{
+  "data": [
+    {
+      "id": "idle",
+      "animKey": "Idle",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill"], "priority": 0 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 999 }, "rateX": "0", "rateY": "0", "turn": true }
+      ]
+    },
+    {
+      "id": "move",
+      "animKey": "Run",
+      "catalog": "Base",
+      "keepPlayingAnim": true,
+      "autoTerminate": true,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "move", "startFormFrame": 0, "priority": 0 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 0, "y": 999 }, "cancelTag": ["move", "attack1", "skill"], "priority": 0 }
+      ],
+      "commands": [
+        { "hold": ["Move"] }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 999 }, "rateX": "1", "rateY": "1", "turn": true }
+      ]
+    },
+    {
+      "id": "attack1",
+      "animKey": "Attack_1",
+      "catalog": "Attack",
+      "priority": 10,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "attack1", "startFormFrame": 0, "priority": 10 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 12, "y": 13 }, "cancelTag": ["move", "attack2", "skill"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Attack"], "validInSec": "0.2" },
+        { "hold": ["Attack"] }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 0, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "rootMotion" :[
+        { "frameRange": { "x": 4, "y": 6 }, "moveX": "0.6" }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "50",
+          "hitStun": "0.6",
+          "push": { "x": "0.6", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.6" },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "attack2",
+      "animKey": "Attack_2",
+      "catalog": "Attack",
+      "priority": 10,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "attack2", "startFormFrame": 0, "priority": 10 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 10, "y": 10 }, "cancelTag": ["move", "attack3", "skill"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Attack"], "validInSec": "0.3" },
+        { "hold": ["Attack"] }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 1, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "rootMotion" :[
+        { "frameRange": { "x": 1, "y": 4 }, "moveX": "1.0" }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "2", "turn": true },
+        { "range": { "x": 1, "y": 2 }, "rateX": "0", "rateY": "2", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "50",
+          "hitStun": "0.6",
+          "push": { "x": "1.0", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "3" },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "attack3",
+      "animKey": "Attack_3",
+      "catalog": "Attack",
+      "priority": 10,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "attack3", "startFormFrame": 0, "priority": 10 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 11, "y": 11 }, "cancelTag": ["move", "attack4", "skill"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Attack"], "validInSec": "0.2" },
+        { "hold": ["Attack"] }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 2, "y": 3 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "60",
+          "hitStun": "0.6",
+          "push": { "x": "0.4", "inSec": "0.2", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "3" },
+          "hurtAction": "hurt_1",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "attack4",
+      "animKey": "Attack_4",
+      "catalog": "Attack",
+      "priority": 10,
+      "autoNextActionId": "Attack4_Land",
+      "onLand": { "changeType" : 1, "param" : "Attack4_Land", "priority" : 100},
+      "cancelTag": [
+        { "tag": "attack4", "startFormFrame": 0, "priority": 10 }
+      ],
+      "beCancelledTag": [],
+      "commands": [
+        { "press": ["Attack"], "validInSec": "0.2" },
+        { "hold": ["Attack"] }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 2, "y": 4 }], "tag": [], "attackPhase": 0, "priority": 10 },
+        { "frameRanges": [{ "x": 12, "y": 12 }], "tag": [], "attackPhase": 1, "priority": 10 }
+      ],
+      "rootMotion" : [
+        { "frameRange": { "x": 2, "y": 8 }, "moveX": "2" },
+        { "frameRange": { "x": 9, "y": 9 }, "velocityX": "6", "velocityZ": "7" }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "2", "turn": true },
+        { "range": { "x": 1, "y": 2 }, "rateX": "0", "rateY": "2", "turn": false },
+        { "range": { "x": 9, "y": 9 }, "rateX": "0", "rateY": "0", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "30",
+          "hitStun": "0.5",
+          "push": { "x": "2.1", "inSec": "0.3", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "4" },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        },
+        {
+          "phase": 1,
+          "attack": "70",
+          "launch": { "z": "11", "x": "3" },
+          "air": { "z": "10", "x": "3" },
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "Attack4_Land",
+      "animKey": "Land",
+      "catalog": "Attack_Land",
+      "priority": 10,
+      "autoNextActionId": "idle",
+      "cancelTag": [],
+      "beCancelledTag": []
+    },
+    {
+      "id": "skill1",
+      "animKey": "Skill_A_1",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "scripts": [
+        { "frame": 0, "op": "skillStage", "skill": "skill1", "action": "skill1_2", "window": "3", "cdReturn": "4" }
+      ],
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 30, "y": 33 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Skill1"], "validInSec": "0.2" },
+        { "hold": ["Skill1"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 29 }, "level": "Skill" }
+      ],
+      "events": [
+        { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+        { "frame": 0, "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 } }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
+        { "frameRanges": [{ "x": 26, "y": 27 }], "tag": [], "attackPhase": 1, "priority": 20 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "30",
+          "hitStun": "0.5",
+          "armorBreak": "Skill",
+          "canHitSameTarget": 6,
+          "hitSameTargetDelay": "0.06"
+        },
+        {
+          "phase": 1,
+          "attack": "100",
+          "launch": { "z": "10", "x": "0" },
+          "air": { "z": "10", "x": "0" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill1_2",
+      "animKey": "Attack_3",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "scripts": [
+        { "frame": 0, "op": "skillStage", "skill": "skill1", "action": "skill1_3", "window": "2.5", "cdReturn": "2" }
+      ],
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 12, "y": 16 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Skill1"], "validInSec": "0.2" },
+        { "hold": ["Skill1"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 7 }, "level": "Skill" }
+      ],
+      "events": [
+        { "frame": 2, "type": "Camera", "asset": "pulse", "camera": { "zoom": "0.94", "holdSec": "0.04", "outSec": "0.06" } }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 2, "y": 3 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ],
+      "rootMotion": [
+        { "frameRange": { "x": 0, "y": 3 }, "moveX": "0.6" }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "80",
+          "hitStun": "0.7",
+          "push": { "x": "0.5", "inSec": "0.2", "tweenMethod": "Slowly" },
+          "air": { "z": "6", "x": "3" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill1_3",
+      "animKey": "Skill_B_2",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 36, "y": 38 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Skill1"], "validInSec": "0.2" },
+        { "hold": ["Skill1"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 23 }, "level": "Skill" }
+      ],
+      "events": [
+        { "frame": 8, "type": "Camera", "asset": "shake", "camera": { "amplitude": "0.12", "duration": "0.3" } }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 8, "y": 23 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ],
+      "rootMotion": [
+        { "frameRange": { "x": 0, "y": 7 }, "moveX": "1" },
+        { "frameRange": { "x": 8, "y": 11 }, "moveX": "2" }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "150",
+          "launch": { "z": "10", "x": "3" },
+          "air": { "z": "8", "x": "2" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill2_3",
+      "animKey": "Skill_A_1",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 30, "y": 33 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Skill2"], "validInSec": "0.2" },
+        { "hold": ["Skill2"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 29 }, "level": "Skill" }
+      ],
+      "events": [
+        { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
+        { "frameRanges": [{ "x": 26, "y": 27 }], "tag": [], "attackPhase": 1, "priority": 20 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "40",
+          "hitStun": "0.5",
+          "armorBreak": "Skill",
+          "canHitSameTarget": 6,
+          "hitSameTargetDelay": "0.06"
+        },
+        {
+          "phase": 1,
+          "attack": "120",
+          "launch": { "z": "10", "x": "2" },
+          "air": { "z": "10", "x": "2" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "ultimate",
+      "animKey": "Skill_A_1",
+      "catalog": "Skill",
+      "priority": 30,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 30 }
+      ],
+      "beCancelledTag": [
+        { "frameRange": { "x": 30, "y": 33 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "commands": [
+        { "press": ["Ultimate"], "validInSec": "0.2" },
+        { "hold": ["Ultimate"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 33 }, "level": "Super" }
+      ],
+      "events": [
+        { "frame": 0, "type": "Effect", "asset": "Effect/lxw/ball", "anchor": "lxw", "bind": true, "stopOnActionEnd": true },
+        { "frame": 0, "type": "Effect", "asset": "Effect/fengshen/fengshen", "offset": { "x": -110, "y": 80 }, "bind": true }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 14, "y": 25 }], "tag": [], "attackPhase": 0, "priority": 10 },
+        { "frameRanges": [{ "x": 26, "y": 27 }], "tag": [], "attackPhase": 1, "priority": 30 }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true },
+        { "range": { "x": 12, "y": 15 }, "rateX": "3", "rateY": "3", "turn": true }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "60",
+          "hitStun": "0.5",
+          "armorBreak": "Super",
+          "canHitSameTarget": 6,
+          "hitSameTargetDelay": "0.06"
+        },
+        {
+          "phase": 1,
+          "attack": "200",
+          "launch": { "z": "12", "x": "3" },
+          "air": { "z": "12", "x": "3" },
+          "armorBreak": "Super",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill2_1",
+      "animKey": "Skill_B_1",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "skill2_land",
+      "onLand": { "changeType": 1, "param": "skill2_land", "priority": 100 },
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "commands": [
+        { "press": ["Skill2"], "validInSec": "0.2" },
+        { "hold": ["Skill2"] }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 28 }, "level": "Skill" }
+      ],
+      "scripts": [
+        { "frame": 0, "op": "setVar", "name": "skill2Hit", "value": 0 },
+        { "on": "hit", "range": { "x": 19, "y": 26 }, "op": "setVar", "name": "skill2Hit", "value": 1 },
+        { "frame": 0, "op": "skillStage", "skill": "skill2", "action": "skill2_3", "window": "4.5", "cdReturn": "2", "icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0" }
+      ],
+      "events": [
+        { "frame": 4, "type": "Spawn", "spawnId": "naruto_skill2_fx" },
+        { "frame": 4, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk" }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 19, "y": 26 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "rootMotion": [
+        { "frameRange": { "x": 19, "y": 19 }, "velocityX": "8", "velocityZ": "5" }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "100",
+          "hitStun": "0.8",
+          "push": { "x": "0.8", "inSec": "0.2", "tweenMethod": "Slowly" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill2_land",
+      "animKey": "Skill_B_land",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "scripts": [
+        { "frame": 9, "cond": [{ "name": "skill2Hit", "cmp": "==", "value": 1 }], "op": "goto", "action": "skill2_2", "priority": 50 }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 9 }, "level": "Skill" }
+      ]
+    },
+    {
+      "id": "skill2_2",
+      "animKey": "Skill_B_2",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "beCancelledTag": [
+        { "frameRange": { "x": 38, "y": 38 }, "cancelTag": ["move", "attack1"], "priority": 0 }
+      ],
+      "armorPhase": [
+        { "range": { "x": 0, "y": 23 }, "level": "Skill" }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 8, "y": 23 }], "tag": [], "attackPhase": 0, "priority": 10 }
+      ],
+      "rootMotion": [
+        { "frameRange": { "x": 0, "y": 7 }, "moveX": "1" },
+        { "frameRange": { "x": 8, "y": 11 }, "moveX": "2" }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "120",
+          "launch": { "z": "10", "x": "3" },
+          "air": { "z": "8", "x": "2" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill2_fx",
+      "animKey": "Skill_B_fx",
+      "autoNextActionId": "skill2_fx_land",
+      "onLand": { "changeType" : 1, "param" : "skill2_fx_land", "priority" : 100},
+      "catalog": "Spawn",
+      "events": [
+        { "frame": 54, "type": "Effect", "asset": "Effect/skill2_smk/skill2_smk" }
+      ],
+      "attackPhase": [
+        { "frameRanges": [{ "x": 2, "y": 10 }], "tag": [], "attackPhase": 0, "priority": 10 },
+        { "frameRanges": [{ "x": 11, "y": 19 }], "tag": [], "attackPhase": 1, "priority": 10 },
+        { "frameRanges": [{ "x": 33, "y": 41 }], "tag": [], "attackPhase": 2, "priority": 10 }
+      ],
+      "rootMotion": [
+        { "frameRange": { "x": 0, "y": 6 }, "moveX": "1" },
+        { "frameRange": { "x": 28, "y": 28 }, "velocityX": "6", "velocityZ": "7" }
+      ],
+      "attacks": [
+        {
+          "phase": 0,
+          "attack": "50",
+          "hitStun": "0.4",
+          "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.8" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        },
+        {
+          "phase": 1,
+          "attack": "50",
+          "hitStun": "0.4",
+          "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.8" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        },
+        {
+          "phase": 2,
+          "attack": "50",
+          "hitStun": "0.4",
+          "push": { "x": "0.8", "inSec": "0.15", "tweenMethod": "Slowly" },
+          "air": { "z": "5", "x": "0.8" },
+          "armorBreak": "Skill",
+          "canHitSameTarget": 1,
+          "hitSameTargetDelay": "0"
+        }
+      ]
+    },
+    {
+      "id": "skill2_fx_land",
+      "animKey": "Skill_B_fx_land",
+      "catalog": "Spawn"
+    },
+    {
+      "id": "secret",
+      "animKey": "reel",
+      "catalog": "Skill",
+      "priority": 20,
+      "autoNextActionId": "idle",
+      "cancelTag": [
+        { "tag": "skill", "startFormFrame": 0, "priority": 20 }
+      ],
+      "commands": [
+        { "press": ["Secret"], "validInSec": "0.2" },
+        { "hold": ["Secret"] }
+      ],
+      "inputAcceptance": [
+        { "range": { "x": 0, "y": 0 }, "rateX": "0", "rateY": "0", "turn": true }
+      ]
+    },
+    {
+      "id": "substitution",
+      "animKey": "Standup",
+      "catalog": "Hurt",
+      "breakHurt": true,
+      "commands": [
+        { "press": ["Substitution"], "validInSec": "0.2" }
+      ]
+    },
+    { "id": "hurt",       "animKey": "Hurt_1",     "catalog": "Hurt" },
+    { "id": "hurt_1",     "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "hurt_2",     "animKey": "Hurt_3",     "catalog": "Hurt" },
+    { "id": "hurt_3",     "animKey": "Hurt_4",     "catalog": "Hurt" },
+    { "id": "grabbed",    "animKey": "Hurt_2",     "catalog": "Hurt" },
+    { "id": "float",      "animKey": "Hurt_float", "catalog": "Hurt", "airHitStep": 1 },
+    { "id": "fall",       "animKey": "Hurt_fall",  "catalog": "Hurt" },
+    { "id": "lie",        "animKey": "Hurt_land",  "catalog": "Hurt" },
+    { "id": "standup",    "animKey": "Land",       "catalog": "Hurt" }
+  ]
+}

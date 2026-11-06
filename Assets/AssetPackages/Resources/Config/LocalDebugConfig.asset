@@ -16,7 +16,9 @@ MonoBehaviour:
   infiniteHp: 1
   player1:
     characterId: 90001
+    secret: power
     summons: []
   player2:
     characterId: 90003
+    secret: 
     summons: []

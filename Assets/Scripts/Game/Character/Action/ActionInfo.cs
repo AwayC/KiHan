@@ -334,19 +334,9 @@ namespace KiHan.Logic
         public bool breakHurt;
 
         /// <summary>
-        /// 进入本动作时清空命中记录 (技能第一段配置；对应原版 1014)
+        /// 动作指令 (对应原版逐帧脚本：跳段、变量与条件、命中 / 输入触发、技能换段)
         /// </summary>
-        public bool clearHitRecord;
-
-        /// <summary>
-        /// 本动作的攻击在这些动画帧命中时写入命中记录 (对应原版 1013 开 / 关)；被霸体抵挡、目标被抓中同样计入
-        /// </summary>
-        public FrameRange[] recordHitFrames;
-
-        /// <summary>
-        /// 命中分支：经过指定帧且命中记录为真时切换动作 (对应原版 1015)
-        /// </summary>
-        public HitBranch[] hitBranches;
+        public ActionScript[] scripts;
 
         /// <summary>
         /// 浮空受击动作 (float) 专用：空中受击与触地弹起时从动画的第几个切片步 (0 起) 开始播放；地面击飞从头播放
