@@ -155,6 +155,7 @@ UIManager.Instance.Confirm("确定吗？", onConfirm, onCancel);
 | 开始战斗 | `StartOfflineBattle()` / `StartOnlineBattle(roomId)` |
 | 退出战斗 | `ExitBattle()` |
 | 登出 | `Logout()` |
+| 训练场切换地图 | `ChangeMap(map)` |
 | 新的带 Loading 的切换 | `RunTransition(协程, 完成回调)` |
 
 新增流程 (如选人、结算) 在 `GameFlow` 中加方法，界面只调用它。

@@ -50,6 +50,21 @@ namespace KiHan.View.Render
         public const int BackdropSortingOffset = -1000;
 
         /// <summary>
+        /// 3D 地图的地台层 (TagManager Layer 8: Map3D)：可走地台与相连近景，由地台透视相机绘制 (见 Map3DCameraRig)
+        /// </summary>
+        public const int Map3DLayer = 8;
+
+        /// <summary>
+        /// 3D 地图的远景层 (TagManager Layer 9: Map3DFar)：天穹、云层与远景建筑，由远景透视相机绘制
+        /// </summary>
+        public const int Map3DFarLayer = 9;
+
+        /// <summary>
+        /// 3D 地图两层的掩码 (正交主相机剔除)
+        /// </summary>
+        public const int Map3DAllMask = (1 << Map3DLayer) | (1 << Map3DFarLayer);
+
+        /// <summary>
         /// 打击火花、跳字等前景表现朝相机 (-Z) 前移的距离，保证位于参与命中的双方角色之前
         /// </summary>
         public const float ForegroundOffset = 1.5f;

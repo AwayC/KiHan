@@ -39,8 +39,12 @@ namespace KiHan.UI
 
         private void OnSelect(int index)
         {
-            MapManager.Instance.ChangeScene(_maps[index]);
+            MapConfig selected = _maps[index];
             Close();
+            if (selected != null && selected != MapManager.Instance.CurrentMap)
+            {
+                GameFlow.Instance.ChangeMap(selected);
+            }
         }
     }
 }

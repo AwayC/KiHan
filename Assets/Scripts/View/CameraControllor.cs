@@ -1,4 +1,5 @@
 using UnityEngine;
+using KiHan.Config;
 using KiHan.Logic;
 using KiHan.View.Cinematic;
 using KiHan.View.Render;
@@ -7,6 +8,7 @@ using KiHan.View.Render;
 /// 相机控制器：正交相机 (沿 +Z 观察)，技能 / 演出时可绕视线轴旋转
 /// 每帧分层合成：跟随 -> 动作镜头 (Camera shot 指令) -> 演出镜头 (Timeline CameraShotTrack) -> 边界 -> 旋转补偿 -> 缩放脉冲 -> 晃动
 /// 所有镜头效果都限制在正常跟随的取景范围内 (minX / maxX 与正常画面上下沿)，推近后可在该范围内移动，不会露出范围外
+/// 3D 地图另由 Map3DCameraRig 的两台透视相机绘制背景，每帧与本相机同步
 /// 晚于角色视图更新 (读取本帧插值后的角色位置)
 /// </summary>
 [DefaultExecutionOrder(100)]
@@ -43,6 +45,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
     private const float ImpactHold = 0.04f;
 
     private Camera _cam;
+    private Map3DCameraRig _map3D;
     private float _originalSize;
 
     /// <summary>
@@ -103,13 +106,25 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         _cam.orthographic = true;
         _cam.orthographicSize = 2.8f * BattleViewSpace.MapScale;
         _originalSize = _cam.orthographicSize;
+        _cam.clearFlags = CameraClearFlags.SolidColor;
         _cam.backgroundColor = Color.black;
+        _cam.cullingMask &= ~BattleViewSpace.Map3DAllMask;
         _cam.nearClipPlane = 0.1f;
         _cam.farClipPlane = BattleViewSpace.CameraDistance + BattleViewSpace.BackdropDistance + 20f;
+        _map3D = new Map3DCameraRig(_cam);
 
         transform.rotation = Quaternion.identity;
         transform.position = BattleViewSpace.CameraPosition(0f, yOffset);
         _followX = 0f;
+    }
+
+    /// <summary>
+    /// 切换地图时由 MapManager 调用：传入 3D 地图的相机参数启用背景透视相机，传 null 回到 2D 背景板单相机
+    /// </summary>
+    public void SetMap3D(Map3DCameraSettings settings)
+    {
+        _map3D.Apply(settings);
+        SyncMap3D();
     }
 
     public void SetTarget(ActorView target, bool immediate = false)
@@ -119,6 +134,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         {
             _followX = DesiredX();
             transform.position = BattleViewSpace.CameraPosition(_followX, yOffset);
+            SyncMap3D();
         }
     }
 
@@ -136,6 +152,7 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         transform.position = BattleViewSpace.CameraPosition(0f, yOffset);
         transform.rotation = Quaternion.identity;
         _cam.orthographicSize = _originalSize;
+        SyncMap3D();
     }
 
     /// <summary>
@@ -320,6 +337,13 @@ public class CameraControllor : UnitySingleton<CameraControllor>
         transform.position = BattleViewSpace.CameraPosition(x + shake.x, y + shake.y);
         transform.rotation = Quaternion.Euler(0f, 0f, finalRoll);
         _cam.orthographicSize = size;
+        SyncMap3D();
+    }
+
+    private void SyncMap3D()
+    {
+        if (!_map3D.Active) return;
+        _map3D.Sync(transform.position.x, transform.position.y, _cam.orthographicSize, Mathf.DeltaAngle(0f, transform.eulerAngles.z));
     }
 
     private void UpdateShake(float dt, ref Vector2 offset, ref float roll, ref float amplitude, ref float rollAmplitude)

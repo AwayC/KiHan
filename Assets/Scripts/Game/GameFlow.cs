@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using KiHan.DebugTools;
 using KiHan.UI;
+using KiHan.Config;
 using Managers;
 using UnityEngine;
 
@@ -85,6 +86,22 @@ public sealed class GameFlow : UnitySingleton<GameFlow>
     }
 
     /// <summary>
+    /// 局内切换地图 (选图弹窗选择)：Loading 遮罩下替换场景。
+    /// 只换表现层，逻辑帧照常推进 (暂停 IsGameRunning 会让本机跳过确认帧，联机不同步)
+    /// </summary>
+    public void ChangeMap(MapConfig map)
+    {
+        if (map == null || map == MapManager.Instance.CurrentMap) return;
+        RunTransition(ChangeMapRoutine(map));
+    }
+
+    private static IEnumerator ChangeMapRoutine(MapConfig map)
+    {
+        yield return null;
+        MapManager.Instance.ChangeScene(map);
+    }
+
+    /// <summary>
     /// 登出：Loading 中断开网络并清理，回到登录
     /// </summary>
     public void Logout()
@@ -126,13 +143,34 @@ public sealed class GameFlow : UnitySingleton<GameFlow>
         if (loading != null) loading.SetProgress(0f);
         yield return null;
 
+        yield return AnimateLoadingProgress(loading, 0f, 0.45f, 0.12f);
         yield return routine;
+        yield return AnimateLoadingProgress(loading, 0.45f, 1f, 0.18f);
 
         if (loading != null) loading.SetProgress(1f);
-        yield return new WaitForSecondsRealtime(0.2f);
+        yield return new WaitForSecondsRealtime(0.08f);
 
         UIManager.Instance.Close<LoadingPanel>();
         onFinish?.Invoke();
+    }
+
+    private static IEnumerator AnimateLoadingProgress(LoadingPanel loading, float from, float to, float duration)
+    {
+        if (loading == null || duration <= 0f)
+        {
+            loading?.SetProgress(to);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            loading.SetProgress(Mathf.Lerp(from, to, t));
+            yield return null;
+        }
+        loading.SetProgress(to);
     }
 
     /// <summary>

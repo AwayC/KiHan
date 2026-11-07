@@ -18,7 +18,8 @@
   - [步骤 3：配置动作与判定表 (naruto_actions.json)](#步骤-3配置动作与判定表-naruto_actionsjson)
   - [步骤 4：在战斗加载阶段进行开局预热 (Prewarm)](#步骤-4在战斗加载阶段进行开局预热-prewarm)
 - [五、 新增技能生成物规范 (SimpleEntity vs Actor)](#五-新增技能生成物规范-simpleentity-vs-actor)
-- [六、 为什么以后切 Addressables 零成本？](#六-为什么以后切-addressables-零成本)
+- [六、 战斗场景地图（2D / 3D）制作与接入全流程规范](#六-战斗场景地图2d--3d制作与接入全流程规范)
+- [七、 为什么以后切 Addressables 零成本？](#七-为什么以后切-addressables-零成本)
 
 ---
 
@@ -80,7 +81,8 @@ Assets/AssetPackages/Resources/
 │   ├── CharacterRegistry.asset      # 角色注册表
 │   └── MapRegistry.asset            # 地图注册表：登记顺序即选图顺序，第一张已启用的为开局默认地图
 │
-├── Maps/<id>/                       # 场景背景板预制体 (由地图清单 MapConfig.scene 直接引用)
+├── Maps/<id>/                       # 场景预制体 (scen.prefab 由 MapConfig.scene 引用)
+│   └── scen.prefab                  # 2D 背景板预制体 或 3D 场景预制体 (Stage / Far 子节点)
 │
 └── UI/                              # UI (框架与规则见 DOCS/UI_FRAMEWORK.md)
     ├── Panels/<模块>/<类名>.prefab   # 面板 / 弹窗 (根节点挂同名 UIPanel 脚本，不带 Canvas)
@@ -90,12 +92,13 @@ Assets/AssetPackages/Resources/
     ├── Widgets/                     # 被面板嵌套引用的通用预制体 (Slider、Loading)
     └── Shadow/                      # 角色脚下阴影
 
-Assets/AssetPackages/Maps/<id>/      # 地图清单 (不在 Resources 下，随注册表引用打包)
-├── Map.asset                        # MapConfig：id、displayName (选图显示名)、scene (背景板预制体)、shot (选图截图)
-└── shot.png                         # 选图截图 (Sprite)
+Assets/AssetPackages/Maps/<id>/      # 地图清单与美术资源 (不在 Resources 下，随预制体 / 注册表引用打包)
+├── <id>.asset                       # MapConfig：id、displayName、scene、shot、is3D、camera3D (3D 相机参数)
+├── shot.png                         # 选图截图 (320×443 Sprite)
+└── Meshes/ Materials/ Textures/     # 3D 地图的网格、材质与贴图资产
 
-新增地图：建 Maps/<id>/ 放截图 → Create/KiHan/Map Config 填写四项 → 登记到 MapRegistry。
-全部地图共用 MapLogic 边界，局内切换地图只换背景板 (MapManager.ChangeScene)；Unity 测试检查注册表中每张地图的四项是否齐全。
+新增地图：建 Maps/<id>/ 放截图 → Create/KiHan/Map Config 填写配置 (3D 地图勾选 is3D) → 登记到 MapRegistry。
+全部地图共用 MapLogic 边界，局内选图通过 GameFlow.ChangeMap 走 LoadingPanel 过渡并替换场景 (MapManager.ChangeScene)。
 ```
 
 ---
@@ -281,7 +284,58 @@ ObjectPoolManager.Instance.Prewarm("Effects/Hits/Spark1", 10, PoolCategory.FX);
 
 ---
 
-## 六、 为什么以后切 Addressables 零成本？
+## 六、 战斗场景地图（2D / 3D）制作与接入全流程规范
+
+项目同时支持 **传统 2D 分层视差地图**（如 `01 春日街道`、`02 中忍考试会场`、`03 决斗场`）与 **3D 透视视差地图**（如 `04 方格训练室(3D)`、`05 罗格镇(3D)`）。所有地图共用同一套定点数逻辑边界 `MapLogic`，表现层由 `MapManager` 与 `CameraControllor` 自动切换渲染模式。
+
+### 1. 空间坐标与物理标尺规范 (`1 Unity 单位 = 1 米`)
+
+| 空间维度 | 强制规范值 | 对齐说明 |
+| :--- | :--- | :--- |
+| **地台水平面 ($Y$)** | **$Y = 0$** | 角色脚底在 $Z = 0$ 处对应世界 $Y = 0$；3D 可走地台表面须严格保持在 $Y = 0$ 平面 |
+| **场地中心与出生点** | 中心 $(0, 0, 0)$；1P $(-2, 0, 0)$；2P $(+2, 0, 0)$ | 与 `BattleManager` 出生坐标严格对齐 |
+| **横向边界 ($X$)** | 可走范围 **$X \in [-8.0\text{m},\; +8.0\text{m}]$**<br>模型外观延伸至 **$X \in [-16\text{m},\; +16\text{m}]$** | 对应 `MapLogic.MinX / MaxX = ±8`；左右额外延伸确保相机跟随至版边、震屏或旋转（$\pm 30^\circ$）时不露底 |
+| **纵深边界 ($Z$)** | 逻辑纵深 $y$ 对应地面 $Z = \dfrac{D\,y}{0.368\,D - y}$（$D$ 为地台相机物距）<br>$D = 32$ 时可走范围约 **$Z \in [-2.5\text{m},\; +3.0\text{m}]$** | 对应 `MapLogic.MinY / MaxY = ±1.009371`；后沿护栏 / 背景墙底边放在 `MaxY` 对应的 $Z$ 处，角色走到最上方时脚尖正好抵住 |
+| **可走区净空铁律** | 可走区域上方及相机正前方 ($Z < -3\text{m}$) **严禁放高大遮挡物** | 角色由最顶层正交相机绘制，场地内不得摆放与角色穿插的 3D 障碍物；所有建筑只能放在后沿护栏外 ($Z > +3.0\text{m}$) 或左右版边外 ($|X| > 8.2\text{m}$) |
+
+### 2. 三层相机渲染架构与 Layer 拆分规范（3D 地图专属）
+
+3D 地图（`MapConfig.is3D = true`）不挂载 `ParallaxEffect`，也不用脚本在运行时生成几何：网格、材质、贴图都是资产，预制体可直接编辑保存。视差由 `CameraControllor` 持有的 `Map3DCameraRig` 两台透视相机与正交主相机合成：
+
+1. **远景相机 (`BgFar3DCamera`, depth = 主相机 - 2, `SolidColor`, `Layer 9: Map3DFar`)**：天穹、云层、下层广场与远景建筑。物距、机位高度、俯仰、横向视差倍率、上下偏移、视野倍率、底色都可在 `MapConfig.camera3D` 中按地图调节。
+2. **地台相机 (`BgStage3DCamera`, depth = 主相机 - 1, 只清深度, `Layer 8: Map3D`)**：脚下可走地台、后沿护栏以及**与地台直接接壤的左右近景侧楼**。开放物距 `stageDistance`（越大地砖近大远小越弱）、机位高度斜率 `stageHeightSlope`（越大地面纵向铺得越开）、俯仰 `stagePitch`（竖直物体上下汇聚），地台在画面中的宽度始终不变。
+   - **接壤铁律**：墙根直接立在地台上的近景侧楼必须与地台同属 `Layer 8`，否则两台相机物距不同会让墙根与地面相对滑动。
+3. **正交主相机 (`MainCamera`, depth 0, 只清深度, 剔除 `Layer 8 & 9`)**：2D 角色精灵、脚底阴影、打击火花与伤害跳字。
+
+> **移轴对齐**：两台相机都按「地面纵深中线」($Y = 0, Z = 0$ 的直线) 求视野与投影矩阵移轴 `m02 / m12`：这条线在任何俯仰下都与画面横轴平行，令其横向比例等于正交、参考点落在正交主相机的同一屏幕位置——地台中线与正交角色**逐像素同步（零滑步）**，物距 / 高度 / 俯仰怎么调都成立。地台的缩放与平移会破坏该对齐，因此不开放。
+
+### 3. 3D 材质与渲染队列 (RenderQueue) 规范
+
+| 材质类别 | 推荐 Shader | 深度与裁剪设置 | `RenderQueue` |
+| :--- | :--- | :--- | :---: |
+| **天空穹顶 (Sky Dome)** | `KiHan/Map/Lightmapped`（不开光照贴图） | **`ZWrite Off`**（严禁写深度，防遮挡远楼与云层） | `1000` (Background) |
+| **不透明地面与建筑** | `KiHan/Map/Lightmapped` | `ZWrite On`, `Cull Back`；有烘焙光照时开 `_UseLightmap`，光照贴图坐标放网格 UV2 | `2000` (Geometry) |
+| **镂空树叶 / 栏杆 / 人群** | `KiHan/Map/Lightmapped` | `ZWrite On`, `_Cutoff = 0.33` | `2450` (AlphaTest) |
+| **半透明云层 / 雾气** | `KiHan/Map/Lightmapped` | `ZWrite Off`, `_SrcBlend = SrcAlpha`, `_DstBlend = OneMinusSrcAlpha` | `2900` (Transparent) |
+
+> **光照**：场景不用实时灯光（2D 角色不受光，混用会割裂）。有原始烘焙光照贴图的模型（如 UE 导出的 `LQ_Lightmap_*`）直接接入：线性光照 `L = 0.98 × (lm² × Scale + Add)`，项目为 Gamma 色彩空间，输出前乘 `L^(1/2.2)`；色调 `_Tint` 同样存 Gamma 值。整体太亮 / 太暗调材质 `_Exposure`。没有原始光照贴图的简单场景（如 04 训练室）自绘光照贴图：平面网格的 UV2 铺满整面，贴图里画灯池、墙面洗墙光、墙角接触阴影与四周压暗，材质 `Scale = 1, Add = 0`（贴图值约等于输出亮度），导入时关闭 sRGB。
+
+### 4. 新增一张地图的 4 步标准流程
+
+1. **准备资源**：
+   - 在 `Assets/AssetPackages/Maps/<id>/` 下放入选图缩略图 `shot.png`（`320×443`，`TextureType = Sprite`），3D 地图的网格 / 材质 / 贴图放 `Meshes/`、`Materials/`、`Textures/`。
+   - 若从外部引擎（UE / Blender glTF）导入 3D 模型，须将右手系顶点 `(x, y, z)` 转换为 Unity 左手系 `(x, y, -z)`、翻转三角面绕序 `(i0, i2, i1)`，并将贴图 UV 纵向翻转 `v_unity = 1 - v_gltf`。
+2. **制作场景预制体 (`Assets/AssetPackages/Resources/Maps/<id>/scen.prefab`)**：
+   - **2D 地图**：各图层挂载 `SpriteRenderer` 与 `ParallaxEffect`。
+   - **3D 地图**：根节点在 `(0, 0, 0)`，分 `Stage`（`Layer 8`）与 `Far`（`Layer 9`）两组子节点；每个模型一个 GameObject (MeshFilter + MeshRenderer)，枢轴在模型包围盒中心，可直接移动、改图层、换材质并保存。场地范围参考网格可放在 `EditorOnly` 标签的隐藏子节点里（构建时剔除）。
+3. **创建地图配置 (`Assets/AssetPackages/Maps/<id>/<id>.asset`)**：
+   - 右键 `Create -> KiHan -> Map Config`，填写 `id`、`displayName`、`scene`、`shot`；**3D 地图勾选 `is3D`**，并在 `camera3D` 中调节该场景的相机参数（地台：`stageDistance`、`stageHeightSlope`、`stagePitch`；远景：`farDistance`、`farHeightSlope`、`farPitch`、`farParallaxScale`、`farVerticalOffset`、`farZoomScale`、`farBackgroundColor`）。Play 模式下直接修改该资源，或在 Main Camera 的 Inspector 底部「当前地图 3D 相机参数」中修改，即时生效，退出后数值保留。
+4. **登记到注册表 (`Assets/AssetPackages/Resources/Config/MapRegistry.asset`)**：
+   - 在 `MapRegistry.asset` 的 `maps` 列表中新增一项，拖入 `<id>.asset` 并勾选 `enabled`。局内通过 HUD「场景」按钮打开 `MapSelectPopup`，经 `GameFlow.ChangeMap` 在 Loading 遮罩下切换。
+
+---
+
+## 七、 为什么以后切 Addressables 零成本？
 
 因为业务代码中**没有任何一行直接硬编码写 `Resources.Load`**，所有调用全部经由 `AssetManager.Instance`：
 - 当前底层使用的是 `ResourcesAssetProvider`。

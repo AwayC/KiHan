@@ -152,6 +152,7 @@ _mapList.RefreshItems();                                                        
 | `ExitBattle()` | Loading 中清理战斗，回到大厅 |
 | `Logout()` | Loading 中断开网络并清理，回到登录 |
 | `RestartTraining(slot, characterId)` | 训练场换人：Loading 中清理战斗，换掉该槽位的角色重开 (地图保持，训练面板开关回到默认) |
+| `ChangeMap(map)` | 训练场切换地图：Loading 中替换场景背景板 (`MapManager.ChangeScene`)，完成后恢复战斗 |
 | `RunTransition(routine, onFinish)` | 显示 `LoadingPanel` 执行切换 |
 
 界面只调用 `GameFlow` 的意图方法 (开始匹配、退出战斗、登出)，不直接调用 `BattleManager` / 网络清理。
@@ -169,7 +170,7 @@ _mapList.RefreshItems();                                                        
 | Lobby | `CreateRolePopup` | Popup | `Lobby/Canvas` 的 `CreatePlayerPanel` 节点 |
 | Lobby | `MatchingPopup` | Popup | `Lobby/MatchPanel` |
 | BattleHud | `BattleHudPanel` | Hud | `Button/Canvas` (返回确认改用 `ConfirmPopup`) |
-| BattleHud/Training | `MapSelectPopup` | Popup | 新增：HUD 场景按钮打开，列出 `MapRegistry` 中已启用的地图，局内切换背景板 |
+| BattleHud/Training | `MapSelectPopup` | Popup | 新增：HUD 场景按钮打开，列出 `MapRegistry` 中已启用的地图 (含 2D 与 3D 地图)，选择后经 `GameFlow.ChangeMap` 播放 Loading 动画切换场景 |
 | BattleHud/Training | `CharSelectPopup` | Popup | 新增：角色状态上的换人按钮打开 (仅训练场)，上下滑动的 6 列网格列出 `CharacterRegistry` 中已启用的忍者，选中框呼吸灯，确定后重开训练场 |
 
 战斗伤害跳字为世界空间 `SpriteRenderer`，不属于 UGUI，不在本框架内。

@@ -38,6 +38,7 @@ public class MapManager : UnitySingleton<MapManager>
     public void ClearMap()
     {
         DestroyScene();
+        if (CameraControllor.Instance != null) CameraControllor.Instance.SetMap3D(null);
         CurrentMap = null;
         CurrentMapLogic = null;
     }
@@ -48,7 +49,18 @@ public class MapManager : UnitySingleton<MapManager>
         CurrentMap = map;
         if (map == null || map.scene == null)
         {
+            if (CameraControllor.Instance != null) CameraControllor.Instance.SetMap3D(null);
             Debug.LogError($"[MapManager] 地图未配置场景预制体: {(map != null ? map.id : "null")}");
+            return;
+        }
+
+        if (CameraControllor.Instance != null) CameraControllor.Instance.SetMap3D(map.is3D ? map.camera3D : null);
+
+        if (map.is3D)
+        {
+            // 3D 地图：原点 1:1 摆放，图层在预制体里定好 (Map3D 地台 / Map3DFar 远景)，由两台透视背景相机绘制
+            _mapInstance = Instantiate(map.scene, Vector3.zero, Quaternion.identity);
+            WarnStrayLayers(map);
             return;
         }
 
@@ -60,6 +72,19 @@ public class MapManager : UnitySingleton<MapManager>
         foreach (SpriteRenderer sr in _mapInstance.GetComponentsInChildren<SpriteRenderer>(true))
         {
             sr.sortingOrder += BattleViewSpace.BackdropSortingOffset;
+        }
+    }
+
+    /// <summary>
+    /// 3D 地图里不在 Map3D / Map3DFar 层的渲染器会被正交主相机画在角色层，提示修正预制体
+    /// </summary>
+    private void WarnStrayLayers(MapConfig map)
+    {
+        foreach (Renderer r in _mapInstance.GetComponentsInChildren<Renderer>(true))
+        {
+            int layer = r.gameObject.layer;
+            if (layer == BattleViewSpace.Map3DLayer || layer == BattleViewSpace.Map3DFarLayer) continue;
+            Debug.LogWarning($"[MapManager] 3D 地图 {map.id} 的 {r.name} 不在 Map3D / Map3DFar 层，会画进角色层", r);
         }
     }
 

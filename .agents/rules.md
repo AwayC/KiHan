@@ -127,3 +127,30 @@
 
 1. 按钮交互 (统一 Q 弹按压动画)、节点绑定、布局适配、刷新性能与特殊效果的约定见 [ui.md](ui.md)。
 2. 所有没有特殊设计的按钮都必须带 `UIPressBounce` 按压回弹；特殊设计的按钮挂 `UIPressBounceIgnore` 后自行实现。
+
+---
+
+## 九、 战斗场景与地图制作规范 (2D & 3D Map Specification)
+
+1. **逻辑边界全局统一 (`MapLogic`)**：
+   - 全部地图（无论 2D 或 3D）共用同一套纯定点数逻辑边界：`MinX = -8`、`MaxX = 8`、`MinY = -1.009371`、`MaxY = 1.009371`（`1 Unity 单位 = 1 米`）。
+   - 1P 出生点固定为 `(-2, 0, 0)`，2P 出生点固定为 `(2, 0, 0)`，场地中心原点为 `(0, 0, 0)`。
+   - 局内切换地图必须通过 `GameFlow.Instance.ChangeMap(MapConfig)` 触发 `LoadingPanel` 加载过渡并调用 `MapManager.Instance.ChangeScene(map)`，仅替换表现层场景实例，不改动逻辑世界状态。
+2. **2D 地图与 3D 地图双模兼容 (`MapConfig.is3D` & `CameraControllor`)**：
+   - **2D 地图 (`is3D = false`)**：预制体由 `MapManager` 放置在世界 `Z = BattleViewSpace.BackdropDistance (60f)`，按 `BattleViewSpace.MapScale (8/7)` 缩放，所有 `SpriteRenderer.sortingOrder` 偏移 `BackdropSortingOffset (-1000)`；主相机使用单相机正交模式 (`CameraClearFlags.SolidColor`)，分层视差由 `ParallaxEffect` 驱动。
+   - **3D 地图 (`is3D = true`)**：预制体放置在世界原点 `(0, 0, 0)` 且保持 `1:1` 缩放，严禁挂载 `ParallaxEffect`，也**禁止用脚本在运行时生成场景几何**——网格、材质、贴图必须是项目资产，预制体内的层级、图层可直接编辑保存。背景由 `Map3DCameraRig` (CameraControllor 持有) 的两台透视相机绘制：
+     1. **远景相机 (`BgFar3DCamera`, depth = 主相机 - 2, `SolidColor`, `Layer 9: Map3DFar`)**：天穹、云层、远景建筑；
+     2. **地台相机 (`BgStage3DCamera`, depth = 主相机 - 1, 只清深度, `Layer 8: Map3D`)**：可走地台与相连近景；
+     3. **正交主相机 (depth 0, 只清深度, 剔除 Layer 8 / 9)**：角色、阴影、特效、跳字。
+     - 两台相机都按「地面纵深中线」(`Y = 0, Z = 0` 的直线) 求视野与投影矩阵移轴 (`m02 / m12`)，对齐主相机的画面中心与屏幕内旋转：地台相机的这条中线与角色脚底逐像素重合，**地台物距、机位高度、俯仰任意调都不滑步** (平移 / 缩放 / 旋转均已验证)。**不开放地台缩放与平移**，二者会破坏这一对齐。地台俯仰会让竖直物体上下汇聚 (三点透视)；机位高度会改变后沿护栏在画面上的位置。远景相机不承载角色，另开放视差倍率、上下偏移、视野倍率。
+3. **3D 地图空间、图层与材质铁律**：
+   - **空间尺寸**：可走地台顶面严格位于水平面 `Y = 0`；横向可走区 `X ∈ [-8m, +8m]`（模型外观左右须延伸至 `±16m` 防震屏/旋转露底）；地台不俯仰时逻辑纵深 `y` 对应地面 `Z = D·y / (s·D − y)`（`D` 为地台物距、`s` 为机位高度斜率；默认 32m / 0.368 时 `MinY / MaxY` ≈ `-2.5m / +3.0m`），后沿护栏底边放在该处。
+   - **场地净空**：可走地台上方及相机正前方 (`Z < -3m`) **严禁摆放高大遮挡物**，所有建筑与装饰物必须位于后沿护栏之外 (`Z > +3.0m`) 或左右版边之外 (`|X| > 8.2m`)。
+   - **图层划分**：地台、后沿护栏、与地台接壤的左右侧楼必须设为 `Layer 8 (Map3D)`；与地台断开的下层广场、远楼、天穹与云层设为 `Layer 9 (Map3DFar)`。其他图层的渲染器会被主相机画进角色层，`MapManager` 加载时会给出警告。
+   - **材质与队列**：3D 场景统一用 `KiHan/Map/Lightmapped`（漫反射 × 色调 × UV2 光照贴图，不受实时灯光；开关 `_UseLightmap`，`_ZWrite / _SrcBlend / _DstBlend / _Cull / _Cutoff` 按类型设置，`_Exposure` 调明暗）。光照用烘焙贴图：外部资源自带的光照贴图直接接入，没有的自绘光照贴图 (UV2 铺满整面)。队列：天穹 `ZWrite Off` + `1000`；不透明 `2000`；镂空 (`_Cutoff = 0.33`) `2450`；半透明 (`ZWrite Off`, `SrcAlpha / OneMinusSrcAlpha`) `2900`。
+   - **外部模型坐标系转换**：从 UE / glTF (右手系) 导入 Unity (左手系) 时，顶点坐标须转换为 `(X, Y, -Z)`、翻转三角形绕序 `(i0, i2, i1)`，且贴图 UV 纵向翻转 `v_unity = 1 - v_gltf`。
+4. **四步标准接入流程**：
+   - ① 网格 / 材质 / 贴图放入 `Assets/AssetPackages/Maps/<id>/` 的 `Meshes/`、`Materials/`、`Textures/`（不放 Resources，由预制体引用打包）；
+   - ② 场景预制体存为 `Assets/AssetPackages/Resources/Maps/<id>/scen.prefab`；
+   - ③ 创建 `Assets/AssetPackages/Maps/<id>/<id>.asset` (`MapConfig`)，填写 `id`、`displayName`、`scene`、`shot` (`320×443` 缩略图)，3D 地图勾选 `is3D` 并在 `camera3D` 中调该场景的相机参数 (`stageDistance`、`stageHeightSlope`、`stagePitch`、`farDistance`、`farHeightSlope`、`farPitch`、`farParallaxScale`、`farVerticalOffset`、`farZoomScale`、`farBackgroundColor`)；Play 模式下改该资源或 Main Camera Inspector 底部的「当前地图 3D 相机参数」即时生效并保留；
+   - ④ 将 `<id>.asset` 登记到 `Assets/AssetPackages/Resources/Config/MapRegistry.asset`。
