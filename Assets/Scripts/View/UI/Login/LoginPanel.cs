@@ -101,7 +101,7 @@ namespace KiHan.UI
             _videoPlayer.targetTexture = _videoRT;
             _videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
-            _videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, VideoFileName);
+            _videoPlayer.url = $"{Application.streamingAssetsPath}/{VideoFileName}";
         }
 
         private void OnVideoPrepared(VideoPlayer vp)

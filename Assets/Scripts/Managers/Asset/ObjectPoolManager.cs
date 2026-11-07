@@ -48,6 +48,7 @@ namespace KiHan.Asset
                 GameObject rootGo = new GameObject("[ObjectPoolRoot]");
                 _poolGlobalRoot = rootGo.transform;
                 if (Application.isPlaying) DontDestroyOnLoad(rootGo);
+                else rootGo.hideFlags = HideFlags.DontSave;
 
                 foreach (PoolCategory cat in System.Enum.GetValues(typeof(PoolCategory)))
                 {
@@ -256,6 +257,17 @@ namespace KiHan.Asset
                 if (kv.Value.Root != null) DestroyPooled(kv.Value.Root.gameObject);
             }
             _buckets.Clear();
+        }
+
+        public void CleanupGlobalRoot()
+        {
+            ClearAll();
+            _categoryRoots.Clear();
+            if (_poolGlobalRoot != null)
+            {
+                DestroyPooled(_poolGlobalRoot.gameObject);
+                _poolGlobalRoot = null;
+            }
         }
 
         /// <summary>

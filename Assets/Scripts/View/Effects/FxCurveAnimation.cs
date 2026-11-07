@@ -35,8 +35,8 @@ namespace KiHan.View.Effects
     /// 原版 FXMaker NcCurveAnimation 的还原：按归一化时间 (延迟后经过时间 / 时长) 采样各曲线
     /// - 位置 / 旋转 (欧拉角)：原值 + 曲线值 × 倍率
     /// - 缩放：原值 × 曲线值 × 倍率
-    /// - 颜色 / 网格颜色：在 from→to 之间按曲线值插值，乘到材质颜色上 (未勾选的通道保持 1)
-    /// - 贴图偏移：曲线值 × 倍率
+    /// - 颜色 / 网格颜色：在 from→to 之间按曲线值插值，只改勾选的通道 (原版逐通道写入；同节点多条颜色曲线各管各的通道，未被任何曲线勾选的通道保持 1)，乘到材质颜色上
+    /// - 贴图偏移：曲线值 × 倍率，只改勾选的轴
     /// 播完且 autoDestruct 时隐藏本节点及子节点 (原版销毁节点)
     /// </summary>
     public sealed class FxCurveAnimation : FxAnimatedBase
@@ -137,12 +137,20 @@ namespace KiHan.View.Effects
                     case FxCurveType.MeshColor:
                         if (state == null) break;
                         Color lerped = Color.LerpUnclamped(c.from, c.to, v);
-                        state.CurveTint = new Color(c.x ? lerped.r : 1f, c.y ? lerped.g : 1f, c.z ? lerped.b : 1f, c.w ? Mathf.Clamp01(lerped.a) : 1f);
+                        Color tint = state.CurveTint;
+                        if (c.x) tint.r = lerped.r;
+                        if (c.y) tint.g = lerped.g;
+                        if (c.z) tint.b = lerped.b;
+                        if (c.w) tint.a = Mathf.Clamp01(lerped.a);
+                        state.CurveTint = tint;
                         break;
                     case FxCurveType.TextureUV:
                         if (state == null) break;
                         float o = v * c.valueScale;
-                        state.CurveOffset = new Vector2(c.x ? o : 0f, c.y ? o : 0f);
+                        Vector2 offset = state.CurveOffset;
+                        if (c.x) offset.x = o;
+                        if (c.y) offset.y = o;
+                        state.CurveOffset = offset;
                         break;
                 }
             }

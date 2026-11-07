@@ -290,6 +290,17 @@ namespace KiHan.Editor
             }
             Log("========================================================================");
 
+            if (!Application.isPlaying)
+            {
+                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                foreach (var r in scene.GetRootGameObjects())
+                {
+                    if (r.name == "[ObjectPoolRoot]" || r.name == "ObjectPoolManager" || r.name == "AssetManager")
+                    {
+                        UnityEngine.Object.DestroyImmediate(r);
+                    }
+                }
+            }
             // 写入本地日志文件方便终端查看
             try
             {

@@ -22,28 +22,258 @@
   }
 }
 * { box-sizing: border-box; }
-html { scroll-padding-top: 64px; }
+html { scroll-padding-top: 68px; }
 body { margin: 0; background: var(--bg); color: var(--fg);
   font: 15px/1.7 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
-header.top { position: sticky; top: 0; z-index: 10; height: 52px; display: flex; align-items: center;
-  gap: 16px; padding: 0 20px; background: var(--bg); border-bottom: 1px solid var(--border); }
-header.top .logo { font-weight: 700; font-size: 17px; white-space: nowrap; }
+
+/* Top Header Bar */
+header.top {
+  position: sticky; top: 0; z-index: 30; height: 56px; display: flex; align-items: center;
+  gap: 14px; padding: 0 16px; background: var(--bg); border-bottom: 1px solid var(--border);
+}
+header.top .logo { font-weight: 700; font-size: 16.5px; white-space: nowrap; flex-shrink: 0; }
 header.top .logo span { color: var(--accent); }
-header.top input { flex: 0 1 320px; margin-left: auto; padding: 6px 10px; border: 1px solid var(--border);
-  border-radius: 6px; background: var(--surface); color: var(--fg); font-size: 14px; }
-.layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); }
-nav.side { position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; padding: 16px 12px 40px;
-  background: var(--side); border-right: 1px solid var(--border); font-size: 14px; }
-nav.side h4 { margin: 18px 8px 6px; font-size: 12px; letter-spacing: .06em; color: var(--muted); text-transform: uppercase; }
-nav.side a { display: block; padding: 2px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; }
-nav.side a:hover { background: var(--accent-bg); color: var(--accent); }
-nav.side a.sub { padding-left: 22px; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
-nav.side a.sub2 { padding-left: 36px; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; color: var(--muted); }
-nav.side a.hidden { display: none; }
-main { padding: 24px 48px 120px; max-width: 980px; }
+
+/* Horizontal Top Navigation Tabs */
+.top-tabs {
+  display: flex; gap: 4px; align-items: center; overflow-x: auto; scrollbar-width: none;
+  flex: 1 1 auto; padding: 4px 0; -webkit-overflow-scrolling: touch;
+}
+.top-tabs::-webkit-scrollbar { display: none; }
+.top-tab {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px;
+  border-radius: 16px; font-size: 13px; font-weight: 500; color: var(--muted);
+  background: transparent; border: 1px solid transparent; cursor: pointer;
+  white-space: nowrap; transition: all 0.15s ease; flex-shrink: 0; font-family: inherit;
+}
+.top-tab:hover {
+  background: var(--surface); color: var(--fg); border-color: var(--border);
+}
+.top-tab.active {
+  background: var(--accent-bg); color: var(--accent); border-color: var(--accent);
+  font-weight: 600;
+}
+.top-tab .tab-idx {
+  display: inline-block; width: 18px; height: 18px; line-height: 18px;
+  text-align: center; font-size: 11px; border-radius: 50%;
+  background: var(--surface); color: var(--muted); font-weight: 600;
+}
+.top-tab.active .tab-idx {
+  background: var(--accent); color: #fff;
+}
+
+/* Search bar */
+.search-wrap {
+  position: relative; flex: 0 0 240px; margin-left: auto;
+}
+.search-wrap input {
+  width: 100%; padding: 6px 12px; border: 1px solid var(--border); border-radius: 18px;
+  background: var(--surface); color: var(--fg); font-size: 13.5px; outline: none;
+  transition: all 0.2s; font-family: inherit;
+}
+.search-wrap input:focus {
+  border-color: var(--accent); background: var(--bg);
+  box-shadow: 0 0 0 2px var(--accent-bg);
+}
+
+/* Layout */
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); }
+
+/* Left Sidebar */
+nav.side {
+  position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto;
+  padding: 12px 10px 48px; background: var(--side); border-right: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.side-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 6px 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.side-toolbar-title {
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 600;
+}
+.side-toggle-all {
+  font-size: 11.5px; color: var(--accent); background: none; border: none;
+  cursor: pointer; padding: 2px 6px; border-radius: 4px; font-family: inherit;
+}
+.side-toggle-all:hover {
+  background: var(--accent-bg);
+}
+
+.side-group {
+  margin-bottom: 6px; border-radius: 6px; transition: background 0.15s;
+}
+.side-group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; border-radius: 6px; cursor: pointer; user-select: none;
+  font-weight: 600; font-size: 13px; color: var(--fg); transition: all 0.15s;
+}
+.side-group-header:hover {
+  background: var(--surface); color: var(--accent);
+}
+.side-group.active .side-group-header {
+  background: var(--accent-bg); color: var(--accent); font-weight: 700;
+}
+.side-group-left {
+  display: flex; align-items: center; gap: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.side-group-badge {
+  display: inline-block; width: 17px; height: 17px; line-height: 17px; flex-shrink: 0;
+  text-align: center; font-size: 10.5px; border-radius: 4px;
+  background: var(--surface); color: var(--muted); font-weight: 600;
+}
+.side-group.active .side-group-badge {
+  background: var(--accent); color: #fff;
+}
+.side-group-arrow {
+  font-size: 10px; color: var(--muted); transition: transform 0.2s; margin-left: 4px;
+}
+.side-group.collapsed .side-group-arrow {
+  transform: rotate(-90deg);
+}
+
+.side-group-links {
+  padding-left: 6px; margin: 3px 0 6px;
+}
+.side-group.collapsed:not(.searching) .side-group-links {
+  display: none !important;
+}
+.side-group.collapsed .side-group-arrow {
+  transform: rotate(-90deg);
+}
+
+/* Nested sub-group for items with many children (e.g. Attack) */
+.side-sub-group {
+  margin: 2px 0; border-radius: 4px;
+}
+.side-sub-header {
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: 4px; padding-right: 4px;
+}
+.side-sub-header a.sub {
+  flex: 1 1 auto;
+}
+.side-sub-arrow {
+  font-size: 9px; color: var(--muted); cursor: pointer; padding: 2px 6px;
+  border-radius: 3px; transition: transform 0.15s; user-select: none; flex-shrink: 0;
+}
+.side-sub-arrow:hover {
+  background: var(--surface); color: var(--accent);
+}
+.side-sub-group.collapsed .side-sub-arrow {
+  transform: rotate(-90deg);
+}
+.side-sub-group.collapsed:not(.searching) .side-sub-links {
+  display: none !important;
+}
+
+nav.side a {
+  display: block; padding: 3px 8px; border-radius: 4px; color: var(--fg);
+  text-decoration: none; font-size: 13px; line-height: 1.45; margin: 1px 0;
+}
+nav.side a:hover {
+  background: var(--accent-bg); color: var(--accent);
+}
+nav.side a.active-link {
+  background: var(--surface); color: var(--accent); font-weight: 600;
+  border-left: 2px solid var(--accent); padding-left: 6px;
+}
+nav.side a.sub { padding-left: 18px; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+nav.side a.sub2 { padding-left: 30px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); }
+nav.side a.hidden { display: none !important; }
+
+/* Main Content Area */
+main { padding: 24px 44px 80px; max-width: 980px; }
+
+/* Paginated Article Containers */
+.doc-page {
+  display: none;
+  animation: pageFadeIn 0.15s ease-out;
+}
+.doc-page.active {
+  display: block;
+}
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Top Banner */
+.page-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; margin-bottom: 24px; font-size: 13px; color: var(--muted);
+}
+.page-banner .crumb-text {
+  display: flex; align-items: center; gap: 8px; font-weight: 500;
+}
+.page-banner .crumb-pill {
+  background: var(--accent-bg); color: var(--accent); font-size: 11.5px;
+  padding: 1px 8px; border-radius: 12px; font-weight: 600;
+}
+.page-banner .page-counter {
+  font-size: 12px; color: var(--muted); font-weight: 500;
+}
+
+/* Target Element Highlight Animation */
+@keyframes targetPulse {
+  0% { background: var(--accent-bg); box-shadow: 0 0 0 4px var(--accent-bg); }
+  70% { background: var(--accent-bg); box-shadow: 0 0 0 4px var(--accent-bg); }
+  100% { background: transparent; box-shadow: none; }
+}
+.target-highlight {
+  animation: targetPulse 1.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: 6px;
+}
+
+/* Bottom Pagination Cards */
+.page-footer-nav {
+  margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center;
+}
+.pager-card {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: 8px; text-decoration: none;
+  background: var(--surface); transition: all 0.15s ease; cursor: pointer;
+}
+.pager-card:hover {
+  border-color: var(--accent); background: var(--accent-bg);
+}
+.pager-card.next {
+  text-align: right; grid-column: 3;
+}
+.pager-card.prev {
+  text-align: left; grid-column: 1;
+}
+.pager-sub {
+  font-size: 12px; color: var(--muted); font-weight: 500;
+}
+.pager-card:hover .pager-sub {
+  color: var(--accent);
+}
+.pager-title {
+  font-size: 14.5px; font-weight: 600; color: var(--fg);
+}
+.pager-center {
+  grid-column: 2; text-align: center; font-size: 12.5px; color: var(--muted);
+}
+.pager-badge {
+  font-weight: 600; color: var(--fg); font-size: 13px;
+}
+.pager-shortcut {
+  font-size: 11.5px; margin-top: 2px;
+}
+.pager-shortcut kbd {
+  display: inline-block; font-size: 10.5px; padding: 1px 5px; border: 1px solid var(--border);
+  border-radius: 3px; background: var(--code-bg); font-family: ui-monospace, Consolas, monospace;
+}
+
+/* Typography & Content Styles */
 h1 { font-size: 32px; margin: 8px 0 12px; }
-h2 { font-size: 24px; margin: 56px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-h3 { font-size: 19px; margin: 40px 0 8px; }
+h2 { font-size: 24px; margin: 48px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.doc-page > h2:first-of-type { margin-top: 12px; }
+h3 { font-size: 19px; margin: 36px 0 8px; }
 h4 { font-size: 15px; margin: 20px 0 6px; }
 p { margin: 8px 0; }
 a { color: var(--accent); }
@@ -56,10 +286,10 @@ pre .k { color: var(--p); } pre .s { color: var(--s); } pre .n { color: var(--n)
 table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
 th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
 th { background: var(--surface); font-weight: 600; }
-.crumb { font-size: 13px; color: var(--muted); margin-top: 48px; }
+.crumb { font-size: 13px; color: var(--muted); margin-top: 40px; }
 .crumb + h3 { margin-top: 2px; }
 .summary { font-size: 16px; }
-section.field { border-top: 1px solid var(--border); }
+section.field { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 24px; }
 table.props th { width: 120px; }
 .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 0 7px; border-radius: 10px; margin-left: 8px;
   vertical-align: 2px; border: 1px solid var(--border); color: var(--muted); font-family: sans-serif; }
@@ -84,123 +314,259 @@ table.props th { width: 120px; }
 .flow .node.alt { border-color: var(--warn); background: var(--warn-bg); }
 .flow .arr { color: var(--muted); }
 .flow .lab { color: var(--muted); font-size: 12px; }
-footer { color: var(--muted); font-size: 13px; margin-top: 80px; border-top: 1px solid var(--border); padding-top: 12px; }
-@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } nav.side { display: none; } main { padding: 16px; } .cmp { grid-template-columns: 1fr; } }
+footer { color: var(--muted); font-size: 13px; margin-top: 60px; border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* Responsive adjustments */
+@media (max-width: 1080px) {
+  .search-wrap { flex: 0 0 180px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  nav.side { display: none; }
+  main { padding: 16px; }
+  .cmp { grid-template-columns: 1fr; }
+  .page-footer-nav { grid-template-columns: 1fr; }
+  .pager-card.next, .pager-card.prev { grid-column: 1; text-align: left; }
+  .pager-center { grid-column: 1; order: -1; }
+}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="logo">KiHan <span>配置参考</span></div>
-  <input id="q" type="search" placeholder="搜索字段，例如 cancelTag、keepFrame…" autocomplete="off">
+  <nav class="top-tabs" id="topTabs" aria-label="页面切换">
+  <button class="top-tab active" type="button" data-page="page-intro" title="入门与概念 (P1)"><span class="tab-idx">1</span>入门概念</button>
+  <button class="top-tab" type="button" data-page="page-tutorial" title="教程示例 (P2)"><span class="tab-idx">2</span>实战教程</button>
+  <button class="top-tab" type="button" data-page="page-actions" title="actions.json (P3)"><span class="tab-idx">3</span>actions.json</button>
+  <button class="top-tab" type="button" data-page="page-substructures" title="actions.json · 子结构 (P4)"><span class="tab-idx">4</span>actions 子结构</button>
+  <button class="top-tab" type="button" data-page="page-skills" title="skills.json (P5)"><span class="tab-idx">5</span>skills.json</button>
+  <button class="top-tab" type="button" data-page="page-spawns" title="spawns.json (P6)"><span class="tab-idx">6</span>spawns.json</button>
+  <button class="top-tab" type="button" data-page="page-buffs" title="buffs.json (P7)"><span class="tab-idx">7</span>buffs.json</button>
+  <button class="top-tab" type="button" data-page="page-secrets" title="秘卷系统 (P8)"><span class="tab-idx">8</span>秘卷系统</button>
+  <button class="top-tab" type="button" data-page="page-appendix" title="附录与排错指南 (P9)"><span class="tab-idx">9</span>附录排错</button>
+</nav>
+
+  <div class="search-wrap">
+    <input id="q" type="search" placeholder="全局搜索字段 / 属性 / 示例…" autocomplete="off">
+  </div>
 </header>
 <div class="layout">
 <nav class="side" id="side">
-  <h4>入门</h4>
-  <a href="#home">概览与约定</a>
-  <a href="#concept-frame">帧、tick 与区间</a>
-  <a href="#concept-switch">动作是怎么切换的</a>
-  <a href="#concept-cancel">取消系统：cancelTag 与 beCancelledTag</a>
-  <a href="#concept-priority">优先级裁决</a>
-  <a href="#concept-order">一个逻辑帧里发生了什么</a>
-  <h4>教程</h4>
-  <a href="#tut-minimal">1. 最小可运行角色</a>
-  <a href="#tut-combo">2. 普攻连段</a>
-  <a href="#tut-skill">3. 单段技能与 CD</a>
-  <a href="#tut-hitbranch">4. 命中派生（scripts 变量法）</a>
-  <a href="#tut-spawn">5. 投射物生成物</a>
-  <a href="#tut-sub">6. 替身术</a>
-  <h4>actions.json</h4>
-  <a href="#action-root">ActionDataContainer</a>
-  <a class="sub" href="#action-id">id</a>
-  <a class="sub" href="#action-animKey">animKey</a>
-  <a class="sub" href="#action-catalog">catalog</a>
-  <a class="sub" href="#action-priority">priority</a>
-  <a class="sub" href="#action-cancelTag">cancelTag</a>
-  <a class="sub" href="#action-beCancelledTag">beCancelledTag</a>
-  <a class="sub" href="#action-tempBeCancelledTag">tempBeCancelledTag</a>
-  <a class="sub" href="#action-commands">commands</a>
-  <a class="sub" href="#action-inputAcceptance">inputAcceptance</a>
-  <a class="sub" href="#action-autoNextActionId">autoNextActionId</a>
-  <a class="sub" href="#action-keepPlayingAnim">keepPlayingAnim</a>
-  <a class="sub" href="#action-autoTerminate">autoTerminate</a>
-  <a class="sub" href="#action-inverse">inverse</a>
-  <a class="sub" href="#action-facing">facing</a>
-  <a class="sub" href="#action-onLand">onLand</a>
-  <a class="sub" href="#action-attackPhase">attackPhase</a>
-  <a class="sub" href="#action-attacks">attacks</a>
-  <a class="sub" href="#action-defensePhase">defensePhase</a>
-  <a class="sub" href="#action-armorPhase">armorPhase</a>
-  <a class="sub" href="#action-rootMotion">rootMotion</a>
-  <a class="sub" href="#action-events">events</a>
-  <a class="sub" href="#action-breakHurt">breakHurt</a>
-  <a class="sub" href="#action-scripts" data-k="on frame range keys cond op goto setVar addVar skillStage skillEnd resetHits">scripts</a>
-  <h4>actions.json · 子结构</h4>
-  <a class="sub" href="#t-FrameRange">FrameRange</a>
-  <a class="sub" href="#t-CancelTag" data-k="tag startFormFrame">CancelTag</a>
-  <a class="sub" href="#t-BeCancelledTag" data-k="frameRange">BeCancelledTag</a>
-  <a class="sub" href="#t-TempBeCancelledTag" data-k="startFrames">TempBeCancelledTag</a>
-  <a class="sub" href="#t-ActionCommand" data-k="press hold release validInSec">ActionCommand</a>
-  <a class="sub2" href="#t-CommandKey" data-k="Attack Skill1 Skill2 Ultimate Substitution Secret Summon Move Up Down Forward Backward">按键名 CommandKey</a>
-  <a class="sub" href="#t-MoveInputAcceptance" data-k="range rateX rateY turn">MoveInputAcceptance</a>
-  <a class="sub" href="#t-ActionChange" data-k="changeType param fromFrame keepFrame">ActionChange</a>
-  <a class="sub" href="#t-AttackBoxTurnOn" data-k="frameRanges tag attackPhase">AttackBoxTurnOn</a>
-  <a class="sub" href="#t-Attack">Attack</a>
-  <a class="sub2" href="#attack-attack">attack</a>
-  <a class="sub2" href="#attack-hitStun">hitStun</a>
-  <a class="sub2" href="#attack-push" data-k="x y inSec tweenMethod Linear Slowly">push</a>
-  <a class="sub2" href="#attack-launch" data-k="z x y">launch / air</a>
-  <a class="sub2" href="#attack-armorBreak">armorBreak</a>
-  <a class="sub2" href="#attack-canHitLying">canHitLying</a>
-  <a class="sub2" href="#attack-grab" data-k="enabled anchor releaseActionChange">grab</a>
-  <a class="sub2" href="#attack-suction" data-k="centerX centerY speed inSec">suction</a>
-  <a class="sub2" href="#attack-canHitSameTarget" data-k="hitSameTargetDelay">canHitSameTarget</a>
-  <a class="sub2" href="#attack-selfActionChange">selfActionChange</a>
-  <a class="sub2" href="#attack-hurtAction">hurtAction</a>
-  <a class="sub2" href="#attack-tempOn">tempBeCancelledTagTurnOn</a>
-  <a class="sub2" href="#attack-phase">phase</a>
-  <a class="sub" href="#t-BeHitBoxTurnOn" data-k="attackerActionChange selfActionChange defensePhase">BeHitBoxTurnOn</a>
-  <a class="sub" href="#t-ArmorPhase" data-k="range level None Skill Super KingKong Invincible">ArmorPhase / ArmorLevel</a>
-  <a class="sub" href="#t-RootMotion" data-k="moveX moveY velocityZ accelerationZ velocityX velocityY tweenMethod">RootMotionSegment</a>
-  <a class="sub" href="#t-Event" data-k="frame type asset spawnId anchor offset bind stopOnActionEnd loop audience worldPos camera Effect Camera Spawn Buff Sound Cinematic">ActionEvent</a>
-  <a class="sub" href="#t-CameraCmd" data-k="impact impact_heavy shot shake pulse reset zoom roll inSec holdSec outSec ease amplitude frequency duration count interval Linear EaseIn EaseOut EaseInOut BackOut">镜头指令</a>
-  <a class="sub" href="#t-HurtIds" data-k="hurt hurt_1 hurt_2 hurt_3 grabbed float fall lie standup airHitStep lieSec">固定受击动作</a>
-  <h4>skills.json</h4>
-  <a href="#skill-root">SkillDataContainer</a>
-  <a class="sub" href="#skill-chakraMax">chakraMax</a>
-  <a class="sub" href="#skill-chakraStart">chakraStart</a>
-  <a class="sub" href="#skill-id">id</a>
-  <a class="sub" href="#skill-button">button</a>
-  <a class="sub" href="#skill-icon">icon</a>
-  <a class="sub" href="#skill-cooldown">cooldown</a>
-  <a class="sub" href="#skill-chakraCost">chakraCost</a>
-  <a class="sub" href="#skill-requireHurt">requireHurt</a>
-  <a class="sub" href="#skill-actionId">actionId</a>
-  <a class="sub" href="#skill-buff">buff</a>
-  <a class="sub" href="#skill-multistage">多段技能（skillStage）</a>
-  <a class="sub" href="#skill-chakra">查克拉规则</a>
-  <h4>spawns.json</h4>
-  <a href="#spawn-root">SpawnDataContainer</a>
-  <a class="sub" href="#spawn-trigger">生成流程</a>
-  <a class="sub" href="#spawn-id">id</a>
-  <a class="sub" href="#spawn-type" data-k="Simple Actor">type</a>
-  <a class="sub" href="#spawn-initialActionId">initialActionId</a>
-  <a class="sub" href="#spawn-despawnActionId">despawnActionId</a>
-  <a class="sub" href="#spawn-lifeTime">lifeTime</a>
-  <a class="sub" href="#spawn-hp">hp</a>
-  <a class="sub" href="#spawn-brain" data-k="script frame hold buttons dir None Script">brain / script</a>
-  <a class="sub" href="#spawn-prewarm">prewarm</a>
-  <h4>buffs.json</h4>
-  <a href="#buff-root" data-k="id duration damageRate critRate maxStack button effect anchor offset">BuffData</a>
-  <a class="sub" href="#buff-damage">伤害公式</a>
-  <h4>秘卷</h4>
-  <a href="#secret-root" data-k="SecretScrollRegistry secret 秘卷 power crit frenzy">SecretScrollRegistry</a>
-  <h4>附录</h4>
-  <a href="#ap-framecheck">帧判定口径对照</a>
-  <a href="#ap-validate">自动校验清单</a>
-  <a href="#ap-pitfalls">已知陷阱与不一致</a>
+  <div class="side-toolbar">
+    <span class="side-toolbar-title">章节目录</span>
+    <button class="side-toggle-all" id="toggleAllBtn" type="button" title="展开或收起所有非当前章节">展开全部</button>
+  </div>
+  <div class="side-group active" data-page="page-intro">
+    <div class="side-group-header" data-page="page-intro" title="点击切换至第 1 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">1</span>
+        <span class="side-group-title">入门</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#home">概览与约定</a>
+      <a href="#concept-frame">帧、tick 与区间</a>
+      <a href="#concept-switch">动作是怎么切换的</a>
+      <a href="#concept-cancel">取消系统：cancelTag 与 beCancelledTag</a>
+      <a href="#concept-priority">优先级裁决</a>
+      <a href="#concept-order">一个逻辑帧里发生了什么</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-tutorial">
+    <div class="side-group-header" data-page="page-tutorial" title="点击切换至第 2 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">2</span>
+        <span class="side-group-title">教程</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#tut-minimal">1. 最小可运行角色</a>
+      <a href="#tut-combo">2. 普攻连段</a>
+      <a href="#tut-skill">3. 单段技能与 CD</a>
+      <a href="#tut-hitbranch">4. 命中派生（scripts 变量法）</a>
+      <a href="#tut-spawn">5. 投射物生成物</a>
+      <a href="#tut-sub">6. 替身术</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-actions">
+    <div class="side-group-header" data-page="page-actions" title="点击切换至第 3 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">3</span>
+        <span class="side-group-title">actions.json</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#action-root">ActionDataContainer</a>
+      <a class="sub" href="#action-id">id</a>
+      <a class="sub" href="#action-animKey">animKey</a>
+      <a class="sub" href="#action-catalog">catalog</a>
+      <a class="sub" href="#action-priority">priority</a>
+      <a class="sub" href="#action-cancelTag">cancelTag</a>
+      <a class="sub" href="#action-beCancelledTag">beCancelledTag</a>
+      <a class="sub" href="#action-tempBeCancelledTag">tempBeCancelledTag</a>
+      <a class="sub" href="#action-commands">commands</a>
+      <a class="sub" href="#action-inputAcceptance">inputAcceptance</a>
+      <a class="sub" href="#action-autoNextActionId">autoNextActionId</a>
+      <a class="sub" href="#action-keepPlayingAnim">keepPlayingAnim</a>
+      <a class="sub" href="#action-autoTerminate">autoTerminate</a>
+      <a class="sub" href="#action-inverse">inverse</a>
+      <a class="sub" href="#action-facing">facing</a>
+      <a class="sub" href="#action-onLand">onLand</a>
+      <a class="sub" href="#action-attackPhase">attackPhase</a>
+      <a class="sub" href="#action-attacks">attacks</a>
+      <a class="sub" href="#action-defensePhase">defensePhase</a>
+      <a class="sub" href="#action-armorPhase">armorPhase</a>
+      <a class="sub" href="#action-rootMotion">rootMotion</a>
+      <a class="sub" href="#action-events">events</a>
+      <a class="sub" href="#action-breakHurt">breakHurt</a>
+      <a class="sub" href="#action-scripts" data-k="on frame range keys cond op goto setVar addVar skillStage skillEnd resetHits">scripts</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-substructures">
+    <div class="side-group-header" data-page="page-substructures" title="点击切换至第 4 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">4</span>
+        <span class="side-group-title">actions.json · 子结构</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a class="sub" href="#t-FrameRange">FrameRange</a>
+      <a class="sub" href="#t-CancelTag" data-k="tag startFormFrame">CancelTag</a>
+      <a class="sub" href="#t-BeCancelledTag" data-k="frameRange">BeCancelledTag</a>
+      <a class="sub" href="#t-TempBeCancelledTag" data-k="startFrames">TempBeCancelledTag</a>
+      <a class="sub" href="#t-ActionCommand" data-k="press hold release validInSec">ActionCommand</a>
+      <a class="sub2" href="#t-CommandKey" data-k="Attack Skill1 Skill2 Ultimate Substitution Secret Summon Move Up Down Forward Backward">按键名 CommandKey</a>
+      <a class="sub" href="#t-MoveInputAcceptance" data-k="range rateX rateY turn">MoveInputAcceptance</a>
+      <a class="sub" href="#t-ActionChange" data-k="changeType param fromFrame keepFrame">ActionChange</a>
+      <a class="sub" href="#t-AttackBoxTurnOn" data-k="frameRanges tag attackPhase">AttackBoxTurnOn</a>
+      <div class="side-sub-group">
+        <div class="side-sub-header">
+          <a class="sub" href="#t-Attack">Attack · 攻击数值</a>
+          <span class="side-sub-arrow" title="展开/折叠攻击属性列表 (13 项)">▼</span>
+        </div>
+        <div class="side-sub-links">
+          <a class="sub2" href="#attack-attack">attack</a>
+          <a class="sub2" href="#attack-hitStun">hitStun</a>
+          <a class="sub2" href="#attack-push" data-k="x y inSec tweenMethod Linear Slowly">push</a>
+          <a class="sub2" href="#attack-launch" data-k="z x y">launch / air</a>
+          <a class="sub2" href="#attack-armorBreak">armorBreak</a>
+          <a class="sub2" href="#attack-canHitLying">canHitLying</a>
+          <a class="sub2" href="#attack-grab" data-k="enabled anchor releaseActionChange">grab</a>
+          <a class="sub2" href="#attack-suction" data-k="centerX centerY speed inSec">suction</a>
+          <a class="sub2" href="#attack-canHitSameTarget" data-k="hitSameTargetDelay">canHitSameTarget</a>
+          <a class="sub2" href="#attack-selfActionChange">selfActionChange</a>
+          <a class="sub2" href="#attack-hurtAction">hurtAction</a>
+          <a class="sub2" href="#attack-tempOn">tempBeCancelledTagTurnOn</a>
+          <a class="sub2" href="#attack-phase">phase</a>
+        </div>
+      </div>
+      <a class="sub" href="#t-BeHitBoxTurnOn" data-k="attackerActionChange selfActionChange defensePhase">BeHitBoxTurnOn</a>
+      <a class="sub" href="#t-ArmorPhase" data-k="range level None Skill Super KingKong Invincible">ArmorPhase / ArmorLevel</a>
+      <a class="sub" href="#t-RootMotion" data-k="moveX moveY velocityZ accelerationZ velocityX velocityY tweenMethod">RootMotionSegment</a>
+      <a class="sub" href="#t-Event" data-k="frame type asset spawnId anchor offset bind stopOnActionEnd loop audience worldPos camera Effect Camera Spawn Buff Sound Cinematic">ActionEvent</a>
+      <a class="sub2" href="#t-CameraCmd" data-k="impact impact_heavy shot shake pulse reset zoom roll inSec holdSec outSec ease amplitude frequency duration count interval Linear EaseIn EaseOut EaseInOut BackOut">镜头指令</a>
+      <a class="sub" href="#t-HurtIds" data-k="hurt hurt_1 hurt_2 hurt_3 grabbed float fall lie standup airHitStep lieSec">固定受击动作</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-skills">
+    <div class="side-group-header" data-page="page-skills" title="点击切换至第 5 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">5</span>
+        <span class="side-group-title">skills.json</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#skill-root">SkillDataContainer</a>
+      <a class="sub" href="#skill-chakraMax">chakraMax</a>
+      <a class="sub" href="#skill-chakraStart">chakraStart</a>
+      <a class="sub" href="#skill-id">id</a>
+      <a class="sub" href="#skill-button">button</a>
+      <a class="sub" href="#skill-icon">icon</a>
+      <a class="sub" href="#skill-cooldown">cooldown</a>
+      <a class="sub" href="#skill-chakraCost">chakraCost</a>
+      <a class="sub" href="#skill-requireHurt">requireHurt</a>
+      <a class="sub" href="#skill-actionId">actionId</a>
+      <a class="sub" href="#skill-buff">buff</a>
+      <a class="sub" href="#skill-multistage">多段技能（skillStage）</a>
+      <a class="sub" href="#skill-chakra">查克拉规则</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-spawns">
+    <div class="side-group-header" data-page="page-spawns" title="点击切换至第 6 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">6</span>
+        <span class="side-group-title">spawns.json</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#spawn-root">SpawnDataContainer</a>
+      <a class="sub" href="#spawn-trigger">生成流程</a>
+      <a class="sub" href="#spawn-id">id</a>
+      <a class="sub" href="#spawn-type" data-k="Simple Actor">type</a>
+      <a class="sub" href="#spawn-initialActionId">initialActionId</a>
+      <a class="sub" href="#spawn-despawnActionId">despawnActionId</a>
+      <a class="sub" href="#spawn-lifeTime">lifeTime</a>
+      <a class="sub" href="#spawn-hp">hp</a>
+      <a class="sub" href="#spawn-brain" data-k="script frame hold buttons dir None Script">brain / script</a>
+      <a class="sub" href="#spawn-prewarm">prewarm</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-buffs">
+    <div class="side-group-header" data-page="page-buffs" title="点击切换至第 7 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">7</span>
+        <span class="side-group-title">buffs.json</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#buff-root" data-k="id duration damageRate critRate maxStack button effect anchor offset">BuffData</a>
+      <a class="sub" href="#buff-damage">伤害公式</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-secrets">
+    <div class="side-group-header" data-page="page-secrets" title="点击切换至第 8 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">8</span>
+        <span class="side-group-title">秘卷</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#secret-root" data-k="SecretScrollRegistry secret 秘卷 power crit frenzy">SecretScrollRegistry</a>
+    </div>
+  </div>
+  <div class="side-group collapsed" data-page="page-appendix">
+    <div class="side-group-header" data-page="page-appendix" title="点击切换至第 9 页 / 折叠展开">
+      <div class="side-group-left">
+        <span class="side-group-badge">9</span>
+        <span class="side-group-title">附录</span>
+      </div>
+      <span class="side-group-arrow" title="点击折叠/展开本章节">▼</span>
+    </div>
+    <div class="side-group-links">
+      <a href="#ap-framecheck">帧判定口径对照</a>
+      <a href="#ap-validate">自动校验清单</a>
+      <a href="#ap-pitfalls">已知陷阱与不一致</a>
+    </div>
+  </div>
 </nav>
+
 <main>
-<!-- ============================== 概览 ============================== -->
+<article class="doc-page active" id="page-intro" data-page-index="1">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 1 页</span>
+      <span>入门与概念 — 入门与约定</span>
+    </div>
+    <div class="page-counter">1 / 9</div>
+  </div>
 <section id="home">
 <h1>KiHan 角色配置参考</h1>
 <p class="summary">这份文档讲清楚一个角色的四个配置文件里<strong>每个字段是什么意思、什么时候生效、和谁有冲突</strong>。每个字段都附了可以直接抄的示例。</p>
@@ -331,6 +697,26 @@ tick 20：处理 attack2 的第 0 帧</div>
 <div class="callout ok"><b>这个顺序带来的保证</b>同一 tick 内"刚好落地又刚好命中"，两个结果都会先记下来再统一裁决，不会因为谁先算而不同；联机双端结果一致。</div>
 
 <!-- ============================== 教程 ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <div></div>
+    <div class="pager-center">
+      <div class="pager-badge">第 1 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-tutorial" data-pager-target="page-tutorial">
+      <span class="pager-sub">下一页 (P2) →</span>
+      <span class="pager-title">教程示例</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-tutorial" data-page-index="2">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 2 页</span>
+      <span>教程示例 — 连段、技能与派生实战教程</span>
+    </div>
+    <div class="page-counter">2 / 9</div>
+  </div>
 <h2 id="tut-minimal">教程 1：最小可运行角色</h2>
 <p>目标：角色能站着、能走、能被打。一个能进战斗的角色至少需要下面这些动作。</p>
 <pre><code class="json">{
@@ -544,6 +930,29 @@ tick 20：处理 attack2 的第 0 帧</div>
 <li><b>没有 <code>cancelTag</code></b>：所以平时无法通过取消窗口进入，只能在受击中使用。</li>
 </ul>
 <!-- ============================== actions.json ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-intro" data-pager-target="page-intro">
+      <span class="pager-sub">← 上一页 (P1)</span>
+      <span class="pager-title">入门与概念</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 2 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-actions" data-pager-target="page-actions">
+      <span class="pager-sub">下一页 (P3) →</span>
+      <span class="pager-title">actions.json</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-actions" data-page-index="3">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 3 页</span>
+      <span>actions.json — ActionDataContainer 动作库配置</span>
+    </div>
+    <div class="page-counter">3 / 9</div>
+  </div>
 <h2 id="action-root">actions.json · ActionDataContainer</h2>
 <p class="summary">动作库的根对象。<code>data</code> 是动作数组，<strong>顺序有意义</strong>：同 id 时取第一个；同一帧多个动作都能取消且优先级相同时，排在前面的赢；<code>ChangeByCatalog</code> 取第一个匹配类别的动作。</p>
 <pre><code class="json">{ "data": [ { "id": "idle", "animKey": "Idle" } ] }</code></pre>
@@ -950,6 +1359,29 @@ tick 20：处理 attack2 的第 0 帧</div>
 </table>
 </section>
 <!-- ============================== 子结构 ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-tutorial" data-pager-target="page-tutorial">
+      <span class="pager-sub">← 上一页 (P2)</span>
+      <span class="pager-title">教程示例</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 3 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-substructures" data-pager-target="page-substructures">
+      <span class="pager-sub">下一页 (P4) →</span>
+      <span class="pager-title">actions.json · 子结构</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-substructures" data-page-index="4">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 4 页</span>
+      <span>actions.json · 子结构 — 指令、攻击判定与时间轴事件结构</span>
+    </div>
+    <div class="page-counter">4 / 9</div>
+  </div>
 <h2 id="t-FrameRange">FrameRange · 帧区间</h2>
 <p class="summary"><code>{ "x": 起始帧, "y": 结束帧 }</code>，整数，动画帧从 0 开始，<strong>两端都包含</strong>。</p>
 <pre><code class="json">{ "x": 7, "y": 10 }   // 第 7、8、9、10 帧</code></pre>
@@ -1295,6 +1727,29 @@ tick 20：处理 attack2 的第 0 帧</div>
 <p>出入场动画 <code>jump_in</code> / <code>jump_in_1</code> / <code>jump_out</code> 只作为 <code>Show</code> 类动作配置，暂不接入框架。</p>
 <pre><code class="json">{ "id": "float", "animKey": "Float", "catalog": "Hurt", "airHitStep": 1 }</code></pre>
 <!-- ============================== skills.json ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-actions" data-pager-target="page-actions">
+      <span class="pager-sub">← 上一页 (P3)</span>
+      <span class="pager-title">actions.json</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 4 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-skills" data-pager-target="page-skills">
+      <span class="pager-sub">下一页 (P5) →</span>
+      <span class="pager-title">skills.json</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-skills" data-page-index="5">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 5 页</span>
+      <span>skills.json — SkillDataContainer 技能与 CD 换段</span>
+    </div>
+    <div class="page-counter">5 / 9</div>
+  </div>
 <h2 id="skill-root">skills.json · SkillDataContainer</h2>
 <p class="summary">技能层：在动作层之上加 CD、换段、查克拉和按键 UI。<strong>技能不定义怎么出招</strong>，出招仍然是 actions.json 里入口动作的 <code>commands</code> 和取消窗口；技能只负责"现在能不能进"和"什么时候开始 CD"。</p>
 <pre><code class="json">{
@@ -1455,6 +1910,29 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 </ul>
 
 <!-- ============================== spawns.json ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-substructures" data-pager-target="page-substructures">
+      <span class="pager-sub">← 上一页 (P4)</span>
+      <span class="pager-title">actions.json · 子结构</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 5 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-spawns" data-pager-target="page-spawns">
+      <span class="pager-sub">下一页 (P6) →</span>
+      <span class="pager-title">spawns.json</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-spawns" data-page-index="6">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 6 页</span>
+      <span>spawns.json — SpawnDataContainer 生成物与分身</span>
+    </div>
+    <div class="page-counter">6 / 9</div>
+  </div>
 <h2 id="spawn-root">spawns.json · SpawnDataContainer</h2>
 <p class="summary">生成物：投射物（Simple）和分身/召唤物（Actor）。生成物复用角色的整套动作系统，<strong>动作库与主人共用</strong>，它的动作就写在主人的 actions.json 里。</p>
 <pre><code class="json">{ "data": [
@@ -1560,6 +2038,29 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 </section>
 
 <!-- ============================== buffs.json ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-skills" data-pager-target="page-skills">
+      <span class="pager-sub">← 上一页 (P5)</span>
+      <span class="pager-title">skills.json</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 6 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-buffs" data-pager-target="page-buffs">
+      <span class="pager-sub">下一页 (P7) →</span>
+      <span class="pager-title">buffs.json</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-buffs" data-page-index="7">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 7 页</span>
+      <span>buffs.json — BuffData 状态层与计时标记</span>
+    </div>
+    <div class="page-counter">7 / 9</div>
+  </div>
 <h2 id="buff-root">buffs.json · BuffData</h2>
 <p class="summary">Buff = 带时限的状态层：可以带伤害 / 暴击加成、循环特效、按键倒计时圈，也用来当"标记"（派生时限、形态持续时间、敌人身上的印记）。由 <a href="#action-scripts"><code>scripts</code></a> 的 <code>addBuff</code> / <code>removeBuff</code>、技能的 <a href="#skill-buff"><code>buff</code></a>、<a href="#secret-root">秘卷</a>添加。运行时类型 <code>BuffInfo</code>（<code>Assets/Scripts/Game/Character/Buff/BuffInfo.cs</code>）。</p>
 <table>
@@ -1591,6 +2092,29 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <p>引用了未定义的 Buff id 时运行时忽略，角色包校验会报错。</p>
 
 <!-- ============================== 秘卷 ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-spawns" data-pager-target="page-spawns">
+      <span class="pager-sub">← 上一页 (P6)</span>
+      <span class="pager-title">spawns.json</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 7 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-secrets" data-pager-target="page-secrets">
+      <span class="pager-sub">下一页 (P8) →</span>
+      <span class="pager-title">秘卷系统</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-secrets" data-page-index="8">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 8 页</span>
+      <span>秘卷系统 — SecretScrollRegistry 全局秘卷</span>
+    </div>
+    <div class="page-counter">8 / 9</div>
+  </div>
 <h2 id="secret-root">秘卷 · SecretScrollRegistry</h2>
 <p class="summary">秘卷是全局装备：给角色的秘卷技能（<code>button: "Secret"</code>）换上秘卷自己的 CD、图标和 Buff。配置在 ScriptableObject <code>Assets/AssetPackages/Resources/Config/SecretScrollRegistry.asset</code>（类 <code>KiHan.Config.SecretScrollRegistry</code>，菜单 <code>KiHan/Secret Scroll Registry</code>）。</p>
 <table>
@@ -1620,6 +2144,29 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 // skills.json
 { "id": "secret", "button": "Secret", "cooldown": "10", "actionId": "secret" }</code></pre>
 <!-- ============================== 附录 ============================== -->
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-buffs" data-pager-target="page-buffs">
+      <span class="pager-sub">← 上一页 (P7)</span>
+      <span class="pager-title">buffs.json</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 8 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <a class="pager-card next" href="#page-appendix" data-pager-target="page-appendix">
+      <span class="pager-sub">下一页 (P9) →</span>
+      <span class="pager-title">附录与排错指南</span>
+    </a>
+  </nav>
+</article>
+<article class="doc-page" id="page-appendix" data-page-index="9">
+  <div class="page-banner">
+    <div class="crumb-text">
+      <span class="crumb-pill">第 9 页</span>
+      <span>附录与排错指南 — 帧口径对照、自动校验与已知陷阱</span>
+    </div>
+    <div class="page-counter">9 / 9</div>
+  </div>
 <h2 id="ap-framecheck">附录 A · 帧判定口径对照</h2>
 <p>同样写 <code>{x: 2, y: 3}</code>，不同字段判断的"帧"略有不同。大多数情况下不用关心，调试"差一帧"的问题时查这张表。</p>
 <table>
@@ -1680,29 +2227,284 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <tr><td>用整数写 <code>defensePhase</code> 的 <code>changeType</code></td><td>该字段在 C# 中是枚举，整数写法能否解析未经验证</td><td>使用前在 Unity 中实测</td></tr>
 </table>
 
+  <nav class="page-footer-nav" aria-label="分页导航">
+    <a class="pager-card prev" href="#page-secrets" data-pager-target="page-secrets">
+      <span class="pager-sub">← 上一页 (P8)</span>
+      <span class="pager-title">秘卷系统</span>
+    </a>
+    <div class="pager-center">
+      <div class="pager-badge">第 9 / 9 页</div>
+      <div class="pager-shortcut"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> 翻页</div>
+    </div>
+    <div></div>
+  </nav>
+</article>
 <footer>
 <p>本文档根据 <code>Assets/Scripts/Game/Character/Action/ActionData.cs</code>、<code>Skill/SkillInfo.cs</code>、<code>Spawn/SpawnInfo.cs</code>、<code>Buff/BuffInfo.cs</code> 及其运行时代码（<code>ActionController</code>、<code>CharacterObj</code>、<code>HitResolver</code>、<code>SkillController</code>、<code>BattleWorld</code>、<code>CharacterFactory</code>）整理。代码改动后请同步更新本文档。</p>
 </footer>
 </main>
+
 </div>
 <script>
-// 侧边栏搜索：按文字过滤链接
+// 页面元数据
+const PAGES = [
+  { id: 'page-intro', title: '入门与概念', short: '入门概念', crumb: '入门与约定' },
+  { id: 'page-tutorial', title: '教程示例', short: '实战教程', crumb: '连段、技能与派生实战教程' },
+  { id: 'page-actions', title: 'actions.json', short: 'actions.json', crumb: 'ActionDataContainer 动作库配置' },
+  { id: 'page-substructures', title: 'actions.json · 子结构', short: 'actions 子结构', crumb: '指令、攻击判定与时间轴事件结构' },
+  { id: 'page-skills', title: 'skills.json', short: 'skills.json', crumb: 'SkillDataContainer 技能与 CD 换段' },
+  { id: 'page-spawns', title: 'spawns.json', short: 'spawns.json', crumb: 'SpawnDataContainer 生成物与分身' },
+  { id: 'page-buffs', title: 'buffs.json', short: 'buffs.json', crumb: 'BuffData 状态层与计时标记' },
+  { id: 'page-secrets', title: '秘卷系统', short: '秘卷系统', crumb: 'SecretScrollRegistry 全局秘卷' },
+  { id: 'page-appendix', title: '附录与排错指南', short: '附录排错', crumb: '帧口径对照、自动校验与已知陷阱' }
+];
+
+let currentPageId = 'page-intro';
+
+function getPageForElement(targetEl) {
+  if (!targetEl) return null;
+  const pageEl = targetEl.closest('.doc-page');
+  return pageEl ? pageEl.id : null;
+}
+
+function switchPage(targetPageId, anchorId, updateUrl = true) {
+  const targetPage = document.getElementById(targetPageId);
+  if (!targetPage) return;
+
+  currentPageId = targetPageId;
+
+  // 1. 切换页面显隐
+  document.querySelectorAll('.doc-page').forEach(p => {
+    p.classList.toggle('active', p.id === targetPageId);
+  });
+
+  // 2. 更新顶部 Tabs 状态
+  document.querySelectorAll('.top-tab').forEach(tab => {
+    const isActive = tab.getAttribute('data-page') === targetPageId;
+    tab.classList.toggle('active', isActive);
+    if (isActive) {
+      tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  });
+
+  // 3. 更新侧边栏 Groups 状态并确保目标章节展开
+  document.querySelectorAll('.side-group').forEach(grp => {
+    const isCurrent = grp.getAttribute('data-page') === targetPageId;
+    grp.classList.toggle('active', isCurrent);
+    if (isCurrent) {
+      grp.classList.remove('collapsed');
+    }
+  });
+
+  // 4. 定位锚点或回滚到顶部
+  if (anchorId) {
+    const anchorEl = document.getElementById(anchorId);
+    if (anchorEl) {
+      // 如果目标在子折叠栏中（如 Attack 的 sub2 属性），确保展开子折叠栏
+      const subGroup = anchorEl.closest ? anchorEl.closest('.side-sub-group') : null;
+      if (subGroup) subGroup.classList.remove('collapsed');
+
+      requestAnimationFrame(() => {
+        anchorEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        anchorEl.classList.remove('target-highlight');
+        void anchorEl.offsetWidth; // 触发 reflow
+        anchorEl.classList.add('target-highlight');
+        setTimeout(() => anchorEl.classList.remove('target-highlight'), 2000);
+      });
+    }
+  } else {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  // 5. 更新 URL Hash
+  if (updateUrl) {
+    const newHash = anchorId ? ('#' + anchorId) : ('#' + targetPageId);
+    if (location.hash !== newHash) {
+      history.pushState(null, '', newHash);
+    }
+  }
+
+  // 6. 更新页面 Title
+  const pageObj = PAGES.find(p => p.id === targetPageId);
+  if (pageObj) {
+    document.title = `${pageObj.title} — KiHan 角色配置参考`;
+  }
+}
+
+// 侧边栏全部展开/收起切换
+const toggleBtn = document.getElementById('toggleAllBtn');
+if (toggleBtn) {
+  toggleBtn.addEventListener('click', () => {
+    const groups = Array.from(document.querySelectorAll('.side-group'));
+    const anyCollapsed = groups.some(g => g.classList.contains('collapsed'));
+    
+    groups.forEach(g => {
+      if (anyCollapsed) {
+        g.classList.remove('collapsed');
+      } else {
+        if (!g.classList.contains('active')) {
+          g.classList.add('collapsed');
+        }
+      }
+    });
+
+    toggleBtn.textContent = anyCollapsed ? '收起其他' : '展开全部';
+  });
+}
+
+// 侧边栏章节箭头点击（纯折叠/展开，不切换页面）
+document.querySelectorAll('.side-group-arrow').forEach(arr => {
+  arr.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const grp = arr.closest('.side-group');
+    grp.classList.toggle('collapsed');
+  });
+});
+
+// 侧边栏章节标题点击（同页折叠/展开，异页切换并展开）
+document.querySelectorAll('.side-group-header').forEach(hdr => {
+  hdr.addEventListener('click', (e) => {
+    if (e.target.classList.contains('side-group-arrow')) return;
+
+    const grp = hdr.closest('.side-group');
+    const pageId = hdr.getAttribute('data-page');
+
+    if (currentPageId === pageId) {
+      grp.classList.toggle('collapsed');
+    } else {
+      grp.classList.remove('collapsed');
+      switchPage(pageId, null, true);
+    }
+  });
+});
+
+// 侧边栏子属性折叠箭头点击 (如 Attack 下的 13 项)
+document.querySelectorAll('.side-sub-arrow').forEach(subArr => {
+  subArr.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const subGrp = subArr.closest('.side-sub-group');
+    subGrp.classList.toggle('collapsed');
+  });
+});
+
+// 顶部选项卡点击
+document.querySelectorAll('.top-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const pageId = tab.getAttribute('data-page');
+    switchPage(pageId, null, true);
+  });
+});
+
+// 底部分页按钮事件代理
+document.addEventListener('click', (e) => {
+  const pagerBtn = e.target.closest('[data-pager-target]');
+  if (!pagerBtn) return;
+  e.preventDefault();
+  const pageId = pagerBtn.getAttribute('data-pager-target');
+  switchPage(pageId, null, true);
+});
+
+// 全局站内锚点链接拦截（包含侧边栏链接与正文交叉引用）
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[href^="#"]');
+  if (!link) return;
+
+  const href = link.getAttribute('href');
+  if (!href || href === '#') return;
+  const targetId = href.slice(1);
+
+  // 1. 如果点击的是页面 ID
+  if (PAGES.some(p => p.id === targetId)) {
+    e.preventDefault();
+    switchPage(targetId, null, true);
+    return;
+  }
+
+  // 2. 如果点击的是某个锚点 ID
+  const targetEl = document.getElementById(targetId);
+  if (targetEl) {
+    e.preventDefault();
+    const pageId = getPageForElement(targetEl) || currentPageId;
+    switchPage(pageId, targetId, true);
+  }
+});
+
+// 监听浏览器前进/后退
+function handleHashChange() {
+  const rawHash = (location.hash || '').replace(/^#/, '');
+  if (!rawHash) {
+    switchPage('page-intro', null, false);
+    return;
+  }
+  if (PAGES.some(p => p.id === rawHash)) {
+    switchPage(rawHash, null, false);
+    return;
+  }
+  const targetEl = document.getElementById(rawHash);
+  if (targetEl) {
+    const pageId = getPageForElement(targetEl) || 'page-intro';
+    switchPage(pageId, rawHash, false);
+    return;
+  }
+  switchPage('page-intro', null, false);
+}
+window.addEventListener('hashchange', handleHashChange);
+
+// 键盘快捷键 Alt + Left / Alt + Right
+window.addEventListener('keydown', (e) => {
+  if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.altKey && e.key === 'ArrowRight') {
+    e.preventDefault();
+    const idx = PAGES.findIndex(p => p.id === currentPageId);
+    if (idx >= 0 && idx < PAGES.length - 1) {
+      switchPage(PAGES[idx + 1].id, null, true);
+    }
+  } else if (e.altKey && e.key === 'ArrowLeft') {
+    e.preventDefault();
+    const idx = PAGES.findIndex(p => p.id === currentPageId);
+    if (idx > 0) {
+      switchPage(PAGES[idx - 1].id, null, true);
+    }
+  }
+});
+
+// 侧边栏搜索：全站匹配并展开
 (function () {
-  var q = document.getElementById('q');
-  var links = Array.prototype.slice.call(document.querySelectorAll('#side a'));
-  q.addEventListener('input', function () {
-    var v = q.value.trim().toLowerCase();
-    links.forEach(function (a) {
-      a.classList.toggle('hidden', v !== '' && (a.textContent + ' ' + (a.dataset.k || '')).toLowerCase().indexOf(v) < 0);
+  const q = document.getElementById('q');
+  const allLinks = Array.from(document.querySelectorAll('#side a'));
+  const sideGroups = Array.from(document.querySelectorAll('.side-group'));
+
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase();
+    const isSearching = v !== '';
+
+    sideGroups.forEach(grp => {
+      grp.classList.toggle('searching', isSearching);
+      let matchCount = 0;
+
+      grp.querySelectorAll('a').forEach(a => {
+        const text = (a.textContent + ' ' + (a.dataset.k || '')).toLowerCase();
+        const match = !isSearching || text.includes(v);
+        a.classList.toggle('hidden', !match);
+        if (match) matchCount++;
+      });
+
+      grp.style.display = (isSearching && matchCount === 0) ? 'none' : '';
     });
   });
-  q.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter') return;
-    var hit = links.filter(function (a) { return !a.classList.contains('hidden'); })[0];
-    if (hit) location.hash = hit.getAttribute('href');
+
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const firstHit = allLinks.find(a => !a.classList.contains('hidden') && a.closest('.side-group').style.display !== 'none');
+      if (firstHit) {
+        firstHit.click();
+        q.blur();
+      }
+    }
   });
 })();
-// JSON 代码着色：键 / 字符串 / 数字 / 注释
+
+// JSON 代码语法着色
 (function () {
   function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   document.querySelectorAll('pre code.json').forEach(function (el) {
@@ -1717,6 +2519,9 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
     el.innerHTML = out + esc(src.slice(last));
   });
 })();
+
+// 初始根据 Hash 载入对应页面
+handleHashChange();
 </script>
 </body>
 </html>

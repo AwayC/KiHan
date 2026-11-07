@@ -48,6 +48,7 @@ public class UnitySingleton<T> : MonoBehaviour where T : Component
                     GameObject obj = new GameObject();
                     _instance = obj.AddComponent<T>();
                     if (Application.isPlaying) DontDestroyOnLoad(obj);
+                    else obj.hideFlags = HideFlags.DontSave;
                     obj.name = typeof(T).Name;
                 }
             }
@@ -78,7 +79,7 @@ public class UnitySingleton<T> : MonoBehaviour where T : Component
     {
         if (_instance == this)
         {
-            _applicationIsQuitting = true;
+            _instance = null;
         }
     }
 }

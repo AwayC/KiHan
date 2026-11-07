@@ -89,9 +89,21 @@ namespace KiHan.Tests
                 var pool = ObjectPoolManager.Instance;
                 pool.ClearCategory(PoolCategory.UI);
                 pool.ClearCategory(PoolCategory.FX);
+                pool.CleanupGlobalRoot();
                 AssertTrue(true, "分类隔离清理成功完成");
             }, ref passCount, ref totalCount);
 
+            if (!Application.isPlaying)
+            {
+                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                foreach (var r in scene.GetRootGameObjects())
+                {
+                    if (r.name == "[ObjectPoolRoot]" || r.name == "ObjectPoolManager" || r.name == "AssetManager")
+                    {
+                        UnityEngine.Object.DestroyImmediate(r);
+                    }
+                }
+            }
             Debug.Log($"<color={(passCount == totalCount ? "green" : "red")}>====== [KiHan Asset & Pool] 测试完成: {passCount}/{totalCount} 通过 ======</color>");
             return passCount == totalCount;
         }
