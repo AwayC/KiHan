@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using KiHan.Asset;
 using KiHan.Config;
 using KiHan.Logic;
 using KiHan.View.Audio;
@@ -92,21 +93,21 @@ namespace KiHan.Editor
             {
                 if (string.IsNullOrEmpty(key)) return;
                 bool packaged = manifest != null && manifest.TryGetPrefab(key, out _, out _);
-                if (!packaged && Resources.Load<GameObject>(key) == null) problems.Add($"{where} 的特效资源不存在: {key}");
+                if (!packaged && AssetManager.Instance.TryLoad<GameObject>(key) == null) problems.Add($"{where} 的特效资源不存在: {key}");
             }
 
             void RequireSound(string key, string where)
             {
                 if (string.IsNullOrEmpty(key)) return;
                 bool packaged = manifest != null && (manifest.FindResource<SoundCue>(key) != null || manifest.FindResource<AudioClip>(key) != null);
-                if (!packaged && Resources.Load<SoundCue>(key) == null && Resources.Load<AudioClip>(key) == null) problems.Add($"{where} 的音效资源不存在: {key}");
+                if (!packaged && AssetManager.Instance.TryLoad<SoundCue>(key) == null && AssetManager.Instance.TryLoad<AudioClip>(key) == null) problems.Add($"{where} 的音效资源不存在: {key}");
             }
 
             void RequireCinematic(string key, string where)
             {
                 if (string.IsNullOrEmpty(key)) return;
                 GameObject prefab = manifest != null ? manifest.FindResource<GameObject>(key) : null;
-                if (prefab == null) prefab = Resources.Load<GameObject>(key);
+                if (prefab == null) prefab = AssetManager.Instance.TryLoad<GameObject>(key);
                 if (prefab == null)
                 {
                     problems.Add($"{where} 的演出资源不存在: {key}");

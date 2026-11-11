@@ -1,12 +1,10 @@
-using System;
 using UnityEngine;
 
 namespace KiHan.Asset
 {
     /// <summary>
-    /// 全局统一资源管理中心
-    /// 提供统一的资产寻址、缓存与生命周期释放接口
-    /// 底层可通过 SetProvider 随时平滑切换为 Addressables 或 AssetBundle
+    /// 全局统一资源管理中心：按地址加载资源，底层由 SetProvider 指定 (编辑器模拟 / AssetBundle)。
+    /// 编辑器未启用 AB 模式时自动使用 EditorAssetProvider；AB 模式由启动流程在热更结束后设置。
     /// </summary>
     public class AssetManager : UnitySingleton<AssetManager>
     {
@@ -14,18 +12,8 @@ namespace KiHan.Asset
 
         public IAssetProvider ActiveProvider => _provider;
 
-        protected override void Awake()
-        {
-            base.Awake();
-            if (_provider == null)
-            {
-                var resProvider = new ResourcesAssetProvider(this);
-                _provider = resProvider;
-            }
-        }
-
         /// <summary>
-        /// 切换或自定义底层资源提供器 (如后续切换为 AddressablesAssetProvider)
+        /// 切换底层资源提供器
         /// </summary>
         public void SetProvider(IAssetProvider provider)
         {
@@ -34,62 +22,46 @@ namespace KiHan.Asset
         }
 
         /// <summary>
-        /// 同步加载资产
+        /// 同步加载资产；找不到时打警告
         /// </summary>
-        public T Load<T>(string address) where T : UnityEngine.Object
+        public T Load<T>(string address) where T : Object
         {
-            if (_provider == null) _provider = new ResourcesAssetProvider(this);
-            return _provider.LoadAsset<T>(address);
+            T asset = TryLoad<T>(address);
+            if (asset == null && _provider != null) Debug.LogWarning($"[AssetManager] 找不到资源 {address} ({typeof(T).Name})");
+            return asset;
         }
 
         /// <summary>
-        /// 异步加载资产 (推荐)
+        /// 同步加载资产；找不到返回 null 不打日志 (用于先查 A 再查 B 的回退)
         /// </summary>
-        public void LoadAsync<T>(string address, Action<T> onComplete) where T : UnityEngine.Object
+        public T TryLoad<T>(string address) where T : Object
         {
-            if (_provider == null) _provider = new ResourcesAssetProvider(this);
-            _provider.LoadAssetAsync(address, onComplete);
+            return EnsureProvider() ? _provider.LoadAsset<T>(address) : null;
         }
 
         /// <summary>
-        /// 加载指定目录/图集下的全部子资产
+        /// 加载该地址文件内的全部子资产
         /// </summary>
-        public T[] LoadAll<T>(string address) where T : UnityEngine.Object
+        public T[] LoadAll<T>(string address) where T : Object
         {
-            if (_provider == null) _provider = new ResourcesAssetProvider(this);
-            return _provider.LoadAllAssets<T>(address);
+            return EnsureProvider() ? _provider.LoadAllAssets<T>(address) : System.Array.Empty<T>();
         }
 
         /// <summary>
-        /// 释放资产引用
-        /// </summary>
-        public void Release(string address)
-        {
-            _provider?.ReleaseAsset(address);
-        }
-
-        /// <summary>
-        /// 释放资产引用
-        /// </summary>
-        public void Release(UnityEngine.Object asset)
-        {
-            _provider?.ReleaseAsset(asset);
-        }
-
-        /// <summary>
-        /// 触发底层清理无用资产
-        /// </summary>
-        public void UnloadUnused()
-        {
-            _provider?.UnloadUnusedAssets();
-        }
-
-        /// <summary>
-        /// 清理全局资源缓存
+        /// 清理未被引用的资产
         /// </summary>
         public void Clear()
         {
             _provider?.Clear();
+        }
+
+        private bool EnsureProvider()
+        {
+#if UNITY_EDITOR
+            if (_provider == null && (!Application.isPlaying || !AssetMode.UseBundles)) _provider = new EditorAssetProvider();
+#endif
+            if (_provider == null) Debug.LogError("[AssetManager] 资源系统尚未初始化");
+            return _provider != null;
         }
     }
 }

@@ -177,6 +177,9 @@ namespace KiHan.Network
         public int p1_hp;
         public int p2_hp;
 
+        /// <summary>获胜方 game_id (1 / 2)，0 为平局；客户端按 game_id 判定胜负，不需要知道对方 uid</summary>
+        public int winner_game_id;
+
         public byte[] Serialize()
         {
             ProtoWriter writer = new ProtoWriter();
@@ -184,6 +187,7 @@ namespace KiHan.Network
             if (winner_uid != 0) writer.WriteVarint(2, (int)winner_uid);
             if (p1_hp != 0) writer.WriteVarint(3, p1_hp);
             if (p2_hp != 0) writer.WriteVarint(4, p2_hp);
+            if (winner_game_id != 0) writer.WriteVarint(5, winner_game_id);
             return writer.ToArray();
         }
     }
@@ -217,6 +221,122 @@ namespace KiHan.Network
             {
                 if (fieldNumber == 1) obj.room_id = reader.ReadInt32();
                 else if (fieldNumber == 2) obj.winner_uid = (uint)reader.ReadInt32();
+            }
+            return obj;
+        }
+    }
+
+    // 2008：发送表情
+    public class EmojiReq
+    {
+        public int room_id;
+        public int emoji_id;
+
+        public byte[] Serialize()
+        {
+            ProtoWriter writer = new ProtoWriter();
+            if (room_id != 0) writer.WriteVarint(1, room_id);
+            writer.WriteVarint(2, emoji_id);
+            return writer.ToArray();
+        }
+    }
+
+    // 2009：表情广播 (发送者自己也会收到)
+    public class EmojiNtf
+    {
+        public int game_id;
+        public int emoji_id;
+
+        public static EmojiNtf Deserialize(byte[] data)
+        {
+            EmojiNtf obj = new EmojiNtf();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.game_id = reader.ReadInt32();
+                else if (fieldNumber == 2) obj.emoji_id = reader.ReadInt32();
+            }
+            return obj;
+        }
+    }
+
+    /// <summary>
+    /// 阵容中的一个角色：message LineupMember { int32 character_id = 1; string secret = 2; }
+    /// </summary>
+    public class LineupMember
+    {
+        public int character_id;
+        public string secret;
+
+        public byte[] Serialize()
+        {
+            ProtoWriter writer = new ProtoWriter();
+            writer.WriteVarint(1, character_id);
+            writer.WriteString(2, secret);
+            return writer.ToArray();
+        }
+
+        public static LineupMember Deserialize(byte[] data)
+        {
+            var obj = new LineupMember();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.character_id = reader.ReadInt32();
+                else if (fieldNumber == 2) obj.secret = reader.ReadString();
+            }
+            return obj;
+        }
+    }
+
+    // 2010：提交出战阵容 (按出战顺序)
+    public class LineupReq
+    {
+        public int room_id;
+        public List<LineupMember> members = new List<LineupMember>();
+
+        public byte[] Serialize()
+        {
+            ProtoWriter writer = new ProtoWriter();
+            if (room_id != 0) writer.WriteVarint(1, room_id);
+            foreach (LineupMember member in members) writer.WriteMessage(2, member.Serialize());
+            return writer.ToArray();
+        }
+    }
+
+    /// <summary>
+    /// 一名玩家的阵容：message PlayerLineup { int32 game_id = 1; repeated LineupMember members = 2; }
+    /// </summary>
+    public class PlayerLineup
+    {
+        public int game_id;
+        public List<LineupMember> members = new List<LineupMember>();
+
+        public static PlayerLineup Deserialize(byte[] data)
+        {
+            var obj = new PlayerLineup();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.game_id = reader.ReadInt32();
+                else if (fieldNumber == 2) obj.members.Add(LineupMember.Deserialize(reader.ReadMessage()));
+            }
+            return obj;
+        }
+    }
+
+    // 2011：双方阵容 (双方都提交后广播，须早于 2003 GameStartNtf)
+    public class LineupNtf
+    {
+        public List<PlayerLineup> lineups = new List<PlayerLineup>();
+
+        public static LineupNtf Deserialize(byte[] data)
+        {
+            var obj = new LineupNtf();
+            ProtoReader reader = new ProtoReader(data);
+            while (reader.ReadTag(out int fieldNumber, out int wireType))
+            {
+                if (fieldNumber == 1) obj.lineups.Add(PlayerLineup.Deserialize(reader.ReadMessage()));
             }
             return obj;
         }

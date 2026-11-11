@@ -36,7 +36,7 @@ namespace KiHan.Config
                 if (_instance == null)
                 {
                     _instance = AssetManager.Instance.Load<SecretScrollRegistry>(ResourcePath);
-                    if (_instance == null) Debug.LogError($"[SecretScrollRegistry] 找不到秘卷表: Resources/{ResourcePath}");
+                    if (_instance == null) Debug.LogError($"[SecretScrollRegistry] 找不到秘卷表: {ResourcePath}");
                 }
                 return _instance;
             }

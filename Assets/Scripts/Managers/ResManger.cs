@@ -16,12 +16,6 @@ namespace Managers
             return AssetManager.Instance.Load<T>(path);
         }
 
-        public ResourceRequest LoadAsync<T>(string path) where T : Object
-        {
-            if (path.EndsWith(".prefab")) path = path.Replace(".prefab", "");
-            return Resources.LoadAsync<T>(path);
-        }
-
         public void AddToCache(string path, Object obj)
         {
             // 新版架构由 AssetManager 统一根据句柄管理，此处保留接口兼容

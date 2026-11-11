@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4525657481c045b4a87c43ec1a03a4d5, type: 3}
+  m_Name: 06
+  m_EditorClassIdentifier: 
+  id: 06
+  displayName: "\u6708\u5751"
+  scene: {fileID: 8729882967225944004, guid: 6107f31acde1ba7488cfc0db229fabc2, type: 3}
+  shot: {fileID: 21300000, guid: 9d6f377a260b0bb46b44fe21aad0cc3b, type: 3}
+  is3D: 0
+  camera3D:
+    stageDistance: 32
+    stageHeightSlope: 0.368
+    stagePitch: 0
+    farDistance: 12
+    farHeightSlope: 0.368
+    farPitch: 0
+    farParallaxScale: 1
+    farVerticalOffset: 0
+    farZoomScale: 1
+    farBackgroundColor: {r: 0.28, g: 0.34, b: 0.42, a: 1}

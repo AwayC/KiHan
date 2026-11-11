@@ -581,8 +581,8 @@ footer { color: var(--muted); font-size: 13px; margin-top: 60px; border-top: 1px
 <tr><td><code>Config/buffs.json</code></td><td>否</td><td>Buff：持续时间与循环特效</td><td>没有 Buff</td></tr>
 <tr><td>包内 prefab、<code>UI/</code> 下的图片</td><td>否</td><td>特效、技能图标；json 中用<strong>包内 key</strong> 引用</td><td>—</td></tr>
 </table>
-<p><b>包内 key</b>：相对包根目录的路径、不含扩展名，多图切片追加 <code>#子图名</code>，如 <code>Effect/lxw/ball</code>、<code>UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0</code>。key 在本包资源表中找不到时，按全局 <code>Resources</code> 路径加载（用于多个角色共用的特效）。</p>
-<p>清单里的配置、动画与资源表按目录<strong>自动收集</strong>（包内文件变化时自动刷新，也可用菜单 <code>KiHan/角色/刷新全部角色包</code>），只需手填 ID、显示名与头像。插拔角色：在注册表 <code>Resources/Config/CharacterRegistry.asset</code> 中增删一行或切换启用；<code>KiHan/角色/校验全部角色包</code> 检查全部角色包的引用。</p>
+<p><b>包内 key</b>：相对包根目录的路径、不含扩展名，多图切片追加 <code>#子图名</code>，如 <code>Effect/lxw/ball</code>、<code>UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0</code>。key 在本包资源表中找不到时，按全局资源地址 (Assets/AssetPackages/Res 下，不含扩展名) 加载（用于多个角色共用的特效）。</p>
+<p>清单里的配置、动画与资源表按目录<strong>自动收集</strong>（包内文件变化时自动刷新，也可用菜单 <code>KiHan/角色/刷新全部角色包</code>），只需手填 ID、显示名与头像。插拔角色：在注册表 <code>Assets/AssetPackages/Res/Config/CharacterRegistry.asset</code> 中增删一行或切换启用；<code>KiHan/角色/校验全部角色包</code> 检查全部角色包的引用。</p>
 
 <h3>通用约定</h3>
 <table>
@@ -593,7 +593,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 60px; border-top: 1px
 <tr><td><b>像素与逻辑单位</b></td><td>判定盒、锚点、偏移用像素；位移、速度用逻辑单位。100 像素 = 1 逻辑单位。</td><td><code>"moveX": "0.6"</code> = 60 像素</td></tr>
 <tr><td><b>坐标轴</b></td><td>x 横向（正方向 = 角色面朝方向，朝左时自动镜像），y 纵深，z 高度。</td><td></td></tr>
 <tr><td><b>枚举字符串</b></td><td>大多数枚举（霸体等级、事件类型、生成物类型）不区分大小写，写错<strong>静默</strong>回落默认值。例外：缓动名 <code>tweenMethod</code> 区分大小写；按键名写错会报错。</td><td><code>"level": "skill"</code> 与 <code>"Skill"</code> 等价</td></tr>
-<tr><td><b>注释</b></td><td>Unity 的 JsonUtility <strong>不支持 <code>//</code> 注释</strong>。仓库根目录的 <code>example.json</code>、<code>*_example.json</code> 带注释，只能参考，不能直接放进 Resources。</td><td></td></tr>
+<tr><td><b>注释</b></td><td>Unity 的 JsonUtility <strong>不支持 <code>//</code> 注释</strong>。仓库根目录的 <code>example.json</code>、<code>*_example.json</code> 带注释，只能参考，不能直接放进 Res 目录。</td><td></td></tr>
 </table>
 
 <h3>标记说明</h3>
@@ -1674,7 +1674,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 <tr><th>字段</th><th>类型</th><th>默认</th><th>说明</th></tr>
 <tr><td><code>frame</code></td><td>int</td><td>0</td><td>处理到这一帧时触发一次。从中间帧进入（<code>startFormFrame</code>/<code>keepFrame</code>）不会补发之前的事件；循环动作每圈都触发。</td></tr>
 <tr><td><code>type</code></td><td>string</td><td><code>Effect</code></td><td><code>Effect</code> 特效 / <code>Camera</code> 镜头 / <code>Spawn</code> 生成物 / <code>Sound</code> 音效 / <code>Cinematic</code> 大招演出。不区分大小写，写错按 Effect。<code>Buff</code> 不再是动作事件（报错），改用 scripts 的 <code>addBuff</code>。</td></tr>
-<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局 Resources 路径加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：镜头指令 <code>impact</code> / <code>impact_heavy</code> / <code>shot</code> / <code>shake</code> / <code>pulse</code> / <code>reset</code>（见下方镜头指令）。Sound：音效 key（包内 SoundCue 或音频文件，找不到按全局 Resources 路径）。Cinematic：演出预制体 key（根节点带 PlayableDirector + Timeline，包内优先）。</td></tr>
+<tr><td><code>asset</code></td><td>string</td><td><code>""</code></td><td>Effect：特效的角色包内 key（如 <code>Effect/lxw/ball</code>）；本包找不到时按全局资源地址 (Assets/AssetPackages/Res 下，不含扩展名) 加载（不含 <code>/</code> 时自动加 <code>Effects/</code> 前缀）。Camera：镜头指令 <code>impact</code> / <code>impact_heavy</code> / <code>shot</code> / <code>shake</code> / <code>pulse</code> / <code>reset</code>（见下方镜头指令）。Sound：音效 key（包内 SoundCue 或音频文件，找不到按全局资源地址 (Assets/AssetPackages/Res 下，不含扩展名)）。Cinematic：演出预制体 key（根节点带 PlayableDirector + Timeline，包内优先）。</td></tr>
 <tr><td><code>spawnId</code></td><td>string</td><td><code>""</code></td><td>Spawn：spawns.json 中的生成物 id。</td></tr>
 <tr><td><code>anchor</code></td><td>string</td><td><code>""</code></td><td>帧库锚点名，作为位置基准；留空或该帧没有此锚点时用脚底。Cinematic 以此处作为演出原点。</td></tr>
 <tr><td><code>offset</code></td><td><code>{x,y}</code> 整数像素</td><td>{0,0}</td><td>相对锚点的偏移：x 朝前（随朝向镜像），y 向上。</td></tr>
@@ -1697,7 +1697,7 @@ tick 20：处理 attack2 的第 0 帧</div>
 { "frame": 0,  "type": "Cinematic", "asset": "Cinematic/ultimate", "audience": "Self" }</code></pre>
 <div class="callout warn"><b>没有 Buff 事件</b>写 <code>"type": "Buff"</code>（或 BuffRemoved）会加载报错。加 Buff 改用 <a href="#action-scripts"><code>scripts</code></a> 的 <code>addBuff</code>。</div>
 <div class="callout"><b>演出 Timeline 可用轨道</b>：CameraShotTrack（拉远 / 推近、平移、屏幕内旋转，片段淡入淡出即过渡）、CameraShakeTrack（震屏）、ScreenFadeTrack（全屏遮罩）、ScreenVideoTrack（全屏视频，不出声）、原生 AudioTrack / ControlTrack / ActivationTrack。轨道绑定由播放器自动完成，朝左释放时整个演出镜像。同时只播一个演出，后触发的覆盖前一个。目前地图背景高度有限，拉远上限为 1（不拉远）。</div>
-<div class="callout"><b>约定音效</b>：按钮点击与命中音在 <code>Resources/Config/SoundConventions.asset</code> 配置；受击语音放在各角色包的 <code>Sound/hurt</code>（SoundCue 或音频文件，可缺省）。特效伴随音效：在特效预制体上挂 <code>FxSound</code>。</div>
+<div class="callout"><b>约定音效</b>：按钮点击与命中音在 <code>Assets/AssetPackages/Res/Config/SoundConventions.asset</code> 配置；受击语音放在各角色包的 <code>Sound/hurt</code>（SoundCue 或音频文件，可缺省）。特效伴随音效：在特效预制体上挂 <code>FxSound</code>。</div>
 
 <h3 id="t-CameraCmd">镜头指令 (Camera 事件)</h3>
 <p class="summary">只影响画面。所有镜头效果都限制在正常跟随的取景范围内：推近后镜头可以在这个范围里移动、旋转、晃动，但不会露出范围之外；拉远上限目前为 1。</p>
@@ -1798,12 +1798,12 @@ tick 20：处理 attack2 的第 0 帧</div>
 <div class="crumb">skills.json › data[]</div>
 <section class="field" id="skill-icon">
 <h3><code>icon</code><span class="badge view">表现</span></h3>
-<p class="summary">按钮图标：角色包内 key，或全局 Resources 地址。</p>
+<p class="summary">按钮图标：角色包内 key，或全局资源地址 (Assets/AssetPackages/Res 下，不含扩展名)。</p>
 <table class="props"><tr><th>类型</th><td>string</td></tr><tr><th>默认</th><td><code>""</code>：保留按钮预制体自带的图</td></tr></table>
 <h4>格式</h4>
 <ul>
 <li>包内 key：图片放在角色包 <code>UI/</code> 下，写相对包根目录的路径；多图切片追加 <code>#子图名</code>（区分大小写）。</li>
-<li>找不到包内 key 时按全局 Resources 地址加载：<code>"路径"</code> 单图，<code>"路径#子图名"</code> 多图切片。</li>
+<li>找不到包内 key 时按全局资源地址 (Assets/AssetPackages/Res 下，不含扩展名) 加载：<code>"路径"</code> 单图，<code>"路径#子图名"</code> 多图切片。</li>
 </ul>
 <pre><code class="json">"icon": "UI/90001_SkillIconAtlas#90001_SkillIconAtlas_0"</code></pre>
 <p>战斗界面创建时预加载，找不到会报错。Unity 环境测试也会检查所有非空图标地址。</p>
@@ -2116,7 +2116,7 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
     <div class="page-counter">8 / 9</div>
   </div>
 <h2 id="secret-root">秘卷 · SecretScrollRegistry</h2>
-<p class="summary">秘卷是全局装备：给角色的秘卷技能（<code>button: "Secret"</code>）换上秘卷自己的 CD、图标和 Buff。配置在 ScriptableObject <code>Assets/AssetPackages/Resources/Config/SecretScrollRegistry.asset</code>（类 <code>KiHan.Config.SecretScrollRegistry</code>，菜单 <code>KiHan/Secret Scroll Registry</code>）。</p>
+<p class="summary">秘卷是全局装备：给角色的秘卷技能（<code>button: "Secret"</code>）换上秘卷自己的 CD、图标和 Buff。配置在 ScriptableObject <code>Assets/AssetPackages/Res/Config/SecretScrollRegistry.asset</code>（类 <code>KiHan.Config.SecretScrollRegistry</code>，菜单 <code>KiHan/Secret Scroll Registry</code>）。</p>
 <table>
 <tr><th>字段</th><th>类型</th><th>说明</th></tr>
 <tr><td><code>id</code></td><td>string</td><td>秘卷 id，被装备 <code>PlayerLoadout.secret</code> 引用。</td></tr>
@@ -2221,7 +2221,7 @@ tick N+30: CD 先归零，再判断输入 → 这一帧就能再次释放</div>
 <tr><td>只配 press 时按住不连段</td><td>切动作会消耗"按下"</td><td>连段动作同时配 <code>press</code> 和 <code>hold</code></td></tr>
 <tr><td>浮空连击高度不对</td><td>打空中目标用的是 <code>air</code>，没配时用全局默认 z=5</td><td>每一招都写自己的 <code>air</code></td></tr>
 <tr><td>动作停在最后一帧不动</td><td><code>autoNextActionId</code> 留空或指向不存在的 id</td><td>检查 Unity 环境测试结果</td></tr>
-<tr><td>带 <code>//</code> 注释的 json 加载失败</td><td>JsonUtility 不支持注释</td><td>Resources 里的配置不能带注释</td></tr>
+<tr><td>带 <code>//</code> 注释的 json 加载失败</td><td>JsonUtility 不支持注释</td><td>Res 目录里的配置不能带注释</td></tr>
 <tr><td><code>example.json</code> 注释说重力 40</td><td>代码默认重力是 <b>30</b></td><td>以代码为准</td></tr>
 <tr><td><code>facing</code> 写了没效果</td><td>运行时未使用</td><td>不要依赖</td></tr>
 <tr><td>用整数写 <code>defensePhase</code> 的 <code>changeType</code></td><td>该字段在 C# 中是枚举，整数写法能否解析未经验证</td><td>使用前在 Unity 中实测</td></tr>

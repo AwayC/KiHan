@@ -47,7 +47,7 @@ namespace KiHan.View.Cinematic
         }
 
         /// <summary>
-        /// 加载阶段实例化演出预制体：包内 prefab 优先，其次全局 Resources
+        /// 加载阶段实例化演出预制体：包内 prefab 优先，其次全局资源
         /// </summary>
         public void Preload(CharacterManifest manifest, string key)
         {
@@ -71,7 +71,7 @@ namespace KiHan.View.Cinematic
             if (prefab == null)
             {
                 if (_global.ContainsKey(key)) return;
-                prefab = Resources.Load<GameObject>(key);
+                prefab = KiHan.Asset.AssetManager.Instance.TryLoad<GameObject>(key);
             }
 
             if (prefab == null)

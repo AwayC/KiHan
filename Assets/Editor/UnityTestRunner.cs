@@ -14,7 +14,7 @@ namespace KiHan.Editor
     public static class UnityTestRunner
     {
         private static bool _hasRun = false;
-        private const string MapRegistryPath = "Assets/AssetPackages/Resources/Config/MapRegistry.asset";
+        private const string MapRegistryPath = "Assets/AssetPackages/Res/Config/MapRegistry.asset";
 
         static UnityTestRunner()
         {
@@ -90,6 +90,18 @@ namespace KiHan.Editor
             catch (Exception ex)
             {
                 LogError($"AssetTests 抛出未捕获异常: {ex.Message}\n{ex.StackTrace}");
+            }
+
+            // 2b. 热更判定 (HotUpdateTests)
+            try
+            {
+                Log("\n--- [2/7] 热更判定测试 (HotUpdateTests) ---");
+                if (KiHan.Tests.HotUpdateTests.RunAllTests()) Log("  [OK] HotUpdateTests 热更判定测试全部通过");
+                else LogError("HotUpdateTests 测试未完全通过！");
+            }
+            catch (Exception ex)
+            {
+                LogError($"HotUpdateTests 抛出未捕获异常: {ex.Message}\n{ex.StackTrace}");
             }
 
             // 3. Unity JsonUtility 配置加载复核 (.agents/testing.md L2.3)

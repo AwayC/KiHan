@@ -532,6 +532,58 @@ static class Program
             Check(q.action.CurrentAction.id == "sub" && q.Hurt == HurtState.Standup, $"倒地中按替身立即起身无敌: {q.action.CurrentAction.id} {q.Hurt}");
         }
 
+        Console.WriteLine("== 8b. 替身落地 + 虚化 + 烟雾；死亡后倒地不再起身、不能替身 ==");
+        {
+            var actions = Actions("proj");
+            var p = Player(actions);
+            var w = World(p);
+            p.motion.Launch(FP.Parse("6"));
+            p.EnterLaunch();
+            Step(w, ButtonMask.None, 4);
+            FP airZ = p.motion.Position.z;
+            Check(p.Hurt == HurtState.Launch && airZ > FP.Zero, $"击飞到空中: {p.Hurt} z={F(airZ)}");
+
+            Step(w, ButtonMask.Substitution);
+            int smokes = 0;
+            foreach (var v in w.ViewEvents) if (v.Type == ActionEventType.Effect && v.Asset == CharacterObj.SubstitutionSmokeEffect) smokes++;
+            Check(p.action.CurrentAction.id == "sub" && p.Hurt == HurtState.Standup, $"空中替身进入替身动作: {p.action.CurrentAction.id} {p.Hurt}");
+            Check(p.motion.Position.z == FP.Zero && p.motion.VelocityZ == FP.Zero && !p.IsAirborne,
+                $"空中替身直接回到地面并清除速度: z={F(p.motion.Position.z)} vz={F(p.motion.VelocityZ)}");
+            Check(smokes == 2, $"空中替身在原位置与落点各放一次烟雾: {smokes}");
+            Check(p.IsPhantom && p.IsInvincible, $"替身后虚化且无敌: 虚化={p.IsPhantom} 无敌={p.IsInvincible}");
+
+            int n = 0;
+            while (p.IsPhantom && n < 60) { Step(w); n++; }
+            Check(p.action.CurrentAction.id == "idle" && !p.IsInvincible && n == 5 + 15,
+                $"替身动作 5 帧 + 起身后无敌 15 帧结束后解除虚化，站在 idle: 用时 {n}, {p.action.CurrentAction.id}");
+
+            var q = Player(actions);
+            var w2 = World(q);
+            q.EnterLying();
+            Step(w2);
+            q.TakeDamage(q.maxHp);
+            Step(w2, ButtonMask.Substitution);
+            Check(q.action.CurrentAction.id == "lie", $"死亡后倒地按替身无效: {q.action.CurrentAction.id}");
+            Step(w2, ButtonMask.None, 90);
+            Check(q.IsLying && q.action.CurrentAction.id == "lie", $"死亡后 3 秒仍倒地不起身: {q.Hurt} {q.action.CurrentAction.id}");
+
+            var r = Player(actions);
+            var w3 = World(r);
+            r.TakeDamage(r.maxHp);
+            Step(w3, ButtonMask.None, 2);
+            Check(r.IsLying && r.action.CurrentAction.id == "lie", $"站立时死亡直接倒地: {r.Hurt} {r.action.CurrentAction.id}");
+
+            var s = Player(actions);
+            var w4 = World(s);
+            Frame.InputFrames[Slot].JoyStickDir = 0;
+            Step(w4, ButtonMask.Attack);
+            Check(s.input.DirX == 1 && s.input.IsHeld(CommandKey.Attack), $"锁定前按住普攻并向右: dirX={s.input.DirX}");
+            w4.InputLocked = true;
+            Step(w4, ButtonMask.Attack, 2);
+            Check(s.input.DirX == 0 && !s.input.IsHeld(CommandKey.Attack), $"锁定输入 (回合结束) 时视同松开全部按键、摇杆回中: dirX={s.input.DirX} 普攻={s.input.IsHeld(CommandKey.Attack)}");
+            Frame.InputFrames[Slot].JoyStickDir = JoystickDir.None;
+        }
+
         Console.WriteLine("== 9. 分身 (Actor)：大脑按脚本出招、可被命中、寿命到期播放消失动作 (无敌) 后回收；生命值归零立即回收 ==");
         {
             var actions = Actions("clone");

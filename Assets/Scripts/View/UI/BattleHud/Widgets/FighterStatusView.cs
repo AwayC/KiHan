@@ -1,4 +1,3 @@
-using System;
 using KiHan.Config;
 using KiHan.Logic;
 using KiHan.Math;
@@ -10,31 +9,22 @@ using UnityEngine.UI;
 namespace View.UI
 {
     /// <summary>
-    /// 顶部角色状态 (一名玩家)：头像、名字、血条、查克拉、换人按钮 (只在训练场显示)
+    /// 顶部角色状态 (一名玩家)：头像、名字、血条、查克拉，角色死亡后头像上显示 @X (训练场的换人按钮在 TrainingPanel)
     /// 绑定一次角色后只读其状态；只在数值变化时修改 UI
     /// </summary>
     public partial class FighterStatusView : KiHan.UI.UIView
     {
         private CharacterObj _character;
-        private Action<CharacterObj> _onChangeCharacter;
 
-        private void Awake()
-        {
-            _changeCharBtn.onClick.AddListener(OnChangeCharClicked);
-        }
-
-        /// <param name="onChangeCharacter">点击换人按钮的回调 (参数为当前角色)；为 null 时隐藏换人按钮 (联机)</param>
-        public void Bind(CharacterObj character, Action<CharacterObj> onChangeCharacter = null)
+        public void Bind(CharacterObj character)
         {
             _character = character;
-            _onChangeCharacter = onChangeCharacter;
             if (character == null)
             {
                 gameObject.SetActive(false);
                 return;
             }
             gameObject.SetActive(true);
-            _changeCharBtn.gameObject.SetActive(onChangeCharacter != null);
 
             CharacterManifest manifest = CharacterRegistry.Find(character.CharacterId);
             if (manifest != null)
@@ -50,6 +40,7 @@ namespace View.UI
             _hpBar.SetImmediate(HpRatio(character));
             SkillController skills = character.Skills;
             if (skills != null) _chakra.Set(skills.ChakraMax, skills.Chakra);
+            SetDead(character.IsDead);
         }
 
         public void Refresh()
@@ -58,11 +49,13 @@ namespace View.UI
             _hpBar.SetRatio(HpRatio(_character));
             SkillController skills = _character.Skills;
             if (skills != null) _chakra.Set(skills.ChakraMax, skills.Chakra);
+            SetDead(_character.IsDead);
         }
 
-        private void OnChangeCharClicked()
+        private void SetDead(bool dead)
         {
-            if (_character != null) _onChangeCharacter?.Invoke(_character);
+            GameObject x = _x.gameObject;
+            if (x.activeSelf != dead) x.SetActive(dead);
         }
 
         private static float HpRatio(CharacterObj character)

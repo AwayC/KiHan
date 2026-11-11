@@ -207,6 +207,14 @@ namespace KiHan.Logic
         }
 
         /// <summary>
+        /// 设置查克拉 (按 0 ~ ChakraMax 截断)：3v3 换人时下一个角色继承上一个角色剩余的查克拉
+        /// </summary>
+        public void SetChakra(int chakra)
+        {
+            Chakra = System.Math.Max(0, System.Math.Min(chakra, ChakraMax));
+        }
+
+        /// <summary>
         /// 逻辑帧推进：接段时限 (释放期间同样倒数) 到期恢复按键并开始 CD；CD 倒计时，CD 结束刷新查克拉可获得状态
         /// </summary>
         public void Tick()

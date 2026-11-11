@@ -112,3 +112,11 @@ Tests/LogicTests/**/bin/
 Tests/LogicTests/**/obj/
 # 原版逆向资料 (映射表、密钥、解包/解密产物)：仅本地使用，禁止提交
 /Reverse/
+# AB 首包 (KiHan/资源/写入首包 生成)
+/Assets/StreamingAssets/bundles/
+/Assets/StreamingAssets/bundles.meta
+# xLua 生成代码 (XLua/Generate Code)
+/Assets/XLua/Gen/
+/Assets/XLua/Gen.meta
+# 上面的 build/ 会误伤编辑器脚本目录 (AB 构建器)
+!/Assets/Editor/Build/

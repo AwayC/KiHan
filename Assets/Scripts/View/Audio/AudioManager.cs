@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using KiHan.Asset;
 using KiHan.Config;
 using KiHan.Logic;
 using KiHan.View.Render;
@@ -9,7 +10,7 @@ namespace KiHan.View.Audio
 {
     /// <summary>
     /// 表现层音频管理：固定数量的 2D AudioSource 轮流播放 SoundCue，另有一条给 Timeline AudioTrack 绑定的 CinematicSource
-    /// - 音效 key 优先在角色包内解析 (SoundCue / AudioClip)，其次全局 Resources；加载阶段 Preload，局内只做字典查找
+    /// - 音效 key 优先在角色包内解析 (SoundCue / AudioClip)，其次全局资源 (AssetManager)；加载阶段 Preload，局内只做字典查找
     /// - 播放返回句柄 (> 0)，可提前 Stop；Sound 事件要求 stopOnActionEnd 时随触发者动作结束停止
     /// - 只读逻辑数据，不影响确定性
     /// </summary>
@@ -87,12 +88,12 @@ namespace KiHan.View.Audio
         {
             if (_conventionsLoaded) return;
             _conventionsLoaded = true;
-            Conventions = Resources.Load<SoundConventions>(SoundConventions.ResourcePath);
-            if (Conventions == null) Debug.LogWarning("[Audio] 缺少 Resources/" + SoundConventions.ResourcePath + "，约定音效静音");
+            Conventions = AssetManager.Instance.Load<SoundConventions>(SoundConventions.ResourcePath);
+            if (Conventions == null) Debug.LogWarning("[Audio] 缺少 " + SoundConventions.ResourcePath + "，约定音效静音");
         }
 
         /// <summary>
-        /// 加载阶段解析音效 key：包内 SoundCue -> 包内 AudioClip -> Resources SoundCue -> Resources AudioClip
+        /// 加载阶段解析音效 key：包内 SoundCue -> 包内 AudioClip -> 全局 SoundCue -> 全局 AudioClip
         /// </summary>
         public void Preload(CharacterManifest manifest, string key, bool optional = false)
         {
@@ -123,10 +124,10 @@ namespace KiHan.View.Audio
 
             if (_globalCues.ContainsKey(key)) return;
 
-            SoundCue global = Resources.Load<SoundCue>(key);
+            SoundCue global = AssetManager.Instance.TryLoad<SoundCue>(key);
             if (global == null)
             {
-                AudioClip clip = Resources.Load<AudioClip>(key);
+                AudioClip clip = AssetManager.Instance.TryLoad<AudioClip>(key);
                 if (clip != null) global = Wrap(clip);
             }
             if (global != null)

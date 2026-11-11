@@ -50,6 +50,7 @@ public class SceneManager : UnitySingleton<SceneManager>
     {
         _localSlot = localSlot;
         EffectManager.Instance.Preload(HitSparkEffect, HitSparkPrewarm);
+        EffectManager.Instance.Preload(CharacterObj.SubstitutionSmokeEffect, ActionEffectPrewarm);
         _damageTexts?.Dispose();
         _damageTexts = new DamageTextPool(DamageTextCapacity);
         AudioManager.Instance.LoadConventions();

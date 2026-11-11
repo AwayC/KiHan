@@ -26,7 +26,7 @@ namespace KiHan.Editor
         public const string ConfigFolder = "Config";
         public const string UIFolder = "UI";
 
-        private const string RegistryPath = "Assets/AssetPackages/Resources/Config/CharacterRegistry.asset";
+        private const string RegistryPath = "Assets/AssetPackages/Res/Config/CharacterRegistry.asset";
 
         /// <summary>
         /// 工程内全部角色包清单 (按路径排序)

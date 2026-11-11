@@ -19,7 +19,7 @@
   - [步骤 4：在战斗加载阶段进行开局预热 (Prewarm)](#步骤-4在战斗加载阶段进行开局预热-prewarm)
 - [五、 新增技能生成物规范 (SimpleEntity vs Actor)](#五-新增技能生成物规范-simpleentity-vs-actor)
 - [六、 战斗场景地图（2D / 3D）制作与接入全流程规范](#六-战斗场景地图2d--3d制作与接入全流程规范)
-- [七、 为什么以后切 Addressables 零成本？](#七-为什么以后切-addressables-零成本)
+- [七、 资源打包 (AB) 与热更新](#七-资源打包-ab-与热更新)
 
 ---
 
@@ -50,10 +50,10 @@
 
 ## 二、 资源目录存放规范
 
-推荐将所有美术资产、Prefab 与配置收敛管理（目前位于 `Assets/AssetPackages/Resources/`，未来可一键升级 Addressables）：
+推荐将所有美术资产、Prefab 与配置收敛管理（位于 `Assets/AssetPackages/Res/`，全部打进 AssetBundle，见第七节）：
 
 ```text
-Assets/AssetPackages/Resources/
+Assets/AssetPackages/Res/
 ├── Characters/                      # 角色专属资产包
 │   └── 90001_Naruto/                # 按 CharacterId 隔离
 │       ├── Config/
@@ -85,14 +85,14 @@ Assets/AssetPackages/Resources/
 │   └── scen.prefab                  # 2D 背景板预制体 或 3D 场景预制体 (Stage / Far 子节点)
 │
 └── UI/                              # UI (框架与规则见 DOCS/UI_FRAMEWORK.md)
-    ├── Panels/<模块>/<类名>.prefab   # 面板 / 弹窗 (根节点挂同名 UIPanel 脚本，不带 Canvas)
+    ├── Panels/<模块>/<名字>.prefab   # 面板 / 弹窗 (根节点挂 LuaPanel，逻辑在 Assets/Lua/ui/，不带 Canvas)
     │   ├── Common/                  # ToastPanel / ConfirmPopup / LoadingPanel
     │   ├── Login/  Lobby/  BattleHud/
     ├── Number/                      # 图片数字 DigitFont (伤害跳字为世界空间 SpriteRenderer)
     ├── Widgets/                     # 被面板嵌套引用的通用预制体 (Slider、Loading)
     └── Shadow/                      # 角色脚下阴影
 
-Assets/AssetPackages/Maps/<id>/      # 地图清单与美术资源 (不在 Resources 下，随预制体 / 注册表引用打包)
+Assets/AssetPackages/Maps/<id>/      # 地图清单与美术资源 (不在 Res 下，随预制体 / 注册表引用打进 map_<id> 包)
 ├── <id>.asset                       # MapConfig：id、displayName、scene、shot、is3D、camera3D (3D 相机参数)
 ├── shot.png                         # 选图截图 (320×443 Sprite)
 └── Meshes/ Materials/ Textures/     # 3D 地图的网格、材质与贴图资产
@@ -106,26 +106,23 @@ Assets/AssetPackages/Maps/<id>/      # 地图清单与美术资源 (不在 Resou
 ## 三、 核心 API 使用规范 (代码实操)
 
 ### 1. 资产加载与释放 (`AssetManager`)
-用于加载不频繁实例化的资源（如动作 JSON、图集、数据配置、音频）：
+用于加载不频繁实例化的资源（如动作 JSON、图集、数据配置、音频）。地址 = 相对 `Assets/AssetPackages/Res/` 的路径、不含扩展名；Lua 脚本 = `Lua/` + 相对 `Assets/Lua/` 的路径 (规则见 `KiHan.Asset.AssetAddress`)：
 
 ```csharp
 using KiHan.Asset;
 
-// 1. 同步加载 TextAsset / ScriptableObject (通常在初始化时)
+// 1. 同步加载 (找不到打警告)
 TextAsset actionsJson = AssetManager.Instance.Load<TextAsset>("Characters/90001_Naruto/Config/naruto_actions");
 
-// 2. 异步加载 (推荐方式)
-AssetManager.Instance.LoadAsync<AudioClip>("Sounds/Hits/hit_punch", (clip) =>
-{
-    if (clip != null) AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position);
-});
+// 2. 静默查找 (先查 A 再查 B 的回退点用，找不到返回 null 不打日志)
+AudioClip clip = AssetManager.Instance.TryLoad<AudioClip>("Sounds/Hits/hit_punch");
 
-// 3. 加载图集内所有 Sprites
+// 3. 加载某一个文件内的全部子资产 (如切片图集中的 Sprites，不是目录)
 Sprite[] allIcons = AssetManager.Instance.LoadAll<Sprite>("UI/SkillButton/90001_SkillIconAtlas");
-
-// 4. 释放不需要的资源引用
-AssetManager.Instance.Release("Characters/90001_Naruto/Config/naruto_actions");
 ```
+
+- 运行时代码**禁止 `Resources.Load`**，一律走 `AssetManager`。
+- 底层 `IAssetProvider` 只有 `LoadAsset` / `LoadAllAssets` / `Clear`；包加载后在进程内常驻不卸载。
 
 ---
 
@@ -177,7 +174,7 @@ public void OnExitBattle()
     ObjectPoolManager.Instance.ClearCategory(PoolCategory.FX);
     ObjectPoolManager.Instance.ClearCategory(PoolCategory.Entity);
     ObjectPoolManager.Instance.ClearCategory(PoolCategory.UI);
-    AssetManager.Instance.UnloadUnused(); // 卸载无用图集
+    AssetManager.Instance.Clear(); // 卸载无用资源 (Resources.UnloadUnusedAssets)
 }
 ```
 
@@ -211,7 +208,7 @@ public class DamageTextNode : MonoBehaviour, IPoolable
 ## 四、 新增一个格斗角色全流程实操示范 (以鸣人为例)
 
 ### 步骤 1：美术资源与图集制作
-1. 将美术切好的 2D 序列帧 PNG 图片放入 `Assets/AssetPackages/Resources/Characters/90001_Naruto/Sprites/`。
+1. 将美术切好的 2D 序列帧 PNG 图片放入 `Assets/AssetPackages/Res/Characters/90001_Naruto/Sprites/`。
 2. 创建 SpriteAtlas（如 `naruto_atlas.spriteatlas`），把该角色图片打包，勾选 Tight Packing，材质开启深度支持。
 
 ### 步骤 2：制作表现层 Prefab (`NarutoView.prefab`)
@@ -325,22 +322,58 @@ ObjectPoolManager.Instance.Prewarm("Effects/Hits/Spark1", 10, PoolCategory.FX);
 1. **准备资源**：
    - 在 `Assets/AssetPackages/Maps/<id>/` 下放入选图缩略图 `shot.png`（`320×443`，`TextureType = Sprite`），3D 地图的网格 / 材质 / 贴图放 `Meshes/`、`Materials/`、`Textures/`。
    - 若从外部引擎（UE / Blender glTF）导入 3D 模型，须将右手系顶点 `(x, y, z)` 转换为 Unity 左手系 `(x, y, -z)`、翻转三角面绕序 `(i0, i2, i1)`，并将贴图 UV 纵向翻转 `v_unity = 1 - v_gltf`。
-2. **制作场景预制体 (`Assets/AssetPackages/Resources/Maps/<id>/scen.prefab`)**：
+2. **制作场景预制体 (`Assets/AssetPackages/Res/Maps/<id>/scen.prefab`)**：
    - **2D 地图**：各图层挂载 `SpriteRenderer` 与 `ParallaxEffect`。
    - **3D 地图**：根节点在 `(0, 0, 0)`，分 `Stage`（`Layer 8`）与 `Far`（`Layer 9`）两组子节点；每个模型一个 GameObject (MeshFilter + MeshRenderer)，枢轴在模型包围盒中心，可直接移动、改图层、换材质并保存。场地范围参考网格可放在 `EditorOnly` 标签的隐藏子节点里（构建时剔除）。
 3. **创建地图配置 (`Assets/AssetPackages/Maps/<id>/<id>.asset`)**：
    - 右键 `Create -> KiHan -> Map Config`，填写 `id`、`displayName`、`scene`、`shot`；**3D 地图勾选 `is3D`**，并在 `camera3D` 中调节该场景的相机参数（地台：`stageDistance`、`stageHeightSlope`、`stagePitch`；远景：`farDistance`、`farHeightSlope`、`farPitch`、`farParallaxScale`、`farVerticalOffset`、`farZoomScale`、`farBackgroundColor`）。Play 模式下直接修改该资源，或在 Main Camera 的 Inspector 底部「当前地图 3D 相机参数」中修改，即时生效，退出后数值保留。
-4. **登记到注册表 (`Assets/AssetPackages/Resources/Config/MapRegistry.asset`)**：
+4. **登记到注册表 (`Assets/AssetPackages/Res/Config/MapRegistry.asset`)**：
    - 在 `MapRegistry.asset` 的 `maps` 列表中新增一项，拖入 `<id>.asset` 并勾选 `enabled`。局内通过 HUD「场景」按钮打开 `MapSelectPopup`，经 `GameFlow.ChangeMap` 在 Loading 遮罩下切换。
 
 ---
 
-## 七、 为什么以后切 Addressables 零成本？
+## 七、 资源打包 (AB) 与热更新
 
-因为业务代码中**没有任何一行直接硬编码写 `Resources.Load`**，所有调用全部经由 `AssetManager.Instance`：
-- 当前底层使用的是 `ResourcesAssetProvider`。
-- 后续如果要接入 Addressables，只需要编写一个 `AddressablesAssetProvider : IAssetProvider`，并在游戏启动时执行：
-  ```csharp
-  AssetManager.Instance.SetProvider(new AddressablesAssetProvider());
-  ```
-- **上层所有角色动作、判定盒、特效生成、UI 界面代码完全不需要改动任何一行代码！**
+业务代码只认地址，底层由 `IAssetProvider` 决定从哪里取：
+
+| 提供器 | 何时使用 | 说明 |
+| :--- | :--- | :--- |
+| `EditorAssetProvider` | 编辑器默认 | 直接经 `AssetDatabase` 读 `Res` 与 `Assets/Lua`，改完即生效，无需打包 |
+| `BundleAssetProvider` | 播放器恒用；编辑器勾选菜单 **KiHan/资源/编辑器使用 AB 包** (EditorPrefs `KiHan.Asset.UseBundles`，即 `AssetMode.UseBundles`) | 按清单从 AssetBundle 加载，持久目录 (热更下载) 优先，否则首包 |
+
+### 1. 构建 AB (`KiHan.Editor.BundleBuilder`)
+
+- 菜单：**KiHan/资源/构建 AB 包/Android**、**KiHan/资源/构建 AB 包/编辑器验证 (Win64)**。
+- 根资源 = `Assets/AssetPackages/Res` 与 `Assets/Lua` 下全部文件，加上它们的依赖；分包规则 (自上而下第一条命中)：
+
+  | 路径 (相对 `Assets/`) | 包名 |
+  | :--- | :--- |
+  | 扩展名 `.shader` / `.shadervariants` / `.cginc` / `.hlsl` | `shaders` |
+  | `Lua/` | `lua` |
+  | `AssetPackages/Res/Config/` | `config` |
+  | `AssetPackages/Res/UI/Panels/<M>/` | `ui_<m>` |
+  | `AssetPackages/Res/UI/` 其余 | `ui_common` |
+  | `AssetPackages/Res/Maps/<id>/`、`AssetPackages/Maps/<id>/` | `map_<id>` |
+  | `AssetPackages/Res/Effect/`、`AssetPackages/Effects/` | `effect_common` |
+  | `AssetPackages/Res/Render/` | `render` |
+  | `AssetPackages/Characters/<pkg>/` | `char_<pkg>` |
+  | `AssetPackages/GUI/<sub>/` | `gui_<sub>` |
+  | 其余 | `shared` |
+
+- 输出 `Build/Bundles/<target>/`：`<name>_<md5前8位>.ab` + `manifest_<resVersion>.json` + `version.json`。内容有变化时 `resVersion` 自动 +1，没有变化返回 `无变化`。该目录即热更服务器根目录。
+- **KiHan/资源/写入首包/Android**：把当前版本复制到 `Assets/StreamingAssets/bundles/` (已 gitignore)；**写入首包/编辑器验证 (Win64)**：复制到 `Build/Builtin/StandaloneWindows64/`，供编辑器 AB 模式测试。
+- Android 出包前：`XLua/Generate Code` → 构建 AB 包/Android → 写入首包/Android。
+- 不进 AB 的例外：`Assets/TextMesh Pro/Resources` (TMP 自身要求)、`Assets/StreamingAssets/LoginTen.mp4` (登录视频按 URL 播放)。
+
+### 2. 热更新 (只更 Lua 与资源，不用 xLua `[Hotfix]`)
+
+启动 `GameLanch.Boot()`：AB 模式下先跑 `HotUpdater`，再 `LuaManager.Instance.Init()`，最后添加 `GameApp`。
+
+1. 读首包清单；持久目录 (`persistentDataPath/bundles/manifest.json`) 的 `appVersion` 相同且 `resVersion` 更高时用持久清单，否则清空持久目录。
+2. `GET <HttpConfig.HotUpdateUrl>/<Platform>/version.json` (超时 5 秒)；离线或无更新直接用本地资源进游戏。`appVersion` 不一致不更新资源 (整包更新由登录 `CheckVersion` 把关)。
+3. 下载缺少的带哈希包，逐个校验 MD5 与大小 (每个最多 3 次)；失败显示重试覆盖层 (不能跳过)；全部成功后原子写入清单并删除过期 `.ab`。
+4. 进度 / 重试界面 `HotUpdateView` 是纯代码搭建的覆盖层 (此时资源包还不可用，是「面板必须是预制体」的唯一例外)。
+
+- 服务器是静态 HTTP 目录 (`HttpConfig.HotUpdateUrl = http://127.0.0.1:8088`，本地可 `python -m http.server 8088 --directory Build/Bundles`)。
+- Lua 经 `LuaManager` 的加载器按地址 `Lua/a/b/c` 从 `AssetManager` 读取，随 `lua` 包一起热更。
+- 测试：`KiHan.Tests.HotUpdateTests` (UnityTestRunner 也会执行)。

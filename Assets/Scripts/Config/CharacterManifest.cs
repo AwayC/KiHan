@@ -37,6 +37,14 @@ namespace KiHan.Config
         [Tooltip("战斗 HUD 头像")]
         public Sprite headshot;
 
+        [Tooltip("立绘 (选人、对战 Loading)；为空时用头像")]
+        public Sprite portrait;
+
+        /// <summary>
+        /// 立绘，没有时退回头像
+        /// </summary>
+        public Sprite Portrait => portrait != null ? portrait : headshot;
+
         [Header("战斗属性 (手动填写，定点数字符串)")]
         [Tooltip("暴击率 0~1 (生成物命中按主人计算)")]
         public string critRate = "0.15";

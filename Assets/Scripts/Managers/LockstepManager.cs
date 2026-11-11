@@ -58,6 +58,29 @@ public class LockstepManager : UnitySingleton<LockstepManager>
     public Action OnGameStart;
     public byte MyGameId { get; private set; }
 
+    /// <summary>进入的房间号 (EnterRoomRsp)</summary>
+    public int RoomId { get; private set; }
+
+    /// <summary>联机进房成功 (EnterRoomRsp)：之后由选人界面提交阵容并准备 (SubmitLineup)</summary>
+    public Action OnRoomEntered;
+
+    /// <summary>收到双方阵容 (LineupNtf，2011)</summary>
+    public Action OnLineupReceived;
+
+    /// <summary>收到表情 (EmojiNtf，2009)：(game_id, 表情 id)，发送者自己也会收到</summary>
+    public Action<int, int> OnEmojiReceived;
+
+    /// <summary>双方延迟 (毫秒) 更新：(game_id, ms)。前端接口，由网络层测得延迟后调用 ReportPing 触发</summary>
+    public Action<int, int> OnPingUpdated;
+
+    /// <summary>服务器裁定结束 (GameOverNtf，2007)：参数为胜者 uid (0 平局)</summary>
+    public Action<uint> OnServerGameOver;
+
+    /// <summary>
+    /// 最近一次收到的双方阵容 (game_id → 按出战顺序的成员)；进房时清空
+    /// </summary>
+    public readonly Dictionary<int, List<LineupMember>> Lineups = new Dictionary<int, List<LineupMember>>();
+
     /// <summary>
     /// 本机输入延迟 (逻辑帧)，由 Init 指定
     /// </summary>
@@ -262,6 +285,42 @@ public class LockstepManager : UnitySingleton<LockstepManager>
         _serverFrames.Add(frame.FrameId, frame);
     }
 
+    /// <summary>
+    /// 联机提交出战阵容并准备 (2010 + 2002)；服务器收齐双方阵容后广播 2011，全员准备后下发 2003 开局
+    /// </summary>
+    public void SubmitLineup(List<LineupMember> members)
+    {
+        if (_netChannel == null) return;
+        _netChannel.SendMsg(2010, new LineupReq { room_id = RoomId, members = members }.Serialize());
+        _netChannel.SendMsg(2002, new PlayerReadyReq { room_id = RoomId }.Serialize());
+    }
+
+    /// <summary>
+    /// 发送表情 (2008)；联机才有意义，单机虚拟网络忽略
+    /// </summary>
+    public void SendEmoji(int emojiId)
+    {
+        if (_netChannel == null || !_netChannel.IsConnected) return;
+        _netChannel.SendMsg(2008, new EmojiReq { room_id = RoomId, emoji_id = emojiId }.Serialize());
+    }
+
+    /// <summary>
+    /// 上报对局结果 (2006)：winnerGameId 为获胜方 game_id，0 平局
+    /// </summary>
+    public void ReportGameOver(int winnerGameId, int p1Hp, int p2Hp)
+    {
+        if (_netChannel == null || !_netChannel.IsConnected) return;
+        _netChannel.SendMsg(2006, new GameOverReq { room_id = RoomId, winner_game_id = winnerGameId, p1_hp = p1Hp, p2_hp = p2Hp }.Serialize());
+    }
+
+    /// <summary>
+    /// 延迟测量结果 (前端接口：网络层测得某个 game_id 的延迟后调用，界面通过 OnPingUpdated 显示)
+    /// </summary>
+    public void ReportPing(int gameId, int milliseconds)
+    {
+        OnPingUpdated?.Invoke(gameId, milliseconds);
+    }
+
     private void HandleNetworkMessage(ushort cmdId, byte[] payload)
     {
         if (cmdId == 2005) // RoomFrameUpdate
@@ -280,27 +339,34 @@ public class LockstepManager : UnitySingleton<LockstepManager>
             if (rsp.err_code == 0)
             {
                 MyGameId = (byte)rsp.my_game_id;
-
-                // TODO: 可以在这里提取 snapshot.player_list_json，初始化玩家实体
+                RoomId = rsp.snapshot != null ? rsp.snapshot.room_id : 1;
+                Lineups.Clear();
                 Debug.Log($"[Lockstep] EnterRoomRsp: MyGameId={MyGameId}, Snapshot={rsp.snapshot?.player_list_json}");
-
-                // 进房成功后，发送 2002 PlayerReadyReq
-                var readyReq = new PlayerReadyReq { room_id = rsp.snapshot != null ? rsp.snapshot.room_id : 1 };
-                _netChannel?.SendMsg(2002, readyReq.Serialize());
+                // 准备 (2002) 在选人确认后随阵容一起发送 (SubmitLineup)；单机虚拟网络不需要准备
+                OnRoomEntered?.Invoke();
             }
         }
         else if (cmdId == 2002) // PlayerReadyRsp
         {
             Debug.Log($"[Lockstep] PlayerReadyRsp");
         }
+        else if (cmdId == 2009) // EmojiNtf
+        {
+            var ntf = EmojiNtf.Deserialize(payload);
+            OnEmojiReceived?.Invoke(ntf.game_id, ntf.emoji_id);
+        }
+        else if (cmdId == 2011) // LineupNtf
+        {
+            var ntf = LineupNtf.Deserialize(payload);
+            Lineups.Clear();
+            foreach (PlayerLineup lineup in ntf.lineups) Lineups[lineup.game_id] = lineup.members;
+            OnLineupReceived?.Invoke();
+        }
         else if (cmdId == 2007) // GameOverNtf
         {
             var ntf = GameOverNtf.Deserialize(payload);
             Debug.Log($"[Lockstep] GameOverNtf received, winner is {ntf.winner_uid}");
-            StopGame();
-
-            // 自动回到大厅
-            GameFlow.Instance.ExitBattle();
+            OnServerGameOver?.Invoke(ntf.winner_uid);
         }
     }
 }

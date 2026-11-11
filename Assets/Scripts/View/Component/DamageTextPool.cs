@@ -96,7 +96,7 @@ namespace View.Component
         private static DigitFont LoadFont(string path)
         {
             DigitFont font = AssetManager.Instance.Load<DigitFont>(path);
-            if (font == null) Debug.LogError($"[DamageTextPool] 未能加载数字字体: Resources/{path}");
+            if (font == null) Debug.LogError($"[DamageTextPool] 未能加载数字字体: {path}");
             return font;
         }
     }

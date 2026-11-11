@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using KiHan.Asset;
 using KiHan.UI;
 using UnityEditor;
 using UnityEngine;
@@ -12,14 +13,15 @@ namespace KiHan.Editor
 {
     /// <summary>
     /// UI 自动绑定 (@ 前缀)：
-    /// - 扫描 UI 预制体目录下每个 UIPanel / UIView 组件作用域内名字以 @ 开头的节点 (不深入带 UIPanel / UIView 的子节点)
-    /// - 每个类生成 &lt;类名&gt;.Bind.cs (partial 类的 [SerializeField] 字段)，编译后把节点赋给对应字段
-    /// 命名：@StartBtn → _startBtn；@Name:Type 指定类型 (GameObject 或组件类名)；@Item_0 / @Item_1 合并为数组 _item
+    /// - 扫描 UI 预制体目录下每个 LuaPanel / UIView 组件作用域内名字以 @ 开头的节点 (不深入带 LuaPanel / UIView 的子节点)
+    /// - C# 类：生成 &lt;类名&gt;.Bind.cs (partial 类的 [SerializeField] 字段)，编译后把节点赋给对应字段
+    /// - LuaPanel：不生成代码，节点写进组件的引用表 (_bindings)，Lua 实例上以 self.名字 访问
+    /// 命名：@StartBtn → _startBtn (Lua: startBtn)；@Name:Type 指定类型 (GameObject 或组件类名)；@Item_0 / @Item_1 合并为数组 _item
     /// 规则详见 DOCS/UI_FRAMEWORK.md 第 5 节
     /// </summary>
     public static class UIBindGenerator
     {
-        public const string PrefabRoot = "Assets/AssetPackages/Resources/UI";
+        public const string PrefabRoot = "Assets/AssetPackages/Res/UI";
         private const string PendingKey = "KiHan.UIBind.PendingAssign";
 
         /// <summary>
@@ -172,7 +174,7 @@ namespace KiHan.Editor
         private static IEnumerable<string> UIPrefabs() =>
             AssetDatabase.FindAssets("t:Prefab", new[] { PrefabRoot }).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p => p, StringComparer.Ordinal);
 
-        private static bool IsOwner(Component c) => c is UIPanel || c is UIView;
+        private static bool IsOwner(Component c) => c is LuaPanel || c is UIView;
 
         /// <summary>
         /// 组件是否属于嵌套预制体实例 (由其源预制体负责绑定)
@@ -192,7 +194,7 @@ namespace KiHan.Editor
                 if (prefab == null) continue;
                 foreach (Component owner in prefab.GetComponentsInChildren<Component>(true))
                 {
-                    if (owner == null || !IsOwner(owner) || IsNested(owner, prefab)) continue;
+                    if (owner == null || !IsOwner(owner) || owner is LuaPanel || IsNested(owner, prefab)) continue;
                     List<Node> nodes = Scan(owner, problems, path);
                     if (!classes.TryGetValue(owner.GetType(), out ClassFields cls))
                     {
@@ -218,7 +220,7 @@ namespace KiHan.Editor
         }
 
         /// <summary>
-        /// 扫描组件作用域内的 @ 节点 (不深入带 UIPanel / UIView 的子节点，但节点本身可绑定)
+        /// 扫描组件作用域内的 @ 节点 (不深入带 LuaPanel / UIView 的子节点，但节点本身可绑定)
         /// </summary>
         private static List<Node> Scan(Component owner, List<string> problems, string prefabPath)
         {
@@ -335,7 +337,8 @@ namespace KiHan.Editor
                     foreach (Component owner in root.GetComponentsInChildren<Component>(true))
                     {
                         if (owner == null || !IsOwner(owner) || IsNested(owner, root)) continue;
-                        dirty |= Assign(owner, Scan(owner, problems, path), problems, path);
+                        List<Node> nodes = Scan(owner, problems, path);
+                        dirty |= owner is LuaPanel lua ? AssignLua(lua, nodes, problems, path) : Assign(owner, nodes, problems, path);
                     }
                     if (dirty) PrefabUtility.SaveAsPrefabAsset(root, path);
                 }
@@ -377,27 +380,64 @@ namespace KiHan.Editor
         }
 
         /// <summary>
-        /// 校验：面板预制体位置与根节点脚本、@ 字段全部已赋值、绑定文件与预制体一致
+        /// LuaPanel 的引用表：每个字段一条 (名字去掉下划线；数组按下标排序)，按名字排序
+        /// </summary>
+        private static List<LuaPanel.Binding> LuaBindings(LuaPanel owner, List<Node> nodes, List<string> problems, string path)
+        {
+            var result = new List<LuaPanel.Binding>();
+            foreach (IGrouping<string, Node> group in nodes.Where(n => n.Error == null).GroupBy(n => n.Field).OrderBy(g => g.Key, StringComparer.Ordinal))
+            {
+                List<Node> items = group.OrderBy(n => n.Index).ToList();
+                bool isArray = items[0].Index >= 0;
+                if (isArray)
+                {
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        if (items[i].Index != i) problems.Add($"{path}: {owner.GetType().Name}.{group.Key} 数组下标不连续 (缺少 _{i})");
+                    }
+                }
+                result.Add(new LuaPanel.Binding { name = group.Key.Substring(1), isArray = isArray, targets = items.Select(n => n.Target).ToArray() });
+            }
+            return result;
+        }
+
+        private static bool SameBindings(LuaPanel.Binding[] current, List<LuaPanel.Binding> expected)
+        {
+            if (current == null || current.Length != expected.Count) return false;
+            for (int i = 0; i < current.Length; i++)
+            {
+                LuaPanel.Binding a = current[i], b = expected[i];
+                if (a == null || a.name != b.name || a.isArray != b.isArray || a.targets == null || !a.targets.SequenceEqual(b.targets)) return false;
+            }
+            return true;
+        }
+
+        private static bool AssignLua(LuaPanel owner, List<Node> nodes, List<string> problems, string path)
+        {
+            List<LuaPanel.Binding> expected = LuaBindings(owner, nodes, problems, path);
+            if (SameBindings(owner.Bindings, expected)) return false;
+
+            var so = new SerializedObject(owner);
+            SerializedProperty prop = so.FindProperty("_bindings");
+            prop.arraySize = expected.Count;
+            for (int i = 0; i < expected.Count; i++)
+            {
+                SerializedProperty element = prop.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("name").stringValue = expected[i].name;
+                element.FindPropertyRelative("isArray").boolValue = expected[i].isArray;
+                SerializedProperty targets = element.FindPropertyRelative("targets");
+                targets.arraySize = expected[i].targets.Length;
+                for (int j = 0; j < expected[i].targets.Length; j++) targets.GetArrayElementAtIndex(j).objectReferenceValue = expected[i].targets[j];
+            }
+            return so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 校验：面板的 Lua 脚本与引用表、@ 字段全部已赋值、绑定文件与预制体一致
         /// </summary>
         public static List<string> Validate()
         {
             var problems = new List<string>();
-
-            foreach (Type type in TypeCache.GetTypesDerivedFrom<UIPanel>())
-            {
-                if (type.IsAbstract) continue;
-                var meta = (UIPanelAttribute)Attribute.GetCustomAttribute(type, typeof(UIPanelAttribute));
-                if (meta == null)
-                {
-                    problems.Add($"面板 {type.Name} 缺少 UIPanelAttribute");
-                    continue;
-                }
-                string path = $"Assets/AssetPackages/Resources/{meta.Path}.prefab";
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (prefab == null) problems.Add($"面板 {type.Name} 的预制体不存在: {path}");
-                else if (prefab.GetComponent(type) == null) problems.Add($"{path} 根节点没有挂 {type.Name}");
-                else if (Path.GetFileNameWithoutExtension(path) != type.Name) problems.Add($"{path} 文件名与类名 {type.Name} 不一致");
-            }
 
             Dictionary<Type, ClassFields> classes = Collect(problems);
             foreach (ClassFields cls in classes.Values)
@@ -415,6 +455,11 @@ namespace KiHan.Editor
                 foreach (Component owner in prefab.GetComponentsInChildren<Component>(true))
                 {
                     if (owner == null || !IsOwner(owner) || IsNested(owner, prefab)) continue;
+                    if (owner is LuaPanel lua)
+                    {
+                        ValidateLua(lua, Scan(owner, problems, path), problems, path);
+                        continue;
+                    }
                     var so = new SerializedObject(owner);
                     foreach (Node n in Scan(owner, problems, path))
                     {
@@ -429,6 +474,20 @@ namespace KiHan.Editor
                 }
             }
             return problems;
+        }
+
+        private static void ValidateLua(LuaPanel owner, List<Node> nodes, List<string> problems, string path)
+        {
+            if (string.IsNullOrEmpty(owner.Script))
+            {
+                problems.Add($"{path}: LuaPanel 未填写 Lua 模块名");
+            }
+            else
+            {
+                string luaPath = $"{AssetAddress.LuaRoot}{owner.Script.Replace('.', '/')}.lua";
+                if (!File.Exists(luaPath)) problems.Add($"{path}: LuaPanel 的脚本不存在: {luaPath}");
+            }
+            if (!SameBindings(owner.Bindings, LuaBindings(owner, nodes, problems, path))) problems.Add($"{path}: LuaPanel 引用表与 @ 节点不一致，执行 KiHan/UI/生成全部绑定");
         }
 
         #endregion

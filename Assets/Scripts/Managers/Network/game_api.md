@@ -63,7 +63,7 @@ message RoomFrame {
 
 ### CmdID: 2002 - 玩家加载准备完毕
 *   **请求: PlayerReadyReq**
-    *   **描述**: 客户端资源加载完毕，发送 Ready。当房间内所有玩家均 Ready 时，服务器将广播游戏开始。
+    *   **描述**: 客户端在选人界面确认阵容后发送 (紧跟 2010 之后)。当房间内所有玩家均 Ready 时，服务器将广播游戏开始。
     *   **Payload**: `message PlayerReadyReq { int32 room_id = 1; }`
 *   **响应: PlayerReadyRsp**
     *   **描述**: 准备状态确认。
@@ -94,15 +94,49 @@ message RoomFrame {
 ### CmdID: 2006 - 客户端上报游戏结束
 *   **请求: GameOverReq**
     *   **描述**: 客户端本地逻辑判定游戏结束（如某方血量归零），向服务器上报结果。
-    *   **Payload**: `message GameOverReq { int32 room_id = 1; uint32 winner_uid = 2; int32 p1_hp = 3; int32 p2_hp = 4; }`
+    *   **Payload**: `message GameOverReq { int32 room_id = 1; uint32 winner_uid = 2; int32 p1_hp = 3; int32 p2_hp = 4; int32 winner_game_id = 5; }`
+    *   **说明 (新增 `winner_game_id`)**: 3v3 车轮战整场结束时上报，获胜方 `game_id` (1 / 2)，0 为平局；客户端不知道对方 uid，`winner_uid` 不再填写，由服务器按 game_id 映射。`p1_hp` / `p2_hp` 为最后一回合双方剩余血量。
 *   **响应: GameOverRsp**
     *   **描述**: 服务端确认收到结算请求。
     *   **Payload**: `message GameOverRsp { int32 err_code = 1; }`
 
 ### CmdID: 2007 - 服务器裁定游戏结束通知 (Server 推送)
 *   **通知: GameOverNtf**
-    *   **描述**: 服务器收到结算请求，或某方异常掉线断开，强制结束游戏并广播结果。客户端收到此通知后应展示结算界面。
+    *   **描述**: 服务器收到结算请求，或某方异常掉线断开，强制结束游戏并广播结果。客户端已显示整场结算时忽略；对局未结束 (如对方掉线) 时提示并回到大厅。
     *   **Payload**: `message GameOverNtf { int32 room_id = 1; uint32 winner_uid = 2; }`
+
+### CmdID: 2008 - 发送表情 (新增，服务器待实现)
+*   **请求: EmojiReq**
+    *   **描述**: 战斗中发送表情。服务器不做逻辑处理，直接以 2009 广播给房间内所有玩家 (含发送者)。
+    *   **Payload**: `message EmojiReq { int32 room_id = 1; int32 emoji_id = 2; }` (`emoji_id` 为表情面板中的序号，从 0 开始)
+*   **响应**: 无。
+
+### CmdID: 2009 - 表情广播 (Server 推送，新增)
+*   **通知: EmojiNtf**
+    *   **Payload**: `message EmojiNtf { int32 game_id = 1; int32 emoji_id = 2; }` (`game_id` 为发送者)
+    *   **说明**: 表情不进入帧同步，不影响逻辑；客户端可屏蔽对方表情。
+
+### CmdID: 2010 - 提交出战阵容 (新增，服务器待实现)
+*   **请求: LineupReq**
+    *   **描述**: 进房 (2001) 后客户端打开选人界面，确认后发送阵容 (按出战顺序 3 名忍者及各自佩戴的秘卷)，随后发送 2002。
+    *   **Payload**:
+        ```protobuf
+        message LineupMember { int32 character_id = 1; string secret = 2; } // secret 为空表示不佩戴
+        message LineupReq { int32 room_id = 1; repeated LineupMember members = 2; }
+        ```
+*   **响应**: 无 (双方都提交后服务器广播 2011)。
+
+### CmdID: 2011 - 双方阵容广播 (Server 推送，新增)
+*   **通知: LineupNtf**
+    *   **描述**: 房间内所有玩家都提交阵容后广播，**必须早于 2003 GameStartNtf**；客户端收到后进入阵容 Loading，开局时按阵容生成角色 (双端一致)。
+    *   **Payload**:
+        ```protobuf
+        message PlayerLineup { int32 game_id = 1; repeated LineupMember members = 2; }
+        message LineupNtf { repeated PlayerLineup lineups = 1; }
+        ```
+
+### 延迟显示 (前端接口)
+*   战斗界面显示双方延迟 (ms)。客户端预留 `LockstepManager.ReportPing(game_id, ms)` → `OnPingUpdated`，后端提供测量方式 (如 ping/pong 协议或在 2005 中附带) 后接入；未接入时界面显示 `--`。
 
 ---
 
@@ -114,3 +148,5 @@ message RoomFrame {
     *   **Tick**: 服务器以固定间隔 (1/30 秒，约 33.3ms) 执行 Tick。
     *   **收集**: 每帧收集玩家上报的 `PlayerFrameInput`。若玩家某帧无输入，则默认为空操作或复制上一帧输入。
     *   **广播**: Tick 触发时，封装 `RoomFrame` 并广播给房间内所有有效玩家。客户端需要根据收到的 `RoomFrameUpdate` 推进游戏逻辑。
+3.  **3v3 车轮战**:
+    回合、换人、胜负全部由客户端逻辑帧 (`BattleMatch`) 确定性推进，服务器只转发帧与阵容；整场结束后双端各自上报 2006。

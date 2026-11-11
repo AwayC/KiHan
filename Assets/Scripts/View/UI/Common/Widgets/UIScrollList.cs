@@ -9,7 +9,7 @@ namespace KiHan.UI
     /// 通用滑动列表 (横向 / 纵向，可选网格)：拖动跟手，松手按惯性减速，越界时橡皮筋阻尼、松手弹性回弹；可选停靠 (松手停在最近一行并居中，轻甩翻一行)
     /// - 只创建可见范围内的项并循环复用，项数量不限；项由模板 (_template：_content 下隐藏的子节点，大小即项大小) 复制
     /// - 网格：_perLine > 1 时每行 (纵向) / 每列 (横向) 排 _perLine 项，按行滚动；项在行内居中排列，末行不满时从行首排起
-    /// - 用法：SetCount(数量, (项部件, 下标) =&gt; 绑定)；某项进入可见范围或调用 RefreshItems 时回调绑定；ScrollTo 定位
+    /// - 用法：SetCount(数量, (项部件, 下标) =&gt; 绑定)，项部件 = 模板根节点上的 UIView (按实际类型传给回调)；某项进入可见范围或调用 RefreshItems 时回调绑定；ScrollTo 定位
     /// - 节点约定：本节点即视口 (挂 RectMask2D 裁剪、透明 Image 接收空白处的拖动)，_content 铺满视口，项锚定在视口中心
     /// - 按 unscaledDeltaTime 推进 (暂停时也能滑动)，静止时不刷新布局；拖动超过阈值后不触发项内按钮的点击
     /// </summary>
@@ -38,7 +38,7 @@ namespace KiHan.UI
         [Tooltip("项的父节点 (铺满视口)")]
         [SerializeField] private RectTransform _content;
 
-        [Tooltip("项模板：_content 下隐藏的子节点，需挂项部件 (SetCount 的 TView)，大小即项大小")]
+        [Tooltip("项模板：_content 下隐藏的子节点，根节点需挂项部件 (UIView 子类)，大小即项大小")]
         [SerializeField] private RectTransform _template;
 
         [Tooltip("项间距 (参考分辨率像素)")]
@@ -52,6 +52,9 @@ namespace KiHan.UI
 
         [Tooltip("网格行内相邻项的间距 (参考分辨率像素)")]
         [SerializeField] private float _crossSpacing = 40f;
+
+        [Tooltip("内容不足一屏时贴首端 (纵向贴上、横向贴左)；关闭时整体居中")]
+        [SerializeField] private bool _alignStart;
 
         [Header("手感")]
         [Tooltip("停靠：松手后停在最近一项并居中，轻甩翻一项")]
@@ -72,7 +75,7 @@ namespace KiHan.UI
         private sealed class Item
         {
             public RectTransform Rect;
-            public Component View;
+            public UIView View;
             public int Index;
         }
 
@@ -90,7 +93,7 @@ namespace KiHan.UI
 
         private readonly List<Item> _active = new List<Item>();
         private readonly Stack<Item> _pool = new Stack<Item>();
-        private Action<Component, int> _bind;
+        private Action<UIView, int> _bind;
         private Type _viewType;
         private RectTransform _viewport;
         private Vector3 _itemScale = Vector3.one;
@@ -142,22 +145,29 @@ namespace KiHan.UI
         /// <summary>
         /// 设置项数量与绑定回调：回收全部项后按当前位置重新布局并绑定可见项 (位置收回到有效范围内)
         /// </summary>
-        public void SetCount<TView>(int count, Action<TView, int> bind) where TView : Component
+        public void SetCount(int count, Action<UIView, int> bind)
         {
             if (_template == null || _content == null)
             {
                 Debug.LogError($"[UIScrollList] {name} 未配置 _template 或 _content");
                 return;
             }
+            var proto = _template.GetComponent<UIView>();
+            if (proto == null)
+            {
+                Debug.LogError($"[UIScrollList] {name} 的模板根节点没有 UIView 部件");
+                return;
+            }
             EnsureInit();
 
-            if (_viewType != typeof(TView))
+            Type viewType = proto.GetType();
+            if (_viewType != viewType)
             {
                 // 项部件类型变化：旧实例上的部件不可复用
                 ClearInstances();
-                _viewType = typeof(TView);
+                _viewType = viewType;
             }
-            _bind = (view, index) => bind((TView)view, index);
+            _bind = bind;
 
             RecycleAll();
             _count = Mathf.Max(0, count);
@@ -387,7 +397,7 @@ namespace KiHan.UI
         private float CenteredPos(int line) => LineCenter(line) - ViewLength * 0.5f;
 
         /// <summary>
-        /// 滚动范围：停靠模式为首项居中到末项居中；否则为内容首尾贴边，内容不足一屏时整体居中且不可滚动
+        /// 滚动范围：停靠模式为首项居中到末项居中；否则为内容首尾贴边，内容不足一屏时整体居中 (_alignStart 时贴首端) 且不可滚动
         /// </summary>
         private void Bounds(out float min, out float max)
         {
@@ -409,7 +419,7 @@ namespace KiHan.UI
             float content = 2f * _padding + lines * ItemLength + (lines - 1) * _spacing;
             if (content <= view)
             {
-                min = max = (content - view) * 0.5f;
+                min = max = _alignStart ? 0f : (content - view) * 0.5f;
                 return;
             }
             min = 0f;
@@ -501,8 +511,7 @@ namespace KiHan.UI
             {
                 RectTransform rect = Instantiate(_template, _content);
                 rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
-                Component view = rect.GetComponent(_viewType);
-                if (view == null) Debug.LogError($"[UIScrollList] {name} 的模板上没有 {_viewType.Name}");
+                var view = (UIView)rect.GetComponent(_viewType);
                 item = new Item { Rect = rect, View = view };
             }
             item.Rect.localScale = _itemScale;

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
 using KiHan.Asset;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,8 +7,8 @@ using UnityEngine.UI;
 namespace KiHan.UI
 {
     /// <summary>
-    /// UI 管理器：分层根节点 (UIRoot)、面板加载 / 缓存、Normal 层返回栈、Popup 层模态遮罩、Toast / 确认框快捷入口
-    /// - 面板类必须带 UIPanelAttribute (地址与层级)，预制体根节点挂该面板脚本 (缺失时报错，不在运行时补挂)
+    /// UI 管理器：分层根节点 (UIRoot)、面板加载 / 缓存、Normal 层返回栈、Popup 层模态遮罩
+    /// - 面板按预制体地址打开 (C# 用 UIPanels 常量，Lua 用 UI.Open)；预制体根节点挂 LuaPanel，层级与缓存在组件上
     /// - Normal 层是栈：打开新界面时隐藏下面的界面，关闭栈顶时恢复下一个
     /// - Popup 层：最上层弹窗下方放一张半透明遮罩挡住点击
     /// </summary>
@@ -26,11 +24,10 @@ namespace KiHan.UI
         private static readonly Color MaskColor = new Color(0f, 0f, 0f, 0.6f);
 
         private readonly RectTransform[] _layers = new RectTransform[LayerCount];
-        private readonly Dictionary<Type, UIPanel> _panels = new Dictionary<Type, UIPanel>();
-        private readonly Dictionary<Type, UIPanelAttribute> _meta = new Dictionary<Type, UIPanelAttribute>();
-        private readonly List<UIPanel> _normalStack = new List<UIPanel>();
-        private readonly List<UIPanel> _popups = new List<UIPanel>();
-        private readonly List<UIPanel> _scratch = new List<UIPanel>();
+        private readonly Dictionary<string, LuaPanel> _panels = new Dictionary<string, LuaPanel>();
+        private readonly List<LuaPanel> _normalStack = new List<LuaPanel>();
+        private readonly List<LuaPanel> _popups = new List<LuaPanel>();
+        private readonly List<LuaPanel> _scratch = new List<LuaPanel>();
         private RectTransform _popupMask;
         private bool _built;
 
@@ -47,16 +44,45 @@ namespace KiHan.UI
 
         #region 打开 / 关闭
 
-        public T Open<T>() where T : UIPanel => (T)Open(typeof(T), null);
-
-        public T Open<T, TData>(TData data) where T : UIPanel<TData> => (T)Open(typeof(T), data);
-
-        public void Close<T>() where T : UIPanel
+        /// <summary>
+        /// 按预制体地址打开面板 (未创建时加载并实例化)
+        /// </summary>
+        public LuaPanel Open(string address, object data = null)
         {
-            if (_panels.TryGetValue(typeof(T), out UIPanel panel)) Close(panel);
+            if (string.IsNullOrEmpty(address)) return null;
+
+            if (!_panels.TryGetValue(address, out LuaPanel panel) || panel == null)
+            {
+                panel = Create(address);
+                if (panel == null) return null;
+                _panels[address] = panel;
+            }
+
+            panel.transform.SetAsLastSibling();
+
+            if (panel.Layer == UILayer.Normal)
+            {
+                _normalStack.Remove(panel);
+                if (_normalStack.Count > 0) _normalStack[_normalStack.Count - 1].gameObject.SetActive(false);
+                _normalStack.Add(panel);
+            }
+            else if (panel.Layer == UILayer.Popup)
+            {
+                _popups.Remove(panel);
+                _popups.Add(panel);
+            }
+
+            panel.Open(data);
+            RefreshPopupMask();
+            return panel;
         }
 
-        public void Close(UIPanel panel)
+        public void Close(string address)
+        {
+            if (address != null && _panels.TryGetValue(address, out LuaPanel panel)) Close(panel);
+        }
+
+        public void Close(LuaPanel panel)
         {
             if (panel == null || !panel.IsOpen) return;
 
@@ -64,18 +90,16 @@ namespace KiHan.UI
             _normalStack.Remove(panel);
             _popups.Remove(panel);
 
-            Type type = panel.GetType();
-            bool cache = Meta(type).Cache;
             panel.Close(() =>
             {
                 if (panel == null || panel.IsOpen) return; // 隐藏动画期间被重新打开
-                if (cache)
+                if (panel.Cache)
                 {
                     panel.gameObject.SetActive(false);
                 }
                 else
                 {
-                    _panels.Remove(type);
+                    _panels.Remove(panel.Address);
                     panel.Release();
                     Destroy(panel.gameObject);
                 }
@@ -110,39 +134,40 @@ namespace KiHan.UI
         public void CloseLayer(UILayer layer)
         {
             _scratch.Clear();
-            foreach (UIPanel panel in _panels.Values)
+            foreach (LuaPanel panel in _panels.Values)
             {
                 if (panel != null && panel.IsOpen && panel.Layer == layer) _scratch.Add(panel);
             }
-            foreach (UIPanel panel in _scratch) Close(panel);
+            foreach (LuaPanel panel in _scratch) Close(panel);
             _scratch.Clear();
         }
 
-        public T Get<T>() where T : UIPanel => _panels.TryGetValue(typeof(T), out UIPanel panel) ? (T)panel : null;
-
-        public bool IsOpen<T>() where T : UIPanel => _panels.TryGetValue(typeof(T), out UIPanel panel) && panel != null && panel.IsOpen;
-
         /// <summary>
-        /// 飘字提示 (排队依次显示)
+        /// 已创建的面板 (未创建或已销毁时为 null)
         /// </summary>
-        public void Toast(string message)
+        public LuaPanel Get(string address) => address != null && _panels.TryGetValue(address, out LuaPanel panel) && panel != null ? panel : null;
+
+        public bool IsOpen(string address)
         {
-            ToastPanel toast = IsOpen<ToastPanel>() ? Get<ToastPanel>() : Open<ToastPanel>();
-            toast?.Enqueue(message);
+            LuaPanel panel = Get(address);
+            return panel != null && panel.IsOpen;
         }
 
         /// <summary>
-        /// 通用确认弹窗
+        /// 飘字提示 (排队依次显示；与 Lua UI.Toast 相同)
         /// </summary>
-        public void Confirm(string text, Action onConfirm, Action onCancel = null) =>
-            Open<ConfirmPopup, ConfirmPopup.Args>(new ConfirmPopup.Args { Text = text, OnConfirm = onConfirm, OnCancel = onCancel });
+        public void Toast(string message)
+        {
+            LuaPanel toast = IsOpen(UIPanels.Toast) ? Get(UIPanels.Toast) : Open(UIPanels.Toast);
+            toast?.Call("Enqueue", message);
+        }
 
         /// <summary>
         /// 销毁全部面板实例 (切换场景 / 重启流程时)
         /// </summary>
         public void ReleaseAll()
         {
-            foreach (UIPanel panel in _panels.Values)
+            foreach (LuaPanel panel in _panels.Values)
             {
                 if (panel == null) continue;
                 panel.Release();
@@ -154,66 +179,27 @@ namespace KiHan.UI
             RefreshPopupMask();
         }
 
-        private UIPanel Open(Type type, object data)
+        private LuaPanel Create(string address)
         {
-            UIPanelAttribute meta = Meta(type);
-            if (meta == null) return null;
-
-            if (!_panels.TryGetValue(type, out UIPanel panel) || panel == null)
-            {
-                panel = Create(type, meta);
-                if (panel == null) return null;
-                _panels[type] = panel;
-            }
-
-            panel.transform.SetAsLastSibling();
-
-            if (meta.Layer == UILayer.Normal)
-            {
-                _normalStack.Remove(panel);
-                if (_normalStack.Count > 0) _normalStack[_normalStack.Count - 1].gameObject.SetActive(false);
-                _normalStack.Add(panel);
-            }
-            else if (meta.Layer == UILayer.Popup)
-            {
-                _popups.Remove(panel);
-                _popups.Add(panel);
-            }
-
-            panel.Open(data);
-            RefreshPopupMask();
-            return panel;
-        }
-
-        private UIPanel Create(Type type, UIPanelAttribute meta)
-        {
-            var prefab = AssetManager.Instance.Load<GameObject>(meta.Path);
+            var prefab = AssetManager.Instance.Load<GameObject>(address);
             if (prefab == null)
             {
-                Debug.LogError($"[UIManager] 找不到面板预制体 {meta.Path} ({type.Name})");
+                Debug.LogError($"[UIManager] 找不到面板预制体 {address}");
                 return null;
             }
-
-            GameObject go = Instantiate(prefab, _layers[(int)meta.Layer], false);
-            go.name = prefab.name;
-            var panel = go.GetComponent(type) as UIPanel;
-            if (panel == null)
+            var proto = prefab.GetComponent<LuaPanel>();
+            if (proto == null)
             {
-                Debug.LogError($"[UIManager] 面板预制体 {meta.Path} 根节点缺少 {type.Name}");
-                Destroy(go);
+                Debug.LogError($"[UIManager] 面板预制体 {address} 根节点缺少 LuaPanel");
                 return null;
             }
-            panel.Create(meta.Layer);
-            return panel;
-        }
 
-        private UIPanelAttribute Meta(Type type)
-        {
-            if (_meta.TryGetValue(type, out UIPanelAttribute meta)) return meta;
-            meta = type.GetCustomAttribute<UIPanelAttribute>();
-            if (meta == null) Debug.LogError($"[UIManager] 面板 {type.Name} 缺少 UIPanelAttribute");
-            _meta[type] = meta;
-            return meta;
+            GameObject go = Instantiate(prefab, _layers[(int)proto.PanelLayer], false);
+            go.name = prefab.name;
+            var panel = go.GetComponent<LuaPanel>();
+            panel.Address = address;
+            panel.Create();
+            return panel;
         }
 
         #endregion

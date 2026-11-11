@@ -50,9 +50,23 @@ public class OnlineBattleFactory : IBattleFactory
 }
 
 /// <summary>
+/// 战斗模式
+/// </summary>
+public enum BattleMode
+{
+    /// <summary>单机训练场 (1v1，不分回合，训练面板)</summary>
+    Training,
+    /// <summary>单机人机对战 (3v3 车轮战，P2 由人机控制)</summary>
+    VsAI,
+    /// <summary>联机对战 (3v3 车轮战，阵容由服务器交换)</summary>
+    Online,
+}
+
+/// <summary>
 /// 战斗生命周期与网络帧驱动中心：
 /// 开局 (GameStartNtf) 同步构建地图、逻辑世界、角色与视图，保证第一个逻辑帧到达前世界已就绪；
-/// 每个逻辑帧驱动 BattleWorld，随后由 SceneManager 推进表现层
+/// 每个逻辑帧驱动 BattleWorld 与对局 (BattleMatch)，随后由 SceneManager 推进表现层。
+/// 3v3 (人机 / 联机)：加载时预建双方阵容全部角色的模板与特效；对局在换人帧给出换人请求，由这里替换出战角色 (Tick 之后执行，双端一致)
 /// </summary>
 public class BattleManager : UnitySingleton<BattleManager>
 {
@@ -65,9 +79,39 @@ public class BattleManager : UnitySingleton<BattleManager>
     private static readonly FPVector3 P2Spawn = new FPVector3(FP.Parse("2"), FP.Zero, FP.Zero);
 
     public uint roomId = 1;
-    public bool IsOnline = false;
+
+    public BattleMode Mode { get; private set; }
+
+    public bool IsOnline => Mode == BattleMode.Online;
 
     public BattleWorld World { get; private set; }
+
+    /// <summary>
+    /// 3v3 对局 (训练场为 null)
+    /// </summary>
+    public BattleMatch Match { get; private set; }
+
+    /// <summary>
+    /// 双方阵容 (按出战顺序；训练场各一个)
+    /// </summary>
+    public PlayerLoadout[] P1Lineup { get; private set; } = Array.Empty<PlayerLoadout>();
+    public PlayerLoadout[] P2Lineup { get; private set; } = Array.Empty<PlayerLoadout>();
+
+    /// <summary>
+    /// 双方当前出战角色
+    /// </summary>
+    public CharacterObj P1 => _p1;
+    public CharacterObj P2 => _p2;
+
+    /// <summary>
+    /// 出战角色变化次数 (换人后加 1；界面据此重新绑定角色状态与按键)
+    /// </summary>
+    public int RosterVersion { get; private set; }
+
+    /// <summary>
+    /// 本机玩家的输入槽位 (单机为 P1)
+    /// </summary>
+    public int LocalSlot { get; private set; } = P1Slot;
 
     /// <summary>
     /// 本机玩家控制的角色 (UI 读取技能 CD 与查克拉)
@@ -75,7 +119,7 @@ public class BattleManager : UnitySingleton<BattleManager>
     public CharacterObj LocalCharacter { get; private set; }
 
     /// <summary>
-    /// 单机训练场 (联机为 null)：训练面板的开关与对敌人 (P2) 的操控
+    /// 单机训练场 (其他模式为 null)：训练面板的开关与对敌人 (P2) 的操控
     /// </summary>
     public TrainingSession Training { get; private set; }
 
@@ -86,35 +130,64 @@ public class BattleManager : UnitySingleton<BattleManager>
     private CharacterObj _p1;
     private CharacterObj _p2;
     private HpMode _hpMode;
+    private IBotBrain _bot;
+    private bool _finishReported;
 
     /// <summary>
     /// 开局地图 (训练场换人重开时沿用当前地图)；为 null 时用地图注册表的默认地图
     /// </summary>
     private MapConfig _startMap;
 
-    public void EnterBattle(bool isOnline, uint targetRoomId = 1)
+    /// <summary>
+    /// 单机训练场：调试配置开启时使用其中的出战配置与无限血
+    /// </summary>
+    public void EnterTraining()
     {
-        this.roomId = targetRoomId;
-        this.IsOnline = isOnline;
-
+        Mode = BattleMode.Training;
+        roomId = 1;
         _p1Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
         _p2Loadout = new PlayerLoadout { characterId = DefaultCharacterId };
         _hpMode = HpMode.Normal;
-        if (!isOnline)
+        DebugConfig dbgConfig = AssetManager.Instance.Load<DebugConfig>(DebugConfig.DefaultPath);
+        if (dbgConfig != null)
         {
-            DebugConfig dbgConfig = Resources.Load<DebugConfig>(DebugConfig.DefaultPath);
-            if (dbgConfig != null)
+            // 无限血只用于单机：联机双方配置不同会导致不同步
+            if (dbgConfig.infiniteHp) _hpMode = HpMode.Refill;
+            if (dbgConfig.isBattleDebug)
             {
-                // 无限血只用于单机：联机双方配置不同会导致不同步
-                if (dbgConfig.infiniteHp) _hpMode = HpMode.Refill;
-                if (dbgConfig.isBattleDebug)
-                {
-                    _p1Loadout = dbgConfig.player1;
-                    _p2Loadout = dbgConfig.player2;
-                }
+                _p1Loadout = dbgConfig.player1;
+                _p2Loadout = dbgConfig.player2;
             }
         }
 
+        _startMap = null;
+        StartBattle();
+    }
+
+    /// <summary>
+    /// 单机人机对战 (3v3)：P2 阵容由调用方给出 (人机随机)
+    /// </summary>
+    public void EnterVsAI(PlayerLoadout[] p1Lineup, PlayerLoadout[] p2Lineup)
+    {
+        Mode = BattleMode.VsAI;
+        roomId = 1;
+        P1Lineup = p1Lineup;
+        P2Lineup = p2Lineup;
+        _hpMode = HpMode.Normal;
+        _startMap = null;
+        StartBattle();
+    }
+
+    /// <summary>
+    /// 联机对战：进房 (EnterRoomRsp 后由选人界面提交阵容)，双方阵容由服务器广播 (LineupNtf)，开局 (GameStartNtf) 时加载
+    /// </summary>
+    public void EnterOnline(uint targetRoomId)
+    {
+        Mode = BattleMode.Online;
+        roomId = targetRoomId;
+        P1Lineup = Array.Empty<PlayerLoadout>();
+        P2Lineup = Array.Empty<PlayerLoadout>();
+        _hpMode = HpMode.Normal;
         _startMap = null;
         StartBattle();
     }
@@ -133,7 +206,7 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         yield return CleanupRoutine();
 
-        IsOnline = false;
+        Mode = BattleMode.Training;
         _p1Loadout = p1;
         _p2Loadout = p2;
         _hpMode = hpMode;
@@ -148,6 +221,27 @@ public class BattleManager : UnitySingleton<BattleManager>
     {
         PlayerLoadout loadout = slot == P2Slot ? _p2Loadout : _p1Loadout;
         return loadout != null ? loadout.secret : null;
+    }
+
+    /// <summary>
+    /// 该槽位当前出战角色的出战配置 (训练场为该槽位配置；3v3 为阵容中当前出战者)
+    /// </summary>
+    public PlayerLoadout CurrentLoadout(int slot)
+    {
+        if (Match == null) return slot == P2Slot ? _p2Loadout : _p1Loadout;
+        PlayerLoadout[] lineup = slot == P2Slot ? P2Lineup : P1Lineup;
+        int index = slot == P2Slot ? Match.P2Index : Match.P1Index;
+        return index >= 0 && index < lineup.Length ? lineup[index] : null;
+    }
+
+    /// <summary>
+    /// 镜头回到画面中间再移向本机角色 (每回合开场，由界面在转场盖住画面时调用；只影响表现)
+    /// </summary>
+    public void FocusCameraFromCenter()
+    {
+        CameraControllor.Instance.ResetView();
+        ActorView local = LocalCharacter != null ? ViewManager.Instance.GetView(LocalCharacter.EntityId) : null;
+        if (local != null) CameraControllor.Instance.SetTarget(local, false);
     }
 
     private static PlayerLoadout WithCharacterAndSecret(PlayerLoadout loadout, int characterId, string secret)
@@ -177,6 +271,8 @@ public class BattleManager : UnitySingleton<BattleManager>
 
     private void LoadBattle()
     {
+        if (IsOnline) ApplyOnlineLineups();
+
         MapManager.Instance.LoadMap(_startMap != null ? _startMap : MapRegistry.Default);
         World = new BattleWorld(MapManager.Instance.CurrentMapLogic);
         _spawnPool = new SpawnPool();
@@ -186,23 +282,72 @@ public class BattleManager : UnitySingleton<BattleManager>
         SecretScrollRegistry.CollectBuffs(scrollBuffs);
         foreach (BuffInfo buff in scrollBuffs) World.BuffTable[buff.id] = buff;
 
-        int localSlot = IsOnline ? LockstepManager.Instance.MyGameId : P1Slot;
-        SceneManager.Instance.InitWorld(localSlot);
+        LocalSlot = IsOnline ? LockstepManager.Instance.MyGameId : P1Slot;
+        SceneManager.Instance.InitWorld(LocalSlot);
+
+        Match = null;
+        Training = null;
+        _bot = null;
+        _finishReported = false;
+        if (Mode != BattleMode.Training)
+        {
+            // 3v3：双方阵容全部角色的模板、生成物与特效在加载阶段预建 (换人时不再加载资源)
+            foreach (PlayerLoadout loadout in P1Lineup) Prewarm(loadout.characterId);
+            foreach (PlayerLoadout loadout in P2Lineup) Prewarm(loadout.characterId);
+            Match = new BattleMatch(Mathf.Min(P1Lineup.Length, P2Lineup.Length));
+            _p1Loadout = P1Lineup[0];
+            _p2Loadout = P2Lineup[0];
+            if (Mode == BattleMode.VsAI) _bot = MeleeBotBrain.Create();
+        }
 
         ActorView p1 = SpawnPlayer(_p1Loadout, P1Slot, P1Spawn, facingLeft: false);
         ActorView p2 = SpawnPlayer(_p2Loadout, P2Slot, P2Spawn, facingLeft: true);
         _p1 = p1 != null ? p1.Character : null;
         _p2 = p2 != null ? p2.Character : null;
-        ActorView local = localSlot == P2Slot ? p2 : p1;
+        ActorView local = LocalSlot == P2Slot ? p2 : p1;
         LocalCharacter = local != null ? local.Character : null;
         if (local != null) CameraControllor.Instance.SetTarget(local, true);
-        Training = IsOnline || _p1 == null || _p2 == null ? null : new TrainingSession(_p1, _p2, _hpMode, MeleeBotBrain.Create());
+        if (Mode == BattleMode.Training && _p1 != null && _p2 != null) Training = new TrainingSession(_p1, _p2, _hpMode, MeleeBotBrain.Create());
+        RosterVersion++;
 
         // 生成物实例与视图、动作事件特效全部在加载阶段预建 (局内不再 Load / 新建实例)
         SceneManager.Instance.PrewarmSpawnViews(_spawnPool.Instances);
 
-        PlayerLoadout localLoadout = localSlot == P2Slot ? _p2Loadout : _p1Loadout;
-        GameFlow.Instance.OnBattleLoaded(new KiHan.UI.BattleHudPanel.Args { P1 = _p1, P2 = _p2, Local = LocalCharacter, LocalLoadout = localLoadout, Training = Training });
+        PlayerLoadout localLoadout = LocalSlot == P2Slot ? _p2Loadout : _p1Loadout;
+        GameFlow.Instance.OnBattleLoaded(new KiHan.UI.BattleHudArgs { Mode = Mode, P1 = _p1, P2 = _p2, Local = LocalCharacter, LocalLoadout = localLoadout, Training = Training });
+    }
+
+    /// <summary>
+    /// 联机阵容 (LineupNtf)：game_id 1 / 2 对应 P1 / P2；缺失时用默认角色补齐并报错
+    /// </summary>
+    public void ApplyOnlineLineups()
+    {
+        P1Lineup = ToLoadouts(P1Slot);
+        P2Lineup = ToLoadouts(P2Slot);
+    }
+
+    private static PlayerLoadout[] ToLoadouts(int gameId)
+    {
+        if (!LockstepManager.Instance.Lineups.TryGetValue(gameId, out List<LineupMember> members) || members.Count == 0)
+        {
+            Debug.LogError($"[BattleManager] 没有收到 {gameId}P 的阵容 (LineupNtf)，使用默认角色");
+            return new[] { new PlayerLoadout { characterId = DefaultCharacterId } };
+        }
+        var result = new PlayerLoadout[members.Count];
+        for (int i = 0; i < members.Count; i++) result[i] = new PlayerLoadout { characterId = members[i].character_id, secret = members[i].secret ?? string.Empty };
+        return result;
+    }
+
+    /// <summary>
+    /// 同一角色的生成物实例、Buff 配置与动作 / Buff 特效只预建一次
+    /// </summary>
+    private void Prewarm(int characterId)
+    {
+        if (!CharacterFactory.IsKnown(characterId)) characterId = DefaultCharacterId;
+        if (!_spawnPool.Prewarm(characterId)) return;
+        CharacterTemplate template = CharacterFactory.GetTemplate(characterId);
+        foreach (BuffInfo buff in template.Buffs.Values) World.BuffTable[buff.id] = buff;
+        SceneManager.Instance.PreloadActionEffects(template);
     }
 
     /// <summary>
@@ -223,27 +368,98 @@ public class BattleManager : UnitySingleton<BattleManager>
 
         World.AddCharacter(character);
         _characters.Add(character);
-        // 同一角色的生成物实例、Buff 配置与动作 / Buff 特效只预建一次
-        if (_spawnPool.Prewarm(character.CharacterId))
-        {
-            CharacterTemplate template = CharacterFactory.GetTemplate(character.CharacterId);
-            foreach (BuffInfo buff in template.Buffs.Values) World.BuffTable[buff.id] = buff;
-            SceneManager.Instance.PreloadActionEffects(template);
-        }
+        Prewarm(character.CharacterId);
         return SceneManager.Instance.SpawnView(character);
+    }
+
+    /// <summary>
+    /// 人机 / 训练场敌人的本帧输入 (虚拟网络打包 P2 输入帧时调用)
+    /// </summary>
+    public void FillBotInput(uint frameId, InputFrame frame)
+    {
+        if (Training != null)
+        {
+            Training.FillDummyInput(frameId, frame);
+            return;
+        }
+        if (_bot == null || _p2 == null || _p1 == null) return;
+        _bot.Think(_p2, _p1, frameId, frame);
     }
 
     public void OnBattleTick(RoomFrame frame)
     {
         if (!GameFlow.Instance.IsGameRunning || World == null) return;
 
+        if (Match != null) World.InputLocked = Match.InputLocked;
         bool teleported = Training != null && Training.BeforeTick();
         World.Tick(frame);
         Training?.AfterTick(World);
+        if (Match != null) TickMatch();
         SceneManager.Instance.OnLogicTick(World);
 
         // 训练场瞬移：敌人视图直接对齐到新位置，不从旧位置插值滑过去
         if (teleported) ViewManager.Instance.GetView(_p2.EntityId)?.SnapToLogic();
+    }
+
+    private void TickMatch()
+    {
+        Match.Tick(_p1, _p2);
+        if (Match.TakeSwap(out bool swapP1, out bool swapP2)) SwapFighters(swapP1, swapP2);
+        if (Match.Phase == MatchPhase.Finished && !_finishReported)
+        {
+            _finishReported = true;
+            int winner = Match.Result == MatchResult.P1Win ? P1Slot : Match.Result == MatchResult.P2Win ? P2Slot : 0;
+            if (IsOnline) LockstepManager.Instance.ReportGameOver(winner, HpOf(_p1), HpOf(_p2));
+        }
+    }
+
+    private static int HpOf(CharacterObj character) => character != null ? (int)character.Hp : 0;
+
+    /// <summary>
+    /// 回合换人 (对局换人帧，Tick 之后执行)：清掉全部生成物；负者 (平局双方) 换成阵容中的下一个 (继承其剩余查克拉)，胜者回到出生点并保留状态
+    /// </summary>
+    private void SwapFighters(bool swapP1, bool swapP2)
+    {
+        World.ClearSpawns();
+        if (swapP1) _p1 = ReplaceFighter(_p1, P1Lineup[Match.P1Index], P1Slot, P1Spawn, false);
+        else _p1?.ResetForRound(P1Spawn, false);
+        if (swapP2) _p2 = ReplaceFighter(_p2, P2Lineup[Match.P2Index], P2Slot, P2Spawn, true);
+        else _p2?.ResetForRound(P2Spawn, true);
+
+        _p1Loadout = P1Lineup[Match.P1Index];
+        _p2Loadout = P2Lineup[Match.P2Index];
+        LocalCharacter = LocalSlot == P2Slot ? _p2 : _p1;
+        _bot?.Reset();
+        RosterVersion++;
+
+        // 留场角色的视图直接对齐到出生点，不从旧位置滑过去
+        foreach (CharacterObj fighter in new[] { _p1, _p2 })
+        {
+            if (fighter != null) ViewManager.Instance.GetView(fighter.EntityId)?.SnapToLogic();
+        }
+    }
+
+    private CharacterObj ReplaceFighter(CharacterObj old, PlayerLoadout next, int slot, FPVector3 position, bool facingLeft)
+    {
+        int chakra = -1;
+        if (old != null)
+        {
+            if (old.Skills != null) chakra = old.Skills.Chakra;
+            World.RemoveCharacter(old);
+            _characters.Remove(old);
+            ActorView oldView = ViewManager.Instance.Unregister(old.EntityId);
+            if (oldView != null)
+            {
+                oldView.Release();
+                Destroy(oldView.gameObject);
+            }
+            Destroy(old.gameObject);
+        }
+        ActorView view = SpawnPlayer(next, slot, position, facingLeft);
+        CharacterObj fighter = view != null ? view.Character : null;
+        // 查克拉随阵容继承 (新角色查克拉上限不同时按其上限截断)
+        if (fighter != null && fighter.Skills != null && chakra >= 0) fighter.Skills.SetChakra(chakra);
+        return fighter;
     }
 
     /// <summary>
@@ -263,8 +479,10 @@ public class BattleManager : UnitySingleton<BattleManager>
         }
 
         World = null;
+        Match = null;
         LocalCharacter = null;
         Training = null;
+        _bot = null;
         _p1 = null;
         _p2 = null;
         CameraControllor.Instance.ResetView();

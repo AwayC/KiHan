@@ -9,7 +9,7 @@ using KiHan.Network;
 /// 虚拟网络层 (单机 / 训练场的本地服务器)：
 /// - 进房 (2001) 后延时下发开局 (2003)
 /// - 收到本机某一帧的输入 (2004) 立即合成该帧的确认帧递交给 LockstepManager：
-///   玩家 1 = 本机输入，玩家 2 = 训练场敌人 (面板按住的按键 + 人机)
+///   玩家 1 = 本机输入，玩家 2 = 训练场敌人 (面板按住的按键 + 人机) 或人机对战的人机
 /// 节奏由客户端 LockstepManager 的定时器决定，本地服务器不计时；确认帧对象循环复用，局内不分配内存
 /// </summary>
 public class VirtualNetworkManager : UnitySingleton<VirtualNetworkManager>, INetworkChannel
@@ -104,12 +104,12 @@ public class VirtualNetworkManager : UnitySingleton<VirtualNetworkManager>, INet
         local.JoyStickDir = localDir;
         local.Buttons = localButtons;
 
-        // 玩家 2 (训练场敌人)：面板按住的按键 + 人机 (敌人攻击)，未开启时静止
+        // 玩家 2：训练场敌人 (面板按住的按键 + 人机) 或人机对战的人机
         InputFrame dummy = frame.InputFrames[DummySlot];
         dummy.FrameId = frameId;
         dummy.JoyStickDir = JoystickDir.None;
         dummy.Buttons = ButtonMask.None;
-        BattleManager.Instance.Training?.FillDummyInput(frameId, dummy);
+        BattleManager.Instance.FillBotInput(frameId, dummy);
         return frame;
     }
 }

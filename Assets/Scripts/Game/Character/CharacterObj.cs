@@ -311,6 +311,16 @@ namespace KiHan.Logic
         /// </summary>
         public bool IsInvincible => Hurt == HurtState.Standup || InvincibleTicks > 0 || Despawning;
 
+        /// <summary>
+        /// 替身后的虚化 (表现层半透明)：从替身开始到替身带来的无敌 (替身动作 + 起身后无敌) 结束
+        /// </summary>
+        public bool IsPhantom { get; private set; }
+
+        /// <summary>
+        /// 替身时在原位置 (空中替身另在落点) 释放的烟雾特效 (全局资源，所有角色共用)
+        /// </summary>
+        public const string SubstitutionSmokeEffect = "Effect/Substitution/SubstitutionSmoke";
+
         private void Awake()
         {
             SyncInputToAction();
@@ -340,6 +350,8 @@ namespace KiHan.Logic
         /// </summary>
         public bool CanEnterAction(in ActionInfo info)
         {
+            // 已死亡不能主动出招 / 替身 (受击流程的动作由框架直接预约，不经过这里)
+            if (IsDead) return false;
             return Skills == null || Skills.CanEnter(info.id, Hurt);
         }
 
@@ -400,6 +412,7 @@ namespace KiHan.Logic
         public void Tick(FP deltaFP)
         {
             if (InvincibleTicks > 0) InvincibleTicks--;
+            if (IsPhantom && !IsInvincible) IsPhantom = false;
 
             // 技能 CD 与接段时限
             Skills?.Tick();
@@ -410,19 +423,26 @@ namespace KiHan.Logic
             // Buff 计时，到期移除
             Buffs.Tick(this);
 
-            // 僵直倒计时：命中帧之后再经过 StunTicks 帧解除，解除当帧回到默认动作
+            // 僵直倒计时：命中帧之后再经过 StunTicks 帧解除，解除当帧回到默认动作 (已死亡则倒地)
             if (Hurt == HurtState.Stun)
             {
                 StunTicks--;
-                if (StunTicks <= 0) ExitHurt();
+                if (StunTicks <= 0)
+                {
+                    if (IsDead) EnterLying();
+                    else ExitHurt();
+                }
             }
 
-            // 倒地倒计时：固定时长后起身
-            if (Hurt == HurtState.Lying)
+            // 倒地倒计时：固定时长后起身；已死亡一直躺着
+            if (Hurt == HurtState.Lying && !IsDead)
             {
                 LieTicks--;
                 if (LieTicks <= 0) EnterStandup();
             }
+
+            // 站在地上死亡 (如没有受击动作的伤害)：直接倒地，不再起身
+            if (IsDead && Spawn == null && Hurt == HurtState.None && motion.IsGrounded) EnterLying();
 
             // 推进动作状态机
             action?.Tick();
@@ -650,17 +670,26 @@ namespace KiHan.Logic
 
         /// <summary>
         /// 替身：进入 breakHurt 动作时解除当前受击 (被抓则脱离抓取者，清除僵直 / 击飞 / 倒地、外力与吸附)，
-        /// 以起身状态播放该动作 (期间无敌)，播完与倒地起身一样追加起身后无敌
+        /// 原位置放烟雾，回到地面 (空中替身直接落到正下方并在落点再放一次烟雾，清除全部速度)，
+        /// 以起身状态播放该动作 (期间无敌)，播完与倒地起身一样追加起身后无敌；无敌期间虚化 (IsPhantom)
         /// </summary>
         private void BreakHurt()
         {
             // 抓取者在下一次 UpdateGrab 发现目标已不处于被抓状态，自动松手
             GrabbedBy = null;
             StunTicks = 0;
+            LieTicks = 0;
             ClearForceMove();
             StopSuction();
             Hurt = HurtState.Standup;
+            IsPhantom = true;
             action?.Lock(false);
+
+            FPVector3 from = motion.Position;
+            World?.EmitEffect(this, SubstitutionSmokeEffect, from);
+            FPVector3 ground = new FPVector3(from.x, from.y, FP.Zero);
+            motion.Reset(ground);
+            if (from.z > FP.Zero) World?.EmitEffect(this, SubstitutionSmokeEffect, ground);
         }
 
         /// <summary>
@@ -750,6 +779,7 @@ namespace KiHan.Logic
             StunTicks = 0;
             LieTicks = 0;
             InvincibleTicks = 0;
+            IsPhantom = false;
             GrabbedBy = null;
             GrabTarget = null;
             ClearForceMove();
@@ -758,6 +788,29 @@ namespace KiHan.Logic
             if (action != null) action.ResetVariables();
             Skills?.Reset();
             Buffs.Clear();
+        }
+
+        /// <summary>
+        /// 回合换人时把留场的角色放回出生点：解除受击 / 抓取 / 外力 / 吸附 / 无敌，回到默认动作；
+        /// 保留生命值、查克拉、技能 CD 与 Buff (车轮战胜者带着剩余状态进入下一回合)
+        /// </summary>
+        public void ResetForRound(FPVector3 position, bool facingLeft)
+        {
+            ReleaseGrab();
+            if (GrabbedBy != null) GrabbedBy.ReleaseGrab();
+            Hurt = HurtState.None;
+            StunTicks = 0;
+            LieTicks = 0;
+            InvincibleTicks = 0;
+            IsPhantom = false;
+            GrabbedBy = null;
+            GrabTarget = null;
+            ClearForceMove();
+            StopSuction();
+            HitRecords.Clear();
+            if (action != null) action.ResetTo(action.DefaultActionId);
+            FacingLeft = facingLeft;
+            motion.Reset(position);
         }
 
         #endregion

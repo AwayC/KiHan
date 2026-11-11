@@ -28,7 +28,7 @@ namespace KiHan.Config
                 if (_instance == null)
                 {
                     _instance = AssetManager.Instance.Load<MapRegistry>(ResourcePath);
-                    if (_instance == null) Debug.LogError($"[MapRegistry] 找不到地图注册表: Resources/{ResourcePath}");
+                    if (_instance == null) Debug.LogError($"[MapRegistry] 找不到地图注册表: {ResourcePath}");
                 }
                 return _instance;
             }

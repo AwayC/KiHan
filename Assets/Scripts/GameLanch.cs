@@ -1,5 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
+using KiHan.Asset;
+using KiHan.HotUpdate;
 using UnityEngine;
 
 public class GameLanch : UnitySingleton<GameLanch>
@@ -22,21 +23,25 @@ public class GameLanch : UnitySingleton<GameLanch>
 #endif
         QualitySettings.vSyncCount = 0;
 
-        // 初始化游戏框架代码
-        // end
+        StartCoroutine(Boot());
+    }
 
-        // 初始化游戏逻辑模块代码
-        if (gameObject.GetComponent<GameApp>() == null)
+    /// <summary>
+    /// 启动顺序：热更 (AB 模式) → 资源提供器 → 游戏逻辑模块
+    /// </summary>
+    private IEnumerator Boot()
+    {
+        if (AssetMode.UseBundles)
         {
-            gameObject.AddComponent<GameApp>();
+            var view = HotUpdateView.Create();
+            var updater = new HotUpdater();
+            yield return updater.Run(view);
+            if (updater.Manifest == null) yield break; // ShowFatal 已显示
+            view.Close();
+            AssetManager.Instance.SetProvider(new BundleAssetProvider(updater.Manifest));
         }
-        // end
 
-        // 检查更新资源
-        // end
-
-        // 注意：不再这里直接调用 GameStart
-        // 游戏启动将由 NetworkManager 连接成功后的协议流程触发
-        // (RoomEnterResp -> PlayerReadyReq -> GameStartNtf -> GameApp.GameStart)
+        KiHan.Lua.LuaManager.Instance.Init();
+        if (gameObject.GetComponent<GameApp>() == null) gameObject.AddComponent<GameApp>();
     }
 }

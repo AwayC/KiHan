@@ -36,6 +36,11 @@ namespace KiHan.View.Render
         private const float ActorDepthStep = 0.004f;
         private const int ActorDepthSlots = 8;
 
+        /// <summary>
+        /// 替身虚化 (CharacterObj.IsPhantom) 时角色精灵的透明度
+        /// </summary>
+        private const float PhantomAlpha = 0.45f;
+
         private static Material _spriteMaterial;
 
         public CharacterObj Character { get; private set; }
@@ -340,18 +345,20 @@ namespace KiHan.View.Render
             }
 
             bool flip = Character.FacingLeft;
+            float alpha = Character.IsPhantom ? PhantomAlpha : 1f;
             _mainRenderer.enabled = true;
             _mainRenderer.sprite = frame.Sprite;
             _mainRenderer.flipX = flip;
+            if (_mainRenderer.color.a != alpha) _mainRenderer.color = new Color(1f, 1f, 1f, alpha);
             _mainRenderer.transform.localPosition = new Vector3(
                 (flip ? -frame.Offset.x : frame.Offset.x) * BattleViewSpace.PixelToWorld,
                 frame.Offset.y * BattleViewSpace.PixelToWorld,
                 0f);
 
-            RenderExtraLayers(frame, flip);
+            RenderExtraLayers(frame, flip, alpha);
         }
 
-        private void RenderExtraLayers(SpriteFrameData frame, bool flip)
+        private void RenderExtraLayers(SpriteFrameData frame, bool flip, float alpha)
         {
             List<EffectLayerInfo> layers = frame.ExtraLayers;
             int count = layers != null ? layers.Count : 0;
@@ -364,7 +371,9 @@ namespace KiHan.View.Render
                 SpriteRenderer sr = _extraRenderers[i];
                 sr.enabled = true;
                 sr.sprite = layer.Sprite;
-                sr.color = layer.TintColor;
+                Color tint = layer.TintColor;
+                tint.a *= alpha;
+                sr.color = tint;
                 sr.flipX = flip;
                 // 本地 -Z 朝向相机：用微小深度偏移代替 sortingOrder
                 sr.transform.localPosition = new Vector3(

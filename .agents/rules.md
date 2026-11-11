@@ -1,5 +1,5 @@
 # KiHan 架构重构与开发规范约定 (Project Specification)
-# 更新时间：2026-10-10
+# 更新时间：2026-11-11
 
 本文档记录当前项目在 ACT 格斗框架集成与帧同步（Lockstep）改造过程中的核心强制规范。所有后续开发与子模块实现均须严格遵守。
 
@@ -150,7 +150,17 @@
    - **材质与队列**：3D 场景统一用 `KiHan/Map/Lightmapped`（漫反射 × 色调 × UV2 光照贴图，不受实时灯光；开关 `_UseLightmap`，`_ZWrite / _SrcBlend / _DstBlend / _Cull / _Cutoff` 按类型设置，`_Exposure` 调明暗）。光照用烘焙贴图：外部资源自带的光照贴图直接接入，没有的自绘光照贴图 (UV2 铺满整面)。队列：天穹 `ZWrite Off` + `1000`；不透明 `2000`；镂空 (`_Cutoff = 0.33`) `2450`；半透明 (`ZWrite Off`, `SrcAlpha / OneMinusSrcAlpha`) `2900`。
    - **外部模型坐标系转换**：从 UE / glTF (右手系) 导入 Unity (左手系) 时，顶点坐标须转换为 `(X, Y, -Z)`、翻转三角形绕序 `(i0, i2, i1)`，且贴图 UV 纵向翻转 `v_unity = 1 - v_gltf`。
 4. **四步标准接入流程**：
-   - ① 网格 / 材质 / 贴图放入 `Assets/AssetPackages/Maps/<id>/` 的 `Meshes/`、`Materials/`、`Textures/`（不放 Resources，由预制体引用打包）；
-   - ② 场景预制体存为 `Assets/AssetPackages/Resources/Maps/<id>/scen.prefab`；
+   - ① 网格 / 材质 / 贴图放入 `Assets/AssetPackages/Maps/<id>/` 的 `Meshes/`、`Materials/`、`Textures/`（不放 Res，由预制体引用打包）；
+   - ② 场景预制体存为 `Assets/AssetPackages/Res/Maps/<id>/scen.prefab`；
    - ③ 创建 `Assets/AssetPackages/Maps/<id>/<id>.asset` (`MapConfig`)，填写 `id`、`displayName`、`scene`、`shot` (`320×443` 缩略图)，3D 地图勾选 `is3D` 并在 `camera3D` 中调该场景的相机参数 (`stageDistance`、`stageHeightSlope`、`stagePitch`、`farDistance`、`farHeightSlope`、`farPitch`、`farParallaxScale`、`farVerticalOffset`、`farZoomScale`、`farBackgroundColor`)；Play 模式下改该资源或 Main Camera Inspector 底部的「当前地图 3D 相机参数」即时生效并保留；
-   - ④ 将 `<id>.asset` 登记到 `Assets/AssetPackages/Resources/Config/MapRegistry.asset`。
+   - ④ 将 `<id>.asset` 登记到 `Assets/AssetPackages/Res/Config/MapRegistry.asset`。
+
+---
+
+## 十、 资源与 Lua 热更
+
+1. **禁止 `Resources.Load`**：运行时资源一律走 `AssetManager.Instance.Load<T>` / `TryLoad<T>` (静默回退查找) / `LoadAll<T>` (单个文件的子资产)。
+2. **地址规则**：相对 `Assets/AssetPackages/Res/` 的路径、不含扩展名 (如 `Config/MapRegistry`)；Lua 为 `Lua/` + 相对 `Assets/Lua/` 的路径 (`KiHan.Asset.AssetAddress`)。
+3. **Lua 面板**：面板逻辑放 `Assets/Lua/ui/`，入口 `Assets/Lua/main.lua`；Lua 新用到的 `CS.` 类型必须同步加进 `Assets/Editor/Lua/XLuaGenConfig.cs` 的 `LuaCallCSharp` (编辑器走反射，IL2CPP 真机需 `XLua/Generate Code` 生成代码)。
+4. **AB 与首包**：菜单 `KiHan/资源/构建 AB 包/Android|编辑器验证 (Win64)` 输出 `Build/Bundles/<target>/`，`KiHan/资源/写入首包/...` 写入首包；编辑器默认直接读 AssetDatabase，勾选 `KiHan/资源/编辑器使用 AB 包` 走 AB。
+5. **热更范围**：只热更 Lua 与资源 (启动时 `HotUpdater`)，不启用 xLua `[Hotfix]`；C# 改动必须整包更新。

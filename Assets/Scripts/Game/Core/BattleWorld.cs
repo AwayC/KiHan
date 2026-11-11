@@ -74,6 +74,16 @@ namespace KiHan.Logic
 
         public IReadOnlyList<CharacterObj> Characters => _characters;
 
+        /// <summary>
+        /// 锁定玩家输入 (对局播报 / 换人阶段)：玩家角色本帧收到空输入；由调用方在 Tick 前按对局阶段设置
+        /// </summary>
+        public bool InputLocked { get; set; }
+
+        /// <summary>
+        /// 锁定时喂给玩家的空输入：松开全部按键、摇杆回中 (null 表示"本帧没有数据、保持上一帧"，锁定时不能用，否则会一直按着)
+        /// </summary>
+        private readonly InputFrame _releasedInput = new InputFrame { JoyStickDir = JoystickDir.None, Buttons = ButtonMask.None };
+
         public BattleWorld(MapLogic map)
         {
             Map = map;
@@ -156,6 +166,24 @@ namespace KiHan.Logic
         }
 
         /// <summary>
+        /// 框架触发的一次性特效 (如替身烟雾)：在逻辑坐标 position 播放，不跟随角色；asset 不在角色包内时按全局资源地址加载
+        /// </summary>
+        public void EmitEffect(CharacterObj source, string asset, FPVector3 position)
+        {
+            ViewEvents.Add(new ViewEvent
+            {
+                Type = ActionEventType.Effect,
+                EntityId = source.EntityId,
+                CharacterId = source.CharacterId,
+                ActionSerial = source.action != null ? source.action.ActionSerial : 0,
+                Asset = asset,
+                FacingLeft = source.FacingLeft,
+                Position = position,
+                OwnerSlot = source.RootOwner.InputSlot
+            });
+        }
+
+        /// <summary>
         /// 给角色添加一层 Buff，持续 ticks 帧 (&lt;= 0 时按配置时长)；新增层时通知表现层播放其循环特效，达到叠层上限只刷新时间
         /// </summary>
         public void AddBuff(CharacterObj target, BuffInfo buff, int ticks = 0)
@@ -219,7 +247,8 @@ namespace KiHan.Logic
                 InputFrame input = null;
                 if (cha.InputSlot >= 0)
                 {
-                    if (frame != null && frame.InputFrames != null) frame.InputFrames.TryGetValue((byte)cha.InputSlot, out input);
+                    if (InputLocked) input = _releasedInput;
+                    else if (frame != null && frame.InputFrames != null) frame.InputFrames.TryGetValue((byte)cha.InputSlot, out input);
                 }
                 else if (cha.Brain != null)
                 {
@@ -298,6 +327,22 @@ namespace KiHan.Logic
                 RemoveCharacter(cha);
                 Despawned.Add(cha.EntityId);
                 _despawning.Add(cha);
+            }
+        }
+
+        /// <summary>
+        /// 立即回收全部生成物 (回合换人时调用，在 Tick 之后、表现层读取之前；EntityId 记入 Despawned 供表现层隐藏视图)
+        /// </summary>
+        public void ClearSpawns()
+        {
+            for (int i = _characters.Count - 1; i >= 0; i--)
+            {
+                CharacterObj cha = _characters[i];
+                if (cha.Spawn == null) continue;
+
+                RemoveCharacter(cha);
+                Despawned.Add(cha.EntityId);
+                Spawner?.Release(cha);
             }
         }
 

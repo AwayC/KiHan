@@ -28,7 +28,7 @@ namespace KiHan.Config
                 if (_instance == null)
                 {
                     _instance = AssetManager.Instance.Load<CharacterRegistry>(ResourcePath);
-                    if (_instance == null) Debug.LogError($"[CharacterRegistry] 找不到角色注册表: Resources/{ResourcePath}");
+                    if (_instance == null) Debug.LogError($"[CharacterRegistry] 找不到角色注册表: {ResourcePath}");
                 }
                 return _instance;
             }

@@ -1,8 +1,8 @@
 # KiHan UI 开发规范 (UI Specification)
-# 更新时间：2026-10-30
+# 更新时间：2026-11-11
 
 > 适用于 UGUI 界面 (面板、战斗 HUD、弹窗)。新写或修改 UI 时遵守；与现有代码冲突时以本文为准并顺手迁移。
-> 框架结构 (分层、`UIPanel` / `UIManager`、自动绑定、`GameFlow`) 见 [DOCS/UI_FRAMEWORK.md](../DOCS/UI_FRAMEWORK.md)，新建界面的步骤见 [DOCS/UI_GUIDE.md](../DOCS/UI_GUIDE.md)。
+> 框架结构 (分层、`LuaPanel` / `UIManager`、Lua 面板、自动绑定、`GameFlow`) 见 [DOCS/UI_FRAMEWORK.md](../DOCS/UI_FRAMEWORK.md)，新建界面的步骤见 [DOCS/UI_GUIDE.md](../DOCS/UI_GUIDE.md)。面板逻辑写在 Lua (`Assets/Lua/ui/`)，部件 (`UIView`) 写在 C#。
 
 ---
 
@@ -10,12 +10,12 @@
 
 1. **按压动画统一用 Q 弹缩放 (`UIPressBounce`)**：
    - 所有没有特殊设计的按钮都必须带按压回弹：按下缩小到 0.88，松开弹回并小幅过冲后回稳。
-   - 面板 (`UIPanel` 子类) 由 `UIManager` 在 `OnCreate` 前自动给面板内所有 `Button` 挂上，无需手动添加；战斗虚拟按键 (`VirtualButton`) 自动挂上。
+   - 面板 (`LuaPanel`) 由 `UIManager` 在 Lua `OnCreate` 前自动给面板内所有 `Button` 挂上，无需手动添加；战斗虚拟按键 (`VirtualButton`) 自动挂上。
    - 运行时动态生成的 UI (不经过 `UIManager` 的预制体实例) 生成后调用 `UIPressBounce.AttachToButtons(go)`。
    - 非 `Button` 的可点击节点需要回弹时，直接在预制体上添加 `UIPressBounce`。
    - 手感参数 (缩放 / 刚度 / 阻尼) 保持默认，确有需要时在该按钮的 `UIPressBounce` 上单独调整，不改默认值。
 2. **有特殊按压设计的按钮**：挂 `UIPressBounceIgnore`，自动挂载会跳过它，再自行实现表现。禁止为了绕开自动挂载去删除或禁用 `UIPressBounce`。
-3. **面板初始化写在 `OnCreate`**：不要在面板里写 `Awake` / `Start`；按钮监听在 `OnCreate` 中添加，订阅在 `OnOpen` / `OnClose` 中成对处理。
+3. **面板初始化写在 Lua `OnCreate`**：部件不要写 `Awake` / `Start` 做面板初始化；按钮监听在 `OnCreate` 中用 `self:OnClick` 添加，C# 委托字段在 `OnOpen` 中用 `self:Listen` 订阅 (关闭时自动移除)。
 4. **不要禁用交互组件来省 Update**：EventSystem 不向禁用的组件派发点击事件；需要空闲时不计算，用标志位在 `Update` 开头直接返回。
 5. **按钮不可用**：用 `Button.interactable = false`，此时不播放按压动画；不要只换图不改 `interactable`。
 
@@ -23,7 +23,7 @@
 
 ## 二、 节点与绑定
 
-1. **节点引用全部序列化，用 `@` 前缀自动绑定**：需要被代码引用的节点改名为 `@名字`，菜单 **KiHan/UI/生成绑定** 生成 `<类名>.Bind.cs` 并自动赋值 (规则见 UI_FRAMEWORK.md 第 5 节)；禁止运行时按名字 `transform.Find` / 递归查找节点，禁止为找不到节点写备用名回退。
+1. **节点引用全部序列化，用 `@` 前缀自动绑定**：需要被代码引用的节点改名为 `@名字`，菜单 **KiHan/UI/生成全部绑定**：面板 (`LuaPanel`) 写入根节点的引用表，Lua 里用 `self.名字` (如 `@StartBtn` → `self.startBtn`)；部件 (`UIView`) 生成 `<类名>.Bind.cs` 并自动赋值 (规则见 UI_FRAMEWORK.md 第 5 节)；禁止运行时按名字 `transform.Find` / 递归查找节点，禁止为找不到节点写备用名回退。
 2. **一排同类子节点 (豆、列表项)** 用数组绑定 (`@Bean_0`、`@Bean_1`)，或在部件 `Awake` 中 `GetComponentsInChildren` 收集一次，之后只用缓存。
 3. **UI 节点必须是 `RectTransform`**：在 Canvas 下用"右键 → UI"创建，或复制已有 UI 节点；Canvas 外 Create Empty 再拖进来会得到普通 Transform，锚点、Layout、SafeArea 都会失效。
 4. **命名**：
